@@ -1,0 +1,68 @@
+##
+## PIN tools
+##
+
+##############################################################
+#
+# Here are some things you might want to configure
+#
+##############################################################
+
+include ../../miami.config
+
+##############################################################
+#
+# Tools - you may wish to add your tool name to TOOL_ROOTS
+#
+##############################################################
+
+TOOL_ROOTS = streamsim
+TOOL_VAR = vars_srd
+TOOL_OBJ_DIR = streamsim
+
+PIN_RDISTANCE_OBJS = streamtool.o 
+
+RDISTANCE_OBJS = stream_reuse.o load_module.o
+
+COMMON_OBJS = miami_utils.o cache_sim.o 
+
+PIN_COMMON_OBJS = on_demand_pin.o use_mpi_rank.o
+
+OA_OBJS = 
+
+TOOLS = $(TOOL_ROOTS:%=$(EXEDIR)%$(PINTOOL_SUFFIX)) 
+OBJS = $(RDISTANCE_OBJS:%=$(OBJDIR)$(TOOL_OBJ_DIR)/%) $(PIN_RDISTANCE_OBJS:%=$(OBJDIR)pinobj/%) \
+ $(COMMON_OBJS:%=$(OBJDIR)common/%) $(PIN_COMMON_OBJS:%=$(OBJDIR)pinobj/%) \
+ $(OA_OBJS:%=$(OBJDIR)oautils/%)
+
+MAIN_PIN_OBJS = $(PIN_RDISTANCE_OBJS:%=$(OBJDIR)pinobj/%)
+
+# finds files for the compiling rules
+vpath %.C $(MIAMI_HOME)/src/StreamSim
+vpath %.C $(MIAMI_HOME)/src/common
+vpath %.C $(MIAMI_HOME)/src/OAUtils
+
+##############################################################
+#
+# build rules
+#
+##############################################################
+
+include ../make.rules
+
+.force:
+
+$(OBJDIR): .force
+	mkdir -p $(OBJDIR)
+	mkdir -p $(OBJDIR)pinobj
+	mkdir -p $(OBJDIR)$(TOOL_OBJ_DIR)
+	mkdir -p $(OBJDIR)common
+	mkdir -p $(OBJDIR)oautils
+
+$(TOOLS): $(OBJS)
+
+$(TOOLS): %$(PINTOOL_SUFFIX) : $(OBJS)
+	$(LINKER) $(TOOL_LDFLAGS) $(LINK_DEBUG) $(LINK_EXE)$@ $(OBJS) $(TOOL_LPATHS) $(TOOL_LIBS) $(DBG) -lstdc++
+	@sed -e 's/XTOOLVARX/$(TOOL_VAR)/g' -e 's/XTOOLLIBX/$(TOOL_ROOTS)$(PINTOOL_SUFFIX)/g' $(BINSCRIPT) > $(BINDIR)$(TOOL_ROOTS)
+	@chmod +x $(BINDIR)$(TOOL_ROOTS)
+

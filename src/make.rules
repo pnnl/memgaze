@@ -1,0 +1,140 @@
+# -*-Mode: makefile;-*-
+
+# Common MIAMI make rules
+##############################################################
+#
+# set up and include *.config files
+#
+##############################################################
+PIN_ROOT = $(PIN_HOME)
+KIT = 1
+TARGET_OS = linux
+
+XED_HOME ?= ${PIN_HOME}/extras/xed2-intel64
+## define special paths that must be added to the LD_LIBRARY_PATH when invoking
+## MIAMI components. These may be libraries associated with a compiler from a
+## non-standard location.
+MIAMI_LIBRARY_PATHS = $(BINUTILS_HOME)/lib:$(BINUTILS_HOME)/lib64:$(DYNINST_LIB)
+
+
+BINUTILS_CFLAGS = -I$(BINUTILS_HOME)/include
+BINUTILS_LDFLAGS = \
+	-L$(BINUTILS_HOME)/lib -L$(BINUTILS_HOME)/lib64 \
+	-lbfd -liberty \
+
+
+DYNINST_CXXFLAGS = -I$(DYNINST_INC)
+DYNINST_LDFLAGS = \
+	-L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) \
+	-ldyninstAPI -ldyninstAPI_RT -lparseAPI -lsymtabAPI -linstructionAPI -lcommon
+
+
+TARGET_COMPILER?=gnu
+ifdef OS
+    ifeq (${OS},Windows_NT)
+        TARGET_COMPILER=ms
+    endif
+endif
+
+ifeq ($(TARGET_COMPILER),gnu)
+    include $(PIN_HOME)/source/tools/Config/unix.vars
+    include $(PIN_HOME)/source/tools/Config/makefile.unix.config
+    DBG ?= -g
+    OPT ?= -O3
+    WFLAGS = -Wall -Wno-error -Wno-unknown-pragmas -Wno-unused-function \
+         -fno-strict-aliasing
+    WXXFLAGS = -Woverloaded-virtual
+    CXXFLAGS ?= -fPIC $(DBG) $(OPT) $(WFLAGS) $(WXXFLAGS) $(DYNINST_CXXFLAGS) -I. -I../common -I..
+    CFLAGS ?= -fPIC $(DBG) $(OPT) $(WFLAGS) -I. -I../common -I..
+endif
+
+ifeq ($(TARGET_COMPILER),ms)
+    include $(PIN_HOME)/source/tools/Config/makefile.ms.config
+    DBG?=
+endif
+
+MIAMI_TARGET ?= $(MIAMI_HOME)/install
+BINDIR = $(MIAMI_TARGET)/bin/
+EXEDIR = $(BINDIR)libexec/
+OBJDIR = $(MIAMI_HOME)/objs/
+ETCDIR = $(MIAMI_TARGET)/etc
+VARSDIR = $(ETCDIR)/vars
+ifeq ($(MIAMI_KIT),1)
+   VARSFILE = $(ETCDIR)/miami_vars
+else
+   VARSFILE = $(ETCDIR)/vars/$(TOOL_VAR)
+endif
+
+BINSCRIPT ?= $(MIAMI_HOME)/src/tools/run_tool.in
+PINCONFIG = $(MIAMI_HOME)/src/tools/pin_config
+
+$(OBJDIR)pinobj/%.o : %.cpp
+	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ)$@ $<
+
+$(OBJDIR)pinobj/%.o : %.C
+	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ)$@ $<
+
+$(OBJDIR)pinobj/%.o : %.c
+	$(CC) $(TOOL_CFLAGS) $(CFLAGS) $(COMP_OBJ)$@ $<
+
+$(OBJDIR)pinstatic/%.o : %.C
+	$(CXX) $(TOOL_CXXFLAGS) -DSTATIC_COMPILATION $(CXXFLAGS) $(COMP_OBJ)$@ $<
+
+$(OBJDIR)$(TOOL_OBJ_DIR)/%.o : %.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(OBJDIR)$(TOOL_OBJ_DIR)/%.o : %.C
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(OBJDIR)$(TOOL_OBJ_DIR)/%.o : %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OBJDIR)common/source_file_mapping_binutils.o : source_file_mapping_binutils.C
+	$(CXX) $(CXXFLAGS) $(BINUTILS_CFLAGS) -c -o $@ $<
+
+$(OBJDIR)common/%.o : %.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(OBJDIR)common/%.o : %.C
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(OBJDIR)common/%.o : %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OBJDIR)oautils/%.o : %.C
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(OBJDIR)tarjans/%.o : %.C
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(OBJDIR)tarjans/%.oo : %.C
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+
+info:
+	@echo "PIN_HOME=$(PIN_HOME)"
+	@echo "DYNINST_HOME=$(DYNINST_HOME)"
+	@echo "MIAMI_HOME=$(MIAMI_HOME)"
+	@echo "MIAMI_TARGET=$(MIAMI_TARGET)"
+	@echo "TOOL_OBJ_DIR=$(TOOL_OBJ_DIR)"
+	@echo "TOOL_CXXFLAGS=$(TOOL_CXXFLAGS)"
+	@echo "COMP_OBJ=$(COMP_OBJ)"
+
+all: tools
+	mkdir -p $(VARSDIR)
+	@echo "PIN_HOME=$(PIN_HOME)" > $(VARSFILE)
+	@echo "MIAMI_LIBRARY_PATHS=$(MIAMI_LIBRARY_PATHS)" >> $(VARSFILE)
+	@cp -p $(PINCONFIG) $(ETCDIR)
+
+tools: $(OBJDIR) $(EXEDIR) $(TOOLS)
+
+$(EXEDIR): .force
+	mkdir -p $(BINDIR)
+	mkdir -p $(EXEDIR)
+
+## cleaning
+clean:
+	-rm -rf $(OBJS) $(MAIN_PIN_OBJS) *.out *.tested *.failed makefile.copy *~
+
+cleanall distclean: clean
+	-rm -rf $(MIAMI_TARGET) $(OBJDIR)

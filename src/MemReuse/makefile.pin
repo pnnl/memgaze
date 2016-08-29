@@ -1,0 +1,76 @@
+##
+## PIN tools
+##
+
+##############################################################
+#
+# Here are some things you might want to configure
+#
+##############################################################
+
+include ../../miami.config
+
+##############################################################
+#
+# Tools - you may wish to add your tool name to TOOL_ROOTS
+#
+##############################################################
+
+
+TOOL_ROOTS = memreuse
+TOOL_VAR = vars_mrd
+TOOL_OBJ_DIR = mrdsim
+
+PIN_MEMREUSE_OBJS = memreuse.o
+MEMREUSE_OBJS = CFG.o routine.o load_module.o data_reuse.o
+
+PIN_COMMON_OBJS = on_demand_pin.o use_mpi_rank.o instruction_decoding.o
+COMMON_OBJS = PrivateCFG.o printable_class.o private_routine.o \
+   file_utilities.o miami_globals.o static_memory_analysis.o \
+   register_class.o instr_info.o instr_bins.o base_slice.o \
+   instruction_class.o uop_code_cache.o slice_references.o Assertion.o \
+   debug_miami.o loadable_class.o static_branch_analysis.o \
+   canonical_ops.o miami_utils.o
+
+OA_OBJS = BaseGraph.o DGraph.o
+
+TARJ_OBJS = TarjanIntervals.o MiamiRIFG.o UnionFindUniverse.o
+
+TOOLS = $(TOOL_ROOTS:%=$(EXEDIR)%$(PINTOOL_SUFFIX)) 
+OBJS = $(MEMREUSE_OBJS:%=$(OBJDIR)$(TOOL_OBJ_DIR)/%) $(PIN_MEMREUSE_OBJS:%=$(OBJDIR)pinobj/%) \
+ $(COMMON_OBJS:%=$(OBJDIR)common/%) $(PIN_COMMON_OBJS:%=$(OBJDIR)pinobj/%) \
+ $(OA_OBJS:%=$(OBJDIR)oautils/%) $(TARJ_OBJS:%=$(OBJDIR)tarjans/%)
+
+MAIN_PIN_OBJS = $(PIN_MEMREUSE_OBJS:%=$(OBJDIR)pinobj/%)
+
+# finds files for the compiling rules
+vpath %.C $(MIAMI_HOME)/src/MemReuse
+vpath %.C $(MIAMI_HOME)/src/common
+vpath %.C $(MIAMI_HOME)/src/OAUtils
+vpath %.C $(MIAMI_HOME)/src/tarjans
+
+##############################################################
+#
+# build rules
+#
+##############################################################
+
+include ../make.rules
+
+.force:
+
+$(OBJDIR): .force
+	mkdir -p $(OBJDIR)
+	mkdir -p $(OBJDIR)pinobj
+	mkdir -p $(OBJDIR)$(TOOL_OBJ_DIR)
+	mkdir -p $(OBJDIR)common
+	mkdir -p $(OBJDIR)oautils
+	mkdir -p $(OBJDIR)tarjans
+
+$(TOOLS): $(OBJS)
+
+$(TOOLS): %$(PINTOOL_SUFFIX) : $(OBJS)
+	$(LINKER) $(TOOL_LDFLAGS) $(LINK_DEBUG) $(LINK_EXE)$@ $(OBJS) $(TOOL_LPATHS) $(TOOL_LIBS) $(DBG) -lstdc++
+	@sed -e 's/XTOOLVARX/$(TOOL_VAR)/g' -e 's/XTOOLLIBX/$(TOOL_ROOTS)$(PINTOOL_SUFFIX)/g' $(BINSCRIPT) > $(BINDIR)$(TOOL_ROOTS)
+	@chmod +x $(BINDIR)$(TOOL_ROOTS)
+

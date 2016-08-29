@@ -1,0 +1,97 @@
+##
+## PIN tools
+##
+
+##############################################################
+#
+# Here are some things you might want to configure
+#
+##############################################################
+
+include ../../miami.config
+
+##############################################################
+#
+# Tools - you may wish to add your tool name to TOOL_ROOTS
+#
+##############################################################
+
+
+DYN_TOOL_ROOT = miamicfg
+STATIC_TOOL_ROOT = cfgprof
+TOOL_VAR = vars_cfg
+TOOL_OBJ_DIR = cfgtool
+
+PIN_CFGDYN_OBJS = cfgtool_dynamic.o
+CFGDYN_OBJS = CFG.o routine.o load_module.o cfg_data.o
+
+PIN_CFGSTATIC_OBJS = cfgtool_static.o
+CFGSTATIC_OBJS = CFG.o routine.o load_module.o cfg_data.o
+
+PIN_COMMON_OBJS = on_demand_pin.o use_mpi_rank.o instruction_decoding.o
+COMMON_OBJS = PrivateCFG.o printable_class.o private_routine.o \
+   file_utilities.o miami_globals.o static_memory_analysis.o \
+   register_class.o instr_info.o instr_bins.o base_slice.o \
+   instruction_class.o uop_code_cache.o slice_references.o Assertion.o \
+   debug_miami.o loadable_class.o static_branch_analysis.o \
+   canonical_ops.o miami_utils.o
+
+OA_OBJS = BaseGraph.o DGraph.o
+
+TARJ_OBJS = TarjanIntervals.o MiamiRIFG.o UnionFindUniverse.o
+
+DYN_TOOL = $(DYN_TOOL_ROOT:%=$(EXEDIR)%$(PINTOOL_SUFFIX)) 
+STATIC_TOOL = $(STATIC_TOOL_ROOT:%=$(EXEDIR)%$(PINTOOL_SUFFIX)) 
+TOOLS = $(STATIC_TOOL) $(DYN_TOOL)
+
+DYN_OBJS = $(CFGDYN_OBJS:%=$(OBJDIR)$(TOOL_OBJ_DIR)/%) $(PIN_CFGDYN_OBJS:%=$(OBJDIR)pinobj/%) \
+ $(COMMON_OBJS:%=$(OBJDIR)common/%) $(PIN_COMMON_OBJS:%=$(OBJDIR)pinobj/%) \
+ $(OA_OBJS:%=$(OBJDIR)oautils/%) $(TARJ_OBJS:%=$(OBJDIR)tarjans/%)
+
+STATIC_OBJS = $(CFGSTATIC_OBJS:%=$(OBJDIR)$(TOOL_OBJ_DIR)/%) $(PIN_CFGSTATIC_OBJS:%=$(OBJDIR)pinobj/%) \
+ $(COMMON_OBJS:%=$(OBJDIR)common/%) $(PIN_COMMON_OBJS:%=$(OBJDIR)pinobj/%) \
+ $(OA_OBJS:%=$(OBJDIR)oautils/%) $(TARJ_OBJS:%=$(OBJDIR)tarjans/%)
+
+OBJS = $(DYN_OBJS) $(STATIC_OBJS)
+MAIN_PIN_OBJS = $(PIN_CFGDYN_OBJS:%=$(OBJDIR)pinobj/%) $(PIN_CFGSTATIC_OBJS:%=$(OBJDIR)pinobj/%)
+
+# finds files for the compiling rules
+vpath %.C $(MIAMI_HOME)/src/CFGtool
+vpath %.C $(MIAMI_HOME)/src/common
+vpath %.C $(MIAMI_HOME)/src/OAUtils
+vpath %.C $(MIAMI_HOME)/src/tarjans
+
+##############################################################
+#
+# build rules
+#
+##############################################################
+
+#OPT = -O0
+include ../make.rules
+
+.force:
+
+$(OBJDIR): .force
+	mkdir -p $(OBJDIR)
+	mkdir -p $(OBJDIR)pinobj
+	mkdir -p $(OBJDIR)$(TOOL_OBJ_DIR)
+	mkdir -p $(OBJDIR)common
+	mkdir -p $(OBJDIR)oautils
+	mkdir -p $(OBJDIR)tarjans
+
+$(TOOLS): $(STATIC_OBJS) $(DYN_OBJS)
+
+$(DYN_TOOL): %$(PINTOOL_SUFFIX) : $(DYN_OBJS) 
+	$(LINKER) $(TOOL_LDFLAGS) $(DBG) $(OPT) $(LINK_DEBUG) $(LINK_EXE)$@ $(DYN_OBJS) $(TOOL_LPATHS) $(TOOL_LIBS) -lstdc++
+	@sed -e 's/XTOOLVARX/$(TOOL_VAR)/g' -e 's/XTOOLLIBX/$(DYN_TOOL_ROOT)$(PINTOOL_SUFFIX)/g' $(BINSCRIPT) > $(BINDIR)$(DYN_TOOL_ROOT)
+	@chmod +x $(BINDIR)$(DYN_TOOL_ROOT)
+
+$(STATIC_TOOL): %$(PINTOOL_SUFFIX) : $(STATIC_OBJS) 
+	$(LINKER) $(TOOL_LDFLAGS) $(DBG) $(OPT) $(LINK_DEBUG) $(LINK_EXE)$@ $(STATIC_OBJS) $(TOOL_LPATHS) $(TOOL_LIBS) -lstdc++
+	@sed -e 's/XTOOLVARX/$(TOOL_VAR)/g' -e 's/XTOOLLIBX/$(STATIC_TOOL_ROOT)$(PINTOOL_SUFFIX)/g' $(BINSCRIPT) > $(BINDIR)$(STATIC_TOOL_ROOT)
+	@chmod +x $(BINDIR)$(STATIC_TOOL_ROOT)
+
+##$(TOOLS): %$(PINTOOL_SUFFIX) : $(DYN_OBJS) $(STATIC_OBJS)
+##	${PIN_LD} $(PIN_LDFLAGS) $(LINK_DEBUG) ${LINK_OUT}$@ $(OBJS) ${PIN_LPATHS} $(PIN_LIBS) $(DBG) -lstdc++
+

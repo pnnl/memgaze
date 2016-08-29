@@ -1,0 +1,55 @@
+ABOUT MIAMI:
+
+MIAMI (Machine Independent Application Models for performance Insight) is a
+collection of tools for automatic construction of application centric,
+thread-level, performance models, focused on facilitating performance
+prediction and micro-architecture level performance diagnosis. At its lowest
+level, MIAMI uses static and dynamic analysis of fully optimized x86-64 
+application binaries.
+
+
+MOTIVATION:
+
+Performance diagnosis is by and large a manual process. While performance
+measurement is well supported by existing tools, analysis of performance
+results to understand performance inefficiencies and to identify
+opportunities for tuning is left to the users. The difficulty of this task
+is compounded by the fact that most performance tools measure performance
+effects, the result of interactions between code and a target architecture.
+Such measurements are useful to identify hotspots in applications, places
+where execution time is spent or where cache misses are incurred. However,
+a process of deconvolution through which we can attribute parts of the
+observed effects to specific application and architectural factors is needed
+to perform root cause analysis from hardware counter measurements. While
+certain correlations between application or architectural factors and the
+observed performance effects can be established, this process is based on
+human intuition, and many times results in a trial and error tuning approach.
+
+In contrast, MIAMI uses a bottom-up approach. Instead of measuring
+performance effects, MIAMI collects profiles of application characteristics
+that are largely architecture independent. MIAMI uses detailed static
+analysis and performance modeling based on first order principles to reason
+about the performance of a code on a target architecture, to understand
+performance inefficiencies, and to identify opportunities for tuning. MIAMI 
+computes a large number of performance metrics that correlate well with 
+several types of common performance inefficiencies. Experienced users that
+can interpret this data would get the most benefit from the provided
+insight. While manual interpretation of performance results is still needed 
+for now, our experience shows that MIAMI drastically reduces the amount of
+guesswork traditionally involved in uncovering tuning opportunities.
+
+
+INSTALLATION:
+
+For building instructions, see the INSTALL file in this folder.
+
+
+USE INSTRUCTIONS:
+
+For information on using the tools, see the README file and associated
+documentation in the doc/ subfolder.
+
+
+CONTACT INFORMATION:
+
+For other questions, contact Gabriel Marin <mgabi99 .at. gmail>.

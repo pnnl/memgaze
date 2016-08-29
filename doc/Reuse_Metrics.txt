@@ -1,0 +1,18 @@
+Description of data reuse metrics:
+
+Reuse_L1D : Long reused locations for level L1D
+IrregReuse_L1D : Irregular long reused locations for level L1D
+Reuse_L2D : Long reused locations for level L2D
+IrregReuse_L2D : Irregular long reused locations for level L2D
+Reuse_L3D : Long reused locations for level L3D
+
+ - lists individual memory access patterns grouped by source and destination
+   of the reuse, and their contribution to misses at various memory levels.
+   "IrregReuse_*" accounts only for misses caused by patterns that were
+   determined to be irregular or indirect, while "Reuse_*" accounts for
+   misses from all memory access patterns.
+
+   For each pattern group you can further see the carrying scopes of
+   individual access patterns and how many misses each pattern produces.
+   See my ISPASS'08 paper for an explanation of data access patterns, and
+   definition of source, destination, carrier scopes.

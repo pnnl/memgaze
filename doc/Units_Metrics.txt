@@ -1,0 +1,36 @@
+Description of unit usage metrics:
+
+CPU_Time : Total scheduling time
+ - estimate of instruction schedule cost; same value as in the main xml file.
+
+InUse_U_ALU[0] : Cycles unit U_ALU[0] was in use
+InUse_U_ALU[1] : Cycles unit U_ALU[1] was in use
+InUse_U_ALU[2] : Cycles unit U_ALU[2] was in use
+InUse_U_Load[0] : Cycles unit U_Load[0] was in use
+InUse_U_Load[1] : Cycles unit U_Load[1] was in use
+InUse_U_StAddr[0] : Cycles unit U_StAddr[0] was in use
+InUse_U_StAddr[1] : Cycles unit U_StAddr[1] was in use
+InUse_U_STD[0] : Cycles unit U_STD[0] was in use
+InUse_U_VMul[0] : Cycles unit U_VMul[0] was in use
+InUse_U_VAdd[0] : Cycles unit U_VAdd[0] was in use
+InUse_U_JMP[0] : Cycles unit U_JMP[0] was in use
+InUse_U_VShuffle[0] : Cycles unit U_VShuffle[0] was in use
+InUse_U_VShuffle[1] : Cycles unit U_VShuffle[1] was in use
+InUse_U_FDiv[0] : Cycles unit U_FDiv[0] was in use
+InUse_U_FpAdd[0] : Cycles unit U_FpAdd[0] was in use
+InUse_U_FpMul[0] : Cycles unit U_FpMul[0] was in use
+InUse_U_FpShuf[0] : Cycles unit U_FpShuf[0] was in use
+InUse_U_FpBool[0] : Cycles unit U_FpBool[0] was in use
+InUse_U_FpBlend[0] : Cycles unit U_FpBlend[0] was in use
+InUse_U_FpBlend[1] : Cycles unit U_FpBlend[1] was in use
+InUse_U_Carry[0] : Cycles unit U_Carry[0] was in use
+InUse_I_Port[0] : Cycles unit I_Port[0] was in use
+InUse_I_Port[1] : Cycles unit I_Port[1] was in use
+InUse_I_Port[2] : Cycles unit I_Port[2] was in use
+InUse_I_Port[3] : Cycles unit I_Port[3] was in use
+InUse_I_Port[4] : Cycles unit I_Port[4] was in use
+InUse_I_Port[5] : Cycles unit I_Port[5] was in use
+InUse_L1_WrTrans : Usage of async resource L1_WrTrans
+ - reports how many cycles each execution units has been in use during the 
+   execution of a loop / routine.
+

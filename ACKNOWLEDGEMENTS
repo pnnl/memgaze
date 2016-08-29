@@ -1,0 +1,23 @@
+ACKNOWLEDGEMENTS:
+
+Funding for this work has been provided by:
+2013-2014: University of Tennessee, Knoxville
+2011-2012: Oak Ridge National Laboratory
+before 2008: Rice University
+
+MIAMI includes code developed at Rice University as part of the HPCToolkit 
+and DSystem frameworks. In particular, the Tarjan interval analysis
+and the Java XML viewer were taken from HPCToolkit.
+A collection of basic graph classes were taken from an early release 
+of the OpenAnalysis library.
+
+An initial implmentation based on analysis of Sparc binaries using the EEL
+binary analysis framework has been developped at Rice University before 2008. 
+The current implementation based on analysis of x86 binaries has been under
+development since 2011. Some functionality could be ported over from the
+Sparc version, however, a majority of the code is completely new, or heavily
+modified.
+
+Authors:
+ * Gabriel Marin
+

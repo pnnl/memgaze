@@ -1,0 +1,170 @@
+Description of MIAMI metrics:
+
+MemLatExecTime : Memory latency execution time
+ - upper bound on the estimated execution time; includes instruction
+   schedule cost and fully exposed memory penalty. Assumes no overlap of
+   memory accesses with computation or with other memory accesses.
+
+MemBdwthExecTime : Memory bandwidth execution time
+ - lower bound on the estimated execution time; includes instruction
+   schedule cost and delays due to bandwidth constraints. Assumes accesses
+   to memory are ideally prefetched.
+
+CPU_Time : Total scheduling time
+ - estimate of instruction schedule cost that takes into account both the
+   machine resource constraints and the instruction schedule dependencies.
+
+GainExtraRes : Maximum improvement from additional CPU resources
+ - potential for improvement from additional machine resources while
+   preserving the instruction mix and all dependencies between instructions.
+
+GainExtraILP : Maximum improvement from additional instruction parallelism
+ - potential for improvement from increased instruction level parallelism
+   while preserving machine resources and instruction mixes.
+
+GainVectorize : Maximum improvement from ideal vectorization
+ - potential for improvement from perfect code vectorization using the
+   vector lengths from the machine model, while preserving the instruction
+   mixes
+
+InfCpuRes : Infinite resources time
+ - estimate of instruction schedule cost for a machine with unlimited
+   machine execution units. Preserves instruction mixes, instruction
+   dependencies and instruction latencies.
+
+NoDepend : No dependencies time
+ - estimate of instruction schedule cost with no data dependencies inside a
+   loop. Preserves machine resources, instruction mixes, and control
+   dependencies.
+
+RetiredUops : Retired micro-ops
+ - number of executed micro-operations
+
+LoopCond : Retired LoopCond micro-ops
+ - number of retired micro-operations that compute loop branch conditions.
+   It is an estimate of loop overhead in the program.
+
+AddrGen : Retired AddrGen micro-ops
+ - number of retired micro-operations used for address arithmetic
+
+StackTmp : Retired StackRef micro-ops
+ - number of retired micro-operations used for spill/unspill and for
+   accessing temporary values on the stack
+
+RegMove : Retired DataMove micro-ops
+ - number of retired micro-operations that perform data manipulation on
+   registers, e.g. register copy, register shuffles, register blends, data
+   insertion/extraction.
+
+Branches : Retired branches
+ - number of retired control transfer micro-operations
+
+FpWork : Retired FpWork micro-ops
+ - number of retired floating-point micro-operations that were not
+   included in one of the previous categories.
+
+IntWork : Retired IntWork micro-ops
+ - number of retired integer micro-operations that were not included in one
+   of the previous categories
+
+MemWork : Retired MemWork micro-ops
+ - number of retired memory micro-operations that were not included in one
+   of the previous categories
+
+NopUops : Retired Nop micro-ops
+ - number of retired NOP micro-operations
+
+BdwthDelays : Memory bandwidth total delays
+ - lower bound on the delays imposed by the memory system.
+   Execution time delays due to bandwidth constraints. 
+   Assumes ideal prefetching of memory accesses.
+
+MemoryTime : Memory penalty total time
+ - upper bound on the delays imposed by the memory system. Assumes memory
+   accesses are serialized and memory latency is fully exposed.
+
+AppDepTime : Application dependency time
+ - a component of the instruction schedule cost. Includes only cost of loops
+   where minimum schedule length is bounded by dependence cycles.
+
+CPUBottleNeck : Lack of resources total time
+ - a component of the instruction schedule cost. Includes only cost of loops
+   where minimum schedule length is bounded by contention on machine
+   resources.
+
+SchedExtraTime : Scheduling total extra time
+ - a component of the instruction schedule cost. Additional time beyond the
+   analytically determined minimum schedule length, needed to create a valid
+   schedule.
+
+Penalty_L1D : Memory penalty L1D
+Penalty_L2D : Memory penalty L2D
+Penalty_L3D : Memory penalty L3D
+ - upper bound on the delays imposed by misses in a particular memory level. 
+   Assumes penalty for going to the next level is fully exposed.
+
+L2D-L1D_BdwthDelay : Bandwidth delays L2D-L1D
+L3D-L2D_BdwthDelay : Bandwidth delays L3D-L2D
+DRAM-L3D_BdwthDelay : Bandwidth delays DRAM-L3D
+ - lower bound on the delays imposed by misses in a particular memory level.
+   Assumes misses are ideally prefetched, so delays are caused by bandwidth
+   constraints.
+
+CPU_U_ALU[0] : Bottleneck on unit U_ALU[0]
+CPU_U_ALU[1] : Bottleneck on unit U_ALU[1]
+CPU_U_ALU[2] : Bottleneck on unit U_ALU[2]
+CPU_U_Load[1] : Bottleneck on unit U_Load[1]
+CPU_U_StAddr[0] : Bottleneck on unit U_StAddr[0]
+CPU_U_STD[0] : Bottleneck on unit U_STD[0]
+CPU_U_JMP[0] : Bottleneck on unit U_JMP[0]
+CPU_U_FDiv[0] : Bottleneck on unit U_FDiv[0]
+CPU_U_FpAdd[0] : Bottleneck on unit U_FpAdd[0]
+CPU_I_Port[0] : Bottleneck on unit I_Port[0]
+CPU_I_Port[1] : Bottleneck on unit I_Port[1]
+CPU_I_Port[3] : Bottleneck on unit I_Port[3]
+CPU_I_Port[4] : Bottleneck on unit I_Port[4]
+CPU_I_Port[5] : Bottleneck on unit I_Port[5]
+ - component of the instruction schedule cost. Includes cost of loops where
+   schedule length is bounded by contention on various machine execution
+   units.
+
+
+V_CPU_U_ALU[0] : Vectorization bottleneck on unit U_ALU[0]
+V_CPU_U_ALU[1] : Vectorization bottleneck on unit U_ALU[1]
+V_CPU_U_ALU[2] : Vectorization bottleneck on unit U_ALU[2]
+V_CPU_U_Load[0] : Vectorization bottleneck on unit U_Load[0]
+V_CPU_U_StAddr[0] : Vectorization bottleneck on unit U_StAddr[0]
+V_CPU_U_STD[0] : Vectorization bottleneck on unit U_STD[0]
+V_CPU_U_VAdd[0] : Vectorization bottleneck on unit U_VAdd[0]
+V_CPU_U_JMP[0] : Vectorization bottleneck on unit U_JMP[0]
+V_CPU_U_FDiv[0] : Vectorization bottleneck on unit U_FDiv[0]
+V_CPU_U_Carry[0] : Vectorization bottleneck on unit U_Carry[0]
+V_CPU_I_Port[0] : Vectorization bottleneck on unit I_Port[0]
+V_CPU_I_Port[1] : Vectorization bottleneck on unit I_Port[1]
+V_CPU_I_Port[5] : Vectorization bottleneck on unit I_Port[5]
+V_CPU_L1_WrTrans : Vectorization bottleneck on async resource L1_WrTrans
+ - contention on various machines resources if the code was perfectly
+   vectorized.
+
+Misses_L1D : Miss count L1D
+IrregMiss_L1D : Irregular access misses L1D
+FragMiss_L1D : Non stride one misses L1D
+Misses_L2D : Miss count L2D
+IrregMiss_L2D : Irregular access misses L2D
+FragMiss_L2D : Non stride one misses L2D
+Misses_L3D : Miss count L3D
+IrregMiss_L3D : Irregular access misses L3D
+FragMiss_L3D : Non stride one misses L3D
+ - estimate of cache misses in the various memory levels (Misses_*)
+ - number of cache misses in various memory levels caused by memory access 
+   patterns who were determined to be irregular or indirect (IrregMiss_*)
+ - number of cache misses in various memory levels due to incomplete
+   utilization of the cache lines, e.g. poor spatial reuse (FragMiss_*) -
+   not computed yet.
+
+Carried_L1D : Misses carried for level L1D
+Carried_L2D : Misses carried for level L2D
+Carried_L3D : Misses carried for level L3D
+ - number of cache misses in the various memory levels caused by data access 
+   patterns for which this scope is the carrier scope. See my ISPASS'08
+   paper for an explanation of data access patterns and carrier scopes.
