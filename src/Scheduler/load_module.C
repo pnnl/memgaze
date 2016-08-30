@@ -75,16 +75,15 @@ LoadModule::loadFromFile(FILE *fd, bool parse_routines)
    CHECK_COND0(res!=1, "reading image ID")
    
    res = fread(&cfg_base_addr, sizeof(cfg_base_addr), 1, fd);
-   CHECK_COND(res!=1, "reading base address for image ID %u", id)
+   CHECK_COND(res!=1, "reading base address for image ID %u", id);
    res = fread(&old_low_offset, sizeof(old_low_offset), 1, fd);
-   CHECK_COND(res!=1, "reading low address offset for image ID %u", id)
+   CHECK_COND(res!=1, "reading low address offset for image ID %u", id);
    // now get the file name length
    res = fread(&len, 4, 1, fd);
-   CHECK_COND(res!=1 || len<1 || len>1024, "reading name length for image ID %u, res=%ld, len=%u", 
-               id, res, len)
+   CHECK_COND(res!=1 || len<1 || len>1024, "reading name length for image ID %u, res=%ld, len=%u", id, res, len);
    name = new char[len+1];
    res = fread(name, 1, len, fd);
-   CHECK_COND(res!=len, "reading name for image ID %u", id)
+   CHECK_COND(res!=len, "reading name for image ID %u", id);
    name[len] = 0;
 #if VERBOSE_DEBUG_LOAD_MODULE
    DEBUG_LOAD_MODULE(3,
@@ -200,10 +199,9 @@ LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
    int ires = 0;
 #endif
    Routine *rout = NULL;
-   
    addrtype _offset, _start, _end;
-   size_t _size = 0;
    char *_name = 0;
+   
    // save start/end addresses and name in prefix format (len followed by name)
    res = fread(&_offset, sizeof(addrtype), 1, fd);
    CHECK_COND(res!=1, "reading offset for routine %u", r)
@@ -211,7 +209,7 @@ LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
    CHECK_COND(res!=1, "reading start addr for routine %u", r)
    res = fread(&_end, sizeof(addrtype), 1, fd);
    CHECK_COND(res!=1, "reading end addr for routine %u", r)
-   _size = _end - _start;
+   // size_t _size = _end - _start;
    
    // now read the routine name
    uint32_t len;
@@ -262,7 +260,7 @@ load_error:
 int 
 LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
 {
-   size_t res;
+   //size_t res;
    int ires;
    ires = fseek(fd, file_offset, SEEK_SET);
    if (ires < 0)  // error
@@ -357,7 +355,7 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
       } else
          InitializeSaveStaticAnalysisData (newstan, hash);
    }
-   initialize_dyninst((const char*)this->Name().c_str());
+   isaXlate_init((const char*)this->Name().c_str());
 
 
    for (uint32_t r=0 ; r<numRoutines ; ++r)

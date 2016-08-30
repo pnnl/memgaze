@@ -92,9 +92,9 @@ using namespace MIAMI;
 // 
 //***************************************************************************
 
-void initialize_dyninst(const char* prog_name);
+void isaXlate_init(const char* prog_name);
 
-int dyninst_translate(std::string func_name, unsigned long  pc, MIAMI::DecodedInstruction* dInst);
+int isaXlate_insn(std::string func_name, unsigned long  pc, MIAMI::DecodedInstruction* dInst);
 
 
 //***************************************************************************

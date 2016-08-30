@@ -1497,8 +1497,8 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
       MIAMI::DecodedInstruction *dInst;
       dInst = new DecodedInstruction();
 
-      int len = dyninst_translate(name, dpc, dInst);
-      if (!len || dInst->no_dyn_translation && !dInst->micro_ops.size())
+      int len = isaXlate_insn(name, dpc, dInst);
+      if (!len || (dInst->no_dyn_translation && !dInst->micro_ops.size()))
       {
          std::cout << "routine: no dyninst translation\n";
          return;

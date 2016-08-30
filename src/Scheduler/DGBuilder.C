@@ -62,7 +62,7 @@ DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
    )
 #endif
    image_name = _img->Name();
-   initialize_dyninst((const char*)image_name.c_str());
+   isaXlate_init((const char*)image_name.c_str());
    // we do not read this flag right now.
    // Assume we do not have pessimistic memory dependencies.
    pessimistic_memory_dep = 0;
@@ -395,7 +395,7 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerR
    }
 }
 
-static int function_index = 0;
+//static int function_index = 0;
 /*
 void change_plt_to_inner_loop(CFG::Node* ba, DecodedInstruction* dInst) {
          int type = IB_inner_loop;  // CFG_LOOP_ENTRY_TYPE;
@@ -438,7 +438,7 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
    std::cout << "offset is " << (unsigned long) reloc_offset << endl;
    
    //int res = decode_instruction_at_pc((void*)(pc+reloc_offset), b->getEndAddress()-pc, dInst);
-   dyninst_translate(f_name, (unsigned long)(pc/*+reloc_offset*/), dInst);
+   isaXlate_insn(f_name, (unsigned long)(pc/*+reloc_offset*/), dInst);
    int res = -1;
    if (dInst->no_dyn_translation)
    {
