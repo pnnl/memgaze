@@ -218,41 +218,49 @@ Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc)
 
 
 // Get all the assignments 'logical instruction' of a given instruction.
-void isaXlate_getDyninstInsn(addrtype pc, BPatch_function *f, std::vector<Assignment::Ptr> * assignments, Dyninst::InstructionAPI::Instruction::Ptr* insp)
+void isaXlate_getDyninstInsn(addrtype pc, BPatch_function *f, std::vector<Assignment::Ptr> * assignments, Dyninst::InstructionAPI::Instruction::Ptr* insn)
 {
-  uint8_t* insn = (uint8_t*)codeSource->getPtrToInstruction(pblk->start());
-  const unsigned char * buf = (const unsigned char* ) insn;
-  
-  ParseAPI::Function * func;
-  func = ParseAPI::convert(f);
-  if (NULL != pblk)  {
-    InstructionDecoder dec(buf, endAddr - startAddr, pblk->obj()->cs()->getArch());
-    (*insp) = dec.decode();
-    unsigned long insn_addr = startAddr;
+  assert(NULL != pblk);
 
-    // FIXME: tallent: This appears to decode all instructions in a block
-    
-    // FIXME: tallent: Furthermore, it does not seem to be aligned with XED...
-    
-    // Decode the given instruction. I might make a mistake here. 
-    // The loop might decode all the instructions in the given block.
-    int k = 0;
-    while (NULL != (*insp) && insn_addr < pc){
-      insn_addr += (*insp)->size();
-      (*insp) = dec.decode();
-      k++;
-    }
+  Architecture arch = pblk->obj()->cs()->getArch();
 
-    AssignmentConverter ac(true);
-    
-    if (Dyninst::InstructionAPI::Instruction::Ptr() != (*insp))
-      ac.convert((*insp), (uint8_t) insn_addr, func, pblk, *assignments);
-    else 
-      assert("Where is the instruction??\n");
+  ParseAPI::Function* func = ParseAPI::convert(f);
+
+#if 0
+  // FIXME: tallent: This decodes all instructions in a block...
+  // FIXME: tallent: Furthermore, it is not aligned with XED...
   
+  void* buf = codeSource->getPtrToInstruction(pblk->start());
+  InstructionDecoder dec(buf, endAddr - startAddr, pblk->obj()->cs()->getArch());
+  (*insn) = dec.decode();
+  unsigned long insn_addr = startAddr;
+    
+  // Decode the given instruction. I might make a mistake here. 
+  // The loop might decode all the instructions in the given block.
+  int k = 0;
+  while (NULL != (*insn) && insn_addr < pc) {
+    insn_addr += (*insn)->size();
+    (*insn) = dec.decode();
+    k++;
   }
 
-  return;
+  AssignmentConverter ac(true);
+  
+  if (Dyninst::InstructionAPI::Instruction::Ptr() != (*insn))
+    ac.convert((*insn), (uint8_t) insn_addr, func, pblk, *assignments);
+  else 
+    assert("Where is the instruction??\n");
+  
+#else
+
+  const void* buf = (const void*)pc;
+  InstructionDecoder dec(buf, InstructionDecoder::maxInstructionLength, arch);
+  (*insn) = dec.decode();
+
+  AssignmentConverter ac(true);
+  ac.convert((*insn), pc, func, pblk, *assignments);
+  
+#endif
 }
 
 
