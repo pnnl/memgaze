@@ -5,6 +5,8 @@
 using namespace MIAMI;
 //**********************************************************************
 
+// FIXME: tallent: static data
+
 static std::vector<Absloc> locVec;
 static std::vector<RoseAST::Ptr> opVec;
 static int jump_val = 0;
@@ -2092,45 +2094,35 @@ void initialize_dyninst(const char* progName){
 }
 
 
-static int last_used_function = 0;
-
+static int last_used_function = 0; // FIXME: tallent: static data
 
 // Get the corresponding function according to pc.
 int get_function(unsigned long pc) {
-	Dyninst::Address start, end;
-
-  for (unsigned int i = 0; i < functions.size(); ++i)
-	{
+  Dyninst::Address start, end;
+	
+  for (unsigned int i = 0; i < functions.size(); ++i) {
     functions[i]->getAddressRange(start, end);
-    if (pc >= start && pc < end)
-    {
-      std::cout << "dyninst_translater: get_function: func_name is " << functions[i]->getDemangledName() << endl;
+    if (pc >= start && pc < end) {
       return i;  
     }
-     
-	}
+  }
 
   // no demangled name match, check again using function's base address
-  for (unsigned int i = 0; i < functions.size(); ++i)
-  {
+  for (unsigned int i = 0; i < functions.size(); ++i) {
     if ((unsigned long) functions[i]->getBaseAddr() == pc) {
       last_used_function = i;
       return i;
     }
-
   }
 
   // what about the last block without a name
-  for (unsigned int i = 0; i < functions.size() - 1; ++i)
-  {
-    if ((pc > (unsigned long) functions[i]->getBaseAddr()) && (pc < (unsigned long) functions[i+1]->getBaseAddr()))
-    {
+  for (unsigned int i = 0; i < functions.size() - 1; ++i) {
+    if ((pc > (unsigned long) functions[i]->getBaseAddr()) && (pc < (unsigned long) functions[i+1]->getBaseAddr())) {
       return i;
     }
   }
 
-
-	return last_used_function;
+  return last_used_function;
 }
 
 
@@ -2298,10 +2290,9 @@ void traverse_AST(AST::Ptr ast, std::string index, int num){
 
   int i = 0;
   while (i < num) {
-    if (index.compare("0") == 0)
-    {
+    if (index.compare("0") == 0) {
       traverse_AST(ast->child(i), std::to_string((long long)i+1), ast->child(i)->numChildren());
-    }else {
+    } else {
       std::string index_str = index + "." + std::to_string((long long)i+1);
       traverse_AST(ast->child(i), index_str, ast->child(i)->numChildren());
     }
@@ -2316,39 +2307,41 @@ void traverse_AST(AST::Ptr ast, std::string index, int num){
 // This function is called by routine.C.
 // It translate the an instruction's dyninst IR into MIAMI IR and 
 // return the length of the translated instruction to increment the pc.
-int dyninst_translate(std::string func_name, unsigned long pc, DecodedInstruction* dInst){
-	graph g;
+int dyninst_translate(std::string func_name, unsigned long pc, DecodedInstruction* dInst) {
+  graph g;
 
-	std::vector<int> path;
-	int f = get_function(pc);
-	pblk = get_block(f, pc, g);
-
-  if (NULL != pblk)
-  {
+  std::vector<int> path;
+  
+  int f = get_function(pc);
+  std::cout << "dyninst_translate: function: " << functions[f]->getDemangledName() << endl;
+  
+  pblk = get_block(f, pc, g);
+  if (NULL != pblk) {
     Dyninst::InstructionAPI::Instruction::Ptr insp;
     std::vector<Assignment::Ptr> assignments;
     get_assignments(pc, functions[f], &assignments, &insp);
 
-    if(NULL != insp)  fprintf(stderr, "%s\n", insp->getOperation().format().c_str());
-    
+    if (NULL != insp) {
+      std::cout << insp->getOperation().format().c_str() << "\n";
+    }
     else {
       assert("Cannot find the instruction.\n");
       return 0;
     }
     for (unsigned int i = 0; i < assignments.size(); i++) {
-          // Print out each assignment in dyninst format
+      // Print out each assignment in dyninst format
 
-          std::cout << "----------------------------------------\n";
-          std::cout << "Assignment  is:  " << assignments.at(i)->format() << endl;
-          //std::cout << "        Address is     " << (*(*ait)).addr() << "\n";
+      std::cout << "----------------------------------------\n";
+      std::cout << "Assignment  is:  " << assignments.at(i)->format() << endl;
+      //std::cout << "        Address is     " << (*(*ait)).addr() << "\n";
               
-          // print out all the nodes in an AST.
-          static std::pair<AST::Ptr, bool> assignPair;
-          assignPair = SymEval::expand(assignments.at(i), false);
-          if (assignPair.second && (NULL != assignPair.first)) {
-             int a = assignPair.first->numChildren();
-            traverse_AST(assignPair.first, "0", assignPair.first->numChildren());
-          }
+      // print out all the nodes in an AST.
+      static std::pair<AST::Ptr, bool> assignPair;
+      assignPair = SymEval::expand(assignments.at(i), false);
+      if (assignPair.second && (NULL != assignPair.first)) {
+	int a = assignPair.first->numChildren();
+	traverse_AST(assignPair.first, "0", assignPair.first->numChildren());
+      }
     }
     num_of_assignments = assignments.size();
     const std::string ie = insp->format();
@@ -2356,14 +2349,12 @@ int dyninst_translate(std::string func_name, unsigned long pc, DecodedInstructio
     std::cout << ie << "\n";
     translate_instruction(insp, assignments, pc, dInst);
     
-  } else {
+  }
+  else {
     dInst->no_dyn_translation = true;
   }
 
-    
-
-   	return dInst->len;
-
+  return dInst->len;
 }
 	
 
