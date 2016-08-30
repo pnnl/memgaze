@@ -141,8 +141,9 @@ int isaXlate_insn(std::string func_name, unsigned long pc, MIAMI::DecodedInstruc
 // 
 //***************************************************************************
 
-// FIXME: tallent: This is O(|instructions| * |functions| * |blocks|). Should do
-// once for all blocks that map to a function.
+// FIXME: tallent: For one instruction, this is O(|functions| *
+// |blocks| * |insn-in-block|).  Should grab function and block only
+// as necessary.
 
 // Get the corresponding function according to pc.
 int isaXlate_getFunction(unsigned long pc)
@@ -197,7 +198,7 @@ Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc)
         endAddr = (unsigned long) bb->getEndAddress();
 
         if (NULL != pblk){
-          //unsigned long * bpc = (unsigned long *) codeSource->getPtrToInstruction(pblk->start());  
+          //unsigned long * bpc = (unsigned long *) codeSource->getPtrToInstruction(pblk->start());
         }
 	else {
           assert("Cannot find the function block\n");
@@ -219,7 +220,6 @@ Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc)
 // Get all the assignments 'logical instruction' of a given instruction.
 void isaXlate_getDyninstInsn(addrtype pc, BPatch_function *f, std::vector<Assignment::Ptr> * assignments, Dyninst::InstructionAPI::Instruction::Ptr* insp)
 {
-
   uint8_t* insn = (uint8_t*)codeSource->getPtrToInstruction(pblk->start());
   const unsigned char * buf = (const unsigned char* ) insn;
   
@@ -230,6 +230,10 @@ void isaXlate_getDyninstInsn(addrtype pc, BPatch_function *f, std::vector<Assign
     (*insp) = dec.decode();
     unsigned long insn_addr = startAddr;
 
+    // FIXME: tallent: This appears to decode all instructions in a block
+    
+    // FIXME: tallent: Furthermore, it does not seem to be aligned with XED...
+    
     // Decode the given instruction. I might make a mistake here. 
     // The loop might decode all the instructions in the given block.
     int k = 0;
@@ -256,82 +260,82 @@ void isaXlate_getDyninstInsn(addrtype pc, BPatch_function *f, std::vector<Assign
 // 
 //***************************************************************************
 
-void dynXlate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insp, MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments);
-void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void dynXlate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insn, MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments);
+void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, Dyninst::InstructionAPI::Instruction::Ptr insn);
 
-void dynXlate_inspectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
+void dynXlate_insnectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
 			 instruction_info* uop, AST::Ptr ast,
-			 Dyninst::InstructionAPI::Instruction::Ptr insp);
+			 Dyninst::InstructionAPI::Instruction::Ptr insn);
 
 
-void dynXlate_leave(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void dynXlate_nop(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void dynXlate_or(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void dynXlate_divide(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void dynXlate_call(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void dynXlate_return(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void dynXlate_jump(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void dynXlate_compare(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void dynXlate_enter(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void dynXlate_sysCall(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void dynXlate_prefectch(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void dynXlate_leave(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn);
+void dynXlate_nop(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insn);
+void dynXlate_or(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn);
+void dynXlate_divide(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn);
+void dynXlate_call(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn);
+void dynXlate_return(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn);
+void dynXlate_jump(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn);
+void dynXlate_compare(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn);
+void dynXlate_enter(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn);
+void dynXlate_sysCall(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn);
+void dynXlate_prefectch(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn);
 
   
 //***************************************************************************
 
 
 // Translate each instructions 
-void dynXlate_insn(Dyninst::InstructionAPI::Instruction::Ptr insp, std::vector<Assignment::Ptr> assignments, addrtype pc, MIAMI::DecodedInstruction* dInst)
+void dynXlate_insn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vector<Assignment::Ptr> assignments, addrtype pc, MIAMI::DecodedInstruction* dInst)
 {
-  dInst->len = (int) insp->size(); 
+  dInst->len = (int) insn->size(); 
   dInst->pc = (addrtype) pc; 
   dInst->is_call = false;
 
   // The instruction's pointer in dyninst may not point to the machine data which MIAMI wants.
   // Haven't encounter any situations which mach_data is used. Thus, leave it like this for now.
-  dInst->mach_data = const_cast<void*>( static_cast<const void*>(insp->ptr()) ); // CHECK
+  dInst->mach_data = const_cast<void*>( static_cast<const void*>(insn->ptr()) ); // CHECK
 
   bool x86 = (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86
 	      || pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64);
-  if (x86 && insp->getOperation().getID() == e_leave) {
-    dynXlate_leave(dInst, assignments, insp); // x86 leave
+  if (x86 && insn->getOperation().getID() == e_leave) {
+    dynXlate_leave(dInst, assignments, insn); // x86 leave
   }
-  else if (x86 && insp->getOperation().getID() == e_nop) {
-    dynXlate_nop(dInst, insp); // x86 nop
+  else if (x86 && insn->getOperation().getID() == e_nop) {
+    dynXlate_nop(dInst, insn); // x86 nop
   }
-  else if (x86 && insp->getOperation().getID() >= e_or && insp->getOperation().getID() <= e_orps) {
-    dynXlate_or(dInst, assignments, insp); // x86 or
+  else if (x86 && insn->getOperation().getID() >= e_or && insn->getOperation().getID() <= e_orps) {
+    dynXlate_or(dInst, assignments, insn); // x86 or
   }
-  else if (x86 && insp->getOperation().getID() >= e_div && insp->getOperation().getID() <= e_divss) {
-    dynXlate_divide(dInst, assignments, insp); // x86 divide
+  else if (x86 && insn->getOperation().getID() >= e_div && insn->getOperation().getID() <= e_divss) {
+    dynXlate_divide(dInst, assignments, insn); // x86 divide
   }
   else {
-    switch(insp->getCategory()) {
+    switch(insn->getCategory()) {
       case c_CallInsn:
         dInst->is_call = true;
-        dynXlate_call(dInst, assignments, insp);
+        dynXlate_call(dInst, assignments, insn);
         break;
       case c_ReturnInsn:
-        dynXlate_return(dInst, assignments, insp);
+        dynXlate_return(dInst, assignments, insn);
         break;
       case c_BranchInsn:
-        dynXlate_jump(dInst, assignments, insp);
+        dynXlate_jump(dInst, assignments, insn);
         break;
       case c_CompareInsn:
-        dynXlate_compare(dInst, assignments, insp);
+        dynXlate_compare(dInst, assignments, insn);
         break;
       case c_SysEnterInsn:
-        dynXlate_enter(dInst, assignments, insp); // this function hasn't been implemented yet.
+        dynXlate_enter(dInst, assignments, insn); // this function hasn't been implemented yet.
         break;
       case c_SyscallInsn:
         dInst->is_call = true;
-        dynXlate_sysCall(dInst, assignments, insp);
+        dynXlate_sysCall(dInst, assignments, insn);
         break;
       case c_PrefetchInsn:
-        dynXlate_prefectch(dInst, assignments, insp);
+        dynXlate_prefectch(dInst, assignments, insn);
         break;
       case c_NoCategory:{
-        dynXlate_assignments(insp, dInst, assignments); // default choice is always dynXlate_assignments.
+        dynXlate_assignments(insn, dInst, assignments); // default choice is always dynXlate_assignments.
         break;
       }
       default:
@@ -627,9 +631,9 @@ bool check_is_zf(MachRegister mr) {
 
 
 // Get the execution type of an instruction, depending on its operands' type.
-ExecUnitType get_execution_type(Dyninst::InstructionAPI::Instruction::Ptr insp){
+ExecUnitType get_execution_type(Dyninst::InstructionAPI::Instruction::Ptr insn){
   std::vector<Operand> operands;
-  insp->getOperands(operands);
+  insn->getOperands(operands);
   for (unsigned int i = 0; i < operands.size(); ++i) {
     const Result* r = &operands.at(i).getValue()->eval();
     //if (r->defined) { // don't need the result to be defined to get the type
@@ -700,9 +704,9 @@ int check_stack_register(MachRegister mr) {
 
 
 // Check operands size to see whether we are dealing with vector operand
-int get_vec_len(Dyninst::InstructionAPI::Instruction::Ptr insp){
+int get_vec_len(Dyninst::InstructionAPI::Instruction::Ptr insn){
   std::vector<Operand> operands;
-  insp->getOperands(operands);
+  insn->getOperands(operands);
   for (unsigned int i = 0; i < operands.size(); ++i) {
     const Result* r = &operands.at(i).getValue()->eval();
     if (r->size() > 8) {
@@ -758,7 +762,7 @@ void get_width_from_tree(instruction_info* uop, AST::Ptr ast){
 // Append destination registers to the dest_reg_list. 
 // Register information not used right now. If we want to build dependency graph,
 // we simply just pass these to internal field over instead use MIAMI's original function.
-void append_dest_regs(instruction_info* uop, OperandType opt, Dyninst::InstructionAPI::Instruction::Ptr insp, MachRegister mr, int size){
+void append_dest_regs(instruction_info* uop, OperandType opt, Dyninst::InstructionAPI::Instruction::Ptr insn, MachRegister mr, int size){
    int s = 0;
    switch(opt){
       case OperandType_REGISTER:{
@@ -789,7 +793,7 @@ void append_dest_regs(instruction_info* uop, OperandType opt, Dyninst::Instructi
 // Append source registers to the src_reg_list. 
 // Register information not used right now. If we want to build dependency graph,
 // we simply just pass these to internal field over instead use MIAMI's original function.
-void append_src_regs(instruction_info* uop, OperandType opt, Dyninst::InstructionAPI::Instruction::Ptr insp, MachRegister mr, int size) {
+void append_src_regs(instruction_info* uop, OperandType opt, Dyninst::InstructionAPI::Instruction::Ptr insn, MachRegister mr, int size) {
    int s = 0; // stack
    switch(opt){
       case OperandType_REGISTER:{
@@ -807,7 +811,7 @@ void append_src_regs(instruction_info* uop, OperandType opt, Dyninst::Instructio
       }
       case OperandType_MEMORY: {
          RegisterClass rclass = RegisterClass_MEM_OP;
-         if (insp->getOperation().getID() == e_lea)
+         if (insn->getOperation().getID() == e_lea)
          {
             rclass = RegisterClass_LEA_OP;
          }  else if (check_stack_register(mr))
@@ -828,23 +832,23 @@ void append_src_regs(instruction_info* uop, OperandType opt, Dyninst::Instructio
 
 
 // Append all the destination registers 
-void append_all_dest_registers(instruction_info* uop, Dyninst::InstructionAPI::Instruction::Ptr insp, Assignment::Ptr aptr){
+void append_all_dest_registers(instruction_info* uop, Dyninst::InstructionAPI::Instruction::Ptr insn, Assignment::Ptr aptr){
    for (unsigned int i = 0; i < uop->num_dest_operands; ++i)
    {
       switch(extract_op_type(uop->dest_opd[i])){ // extract the operation type.
 
          case OperandType_INTERNAL: 
             uop->dest_reg_list.clear();
-            append_dest_regs(uop, OperandType_INTERNAL, insp, Dyninst::MachRegister(), uop->width * uop->vec_len);
+            append_dest_regs(uop, OperandType_INTERNAL, insn, Dyninst::MachRegister(), uop->width * uop->vec_len);
             break;
          case OperandType_REGISTER: {
             if (i == 0) // This is not flags, we will append flag later 
             {
               if (aptr->out().absloc().type() == Absloc::Register){
-                append_dest_regs(uop, OperandType_REGISTER, insp, aptr->out().absloc().reg(), uop->width * uop->vec_len); 
+                append_dest_regs(uop, OperandType_REGISTER, insn, aptr->out().absloc().reg(), uop->width * uop->vec_len); 
               }else {
                 MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
-                append_dest_regs(uop, OperandType_REGISTER, insp, pc, pc.size() * 8);  
+                append_dest_regs(uop, OperandType_REGISTER, insn, pc, pc.size() * 8);  
               }  
             }
             break;
@@ -856,9 +860,9 @@ void append_all_dest_registers(instruction_info* uop, Dyninst::InstructionAPI::I
                                                             // related to the memory field. The xed function related to this 
                                                             // is xed_decoded_inst_get_?*?_reg.
                if (aloc.type() == Absloc::Register)
-                  append_src_regs(uop, OperandType_MEMORY, insp, aloc.reg(), uop->width * uop->vec_len);  
+                  append_src_regs(uop, OperandType_MEMORY, insn, aloc.reg(), uop->width * uop->vec_len);  
                else                                         // Find no register field, use default program counter
-                  append_src_regs(uop, OperandType_MEMORY, insp, Absloc::makePC(pblk->obj()->cs()->getArch()).reg(), uop->width * uop->vec_len);
+                  append_src_regs(uop, OperandType_MEMORY, insn, Absloc::makePC(pblk->obj()->cs()->getArch()).reg(), uop->width * uop->vec_len);
             }
             break;
          }
@@ -872,7 +876,7 @@ void append_all_dest_registers(instruction_info* uop, Dyninst::InstructionAPI::I
 
 
 // Create load micro operation.
-void create_load_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insp, Assignment::Ptr aptr, int idx){
+void create_load_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insn, Assignment::Ptr aptr, int idx){
   dInst->micro_ops.push_front(instruction_info());
   instruction_info* uop = &dInst->micro_ops.front();
   uop->type = IB_load;
@@ -899,9 +903,9 @@ void create_load_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI
     }
   } 
    
-  if(!uop->vec_len) uop->vec_len = get_vec_len(insp);
+  if(!uop->vec_len) uop->vec_len = get_vec_len(insn);
   uop->exec_unit = (uop->vec_len == 1) ? ExecUnit_SCALAR : ExecUnit_VECTOR;
-  uop->exec_unit_type = get_execution_type(insp);
+  uop->exec_unit_type = get_execution_type(insn);
 
   // load uop's source must be memory field (idx here not important)
   uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_MEMORY, 0); 
@@ -919,18 +923,18 @@ void create_load_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI
   if (aptr->inputs().size() && aptr->inputs().at(0).absloc().type() == Absloc::Register) 
   {
      MachRegister mr = aptr->inputs().at(0).absloc().reg();
-     append_src_regs(uop, OperandType_MEMORY, insp, mr, mr.size() * 8);
+     append_src_regs(uop, OperandType_MEMORY, insn, mr, mr.size() * 8);
   } else if (aptr->inputs().size() > 1 && aptr->inputs().at(1).absloc().type() == Absloc::Register) // CHECK OTHER CASES
   {
      MachRegister mr = aptr->inputs().at(1).absloc().reg();
-     append_src_regs(uop, OperandType_MEMORY, insp, mr, mr.size() * 8);
+     append_src_regs(uop, OperandType_MEMORY, insn, mr, mr.size() * 8);
   } else 
   {
-     append_src_regs(uop, OperandType_MEMORY, insp, pc, pc.size() * 8); 
+     append_src_regs(uop, OperandType_MEMORY, insn, pc, pc.size() * 8); 
   }
 
   if (num_of_assignments > 1 || dInst->micro_ops.size() > 1) // Load info into internal
-    append_dest_regs(uop, OperandType_INTERNAL, insp, Dyninst::MachRegister(), uop->width * uop->vec_len);
+    append_dest_regs(uop, OperandType_INTERNAL, insn, Dyninst::MachRegister(), uop->width * uop->vec_len);
   else { 
     // special case,usually with st0 which comes from parse_assign. We will append registers later
   }
@@ -940,7 +944,7 @@ void create_load_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI
 
 // Get the right operator from the AST (if exists) of an assignment. Stack all the operators in a vector and 
 // choosing the operator according to certain rules.
-void get_operator(instruction_info* uop, AST::Ptr ast, Assignment::Ptr aptr, Dyninst::InstructionAPI::Instruction::Ptr insp, MIAMI::DecodedInstruction* dInst){
+void get_operator(instruction_info* uop, AST::Ptr ast, Assignment::Ptr aptr, Dyninst::InstructionAPI::Instruction::Ptr insn, MIAMI::DecodedInstruction* dInst){
   opVec.clear();
   //if (uop->type != IB_unknown) return;
 
@@ -999,7 +1003,7 @@ void get_operator(instruction_info* uop, AST::Ptr ast, Assignment::Ptr aptr, Dyn
 // If the output (which usually determine the vector length) is vector register operand, 
 // then return its vector length. Otherwise, return vector length as 1.
 // The following list is not complete and havent' include cases in other architectures.
-int check_vector_regs(Dyninst::InstructionAPI::Instruction::Ptr insp, Assignment::Ptr aptr){
+int check_vector_regs(Dyninst::InstructionAPI::Instruction::Ptr insn, Assignment::Ptr aptr){
   if (aptr->out().absloc().type() == Absloc::Register) 
   {
     RegisterAST reg = RegisterAST(aptr->out().absloc().reg());
@@ -1022,7 +1026,7 @@ int check_vector_regs(Dyninst::InstructionAPI::Instruction::Ptr insp, Assignment
 
 
 // If output field is memory, we create a store uop (Dyninst AST usually shows no information of load/store).
-void create_store_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insp, Assignment::Ptr aptr, int idx){
+void create_store_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insn, Assignment::Ptr aptr, int idx){
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
   uop->type = IB_store;
@@ -1034,13 +1038,13 @@ void create_store_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAP
   else 
      uop->width = dInst->micro_ops.front().width;
   
-  uop->vec_len = get_vec_len(insp);
+  uop->vec_len = get_vec_len(insn);
   uop->exec_unit =  (uop->vec_len == 1) ? ExecUnit_SCALAR : ExecUnit_VECTOR;
-  uop->exec_unit_type = get_execution_type(insp);
+  uop->exec_unit_type = get_execution_type(insn);
 
   // If the instruction has more than one assignment, the store/load usually interact with temporary internal operand.
   uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_INTERNAL, idx); 
-  append_src_regs(uop, OperandType_INTERNAL, insp, Dyninst::MachRegister(), 64); // Does the size for internal field matter?
+  append_src_regs(uop, OperandType_INTERNAL, insn, Dyninst::MachRegister(), 64); // Does the size for internal field matter?
 
   uop->dest_opd[uop->num_dest_operands++] = make_operand(OperandType_MEMORY, 0); // FIXME--index
   for (unsigned int i = 0; i < aptr->inputs().size(); ++i)
@@ -1048,18 +1052,18 @@ void create_store_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAP
     Absloc aloc = aptr->inputs().at(i).absloc();
      if (aloc.type() == Absloc::Register && aptr->inputs().size() > 1)
      {
-        append_src_regs(uop, OperandType_MEMORY, insp, aloc.reg(), uop->width * uop->vec_len); // CHECK!!!! Not the previous one?
+        append_src_regs(uop, OperandType_MEMORY, insn, aloc.reg(), uop->width * uop->vec_len); // CHECK!!!! Not the previous one?
         return;
      }
   }
   // If no register information found for the memory field, use default choice PC register --> check if this is the case
-  append_src_regs(uop, OperandType_MEMORY, insp, Absloc::makePC(pblk->obj()->cs()->getArch()).reg(), 64);
+  append_src_regs(uop, OperandType_MEMORY, insn, Absloc::makePC(pblk->obj()->cs()->getArch()).reg(), 64);
   return;
 
 }
 
 // Create Return micro for instruction return
-void create_return_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insp, Assignment::Ptr aptr){
+void create_return_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insn, Assignment::Ptr aptr){
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
   uop->type = IB_ret;
@@ -1079,12 +1083,12 @@ void create_return_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionA
 
   // no source fields needed for return uop
   if (aptr->out().absloc().type() == Absloc::Register) 
-     append_dest_regs(uop, OperandType_REGISTER, insp, aptr->out().absloc().reg(), uop->width * uop->vec_len);
+     append_dest_regs(uop, OperandType_REGISTER, insn, aptr->out().absloc().reg(), uop->width * uop->vec_len);
 } 
 
 
 // Create jump micro.
-void create_jump_micro(MIAMI::DecodedInstruction* dInst, int jump_val, Dyninst::InstructionAPI::Instruction::Ptr insp, Assignment::Ptr assign, bool mem){
+void create_jump_micro(MIAMI::DecodedInstruction* dInst, int jump_val, Dyninst::InstructionAPI::Instruction::Ptr insn, Assignment::Ptr assign, bool mem){
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
   uop->type = IB_jump;
@@ -1102,32 +1106,32 @@ void create_jump_micro(MIAMI::DecodedInstruction* dInst, int jump_val, Dyninst::
   MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
   if (mem) { // If we have a load uop, then the source of jump comes from INTERNAL operand.
     uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_INTERNAL, 0);
-    append_src_regs(uop, OperandType_INTERNAL, insp, pc, pc.size() * 8);
+    append_src_regs(uop, OperandType_INTERNAL, insn, pc, pc.size() * 8);
 
   } else { // If we only have a jump uop, then the source operand is register.
     uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_REGISTER, idx);
-    append_src_regs(uop, OperandType_REGISTER, insp, pc, pc.size() * 8);
+    append_src_regs(uop, OperandType_REGISTER, insn, pc, pc.size() * 8);
     uop->imm_values[uop->num_imm_values].is_signed = (uop->width == 64) ? true : false; 
     uop->imm_values[uop->num_imm_values].value.s = jump_val; 
     uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_IMMED, uop->num_imm_values++);
   } 
 
   uop->dest_opd[uop->num_dest_operands++] = make_operand(OperandType_REGISTER, idx);
-  append_dest_regs(uop, OperandType_REGISTER, insp, pc, pc.size() * 8); 
+  append_dest_regs(uop, OperandType_REGISTER, insn, pc, pc.size() * 8); 
 
 }
 
 
 // Create compare micro.
-void create_compare_micro(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp){
+void create_compare_micro(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn){
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
   uop->type = IB_cmp;
   uop->primary = true;
 
-  if(!uop->vec_len) uop->vec_len = get_vec_len(insp);
+  if(!uop->vec_len) uop->vec_len = get_vec_len(insn);
   uop->exec_unit = (uop->vec_len == 1) ? ExecUnit_SCALAR : ExecUnit_VECTOR;
-  uop->exec_unit_type = get_execution_type(insp);
+  uop->exec_unit_type = get_execution_type(insn);
 
   for (unsigned int i = 0; i < assignments.at(0)->inputs().size(); i++) { 
     Absloc aloc = assignments.at(0)->inputs().at(i).absloc();
@@ -1150,7 +1154,7 @@ void create_compare_micro(MIAMI::DecodedInstruction* dInst, std::vector<Assignme
 
       unsigned int idx = get_register_index(aloc);
       uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_REGISTER, idx);
-      append_src_regs(uop, OperandType_REGISTER, insp, aloc.reg(), aloc.reg().size() * 8);
+      append_src_regs(uop, OperandType_REGISTER, insn, aloc.reg(), aloc.reg().size() * 8);
     } 
   }
 
@@ -1159,12 +1163,12 @@ void create_compare_micro(MIAMI::DecodedInstruction* dInst, std::vector<Assignme
   if (dInst->micro_ops.size() > 1) {
     uop->src_opd[0] = make_operand(OperandType_INTERNAL, 0); 
     uop->src_reg_list.clear();
-    append_src_regs(uop, OperandType_INTERNAL, insp, Dyninst::MachRegister(), 64);
+    append_src_regs(uop, OperandType_INTERNAL, insn, Dyninst::MachRegister(), 64);
   }
 
   // We append constant values from the operands (if any).
   std::vector<Operand> operands;
-  insp->getOperands(operands);
+  insn->getOperands(operands);
   for (unsigned int i = 0; i < operands.size(); ++i) {
     const Result *r = &operands.at(i).getValue()->eval();
 
@@ -1180,13 +1184,13 @@ void create_compare_micro(MIAMI::DecodedInstruction* dInst, std::vector<Assignme
 
   }
   uop->dest_opd[uop->num_dest_operands++] = make_operand(OperandType_REGISTER, 2); // indexing of flag register
-  append_dest_regs(uop, OperandType_REGISTER, insp, get_machine_flag_reg(), 1);
+  append_dest_regs(uop, OperandType_REGISTER, insn, get_machine_flag_reg(), 1);
 }
 
 
 // Create add micro that appear together with other micros in functions like call or pop
 // We set the default value as 8 to indicate the increment of the stack pointer (?rsp).
-void create_add_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insp, Assignment::Ptr aptr){
+void create_add_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insn, Assignment::Ptr aptr){
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
   uop->type = IB_add;
@@ -1199,9 +1203,9 @@ void create_add_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI:
     idx = get_register_index(aptr->out().absloc());
     MachRegister mr = aptr->out().absloc().reg();
     uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_REGISTER, idx);
-    append_src_regs(uop, OperandType_REGISTER, insp, mr, mr.size() * 8); 
+    append_src_regs(uop, OperandType_REGISTER, insn, mr, mr.size() * 8); 
     uop->dest_opd[uop->num_dest_operands++] = make_operand(OperandType_REGISTER, idx); // -->using the index of the first Absloc::Register
-    append_dest_regs(uop, OperandType_REGISTER, insp, mr, mr.size() * 8); 
+    append_dest_regs(uop, OperandType_REGISTER, insn, mr, mr.size() * 8); 
  
   }
   
@@ -1212,18 +1216,18 @@ void create_add_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI:
 
 }
 // If assignment has no AST, parse it according to it's input and output field --> multiple cases untranslatable. 
-void parse_assign(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, instruction_info* uop, Dyninst::InstructionAPI::Instruction::Ptr insp){
+void parse_assign(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, instruction_info* uop, Dyninst::InstructionAPI::Instruction::Ptr insn){
   
   std::cout << "parse_assign\n";
 
   if (uop->vec_len == 0) 
-    uop->vec_len = get_vec_len(insp);
+    uop->vec_len = get_vec_len(insn);
   
   if (uop->exec_unit == ExecUnit_LAST) 
     uop->exec_unit = (uop->vec_len == 1) ? ExecUnit_SCALAR : ExecUnit_VECTOR;
   
   if (uop->exec_unit_type == ExecUnitType_LAST) 
-    uop->exec_unit_type = get_execution_type(insp);
+    uop->exec_unit_type = get_execution_type(insn);
   
   if (uop->width == 0 && uop->vec_len) {
 
@@ -1284,7 +1288,7 @@ void parse_assign(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, instru
                   dInst->micro_ops.pop_back(); 
               
 
-              create_load_micro(dInst, insp, aptr, 0);
+              create_load_micro(dInst, insn, aptr, 0);
               return;
              }
           }
@@ -1312,12 +1316,12 @@ void parse_assign(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, instru
             locVec.push_back(aloc);
             if (i == inputs.size() - 1) { // If the last field is memory, we use default program counter to represent it.
                MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
-               append_src_regs(uop, OperandType_MEMORY, insp, pc, pc.size());
+               append_src_regs(uop, OperandType_MEMORY, insn, pc, pc.size());
 
             } else if (i < inputs.size() - 1) { // If not, the memory is represented by the register field after itself. 
                if (inputs.at(i+1).absloc().type() == Absloc::Register) {
                   MachRegister mr = inputs.at(i+1).absloc().reg();
-                  append_src_regs(uop, OperandType_MEMORY, insp, mr, mr.size()); 
+                  append_src_regs(uop, OperandType_MEMORY, insn, mr, mr.size()); 
                   break;
                }
             }
@@ -1328,14 +1332,14 @@ void parse_assign(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, instru
           } else {
             unsigned int idx = get_register_index(aloc);
             uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_REGISTER, idx); // no extract to check
-            append_src_regs(uop, OperandType_REGISTER, insp, aloc.reg(), aloc.reg().size() * 8);
+            append_src_regs(uop, OperandType_REGISTER, insn, aloc.reg(), aloc.reg().size() * 8);
           }
         }
       }
       if (flags) {
         uop->src_opd[uop->num_src_operands] = make_operand(OperandType_REGISTER, uop->num_src_operands - 1);
 	uop->num_src_operands++;
-        append_src_regs(uop, OperandType_REGISTER, insp, get_machine_flag_reg(), 1); // not sure the size of the flag yet
+        append_src_regs(uop, OperandType_REGISTER, insn, get_machine_flag_reg(), 1); // not sure the size of the flag yet
       }
     } 
     
@@ -1345,7 +1349,7 @@ void parse_assign(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, instru
     if (inputs_aloc.type() == Absloc::Register) {
       unsigned int idx = get_register_index(inputs_aloc);
       uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_REGISTER, idx); 
-      append_src_regs(uop, OperandType_REGISTER, insp, inputs_aloc.reg(), inputs_aloc.reg().size() * 8);
+      append_src_regs(uop, OperandType_REGISTER, insn, inputs_aloc.reg(), inputs_aloc.reg().size() * 8);
     }
   }
 }
@@ -1367,7 +1371,7 @@ void get_dest_field(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, inst
 
 }
 
-void dynXlate_prefectch(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_prefectch(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn)
 {
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
@@ -1376,7 +1380,7 @@ void dynXlate_prefectch(MIAMI::DecodedInstruction* dInst, std::vector<Assignment
   uop->primary = true;
   uop->vec_len = 8; // Is this always true?
   uop->exec_unit = ExecUnit_VECTOR;
-  uop->exec_unit_type = get_execution_type(insp);
+  uop->exec_unit_type = get_execution_type(insn);
   uop->src_opd[uop->num_src_operands] = make_operand(OperandType_MEMORY, uop->num_src_operands);
   uop->num_src_operands++;
   
@@ -1384,7 +1388,7 @@ void dynXlate_prefectch(MIAMI::DecodedInstruction* dInst, std::vector<Assignment
   {
      if (assignments.at(i)->inputs().at(0).absloc().type() == Absloc::Register)
      {
-        append_src_regs(uop, OperandType_MEMORY, insp, assignments.at(i)->inputs().at(0).absloc().reg(), \
+        append_src_regs(uop, OperandType_MEMORY, insn, assignments.at(i)->inputs().at(0).absloc().reg(), \
                 assignments.at(i)->inputs().at(0).absloc().reg().size() * 8);
         break;
      }
@@ -1394,31 +1398,31 @@ void dynXlate_prefectch(MIAMI::DecodedInstruction* dInst, std::vector<Assignment
 
 // System call is translated into jump uop, with two destination operands:
 // program counter and flags.
-void dynXlate_sysCall(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_sysCall(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn)
 {
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
   uop->type = IB_jump;
   uop->width = 64;
   uop->primary = true;
-  if(!uop->vec_len) uop->vec_len = get_vec_len(insp);
+  if(!uop->vec_len) uop->vec_len = get_vec_len(insn);
   uop->exec_unit = (uop->vec_len == 1) ? ExecUnit_SCALAR : ExecUnit_VECTOR;
-  uop->exec_unit_type = get_execution_type(insp);
+  uop->exec_unit_type = get_execution_type(insn);
 
   MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
   uop->dest_opd[uop->num_dest_operands] = make_operand(OperandType_REGISTER, uop->num_dest_operands);
   uop->num_dest_operands++;
-  append_dest_regs(uop, OperandType_REGISTER, insp, pc, pc.size() * 8);
+  append_dest_regs(uop, OperandType_REGISTER, insn, pc, pc.size() * 8);
   
   uop->dest_opd[uop->num_dest_operands] = make_operand(OperandType_REGISTER, uop->num_dest_operands);
   uop->num_dest_operands++;
-  append_dest_regs(uop, OperandType_REGISTER, insp, get_machine_flag_reg(), 1);
+  append_dest_regs(uop, OperandType_REGISTER, insn, get_machine_flag_reg(), 1);
 }
 
 
 // Translate 'return' instruction into 3 uops: Load, Add, Return.
 void dynXlate_return(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments,
-                                            Dyninst::InstructionAPI::Instruction::Ptr insp)
+                                            Dyninst::InstructionAPI::Instruction::Ptr insn)
 {
   if (assignments.size() != 2) 
     assert("Leave instruction should contain two and only two assignments.\n"); 
@@ -1427,18 +1431,18 @@ void dynXlate_return(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::P
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
   get_dest_field(dInst, assignments.at(0), uop);
-  parse_assign(dInst, assignments.at(0), uop, insp);
+  parse_assign(dInst, assignments.at(0), uop, insn);
 
   if (assignments.at(0)->out().absloc().type() == Absloc::Register)
-     append_dest_regs(uop, OperandType_REGISTER, insp, assignments.at(0)->out().absloc().reg(), uop->width * uop->vec_len);   
+     append_dest_regs(uop, OperandType_REGISTER, insn, assignments.at(0)->out().absloc().reg(), uop->width * uop->vec_len);   
   
-  create_add_micro(dInst, insp, assignments.at(1)); // use the second assignments to create add uop
-  create_return_micro(dInst, insp, assignments.at(0));
+  create_add_micro(dInst, insn, assignments.at(1)); // use the second assignments to create add uop
+  create_return_micro(dInst, insn, assignments.at(0));
 }
 
 
 // Translate the nop instruction 
-void dynXlate_nop(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_nop(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insn)
 {
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
@@ -1452,15 +1456,15 @@ void dynXlate_nop(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Ins
 
 // Translate the divide instruction. Make it a special case because it contains 8 assignments 
 // and this way is easier. 
-void dynXlate_divide(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_divide(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn)
 {
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
   uop->type = IB_div;
-  if(!uop->vec_len) uop->vec_len = get_vec_len(insp);
+  if(!uop->vec_len) uop->vec_len = get_vec_len(insn);
   uop->primary = true;
   uop->exec_unit = (uop->vec_len == 1) ? ExecUnit_SCALAR : ExecUnit_VECTOR;
-  uop->exec_unit_type = get_execution_type(insp);
+  uop->exec_unit_type = get_execution_type(insn);
 
   // get all the source operands from one assignment
   Assignment::Ptr aptr = assignments.at(0);
@@ -1473,7 +1477,7 @@ void dynXlate_divide(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::P
         MachRegister mr = aptr->inputs().at(i).absloc().reg();
         uop->src_opd[uop->num_src_operands] = make_operand(OperandType_REGISTER, uop->num_src_operands);
 	uop->num_src_operands++;
-        append_src_regs(uop, OperandType_REGISTER, insp, mr, mr.size() * 8);
+        append_src_regs(uop, OperandType_REGISTER, insn, mr, mr.size() * 8);
         locVec.push_back(aptr->inputs().at(i).absloc());
         if (!uop->width)
           uop->width = mr.size() * 8;
@@ -1491,7 +1495,7 @@ void dynXlate_divide(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::P
       {
         MachRegister mr = assignments.at(i)->out().absloc().reg();
         uop->dest_opd[uop->num_dest_operands++] = make_operand(OperandType_REGISTER, get_register_index(aloc));
-        append_dest_regs(uop, OperandType_REGISTER, insp, mr, mr.size() * 8);
+        append_dest_regs(uop, OperandType_REGISTER, insn, mr, mr.size() * 8);
       }
     }
   }
@@ -1501,21 +1505,21 @@ void dynXlate_divide(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::P
   {
     uop->dest_opd[uop->num_dest_operands] = make_operand(OperandType_REGISTER, uop->num_dest_operands);
     uop->num_dest_operands++;
-    append_dest_regs(uop, OperandType_REGISTER, insp, get_machine_flag_reg(), 1);
+    append_dest_regs(uop, OperandType_REGISTER, insn, get_machine_flag_reg(), 1);
   }
 }
 
 
 // Translate test instruction. Make it into special cases for 'simplity'.
 // Test instruction is translated into one LogicalOp uop. 
-void dynXlate_test(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_test(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn)
 {
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
   uop->type = IB_logical; 
-  if(!uop->vec_len) uop->vec_len = get_vec_len(insp);
+  if(!uop->vec_len) uop->vec_len = get_vec_len(insn);
   uop->exec_unit = (uop->vec_len == 1) ? ExecUnit_SCALAR : ExecUnit_VECTOR;
-  uop->exec_unit_type = get_execution_type(insp);
+  uop->exec_unit_type = get_execution_type(insn);
 
   // We take the first assignment and all of them have the same input fields 
   // and different output fields with different flags, and we don't care
@@ -1528,59 +1532,59 @@ void dynXlate_test(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr
     // get souce operands information and the source registers.
     unsigned int idx = get_register_index(assignments.at(0)->inputs().at(0).absloc());
     uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_REGISTER, idx); 
-    append_src_regs(uop, OperandType_REGISTER, insp, reg, reg.size() * 8);
+    append_src_regs(uop, OperandType_REGISTER, insn, reg, reg.size() * 8);
     if (assignments.at(0)->inputs().size() > 1){
       Absloc aloc = assignments.at(0)->inputs().at(1).absloc();
       if (aloc.type() == Absloc::Register)
       {
        uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_REGISTER, idx+1); 
-       append_src_regs(uop, OperandType_REGISTER, insp, aloc.reg(), aloc.reg().size() * 8); 
+       append_src_regs(uop, OperandType_REGISTER, insn, aloc.reg(), aloc.reg().size() * 8); 
 
       // If it contains memory field.
       } else if (aloc.type() == Absloc::Heap || aloc.type() == Absloc::Stack || aloc.type() == Absloc::Unknown) 
       {
         uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_MEMORY, idx+1); 
-        append_src_regs(uop, OperandType_MEMORY, insp, reg, reg.size() * 8); 
+        append_src_regs(uop, OperandType_MEMORY, insn, reg, reg.size() * 8); 
       }
     }
 
     // test instruction always contains flags output region.
     uop->dest_opd[uop->num_dest_operands] = make_operand(OperandType_REGISTER, uop->num_dest_operands);
     uop->num_dest_operands++;
-    append_dest_regs(uop, OperandType_REGISTER, insp, get_machine_flag_reg(), 1);
+    append_dest_regs(uop, OperandType_REGISTER, insn, get_machine_flag_reg(), 1);
   }
 }
 
 
 // Translate leave instruction.Usually contains 3 uops: Copy, Load, Add.
-void dynXlate_leave(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_leave(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn)
 {
   for (auto ait = assignments.begin(); ait != assignments.end(); ++ait) {
     dInst->micro_ops.push_back(instruction_info());
     instruction_info* uop = &dInst->micro_ops.back();
     get_dest_field(dInst, *ait, uop);
-    parse_assign(dInst, *ait, uop, insp);
+    parse_assign(dInst, *ait, uop, insn);
     if (uop->type == IB_copy)
       uop->primary = true;
     if ((*ait)->out().absloc().type() == Absloc::Register)
     {
-       append_dest_regs(uop, OperandType_REGISTER, insp, (*ait)->out().absloc().reg(), uop->width * uop->vec_len);
+       append_dest_regs(uop, OperandType_REGISTER, insn, (*ait)->out().absloc().reg(), uop->width * uop->vec_len);
     }
   }
 
-  create_add_micro(dInst, insp, assignments.at(0));
+  create_add_micro(dInst, insn, assignments.at(0));
 }
 
 
 // Translate jump by traversing its AST.
-void dynXlate_jump_ast(MIAMI::DecodedInstruction* dInst, instruction_info* uop, AST::Ptr ast, Dyninst::InstructionAPI::Instruction::Ptr insp, Assignment::Ptr aptr)
+void dynXlate_jump_ast(MIAMI::DecodedInstruction* dInst, instruction_info* uop, AST::Ptr ast, Dyninst::InstructionAPI::Instruction::Ptr insn, Assignment::Ptr aptr)
 {
   if (uop->vec_len == 0) {
-    uop->vec_len = get_vec_len(insp);
+    uop->vec_len = get_vec_len(insn);
   }
     
   if (uop->exec_unit == ExecUnit_LAST) uop->exec_unit = (uop->vec_len == 1) ? ExecUnit_SCALAR : ExecUnit_VECTOR;
-  if (uop->exec_unit_type == ExecUnitType_LAST) uop->exec_unit_type = get_execution_type(insp);
+  if (uop->exec_unit_type == ExecUnitType_LAST) uop->exec_unit_type = get_execution_type(insn);
   if (!uop->width) get_width_from_tree(uop, ast);
 
   unsigned int i;
@@ -1589,16 +1593,16 @@ void dynXlate_jump_ast(MIAMI::DecodedInstruction* dInst, instruction_info* uop, 
       RoseAST::Ptr ast_r = RoseAST::convert(ast);
 
       if (uop->type == IB_unknown) { 
-        get_operator(uop, ast, aptr, insp, dInst);
+        get_operator(uop, ast, aptr, insn, dInst);
 
         if (uop->type == IB_add) 
           uop->type = IB_branch; // CHECK
 
         if (uop->type == IB_load) { // deal with jump qword ptr [rip+0x200682]
-          create_load_micro(dInst, insp, aptr, 0);
+          create_load_micro(dInst, insn, aptr, 0);
           uop->type = IB_branch;
           uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_INTERNAL, 0);
-          append_src_regs(uop, OperandType_INTERNAL, insp, Dyninst::MachRegister(), \
+          append_src_regs(uop, OperandType_INTERNAL, insn, Dyninst::MachRegister(), \
                                     dInst->micro_ops.front().width * dInst->micro_ops.front().vec_len);
           return;
         }
@@ -1609,10 +1613,10 @@ void dynXlate_jump_ast(MIAMI::DecodedInstruction* dInst, instruction_info* uop, 
       if (ast_r->val().op == ROSEOperation::ifOp || ast_r->val().op == ROSEOperation::derefOp || uop->type == IB_branch) { 
       // if conditional and operator is 'if' || unconditional branching --> might get more imms, fine with dg.
         for (i = 0; i < ast->numChildren(); ++i) {
-          dynXlate_jump_ast(dInst, uop, ast->child(i), insp, aptr);
+          dynXlate_jump_ast(dInst, uop, ast->child(i), insn, aptr);
         }  
       } else {
-        dynXlate_jump_ast(dInst, uop, ast->child(0), insp, aptr);
+        dynXlate_jump_ast(dInst, uop, ast->child(0), insn, aptr);
       }
       break;
     }
@@ -1650,7 +1654,7 @@ void dynXlate_jump_ast(MIAMI::DecodedInstruction* dInst, instruction_info* uop, 
           size = opVec.back()->val().size; // don't need to time it by 8, its already in bit
         else 
           size = ast_v->val().reg.absloc().reg().size() * 8;
-          append_src_regs(uop, OperandType_REGISTER, insp, ast_v->val().reg.absloc().reg(), size);
+          append_src_regs(uop, OperandType_REGISTER, insn, ast_v->val().reg.absloc().reg(), size);
       }
       break;
     }
@@ -1698,19 +1702,19 @@ void calculate_jump_val(AST::Ptr ast)
 
 
 // Update the primary micro-op with a new destination operand--flags
-void update_dest_with_flag(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void update_dest_with_flag(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insn)
 {
   for (auto oit = dInst->micro_ops.begin(); oit != dInst->micro_ops.end(); oit++) {
     if (oit->primary) {
       oit->dest_opd[oit->num_dest_operands++] = make_operand(OperandType_REGISTER, oit->num_dest_operands); // which index should I use
-      append_dest_regs(&(*oit), OperandType_REGISTER, insp, get_machine_flag_reg(), 1);
+      append_dest_regs(&(*oit), OperandType_REGISTER, insn, get_machine_flag_reg(), 1);
     }
   }
 }
 
 
 // Translate the jump instruction
-void dynXlate_jump(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_jump(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn)
 {
   dInst->micro_ops.push_back(instruction_info());
   instruction_info *uop = &dInst->micro_ops.back();
@@ -1719,7 +1723,7 @@ void dynXlate_jump(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr
   static std::pair<AST::Ptr, bool> astPair;
   astPair = SymEval::expand(assignments.at(0), false);
   if (astPair.second && NULL != astPair.first) {
-    dynXlate_jump_ast(dInst, uop, astPair.first, insp, assignments.at(0)); 
+    dynXlate_jump_ast(dInst, uop, astPair.first, insn, assignments.at(0)); 
     calculate_jump_val(astPair.first);
   }
   
@@ -1733,19 +1737,19 @@ void dynXlate_jump(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr
 
   Absloc out_aloc = assignments.at(0)->out().absloc();
   if (out_aloc.type() == Absloc::Register)
-     append_dest_regs(uop, OperandType_REGISTER, insp, out_aloc.reg(), out_aloc.reg().size() * 8); 
+     append_dest_regs(uop, OperandType_REGISTER, insn, out_aloc.reg(), out_aloc.reg().size() * 8); 
 }
 
 
 // Haven't encounter any enter yet. Don't really know how MIAMI translate it.
-void dynXlate_enter(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_enter(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn)
 {
   return;
 }
 
 
 // Translate call instruction (two different kinds, with load (5 uops) or without load (4 uops)).
-void dynXlate_call(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_call(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn)
 {
   for (unsigned int i = 0; i < assignments.size(); i++) {
     if (assignments.at(i)->inputs().size() > 0) {
@@ -1753,15 +1757,15 @@ void dynXlate_call(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr
                                                         // of the assignments in this case of call. 
       instruction_info* uop = &dInst->micro_ops.front();
       get_dest_field(dInst, assignments.at(i), uop);
-      parse_assign(dInst, assignments.at(i), uop, insp);
+      parse_assign(dInst, assignments.at(i), uop, insn);
       if (dInst->micro_ops.front().type == IB_load) // special call with load usually call [??? + ???]
       {
         uop = &dInst->micro_ops.front();
         uop->num_dest_operands = 1; // Reassign the destination value of load uop in call insn.
         uop->dest_opd[0] = make_operand(OperandType_INTERNAL, 0);
-        append_dest_regs(uop, OperandType_INTERNAL, insp, Dyninst::MachRegister(), uop->width * uop->vec_len);
+        append_dest_regs(uop, OperandType_INTERNAL, insn, Dyninst::MachRegister(), uop->width * uop->vec_len);
       } else {
-        append_all_dest_registers(uop, insp, assignments.at(i));
+        append_all_dest_registers(uop, insn, assignments.at(i));
       }
     }
   }
@@ -1774,11 +1778,11 @@ void dynXlate_call(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr
       calculate_jump_val(astPair.first); // We need AST to find the value which the call jump to.
 
       if (dInst->micro_ops.size() == 3) { // If we have load uop, change the jump's src operand to INTERNAL
-	create_jump_micro(dInst, 0, insp, assignments.at(0), true);
+	create_jump_micro(dInst, 0, insn, assignments.at(0), true);
       }
       else { // no load operation
 	jump_val = dInst->len;
-	create_jump_micro(dInst, jump_val, insp, assignments.at(0), false);
+	create_jump_micro(dInst, jump_val, insn, assignments.at(0), false);
       }
 
       jump_val = 0; // this is static
@@ -1788,12 +1792,12 @@ void dynXlate_call(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr
   }  
 
   // the first add is usually the second assignment, so we pass the second one over. CHECK to make sure.
-  create_add_micro(dInst, insp, assignments.at(1)); 
+  create_add_micro(dInst, insn, assignments.at(1)); 
 }
 
 
 // Translate compare uop
-void dynXlate_compare(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_compare(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn)
 {
   Assignment::Ptr assign = assignments.at(0);
   std::vector<AbsRegion> inputs = assign->inputs();
@@ -1801,13 +1805,13 @@ void dynXlate_compare(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::
   {
     Absloc aloc = inputs.at(i).absloc();
     if (aloc.type() == Absloc::Stack || aloc.type() == Absloc::Heap || aloc.type() == Absloc::Unknown) {
-      create_load_micro(dInst, insp, assign, 0); // Create load uop if we have mem as input field.
+      create_load_micro(dInst, insn, assign, 0); // Create load uop if we have mem as input field.
       locVec.push_back(aloc);
     }
   }
 
-  create_compare_micro(dInst, assignments, insp);
-  //update_dest_with_flag(dInst, insp); // Compare instruction usually has destination fields being flags.
+  create_compare_micro(dInst, assignments, insn);
+  //update_dest_with_flag(dInst, insn); // Compare instruction usually has destination fields being flags.
 }
 
 
@@ -1846,25 +1850,25 @@ void traverse_or(instruction_info* uop, AST::Ptr ast){
 
 
 // Translate or instruction. Make it into a special case for simplicity.
-void dynXlate_or(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_or(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn)
 {
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
   uop->type = IB_logical;
   uop->primary = true;
-  uop->vec_len = get_vec_len(insp);
+  uop->vec_len = get_vec_len(insn);
   uop->exec_unit = (uop->vec_len == 1) ? ExecUnit_SCALAR : ExecUnit_VECTOR;
-  uop->exec_unit_type = get_execution_type(insp);
+  uop->exec_unit_type = get_execution_type(insn);
 
   uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_INTERNAL, 1);
-  append_src_regs(uop, OperandType_INTERNAL, insp, Dyninst::MachRegister(), uop->width * uop->vec_len);
+  append_src_regs(uop, OperandType_INTERNAL, insn, Dyninst::MachRegister(), uop->width * uop->vec_len);
 
   uop->dest_reg_list.clear();
   uop->dest_opd[uop->num_dest_operands++] = make_operand(OperandType_INTERNAL, 0);
-  append_dest_regs(uop, OperandType_INTERNAL, insp, Dyninst::MachRegister(), uop->width * uop->vec_len);
+  append_dest_regs(uop, OperandType_INTERNAL, insn, Dyninst::MachRegister(), uop->width * uop->vec_len);
   uop->dest_opd[uop->num_dest_operands] = make_operand(OperandType_REGISTER, uop->num_dest_operands);
   uop->num_dest_operands++;
-  append_dest_regs(uop, OperandType_REGISTER, insp, get_machine_flag_reg(), 1);
+  append_dest_regs(uop, OperandType_REGISTER, insn, get_machine_flag_reg(), 1);
 
   for (unsigned int i = 0; i < assignments.size(); ++i)
   {
@@ -1882,8 +1886,8 @@ void dynXlate_or(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> 
               get_width_from_tree(uop, astPair.first);
             
             traverse_or(uop, astPair.first); // get value from AST
-            create_load_micro(dInst, insp, assignments.at(i), 1);
-            create_store_micro(dInst, insp, assignments.at(i), 0);
+            create_load_micro(dInst, insn, assignments.at(i), 1);
+            create_store_micro(dInst, insn, assignments.at(i), 0);
             return;
           }
         }  
@@ -1891,9 +1895,9 @@ void dynXlate_or(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> 
   }
 
   // Have to create load an store micro. Take default choice 0.
-  create_load_micro(dInst, insp, assignments.at(0), 1);
+  create_load_micro(dInst, insn, assignments.at(0), 1);
   uop->width = dInst->micro_ops.front().width;
-  create_store_micro(dInst, insp, assignments.at(0), 0);
+  create_store_micro(dInst, insn, assignments.at(0), 0);
   return;
 }
 
@@ -1903,7 +1907,7 @@ void dynXlate_or(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> 
 //***************************************************************************
 
 // dynXlate_all the assignments of an instruction
-void dynXlate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insp, MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments)
+void dynXlate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insn, MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments)
 {
   int flag = 0;
   for (unsigned int i = 0; i < assignments.size(); i++) {
@@ -1911,7 +1915,7 @@ void dynXlate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insp, MIAMI:
       flag = 1;
     } else {
       // If it's not flag, we start processing the assignment.
-      dynXlate_assignment(dInst, assignments.at(i), insp);
+      dynXlate_assignment(dInst, assignments.at(i), insn);
     }
   }
   if (dInst->micro_ops.size() == 1) dInst->micro_ops.back().primary = true; // only one uop, it must be primary.
@@ -1926,14 +1930,14 @@ void dynXlate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insp, MIAMI:
       Absloc aloc = assignments.at(0)->inputs().at(0).absloc();
       if (aloc.type() == Absloc::Register)
       {
-         append_src_regs(&dInst->micro_ops.back(), OperandType_MEMORY, insp, aloc.reg(), aloc.reg().size() * 8);
+         append_src_regs(&dInst->micro_ops.back(), OperandType_MEMORY, insn, aloc.reg(), aloc.reg().size() * 8);
       }
     }else {
-       append_src_regs(&dInst->micro_ops.back(), OperandType_MEMORY, insp, Dyninst::MachRegister(), 64);
+       append_src_regs(&dInst->micro_ops.back(), OperandType_MEMORY, insn, Dyninst::MachRegister(), 64);
      }
 
   /* Special case: processing push and pop.
-   * It seems that dynXlate_inspectAST cannot cannot get the CONSTANT values in 'add' uop, so we append it here.
+   * It seems that dynXlate_insnectAST cannot cannot get the CONSTANT values in 'add' uop, so we append it here.
    * The reason it cannot get the constant value is because the traverse_options function do not traverse
    * all the children of 'add' ROSEOperations' in most of the cases (but only the first one).
    * We do it that way to stop the recursion sooner for the general uops. Many uops contains 'add' ROSEOperation.
@@ -1959,9 +1963,9 @@ void dynXlate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insp, MIAMI:
   }
 
   if (flag) 
-    update_dest_with_flag(dInst, insp); // update the primary uop with a flag destination. (x86/x86_64)
+    update_dest_with_flag(dInst, insn); // update the primary uop with a flag destination. (x86/x86_64)
   if (flag && dInst->micro_ops.size() == 0) { 
-    dynXlate_test(dInst, assignments, insp); // all dest ops are flags-->test uop
+    dynXlate_test(dInst, assignments, insn); // all dest ops are flags-->test uop
   } else if (flag && dInst->micro_ops.size() == 0 && dInst->micro_ops.begin()->vec_len > 1)
   {
 
@@ -1970,7 +1974,7 @@ void dynXlate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insp, MIAMI:
 }
 
 
-void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, Dyninst::InstructionAPI::Instruction::Ptr insn)
 {
   // start a new micro operation
   dInst->micro_ops.push_back(instruction_info());
@@ -1980,7 +1984,7 @@ void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
   astPair = SymEval::expand(aptr, false);
 
   //need to check special xmm/ymm case
-  int len = check_vector_regs(insp, aptr);
+  int len = check_vector_regs(insn, aptr);
   if (len) {
    uop->vec_len = len;
    uop->exec_unit = ExecUnit_VECTOR; 
@@ -1991,9 +1995,9 @@ void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
   // If the assignment contains an abstract syntax tree
   if (astPair.second && NULL != astPair.first) {
     //check whether there are any load assignments
-    get_operator(uop, astPair.first, aptr, insp, dInst);
+    get_operator(uop, astPair.first, aptr, insn, dInst);
 
-    dynXlate_inspectAST(dInst, aptr, uop, astPair.first, insp);
+    dynXlate_insnectAST(dInst, aptr, uop, astPair.first, insn);
 
     // These special cases are quite messy. Even "add [R14 + 8], 1" and "add [R15 + RAX * 4], 1" are translated 
     // differently, with the first one having 3 uops: load, add, store, and the second one having 2 uops (wrong)
@@ -2008,10 +2012,10 @@ void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
 
       if (uop->type != IB_store) //uop->type == IB_add
       {
-        create_store_micro(dInst, insp, aptr, 1);
+        create_store_micro(dInst, insn, aptr, 1);
         uop->primary = true; // add the is primary micro
         uop->dest_opd[0] = make_operand(OperandType_INTERNAL, 1);
-        append_dest_regs(uop, OperandType_INTERNAL, insp, Dyninst::MachRegister(), uop->width * uop->vec_len);// FIXME
+        append_dest_regs(uop, OperandType_INTERNAL, insn, Dyninst::MachRegister(), uop->width * uop->vec_len);// FIXME
       }
     }
 
@@ -2020,23 +2024,23 @@ void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
     for (unsigned int i = 1; i < aptr->inputs().size(); ++i) { 
       Absloc aloc = aptr->inputs().at(i).absloc();
       if (aloc.type() == Absloc::Stack || aloc.type() == Absloc::Heap || aloc.type() == Absloc::Unknown) {
-        if (uop->type != IB_load){ // the in case of add [...]. which dynXlate_inspectAST will return only an add uop,
+        if (uop->type != IB_load){ // the in case of add [...]. which dynXlate_insnectAST will return only an add uop,
                                    // since AST does not contain information of memory field, but we need
                                    // to create another load uop. 
-          create_load_micro(dInst, insp, aptr, 0);
+          create_load_micro(dInst, insn, aptr, 0);
           locVec.push_back(aptr->inputs().at(i).absloc());
 
           // Change the REGISTER operand by INTERNAL operand since we have another load uop. 
           // Not the best practice to change the last element of source operands like the
           // following. But leave it like this for now. 
           if(uop->num_src_operands) uop->src_opd[uop->num_src_operands-1] = make_operand(OperandType_INTERNAL, 0); //FIXME, not the right way to do it
-          append_src_regs(uop, OperandType_INTERNAL, insp, Dyninst::MachRegister(), uop->width * uop->vec_len);
+          append_src_regs(uop, OperandType_INTERNAL, insn, Dyninst::MachRegister(), uop->width * uop->vec_len);
           // Similarly, change the destination memory space into internal too. 
           if (aloc.type() == Absloc::Register)
           {
             uop->dest_opd[0] = make_operand(OperandType_REGISTER, 1);
             uop->dest_reg_list.clear();
-            append_dest_regs(uop, OperandType_REGISTER, insp, aloc.reg(), aloc.reg().size() * 8);  
+            append_dest_regs(uop, OperandType_REGISTER, insn, aloc.reg(), aloc.reg().size() * 8);  
           }
           
           break;
@@ -2046,7 +2050,7 @@ void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
 
 
   } else { // The assignment doesn't contain ast
-    parse_assign(dInst, aptr, uop, insp);
+    parse_assign(dInst, aptr, uop, insn);
   }
 
   if (uop->num_dest_operands > 4) // This is a very bad bug I haven't figure out yet. Some times the program gives
@@ -2056,23 +2060,23 @@ void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
   {
     uop->num_dest_operands = 1;
   }
-  append_all_dest_registers(uop, insp, aptr); // processe all destination register information.
+  append_all_dest_registers(uop, insn, aptr); // processe all destination register information.
 
 }
 
 
 // Parse the AST of an assignment.
-void dynXlate_inspectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
+void dynXlate_insnectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
 			 instruction_info* uop, AST::Ptr ast,
-			 Dyninst::InstructionAPI::Instruction::Ptr insp)
+			 Dyninst::InstructionAPI::Instruction::Ptr insn)
 {
   Absloc aloc;
   if (uop->vec_len == 0) 
-    uop->vec_len = get_vec_len(insp);
+    uop->vec_len = get_vec_len(insn);
   if (uop->exec_unit == ExecUnit_LAST) 
     uop->exec_unit = (uop->vec_len == 1) ? ExecUnit_SCALAR : ExecUnit_VECTOR;
   if (uop->exec_unit_type == ExecUnitType_LAST) 
-    uop->exec_unit_type = get_execution_type(insp);
+    uop->exec_unit_type = get_execution_type(insn);
 
   // special cases when memory field does not shown in ast --> CHECK
   if (uop->type == IB_load && !uop->num_src_operands) {
@@ -2091,11 +2095,11 @@ void dynXlate_inspectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
         // building the source register information with the right register to represent it
         if (i != 0) { // The memory field is not is first input field. We choose the register field before it to represent mem field.
           MachRegister mr = aptr->inputs().at(i-1).absloc().reg();
-          append_src_regs(uop, OperandType_MEMORY, insp, mr, mr.size() * 8);
+          append_src_regs(uop, OperandType_MEMORY, insn, mr, mr.size() * 8);
         }
 	else { // Using default program counter to represent the memory field.
           MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
-          append_src_regs(uop, OperandType_MEMORY, insp, pc, pc.size() * 8); 
+          append_src_regs(uop, OperandType_MEMORY, insn, pc, pc.size() * 8); 
         }
         return;
       }
@@ -2126,10 +2130,10 @@ void dynXlate_inspectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
         uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_REGISTER, 1);
 
         if (aloc_out.type() == Absloc::Register) {
-          append_src_regs(uop, OperandType_REGISTER, insp, aloc_out.reg(), aloc_out.reg().size() * 8);  
+          append_src_regs(uop, OperandType_REGISTER, insn, aloc_out.reg(), aloc_out.reg().size() * 8);  
         } else if (aptr->inputs().at(0).absloc().type() == Absloc::Register){
           MachRegister input = aptr->inputs().at(0).absloc().reg();
-          append_src_regs(uop, OperandType_REGISTER, insp, input, input.size() * 8);
+          append_src_regs(uop, OperandType_REGISTER, insn, input, input.size() * 8);
         }
 
         return;
@@ -2142,7 +2146,7 @@ void dynXlate_inspectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
       if (uop->num_imm_values < 2) {
         uop->imm_values[uop->num_imm_values].is_signed = (uop->width == 64) ? true : false; //CHECK
         uop->imm_values[uop->num_imm_values].value.s = ast_c->val().val; 
-        // std::cout << "inside dynXlate_inspectAST, constant value is " << ast_c->val().val;
+        // std::cout << "inside dynXlate_insnectAST, constant value is " << ast_c->val().val;
         uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_IMMED, uop->num_imm_values++); // no need to find dependency of immediates
         locVec.push_back(Absloc());
       }
@@ -2158,7 +2162,8 @@ void dynXlate_inspectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
          aloc = aptr->out().absloc();
         if (aloc.type() == Absloc::Stack || aloc.type() == Absloc::Heap || aloc.type() == Absloc::Unknown) {
           uop->type = IB_store; // Is it possible? function get_dest_field should already assign it. 
-        } else if (aloc.type() == Absloc::Register) {
+        }
+	else if (aloc.type() == Absloc::Register) {
           uop->type = IB_copy;
         }
       } 
@@ -2189,10 +2194,12 @@ void dynXlate_inspectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
           uop->flag = true;
           uop->src_opd[uop->num_src_operands] = make_operand(OperandType_REGISTER, uop->num_src_operands); // flags shall not appear already
 	  uop->num_src_operands++;
-          append_src_regs(uop, OperandType_REGISTER, insp, get_machine_flag_reg(), 1);
-        } else {} // do nothing if source flag is already updated.
+          append_src_regs(uop, OperandType_REGISTER, insn, get_machine_flag_reg(), 1);
+        }
+	else {} // do nothing if source flag is already updated.
 
-      } else {
+      }
+      else {
         // Special cases when memory field does not shown in ast 
         if (uop->type == IB_load) {
           for (unsigned int i = 0; i < aptr->inputs().size(); ++i) {
@@ -2204,10 +2211,11 @@ void dynXlate_inspectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
               // Building the source register information.
               if (i != 0) {
                  MachRegister mr = aptr->inputs().at(i-1).absloc().reg();
-                 append_src_regs(uop, OperandType_MEMORY, insp, mr, mr.size() * 8);
-              } else {
+                 append_src_regs(uop, OperandType_MEMORY, insn, mr, mr.size() * 8);
+              }
+	      else {
                  MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
-                 append_src_regs(uop, OperandType_MEMORY, insp, pc, pc.size() * 8); 
+                 append_src_regs(uop, OperandType_MEMORY, insn, pc, pc.size() * 8); 
               }
               return;
             }
@@ -2227,7 +2235,7 @@ void dynXlate_inspectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
           else 
             size = ast_var->val().reg.absloc().reg().size();
 
-          append_src_regs(uop, OperandType_REGISTER, insp, ast_var->val().reg.absloc().reg(), size);
+          append_src_regs(uop, OperandType_REGISTER, insn, ast_var->val().reg.absloc().reg(), size);
         }
       }
       return;
@@ -2248,17 +2256,17 @@ void dynXlate_inspectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
       switch(option){
         case 2:
           for (unsigned int i = 0; i < ast->numChildren(); i++) {
-            dynXlate_inspectAST(dInst, aptr, uop, ast->child(i), insp);
+            dynXlate_insnectAST(dInst, aptr, uop, ast->child(i), insn);
           }
           return;
         case 1:
-          dynXlate_inspectAST(dInst, aptr, uop, ast->child(0), insp);
+          dynXlate_insnectAST(dInst, aptr, uop, ast->child(0), insn);
           return;
         case 0:
           // special case to deal with sub instruction
           if (ast_r->val().op == ROSEOperation::extractOp && ast->child(0)->getID() == AST::V_RoseAST && uop->type != IB_load) { 
               uop->type = IB_unknown;
-              dynXlate_inspectAST(dInst, aptr, uop, ast->child(0), insp);
+              dynXlate_insnectAST(dInst, aptr, uop, ast->child(0), insn);
           }
             return;
         default:
@@ -2279,7 +2287,7 @@ void dynXlate_inspectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
 
 void dynXlate_dumpAssignmentAST(AST::Ptr ast, std::string index, int num);
 
-// The function traverse the given AST and print out each of its nodes.
+
 void dynXlate_dumpInsn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vector<Assignment::Ptr> assignments, addrtype pc)
 {
   using std::cout;
@@ -2298,7 +2306,6 @@ void dynXlate_dumpInsn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vect
 }
 
 
-// The function traverse the given AST and print out each of its nodes.
 void dynXlate_dumpAssignmentAST(AST::Ptr ast, std::string index, int num)
 {
   using std::cout;
@@ -2337,7 +2344,6 @@ void dynXlate_dumpAssignmentAST(AST::Ptr ast, std::string index, int num)
 }
 
 
-// New printing method for each instruction
 void
 dumpMIAMIInsn(const MIAMI::DecodedInstruction *dInst)
 {
@@ -2397,11 +2403,6 @@ dumpMIAMIInsn(const MIAMI::DecodedInstruction *dInst)
     cout << endl;    
   }
 }
-
-
-#if 0
-
-#endif
 
 
 //***************************************************************************
