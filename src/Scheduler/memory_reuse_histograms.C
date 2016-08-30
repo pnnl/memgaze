@@ -77,9 +77,9 @@ BlockMRDData::ParseTextMrdFile()
 #undef CHECK_COND0
 
 #define CHECK_COND(cond, err, ...) if (cond) \
-   {fprintf(stderr, "ERROR: "err"\n", __VA_ARGS__); goto load_error; }
+   {fprintf(stderr, "ERROR: " err "\n", __VA_ARGS__); goto load_error; }
 #define CHECK_COND0(cond, err) if (cond) \
-   {fprintf(stderr, "ERROR: "err"\n"); goto load_error; }
+   {fprintf(stderr, "ERROR: " err "\n"); goto load_error; }
       
       
    addrtype tmask, tval;
@@ -348,8 +348,8 @@ BlockMRDData::ParseTextMrdFile()
                      res = ReadDistCountHistogramFromFile(fd, reuseElem.reuseHist);
                      CHECK_COND(res!=0, "Reading reuse histogram for instruction at offset 0x%" PRIxaddr
                              ", memop %d, in image %d, entry %d of %d"
-                             ", with source img/idx=%" PRId32 "/% "PRId32 
-                             " and carry img/idx=%" PRId32 "/% "PRId32, 
+                             ", with source img/idx=%" PRId32 "/% " PRId32 
+                             " and carry img/idx=%" PRId32 "/% " PRId32, 
                              saddr, level, i, j, nentries, srcImg, srcidx, 
                              carryImg, sidx);
                   } while (1);  // we use a break to exit the loop

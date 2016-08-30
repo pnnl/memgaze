@@ -28,10 +28,10 @@ namespace MIAMIU
       for (int i=0 ; i<NUM_ACCESS_TYPES ; ++i)
       {
          totalCount += accessCount[i];
-         fprintf(fd, "%s: %"PRIu64"\n", accessTypeName[i], accessCount[i]);
+         fprintf(fd, "%s: %" PRIu64 "\n", accessTypeName[i], accessCount[i]);
       }
-      fprintf (fd, "TotalCount: %"PRIu64"\n", totalCount);
-      fprintf (fd, "LinesWrittenBack: %"PRIu64"\n", written_back_lines);
+      fprintf (fd, "TotalCount: %" PRIu64 "\n", totalCount);
+      fprintf (fd, "LinesWrittenBack: %" PRIu64 "\n", written_back_lines);
    }
 
    CacheSim::CacheSim(uint32_t _size, uint32_t _line, uint32_t _assoc,
@@ -129,10 +129,10 @@ namespace MIAMIU
          for (jj=0 ; jj<NUM_ACCESS_TYPES ; ++jj)
          {
             totalCount += assocCounts[jj];
-            fprintf (fd, "%s: %"PRIu64"\n", accessTypeName[jj], assocCounts[jj]);
+            fprintf (fd, "%s: %" PRIu64 "\n", accessTypeName[jj], assocCounts[jj]);
          }
-         fprintf (fd, "TotalCount: %"PRIu64"\n", totalCount);
-         fprintf (fd, "LinesWrittenBack: %"PRIu64"\n", written_back_lines);
+         fprintf (fd, "TotalCount: %" PRIu64 "\n", totalCount);
+         fprintf (fd, "LinesWrittenBack: %" PRIu64 "\n", written_back_lines);
     
          if (detailed)
             for (ii=0 ; ii<numSets ; ++ii)

@@ -61,9 +61,9 @@ int
 LoadModule::loadFromFile(FILE *fd, bool parse_routines)
 {
 #define CHECK_COND(cond, err, ...) if (cond) \
-   {fprintf(stderr, "ERROR: "err"\n", __VA_ARGS__); goto load_error; }
+   {fprintf(stderr, "ERROR: " err "\n", __VA_ARGS__); goto load_error; }
 #define CHECK_COND0(cond, err) if (cond) \
-   {fprintf(stderr, "ERROR: "err"\n"); goto load_error; }
+   {fprintf(stderr, "ERROR: " err "\n"); goto load_error; }
 
    size_t res;
    int ires;
@@ -148,9 +148,9 @@ LoadModule::loadRoutineData(FILE *fd)
 #undef CHECK_COND0
 
 #define CHECK_COND(cond, err, ...) if (cond) \
-   {fprintf(stderr, "ERROR: "err"\n", __VA_ARGS__); goto load_error; }
+   {fprintf(stderr, "ERROR: " err "\n", __VA_ARGS__); goto load_error; }
 #define CHECK_COND0(cond, err) if (cond) \
-   {fprintf(stderr, "ERROR: "err"\n"); goto load_error; }
+   {fprintf(stderr, "ERROR: " err "\n"); goto load_error; }
 
    size_t res;
    int ires;
@@ -191,9 +191,9 @@ LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
 #undef CHECK_COND0
 
 #define CHECK_COND(cond, err, ...) if (cond) \
-   {fprintf(stderr, "ERROR: "err"\n", __VA_ARGS__); goto load_error; }
+   {fprintf(stderr, "ERROR: " err "\n", __VA_ARGS__); goto load_error; }
 #define CHECK_COND0(cond, err) if (cond) \
-   {fprintf(stderr, "ERROR: "err"\n"); goto load_error; }
+   {fprintf(stderr, "ERROR: " err "\n"); goto load_error; }
 
    size_t res;
 #if DEBUG_CFG_COUNTS
@@ -362,7 +362,6 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
 
    for (uint32_t r=0 ; r<numRoutines ; ++r)
    {
-
       Routine *rout = create_routine((LoadModule*)this, r);
       if (rout == NULL)
       {

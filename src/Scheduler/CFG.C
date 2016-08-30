@@ -142,9 +142,9 @@ int
 CFG::loadFromFile(FILE *fd, MIAMI::EntryMap& entries, MIAMI::EntryMap& traces, addrtype _reloc)
 {
 #define CHECK_COND(cond, err, ...) if (cond) \
-   {fprintf(stderr, "ERROR: "err"\n", __VA_ARGS__); goto load_error; }
+   {fprintf(stderr, "ERROR: " err "\n", __VA_ARGS__); goto load_error; }
 #define CHECK_COND0(cond, err) if (cond) \
-   {fprintf(stderr, "ERROR: "err"\n"); goto load_error; }
+   {fprintf(stderr, "ERROR: " err "\n"); goto load_error; }
   
    size_t res;
    uint32_t nNodes;

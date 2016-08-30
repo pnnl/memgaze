@@ -1036,9 +1036,9 @@ void
 LoadStaticAnalysisData (FILE *fd, uint64_t f_offset, RFormulasMap& refFormulas)
 {
 #define CHECK_COND(cond, err, ...) if (cond) \
-   {fprintf(stderr, "ERROR: "err"\n", __VA_ARGS__); goto load_error; }
+   {fprintf(stderr, "ERROR: " err "\n", __VA_ARGS__); goto load_error; }
 #define CHECK_COND0(cond, err) if (cond) \
-   {fprintf(stderr, "ERROR: "err"\n"); goto load_error; }
+   {fprintf(stderr, "ERROR: " err "\n"); goto load_error; }
 
    int32_t rsize, l, i, j;
    refFormulas.clear();

@@ -332,7 +332,6 @@ int get_routine_number() {
 
 // The function is used in MiamiDriver.C to get the image from its name.
 MIAMI::LoadModule* create_loadModule(int count, std::string file_name){
-
   Dyninst::ParseAPI::SymtabCodeSource* codeSrc;
   codeSrc = new Dyninst::ParseAPI::SymtabCodeSource((char*)file_name.c_str());
 
@@ -346,8 +345,6 @@ MIAMI::LoadModule* create_loadModule(int count, std::string file_name){
   unsigned long low_offset = get_low_offset(&objs, file_name);
   LoadModule *lm = new LoadModule (count /*id*/, start_addr, codeSrc->loadAddress()/*low_offset*/, file_name, 0/*hashKey*/);
   return lm;
-
-
 }
 
 
