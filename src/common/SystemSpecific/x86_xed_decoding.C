@@ -1672,11 +1672,7 @@ decode_instruction_at_pc(void *pc, int len, DecodedInstruction *dInst)
    int res = decode_instruction(pc, len, &xedd);
    if (res < 0)
       return (res);
-
-   char buf[600] = {};
-   xed_decoded_inst_dump(&xedd, buf, 600);
-   std::cout << buf << "\n";
-
+   
    dInst->len = xed_decoded_inst_get_length(&xedd);
    dInst->pc = (addrtype)pc;
    dInst->is_call = (xed_decoded_inst_get_category(&xedd)==XED_CATEGORY_CALL);
@@ -1778,6 +1774,28 @@ debug_decode_instruction_at_pc(void *pc, int len)
 
    return (0);
 }
+
+
+void
+XED_dumpInsn(void *pc, int len)
+{
+  std::cout << "========== XED Instruction "
+	    << "(" << std::hex << pc << std::dec << ", " << len << " bytes)"
+	    << " ==========\n";
+
+  xed_decoded_inst_t xedd;
+  int res = decode_instruction(pc, len, &xedd);
+  
+  if (res < 0) {
+    return;
+  }
+
+  const int bufSz = 1024;
+  char buf[bufSz] = {};
+  xed_decoded_inst_dump(&xedd, buf, bufSz);
+  std::cout << buf << "\n";
+}
+  
 
 /* Check if the given instruction can execute multiple times.
  * This is the case with REP prefixed instructions on x86.

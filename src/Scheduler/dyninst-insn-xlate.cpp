@@ -58,11 +58,15 @@ static int jump_val = 0;
 //***************************************************************************
 
 int isaXlate_getFunction(unsigned long pc);
-Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc, graph& g);
+Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc);
 void isaXlate_getDyninstInsn(addrtype pc, BPatch_function *f, std::vector<Assignment::Ptr> * assignments, Dyninst::InstructionAPI::Instruction::Ptr* insp);
-void xlateDynInstInsn(Dyninst::InstructionAPI::Instruction::Ptr insp, std::vector<Assignment::Ptr> assignments, addrtype pc, MIAMI::DecodedInstruction* dInst);
+void dynXlate_insn(Dyninst::InstructionAPI::Instruction::Ptr insp, std::vector<Assignment::Ptr> assignments, addrtype pc, MIAMI::DecodedInstruction* dInst);
 
-void dynXlate_dumpAssignmentAST(AST::Ptr ast, std::string index, int num);
+
+void dynXlate_dumpInsn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vector<Assignment::Ptr> assignments, addrtype pc);
+
+void dumpMIAMIInsn(const MIAMI::DecodedInstruction *dInst);
+
 
 //***************************************************************************
 
@@ -96,49 +100,34 @@ void isaXlate_init(const char* progName)
 // return the length of the translated instruction to increment the pc.
 int isaXlate_insn(std::string func_name, unsigned long pc, MIAMI::DecodedInstruction* dInst)
 {
-  graph g;
-
-  std::vector<int> path;
-  
   int f = isaXlate_getFunction(pc);
-  std::cout << "isaXlate_insn func: " << functions[f]->getDemangledName() << "\n";
+  pblk = isaXlate_getBlock(f, pc);
   
-  pblk = isaXlate_getBlock(f, pc, g);
   if (pblk) {
-    Dyninst::InstructionAPI::Instruction::Ptr insp;
+    Dyninst::InstructionAPI::Instruction::Ptr insn;
     std::vector<Assignment::Ptr> assignments;
-    isaXlate_getDyninstInsn(pc, functions[f], &assignments, &insp);
+    isaXlate_getDyninstInsn(pc, functions[f], &assignments, &insn);
 
-    if (!insp) {
-      assert("Cannot find the instruction.\n");
+    if (!insn) {
+      assert("Cannot find instruction.\n");
       return 0;
     }
 
-    std::cout << "isaXlate_insn insn: " << insp->getOperation().format().c_str() << "\n";
-
-    // TODO: add Xed Decoding from decode_instruction_at_pc()
-    
-    for (unsigned int i = 0; i < assignments.size(); i++) {
-      // Print out each assignment in dyninst format
-
-      std::cout << "----------------------------------------\n";
-      std::cout << "assignment: " << assignments.at(i)->format() << endl;
-      //std::cout << "        Address is     " << (*(*ait)).addr() << "\n";
-              
-      // print out all the nodes in an AST.
-      static std::pair<AST::Ptr, bool> assignPair;
-      assignPair = SymEval::expand(assignments.at(i), false);
-      if (assignPair.second && (NULL != assignPair.first)) {
-	//int a = assignPair.first->numChildren();
-	dynXlate_dumpAssignmentAST(assignPair.first, "0", assignPair.first->numChildren());
-      }
-    }
-    
     num_of_assignments = assignments.size();
+
+    std::cout << "**********************************************************\n"
+	      << "isaXlate_insn(" << functions[f]->getDemangledName() << ")\n";
     
-    std::cout << insp->format() << "\n";
+    dynXlate_dumpInsn(insn, assignments, pc);
+    std::cout << "\n";
+
+    XED_dumpInsn((void*)pc, insn->size());
+    std::cout << "\n";
     
-    xlateDynInstInsn(insp, assignments, pc, dInst);
+    dynXlate_insn(insn, assignments, pc, dInst);
+
+    dumpMIAMIInsn(dInst);
+    std::cout << "\n";
   }
   else {
     dInst->no_dyn_translation = true;
@@ -187,7 +176,7 @@ int isaXlate_getFunction(unsigned long pc)
 
 
 // Get the Block for a given PC with function index f.
-Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc, graph& g)
+Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc)
 {
   std::map<std::string,std::vector<uint8_t> > pathInstructionsMap;
   std::map<std::string,std::vector<BPatch_basicBlock*> > paths;
@@ -196,7 +185,7 @@ Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc, graph& g)
   Dyninst::Address _start, _end;
   func->getAddressRange(_start, _end);
   
-  if (func!=0){
+  if (func != 0) {
     BPatch_basicBlock* bb;
     std::set<BPatch_basicBlock*> blks = funcBlocks[f]; // get the set of blocks from the global map
     
@@ -209,7 +198,8 @@ Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc, graph& g)
 
         if (NULL != pblk){
           //unsigned long * bpc = (unsigned long *) codeSource->getPtrToInstruction(pblk->start());  
-        } else {
+        }
+	else {
           assert("Cannot find the function block\n");
 	}
 
@@ -266,34 +256,32 @@ void isaXlate_getDyninstInsn(addrtype pc, BPatch_function *f, std::vector<Assign
 // 
 //***************************************************************************
 
-void translate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insp, MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments);
-void translate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void parse_ast(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
-	       instruction_info* uop, AST::Ptr ast,
-	       Dyninst::InstructionAPI::Instruction::Ptr insp);
+void dynXlate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insp, MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments);
+void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, Dyninst::InstructionAPI::Instruction::Ptr insp);
+
+void dynXlate_inspectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
+			 instruction_info* uop, AST::Ptr ast,
+			 Dyninst::InstructionAPI::Instruction::Ptr insp);
 
 
-void translate_leave(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void translate_nop(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void translate_or(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void translate_divide(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void translate_call(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void translate_return(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void translate_jump(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void translate_compare(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void translate_enter(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void translate_sysCall(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-void translate_prefectch(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
-
-void DumpInstrListDyninst(const MIAMI::DecodedInstruction *dInst);
-void DumpRegisterList(MIAMI::DecodedInstruction *dInst);
+void dynXlate_leave(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void dynXlate_nop(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void dynXlate_or(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void dynXlate_divide(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void dynXlate_call(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void dynXlate_return(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void dynXlate_jump(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void dynXlate_compare(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void dynXlate_enter(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void dynXlate_sysCall(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void dynXlate_prefectch(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
 
   
 //***************************************************************************
 
 
 // Translate each instructions 
-void xlateDynInstInsn(Dyninst::InstructionAPI::Instruction::Ptr insp, std::vector<Assignment::Ptr> assignments, addrtype pc, MIAMI::DecodedInstruction* dInst)
+void dynXlate_insn(Dyninst::InstructionAPI::Instruction::Ptr insp, std::vector<Assignment::Ptr> assignments, addrtype pc, MIAMI::DecodedInstruction* dInst)
 {
   dInst->len = (int) insp->size(); 
   dInst->pc = (addrtype) pc; 
@@ -301,49 +289,49 @@ void xlateDynInstInsn(Dyninst::InstructionAPI::Instruction::Ptr insp, std::vecto
 
   // The instruction's pointer in dyninst may not point to the machine data which MIAMI wants.
   // Haven't encounter any situations which mach_data is used. Thus, leave it like this for now.
-  dInst->mach_data =  const_cast<void*>( static_cast<const void*>(insp->ptr()) ); // CHECK
+  dInst->mach_data = const_cast<void*>( static_cast<const void*>(insp->ptr()) ); // CHECK
 
   bool x86 = (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86
 	      || pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64);
   if (x86 && insp->getOperation().getID() == e_leave) {
-    translate_leave(dInst, assignments, insp); // x86 leave
+    dynXlate_leave(dInst, assignments, insp); // x86 leave
   }
   else if (x86 && insp->getOperation().getID() == e_nop) {
-    translate_nop(dInst, insp); // x86 nop
+    dynXlate_nop(dInst, insp); // x86 nop
   }
   else if (x86 && insp->getOperation().getID() >= e_or && insp->getOperation().getID() <= e_orps) {
-    translate_or(dInst, assignments, insp); // x86 or
+    dynXlate_or(dInst, assignments, insp); // x86 or
   }
   else if (x86 && insp->getOperation().getID() >= e_div && insp->getOperation().getID() <= e_divss) {
-    translate_divide(dInst, assignments, insp); // x86 divide
+    dynXlate_divide(dInst, assignments, insp); // x86 divide
   }
   else {
     switch(insp->getCategory()) {
       case c_CallInsn:
         dInst->is_call = true;
-        translate_call(dInst, assignments, insp);
+        dynXlate_call(dInst, assignments, insp);
         break;
       case c_ReturnInsn:
-        translate_return(dInst, assignments, insp);
+        dynXlate_return(dInst, assignments, insp);
         break;
       case c_BranchInsn:
-        translate_jump(dInst, assignments, insp);
+        dynXlate_jump(dInst, assignments, insp);
         break;
       case c_CompareInsn:
-        translate_compare(dInst, assignments, insp);
+        dynXlate_compare(dInst, assignments, insp);
         break;
       case c_SysEnterInsn:
-        translate_enter(dInst, assignments, insp); // this function hasn't been implemented yet.
+        dynXlate_enter(dInst, assignments, insp); // this function hasn't been implemented yet.
         break;
       case c_SyscallInsn:
         dInst->is_call = true;
-        translate_sysCall(dInst, assignments, insp);
+        dynXlate_sysCall(dInst, assignments, insp);
         break;
       case c_PrefetchInsn:
-        translate_prefectch(dInst, assignments, insp);
+        dynXlate_prefectch(dInst, assignments, insp);
         break;
       case c_NoCategory:{
-        translate_assignments(insp, dInst, assignments); // default choice is always translate_assignments.
+        dynXlate_assignments(insp, dInst, assignments); // default choice is always dynXlate_assignments.
         break;
       }
       default:
@@ -352,14 +340,9 @@ void xlateDynInstInsn(Dyninst::InstructionAPI::Instruction::Ptr insp, std::vecto
     }
   }
   locVec.clear();
- // if (insp->getOperation().format().compare("push") == 0||insp->getOperation().format().compare("pop") == 0||insp->getOperation().format().compare("cmp") == 0)
-
-  DumpInstrListDyninst(dInst); // Debug function
-  DumpRegisterList(dInst); // Debug print function
   
   return;
 }
-
 
 
 
@@ -391,39 +374,29 @@ bool check_flags_registers(MachRegister mr)
 
 
 // Modified shorter printing methods for registers.
-void RegisterClassToShortString(RegisterClass rc)
+const char* RegisterClassToShortString(RegisterClass rc)
 {
    switch(rc){
-
-      case RegisterClass_REG_OP :
-         std::cout << "REG_OP";
-         break;
+      case RegisterClass_REG_OP:
+	return "REG_OP";
       case RegisterClass_MEM_OP:
-         std::cout << "MEM_OP";
-         break;
+         return "MEM_OP";
       case RegisterClass_LEA_OP:
-         std::cout << "LEA_OP";
-         break;
+         return "LEA_OP";
       case RegisterClass_STACK_REG:
-         std::cout << "STACK_REG";
-         break;
+         return "STACK_REG";
       case RegisterClass_STACK_OPERATION:
-         std::cout << "STACK_OPERATION";
-         break;
+         return "STACK_OPERATION";
       case RegisterClass_TEMP_REG:
-         std::cout << "TEMP_REG";
-         break;
+         return "TEMP_REG";
       case RegisterClass_PSEUDO:
-         std::cout << "PSEUDO";
-         break;
+         return "PSEUDO";
       case RegisterClass_LAST:
-         std::cout << "LAST";
-         break;
+         return "LAST";
       default:
-         std::cout << "UNKNOWN";
-         break;
+         return "UNKNOWN";
    }
-   return;
+   assert(false);
 }
 
 
@@ -1394,7 +1367,7 @@ void get_dest_field(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, inst
 
 }
 
-void translate_prefectch(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_prefectch(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
 {
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
@@ -1421,7 +1394,7 @@ void translate_prefectch(MIAMI::DecodedInstruction* dInst, std::vector<Assignmen
 
 // System call is translated into jump uop, with two destination operands:
 // program counter and flags.
-void translate_sysCall(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_sysCall(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
 {
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
@@ -1444,7 +1417,7 @@ void translate_sysCall(MIAMI::DecodedInstruction* dInst, std::vector<Assignment:
 
 
 // Translate 'return' instruction into 3 uops: Load, Add, Return.
-void translate_return(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments,
+void dynXlate_return(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments,
                                             Dyninst::InstructionAPI::Instruction::Ptr insp)
 {
   if (assignments.size() != 2) 
@@ -1465,7 +1438,7 @@ void translate_return(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::
 
 
 // Translate the nop instruction 
-void translate_nop(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_nop(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insp)
 {
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
@@ -1479,7 +1452,7 @@ void translate_nop(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::In
 
 // Translate the divide instruction. Make it a special case because it contains 8 assignments 
 // and this way is easier. 
-void translate_divide(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_divide(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
 {
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
@@ -1535,7 +1508,7 @@ void translate_divide(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::
 
 // Translate test instruction. Make it into special cases for 'simplity'.
 // Test instruction is translated into one LogicalOp uop. 
-void translate_test(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_test(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
 {
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
@@ -1580,7 +1553,7 @@ void translate_test(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Pt
 
 
 // Translate leave instruction.Usually contains 3 uops: Copy, Load, Add.
-void translate_leave(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_leave(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
 {
   for (auto ait = assignments.begin(); ait != assignments.end(); ++ait) {
     dInst->micro_ops.push_back(instruction_info());
@@ -1600,7 +1573,7 @@ void translate_leave(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::P
 
 
 // Translate jump by traversing its AST.
-void translate_jump_ast(MIAMI::DecodedInstruction* dInst, instruction_info* uop, AST::Ptr ast, Dyninst::InstructionAPI::Instruction::Ptr insp, Assignment::Ptr aptr)
+void dynXlate_jump_ast(MIAMI::DecodedInstruction* dInst, instruction_info* uop, AST::Ptr ast, Dyninst::InstructionAPI::Instruction::Ptr insp, Assignment::Ptr aptr)
 {
   if (uop->vec_len == 0) {
     uop->vec_len = get_vec_len(insp);
@@ -1636,10 +1609,10 @@ void translate_jump_ast(MIAMI::DecodedInstruction* dInst, instruction_info* uop,
       if (ast_r->val().op == ROSEOperation::ifOp || ast_r->val().op == ROSEOperation::derefOp || uop->type == IB_branch) { 
       // if conditional and operator is 'if' || unconditional branching --> might get more imms, fine with dg.
         for (i = 0; i < ast->numChildren(); ++i) {
-          translate_jump_ast(dInst, uop, ast->child(i), insp, aptr);
+          dynXlate_jump_ast(dInst, uop, ast->child(i), insp, aptr);
         }  
       } else {
-        translate_jump_ast(dInst, uop, ast->child(0), insp, aptr);
+        dynXlate_jump_ast(dInst, uop, ast->child(0), insp, aptr);
       }
       break;
     }
@@ -1737,7 +1710,7 @@ void update_dest_with_flag(MIAMI::DecodedInstruction* dInst, Dyninst::Instructio
 
 
 // Translate the jump instruction
-void translate_jump(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_jump(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
 {
   dInst->micro_ops.push_back(instruction_info());
   instruction_info *uop = &dInst->micro_ops.back();
@@ -1746,7 +1719,7 @@ void translate_jump(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Pt
   static std::pair<AST::Ptr, bool> astPair;
   astPair = SymEval::expand(assignments.at(0), false);
   if (astPair.second && NULL != astPair.first) {
-    translate_jump_ast(dInst, uop, astPair.first, insp, assignments.at(0)); 
+    dynXlate_jump_ast(dInst, uop, astPair.first, insp, assignments.at(0)); 
     calculate_jump_val(astPair.first);
   }
   
@@ -1765,14 +1738,14 @@ void translate_jump(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Pt
 
 
 // Haven't encounter any enter yet. Don't really know how MIAMI translate it.
-void translate_enter(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_enter(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
 {
   return;
 }
 
 
 // Translate call instruction (two different kinds, with load (5 uops) or without load (4 uops)).
-void translate_call(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_call(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
 {
   for (unsigned int i = 0; i < assignments.size(); i++) {
     if (assignments.at(i)->inputs().size() > 0) {
@@ -1820,7 +1793,7 @@ void translate_call(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Pt
 
 
 // Translate compare uop
-void translate_compare(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_compare(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
 {
   Assignment::Ptr assign = assignments.at(0);
   std::vector<AbsRegion> inputs = assign->inputs();
@@ -1873,7 +1846,7 @@ void traverse_or(instruction_info* uop, AST::Ptr ast){
 
 
 // Translate or instruction. Make it into a special case for simplicity.
-void translate_or(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_or(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
 {
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
@@ -1929,8 +1902,8 @@ void translate_or(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr>
 // 
 //***************************************************************************
 
-// translate_all the assignments of an instruction
-void translate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insp, MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments)
+// dynXlate_all the assignments of an instruction
+void dynXlate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insp, MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments)
 {
   int flag = 0;
   for (unsigned int i = 0; i < assignments.size(); i++) {
@@ -1938,7 +1911,7 @@ void translate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insp, MIAMI
       flag = 1;
     } else {
       // If it's not flag, we start processing the assignment.
-      translate_assignment(dInst, assignments.at(i), insp);
+      dynXlate_assignment(dInst, assignments.at(i), insp);
     }
   }
   if (dInst->micro_ops.size() == 1) dInst->micro_ops.back().primary = true; // only one uop, it must be primary.
@@ -1960,7 +1933,7 @@ void translate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insp, MIAMI
      }
 
   /* Special case: processing push and pop.
-   * It seems that parse_ast cannot cannot get the CONSTANT values in 'add' uop, so we append it here.
+   * It seems that dynXlate_inspectAST cannot cannot get the CONSTANT values in 'add' uop, so we append it here.
    * The reason it cannot get the constant value is because the traverse_options function do not traverse
    * all the children of 'add' ROSEOperations' in most of the cases (but only the first one).
    * We do it that way to stop the recursion sooner for the general uops. Many uops contains 'add' ROSEOperation.
@@ -1988,7 +1961,7 @@ void translate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insp, MIAMI
   if (flag) 
     update_dest_with_flag(dInst, insp); // update the primary uop with a flag destination. (x86/x86_64)
   if (flag && dInst->micro_ops.size() == 0) { 
-    translate_test(dInst, assignments, insp); // all dest ops are flags-->test uop
+    dynXlate_test(dInst, assignments, insp); // all dest ops are flags-->test uop
   } else if (flag && dInst->micro_ops.size() == 0 && dInst->micro_ops.begin()->vec_len > 1)
   {
 
@@ -1997,7 +1970,7 @@ void translate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insp, MIAMI
 }
 
 
-void translate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, Dyninst::InstructionAPI::Instruction::Ptr insp)
 {
   // start a new micro operation
   dInst->micro_ops.push_back(instruction_info());
@@ -2020,7 +1993,7 @@ void translate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr
     //check whether there are any load assignments
     get_operator(uop, astPair.first, aptr, insp, dInst);
 
-    parse_ast(dInst, aptr, uop, astPair.first, insp);
+    dynXlate_inspectAST(dInst, aptr, uop, astPair.first, insp);
 
     // These special cases are quite messy. Even "add [R14 + 8], 1" and "add [R15 + RAX * 4], 1" are translated 
     // differently, with the first one having 3 uops: load, add, store, and the second one having 2 uops (wrong)
@@ -2047,7 +2020,7 @@ void translate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr
     for (unsigned int i = 1; i < aptr->inputs().size(); ++i) { 
       Absloc aloc = aptr->inputs().at(i).absloc();
       if (aloc.type() == Absloc::Stack || aloc.type() == Absloc::Heap || aloc.type() == Absloc::Unknown) {
-        if (uop->type != IB_load){ // the in case of add [...]. which parse_ast will return only an add uop,
+        if (uop->type != IB_load){ // the in case of add [...]. which dynXlate_inspectAST will return only an add uop,
                                    // since AST does not contain information of memory field, but we need
                                    // to create another load uop. 
           create_load_micro(dInst, insp, aptr, 0);
@@ -2089,9 +2062,9 @@ void translate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr
 
 
 // Parse the AST of an assignment.
-void parse_ast(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
-	       instruction_info* uop, AST::Ptr ast,
-	       Dyninst::InstructionAPI::Instruction::Ptr insp)
+void dynXlate_inspectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
+			 instruction_info* uop, AST::Ptr ast,
+			 Dyninst::InstructionAPI::Instruction::Ptr insp)
 {
   Absloc aloc;
   if (uop->vec_len == 0) 
@@ -2162,15 +2135,16 @@ void parse_ast(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
         return;
       }
 
-      if (uop->width == 0 && uop->vec_len) 
+      if (uop->width == 0 && uop->vec_len) {
         uop->width = (width_t) ast_c->val().size / uop->vec_len;
+      }
 
       if (uop->num_imm_values < 2) {
         uop->imm_values[uop->num_imm_values].is_signed = (uop->width == 64) ? true : false; //CHECK
         uop->imm_values[uop->num_imm_values].value.s = ast_c->val().val; 
-        std::cout << "inside parse_ast, constant value is " << ast_c->val().val;
+        // std::cout << "inside dynXlate_inspectAST, constant value is " << ast_c->val().val;
         uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_IMMED, uop->num_imm_values++); // no need to find dependency of immediates
-        locVec.push_back(Absloc());  
+        locVec.push_back(Absloc());
       }
       return;
     }
@@ -2274,17 +2248,17 @@ void parse_ast(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
       switch(option){
         case 2:
           for (unsigned int i = 0; i < ast->numChildren(); i++) {
-            parse_ast(dInst, aptr, uop, ast->child(i), insp);
+            dynXlate_inspectAST(dInst, aptr, uop, ast->child(i), insp);
           }
           return;
         case 1:
-          parse_ast(dInst, aptr, uop, ast->child(0), insp);
+          dynXlate_inspectAST(dInst, aptr, uop, ast->child(0), insp);
           return;
         case 0:
           // special case to deal with sub instruction
           if (ast_r->val().op == ROSEOperation::extractOp && ast->child(0)->getID() == AST::V_RoseAST && uop->type != IB_load) { 
               uop->type = IB_unknown;
-              parse_ast(dInst, aptr, uop, ast->child(0), insp);
+              dynXlate_inspectAST(dInst, aptr, uop, ast->child(0), insp);
           }
             return;
         default:
@@ -2303,133 +2277,131 @@ void parse_ast(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
 
 //***************************************************************************
 
+void dynXlate_dumpAssignmentAST(AST::Ptr ast, std::string index, int num);
+
 // The function traverse the given AST and print out each of its nodes.
-void dynXlate_dumpAssignmentAST(AST::Ptr ast, std::string index, int num)
+void dynXlate_dumpInsn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vector<Assignment::Ptr> assignments, addrtype pc)
 {
-  std::cout << "************************AST is: \n";
-
-  if (index.compare("0") == 0) {
-    std::cout << "Root is:\n";
-  }
-  else {
-    std::cout << index << "\n";
-  }
-      
-  if (ast->getID() == AST::V_RoseAST) {
-    RoseAST::Ptr self = RoseAST::convert(ast);
-    std::cout << "RoseAST val is " << self->format() << "\n";
-    std::cout << "RoseOperation val is " << self->val().format() << "\n";
-    std::cout << "RoseOperation size is " << self->val().size << "\n";
-    std::cout << "RoseOperation op is " << self->val().op << "\n";  
-  }
-  else if (ast->getID() == AST::V_ConstantAST) {
-    ConstantAST::Ptr self = ConstantAST::convert(ast);
-    std::cout << "ConstantAST val is " << self->format() << "\n";
-    std::cout << "Constant val is " << self->val().val << "\n";
-    std::cout << "bit size of the val is " << self->val().size << "\n";
-
-  }
-  else if (ast->getID() == AST::V_VariableAST) {
-    VariableAST::Ptr self = VariableAST::convert(ast);
-    std::cout << "VariableAST val is " << self->format() << "\n";
-    std::cout << "Variable region is " << self->val().reg.format() << "\n";
-    std::cout << "variable address is " << self->val().addr << "\n";
-  }
-
-  std::cout << "\n";
-
-  int i = 0;
-  while (i < num) {
-    if (index.compare("0") == 0) {
-      dynXlate_dumpAssignmentAST(ast->child(i), std::to_string((long long)i+1), ast->child(i)->numChildren());
+  using std::cout;
+  cout << "========== DynInst Instruction "
+       << "(" << std::hex << (void*)pc << std::dec << "): " << insn->format()
+       << " [" << insn->size() << " bytes] "
+       << " ==========\n";
+  
+  for (unsigned int i = 0; i < assignments.size(); i++) {
+    cout << "assignment " << i << ":" << assignments.at(i)->format() << "\n";
+    std::pair<AST::Ptr, bool> assignPair = SymEval::expand(assignments.at(i), false);
+    if (assignPair.second && (NULL != assignPair.first)) {
+      dynXlate_dumpAssignmentAST(assignPair.first, "0", assignPair.first->numChildren());
     }
-    else {
-      std::string index_str = index + "." + std::to_string((long long)i+1);
-      dynXlate_dumpAssignmentAST(ast->child(i), index_str, ast->child(i)->numChildren());
-    }
-    
-    i++; 
   }
 }
 
 
-// Write out all inputs and output registers of an instruction
-void DumpRegisterList(MIAMI::DecodedInstruction *dInst)
+// The function traverse the given AST and print out each of its nodes.
+void dynXlate_dumpAssignmentAST(AST::Ptr ast, std::string index, int num)
 {
-  int i = 0, j = 0;
-  for ( auto rit = dInst->micro_ops.begin(); rit != dInst->micro_ops.end(); rit++) {
-    i++;
-    std::cout << "==--------------------------==\n";
-    std::cout << "Micro operation " << i << ":\n";
-    std::cout << "Source registers are:\n";
-    for ( auto oit = (*rit).src_reg_list.begin(); oit != (*rit).src_reg_list.end(); ++oit)
-      {
-	j++;
-	std::cout << j << ":  Name: " << (*oit).name << "   Type: ";
-	RegisterClassToShortString((*oit).type);
-	std::cout << "\n";
-      }
-    j = 0;
-    std::cout << "Destination registers are:\n";
-    for ( auto oit = (*rit).dest_reg_list.begin(); oit != (*rit).dest_reg_list.end(); ++oit) {
-      j++;
-      std::cout << j << ":  Name: " << (*oit).name << "   Type: ";
-      RegisterClassToShortString((*oit).type);
-      std::cout << "\n";
+  using std::cout;
+  cout << index << ": ";
+  
+  if (ast->getID() == AST::V_RoseAST) {
+    RoseAST::Ptr self = RoseAST::convert(ast);
+    cout << "RoseAST <op:size>: " << self->format() << "\n";
+    //cout << "RoseOperation val is " << self->val().format() << "\n";
+    //cout << "RoseOperation size is " << self->val().size << "\n";
+    //cout << "RoseOperation op is " << self->val().op << "\n";
+  }
+  else if (ast->getID() == AST::V_ConstantAST) {
+    ConstantAST::Ptr self = ConstantAST::convert(ast);
+    cout << "ConstantAST <val:size>: " << self->format() << "\n";
+    //cout << "Constant val is " << self->val().val << "\n";
+    //cout << "bit size of the val is " << self->val().size << "\n";
+
+  }
+  else if (ast->getID() == AST::V_VariableAST) {
+    VariableAST::Ptr self = VariableAST::convert(ast);
+    cout << "VariableAST <region:addr>: " << self->format() << "\n";
+    //cout << "Variable region is " << self->val().reg.format() << "\n";
+    //cout << "variable address is " << self->val().addr << "\n";
+  }
+
+  int i = 0;
+  while (i < num) {
+    std::string index_str = std::to_string((long long)i+1);
+    if (index.compare("0") != 0) {
+      index_str = index + "." + index_str;
     }
-    j = 0;  
+    dynXlate_dumpAssignmentAST(ast->child(i), index_str, ast->child(i)->numChildren());
+    i++; 
   }
 }
 
 
 // New printing method for each instruction
 void
-DumpInstrListDyninst(const MIAMI::DecodedInstruction *dInst)
+dumpMIAMIInsn(const MIAMI::DecodedInstruction *dInst)
 {
-  InstrList::const_iterator lit;
-  int j;
- 
-  /*cerr*/std::cout << "Instruction of " << dInst->len << " bytes has " 
-		    << dInst->micro_ops.size() << " micro-ops:" << endl;
-  std::cout << "program counter is " << dInst->pc << "\n";
-  for (lit=dInst->micro_ops.begin(), j=0 ; lit!=dInst->micro_ops.end() ; ++lit, ++j) {
-    std::cout << j << ")"
-	      << " IB:      " << Convert_InstrBin_to_string(lit->type) << endl
-	      << "   Width:   " << lit->width << endl
-	      << "   Veclen:  " << (int)lit->vec_len << endl
-	      << "   ExUnit:  " << ExecUnitToString(lit->exec_unit) << endl
-	      << "   ExType:  " << ExecUnitTypeToString(lit->exec_unit_type) << endl
-	      << "   Primary: " << (lit->primary?"yes":"no") << endl;
+  using std::cout;
+
+  cout << "========== MIAMI Instruction "
+       << "(" << std::hex << (void*)dInst->pc << std::dec
+       << "; uops=" << dInst->micro_ops.size()
+       <<  "; bytes=" << dInst->len << ")" << " ==========\n";
+
+  int i = 0;
+  for (auto it = dInst->micro_ops.begin(); it != dInst->micro_ops.end(); ++it, ++i) {
+    cout << i << ")"
+	 << " Bin, Width, VecLen: "
+	 << Convert_InstrBin_to_string(it->type) << ", "
+	 << it->width << ", "
+	 << (int)it->vec_len
+      	 << (it->primary? " (primary)" : "") << endl;
+    cout << "   ExUnit, ExType:  " << ExecUnitToString(it->exec_unit) << ", "
+	 << ExecUnitTypeToString(it->exec_unit_type) << endl;
         
-    std::cout << "   SrcOps: " << (int)lit->num_src_operands;
-    for (uint8_t i=0 ; i<lit->num_src_operands ; ++i) {
-      OperandType ot = (OperandType)extract_op_type(lit->src_opd[i]);
-      std::cout << "  (" << OperandTypeToString(ot)
-		<< "/" << extract_op_index(lit->src_opd[i]) << ")";
-    }
-    
-    std::cout << endl << "   DstOps: " << (int)lit->num_dest_operands;
-    for (uint8_t i=0 ; i<lit->num_dest_operands ; ++i) {
-      OperandType ot = (OperandType)extract_op_type(lit->dest_opd[i]);
-      std::cout << "  (" << OperandTypeToString(ot)
-		<< "/" << extract_op_index(lit->dest_opd[i]) << ")";
+    cout << "   SrcOps(" << (int)it->num_src_operands << ")/Reg: ";
+    for (uint8_t i = 0; i < it->num_src_operands; ++i) {
+      OperandType ot = (OperandType)extract_op_type(it->src_opd[i]);
+      cout << " (" << OperandTypeToString(ot)
+	   << "/" << extract_op_index(it->src_opd[i]) << ")";
     }
 
-    std::cout << endl << "   ImmValues: " << (int)lit->num_imm_values; 
-    for (uint8_t i=0 ; i<lit->num_imm_values ; ++i) {
-      std::cout << "  (" << (lit->imm_values[i].is_signed?"s":"u") << "/";
-      if (lit->imm_values[i].is_signed)
-	std::cout << lit->imm_values[i].value.s << "/" << hex 
-		  << lit->imm_values[i].value.s << dec;
-      else
-	std::cout << lit->imm_values[i].value.u << "/" << hex 
-			  << lit->imm_values[i].value.u << dec;
-      std::cout << ")";
+    for (auto it2 = it->src_reg_list.begin(); it2 != it->src_reg_list.end(); ++it2) {
+      cout << " [nm,ty: " << it2->name << ", " << RegisterClassToShortString(it2->type) << "]";
     }
-        
-    std::cout << dec << endl;
+    cout << endl;
+    
+    cout << "   DstOps(" << (int)it->num_dest_operands << ")/Reg:";
+    for (uint8_t i = 0; i < it->num_dest_operands ; ++i) {
+      OperandType ot = (OperandType)extract_op_type(it->dest_opd[i]);
+      cout << " (" << OperandTypeToString(ot)
+	   << "/" << extract_op_index(it->dest_opd[i]) << ") ";
+    }
+
+    for (auto it2 = it->dest_reg_list.begin(); it2 != it->dest_reg_list.end(); ++it2) {
+      cout << " [nm,ty: " << it2->name << ", " << RegisterClassToShortString(it2->type) << "]";
+    }
+    cout << endl;
+    
+    cout << "   Imm(" << (int)it->num_imm_values << ")";
+    for (uint8_t i = 0; i < it->num_imm_values; ++i) {
+      cout << " (" << (it->imm_values[i].is_signed?"s":"u") << "/";
+      if (it->imm_values[i].is_signed)
+	cout << it->imm_values[i].value.s << "/"
+	     << hex << it->imm_values[i].value.s << dec;
+      else
+	cout << it->imm_values[i].value.u << "/"
+	     << hex << it->imm_values[i].value.u << dec;
+      cout << ")";
+    }
+    cout << endl;    
   }
 }
+
+
+#if 0
+
+#endif
 
 
 //***************************************************************************

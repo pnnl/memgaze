@@ -40,6 +40,9 @@ int length_instruction_at_pc(void *pc, int len);
 int decode_instruction_at_pc(void *pc, int len, DecodedInstruction *dInst);
 int debug_decode_instruction_at_pc(void *pc, int len);
 
+void XED_dumpInsn(void *pc, int len);
+
+
 /* Check if the instruction at the given memory location is a control
  * transfer instruction (terminating a basic block), and return also
  * the length in bytes of the encoded machine instruction.
