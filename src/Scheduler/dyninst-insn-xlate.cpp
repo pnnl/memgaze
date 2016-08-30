@@ -1,9 +1,32 @@
+// -*-Mode: C++;-*-
+
+//*BeginPNNLCopyright********************************************************
+//
+// $HeadURL$
+// $Id$
+//
+//**********************************************************EndPNNLCopyright*
+
+//***************************************************************************
+//
+// Translate ISA Instructions to MIAMI's "internal representation" via
+// DynInst's "internal representation".
+//
+//***************************************************************************
+
+
+//***************************************************************************
+// 
+//***************************************************************************
 
 #include "dyninst-insn-xlate.hpp"
 #include "instr_bins.H"
 
 using namespace MIAMI;
-//**********************************************************************
+
+//***************************************************************************
+// 
+//***************************************************************************
 
 // FIXME: tallent: static data
 
@@ -21,21 +44,380 @@ static int num_of_assignments = 0;
 typedef std::map<MachRegister, int> RegisterMap;
 typedef std::list<instruction_info> InstrList;
 
+//***************************************************************************
+// 
+//***************************************************************************
+
+int get_function(unsigned long pc);
+Dyninst::ParseAPI::Block* get_block(int f, addrtype pc, graph& g);
+void get_assignments(addrtype pc, BPatch_function *f, std::vector<Assignment::Ptr> * assignments, Dyninst::InstructionAPI::Instruction::Ptr* insp);
+void traverse_AST(AST::Ptr ast, std::string index, int num);
+void translate_instruction(Dyninst::InstructionAPI::Instruction::Ptr insp, std::vector<Assignment::Ptr> assignments, addrtype pc, DecodedInstruction* dInst);
+
+//***************************************************************************
+
+
+// Initialize all the blocks for all the functions for a given module.
+void initialize_dyninst(const char* progName)
+{
+  std::cout << "binary: " << progName << endl;
+
+  codeSource = new Dyninst::ParseAPI::SymtabCodeSource((char*)progName);
+
+  BPatch bpatch;
+  BPatch_addressSpace* app = bpatch.openBinary(progName,false);
+  BPatch_image *bpi = app->getImage();
+  functions = *(bpi->getProcedures(true));
+  
+  for (unsigned int i = 0; i < functions.size(); ++i) {
+    BPatch_flowGraph *fg =functions[i]->getCFG();
+    std::set<BPatch_basicBlock*> blks;
+    fg->getAllBasicBlocks(blks);
+    funcBlocks[i] = blks;
+  }
+}
+
+
+// It translate the an instruction's dyninst IR into MIAMI IR and 
+// return the length of the translated instruction to increment the pc.
+int dyninst_translate(std::string func_name, unsigned long pc, DecodedInstruction* dInst)
+{
+  graph g;
+
+  std::vector<int> path;
+  
+  int f = get_function(pc);
+  std::cout << "dyninst_translate func: " << functions[f]->getDemangledName() << "\n";
+  
+  pblk = get_block(f, pc, g);
+  if (NULL != pblk) {
+    Dyninst::InstructionAPI::Instruction::Ptr insp;
+    std::vector<Assignment::Ptr> assignments;
+    get_assignments(pc, functions[f], &assignments, &insp);
+
+    if (!insp) {
+      assert("Cannot find the instruction.\n");
+      return 0;
+    }
+
+    std::cout << "dyninst_translate insn: " << insp->getOperation().format().c_str() << "\n";
+
+    // TODO: add Xed Decoding from decode_instruction_at_pc()
+    
+    for (unsigned int i = 0; i < assignments.size(); i++) {
+      // Print out each assignment in dyninst format
+
+      std::cout << "----------------------------------------\n";
+      std::cout << "assignment: " << assignments.at(i)->format() << endl;
+      //std::cout << "        Address is     " << (*(*ait)).addr() << "\n";
+              
+      // print out all the nodes in an AST.
+      static std::pair<AST::Ptr, bool> assignPair;
+      assignPair = SymEval::expand(assignments.at(i), false);
+      if (assignPair.second && (NULL != assignPair.first)) {
+	//int a = assignPair.first->numChildren();
+	traverse_AST(assignPair.first, "0", assignPair.first->numChildren());
+      }
+    }
+    num_of_assignments = assignments.size();
+    const std::string ie = insp->format();
+
+    std::cout << ie << "\n";
+    translate_instruction(insp, assignments, pc, dInst);
+  }
+  else {
+    dInst->no_dyn_translation = true;
+  }
+
+  return dInst->len;
+}
+
+
+//***************************************************************************
+// 
+//***************************************************************************
+
+static int last_used_function = 0; // FIXME: tallent: static data
+
+// Get the corresponding function according to pc.
+int get_function(unsigned long pc)
+{
+  Dyninst::Address start, end;
+	
+  for (unsigned int i = 0; i < functions.size(); ++i) {
+    functions[i]->getAddressRange(start, end);
+    if (pc >= start && pc < end) {
+      return i;  
+    }
+  }
+
+  // no demangled name match, check again using function's base address
+  for (unsigned int i = 0; i < functions.size(); ++i) {
+    if ((unsigned long) functions[i]->getBaseAddr() == pc) {
+      last_used_function = i;
+      return i;
+    }
+  }
+
+  // what about the last block without a name
+  for (unsigned int i = 0; i < functions.size() - 1; ++i) {
+    if ((pc > (unsigned long) functions[i]->getBaseAddr()) && (pc < (unsigned long) functions[i+1]->getBaseAddr())) {
+      return i;
+    }
+  }
+
+  return last_used_function;
+}
+
+
+// Get the Block for a given PC with function index f.
+Dyninst::ParseAPI::Block* get_block(int f, addrtype pc, graph& g)
+{
+  std::map<std::string,std::vector<uint8_t> > pathInstructionsMap;
+  std::map<std::string,std::vector<BPatch_basicBlock*> > paths;
+  BPatch_function* func = functions[f];
+  
+  Dyninst::Address _start, _end;
+  func->getAddressRange(_start, _end);
+  
+  if (func!=0){
+    BPatch_basicBlock* bb;
+    std::set<BPatch_basicBlock*> blks = funcBlocks[f]; // get the set of blocks from the global map
+    
+    for (auto bit = blks.begin(); bit != blks.end(); bit++) {
+      bb = *bit;
+      if (bb->getStartAddress() <= pc && pc < bb->getEndAddress()) { // end address pass the last insn
+	pblk = Dyninst::ParseAPI::convert(bb);
+	startAddr = (unsigned long) bb->getStartAddress();
+        endAddr = (unsigned long) bb->getEndAddress();
+
+        if (NULL != pblk){
+          //unsigned long * bpc = (unsigned long *) codeSource->getPtrToInstruction(pblk->start());  
+        } else {
+          assert("Cannot find the function block\n");
+	}
+
+        return pblk;
+      }
+    }
+    
+  }
+  else {
+    assert("Cannot find function\n");
+  }
+	
+  return NULL;
+}
+
+
+// Get all the assignments 'logical instruction' of a given instruction.
+void get_assignments(addrtype pc, BPatch_function *f, std::vector<Assignment::Ptr> * assignments, Dyninst::InstructionAPI::Instruction::Ptr* insp)
+{
+
+  uint8_t* insn = (uint8_t*)codeSource->getPtrToInstruction(pblk->start());
+  const unsigned char * buf = (const unsigned char* ) insn;
+  
+  ParseAPI::Function * func;
+  func = ParseAPI::convert(f);
+  if (NULL != pblk)  {
+    InstructionDecoder dec(buf, endAddr - startAddr, pblk->obj()->cs()->getArch());
+    (*insp) = dec.decode();
+    unsigned long insn_addr = startAddr;
+
+    // Decode the given instruction. I might make a mistake here. 
+    // The loop might decode all the instructions in the given block.
+    int k = 0;
+    while (NULL != (*insp) && insn_addr < pc){
+      insn_addr += (*insp)->size();
+      (*insp) = dec.decode();
+      k++;
+    }
+
+    AssignmentConverter ac(true);
+    
+    if (Dyninst::InstructionAPI::Instruction::Ptr() != (*insp))
+      ac.convert((*insp), (uint8_t) insn_addr, func, pblk, *assignments);
+    else 
+      assert("Where is the instruction??\n");
+  
+  }
+
+  return;
+}
+
+
+// The function traverse the given AST and print out each of its nodes.
+void traverse_AST(AST::Ptr ast, std::string index, int num)
+{
+  std::cout << "************************AST is: \n";
+
+  if (index.compare("0") == 0) {
+    std::cout << "Root is:\n";
+  }
+  else {
+    std::cout << index << "\n";
+  }
+      
+  if (ast->getID() == AST::V_RoseAST) {
+    RoseAST::Ptr self = RoseAST::convert(ast);
+    std::cout << "RoseAST val is " << self->format() << "\n";
+    std::cout << "RoseOperation val is " << self->val().format() << "\n";
+    std::cout << "RoseOperation size is " << self->val().size << "\n";
+    std::cout << "RoseOperation op is " << self->val().op << "\n";  
+  }
+  else if (ast->getID() == AST::V_ConstantAST) {
+    ConstantAST::Ptr self = ConstantAST::convert(ast);
+    std::cout << "ConstantAST val is " << self->format() << "\n";
+    std::cout << "Constant val is " << self->val().val << "\n";
+    std::cout << "bit size of the val is " << self->val().size << "\n";
+
+  }
+  else if (ast->getID() == AST::V_VariableAST) {
+    VariableAST::Ptr self = VariableAST::convert(ast);
+    std::cout << "VariableAST val is " << self->format() << "\n";
+    std::cout << "Variable region is " << self->val().reg.format() << "\n";
+    std::cout << "variable address is " << self->val().addr << "\n";
+  }
+
+  std::cout << "\n";
+
+  int i = 0;
+  while (i < num) {
+    if (index.compare("0") == 0) {
+      traverse_AST(ast->child(i), std::to_string((long long)i+1), ast->child(i)->numChildren());
+    }
+    else {
+      std::string index_str = index + "." + std::to_string((long long)i+1);
+      traverse_AST(ast->child(i), index_str, ast->child(i)->numChildren());
+    }
+    
+    i++; 
+  }
+}
+
+
+//***************************************************************************
+// 
+//***************************************************************************
+
+void translate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insp, DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments);
+void translate_assignment(DecodedInstruction* dInst, Assignment::Ptr aptr, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void parse_ast(DecodedInstruction* dInst, Assignment::Ptr aptr,
+	       instruction_info* uop, AST::Ptr ast,
+	       Dyninst::InstructionAPI::Instruction::Ptr insp);
+
+
+void translate_leave(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void translate_nop(DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void translate_or(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void translate_divide(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void translate_call(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void translate_return(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void translate_jump(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void translate_compare(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void translate_enter(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void translate_sysCall(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+void translate_prefectch(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp);
+
+void DumpInstrListDyninst(const DecodedInstruction *dInst);
+void DumpRegisterList(DecodedInstruction *dInst);
+
+  
+//***************************************************************************
+
+
+// Translate each instructions 
+void translate_instruction(Dyninst::InstructionAPI::Instruction::Ptr insp, std::vector<Assignment::Ptr> assignments, addrtype pc, DecodedInstruction* dInst)
+{
+  dInst->len = (int) insp->size(); 
+  dInst->pc = (addrtype) pc; 
+  dInst->is_call = false;
+
+  // The instruction's pointer in dyninst may not point to the machine data which MIAMI wants.
+  // Haven't encounter any situations which mach_data is used. Thus, leave it like this for now.
+  dInst->mach_data =  const_cast<void*>( static_cast<const void*>(insp->ptr()) ); // CHECK
+
+  bool x86 = (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86
+	      || pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64);
+  if (x86 && insp->getOperation().getID() == e_leave) {
+    translate_leave(dInst, assignments, insp); // x86 leave
+  }
+  else if (x86 && insp->getOperation().getID() == e_nop) {
+    translate_nop(dInst, insp); // x86 nop
+  }
+  else if (x86 && insp->getOperation().getID() >= e_or && insp->getOperation().getID() <= e_orps) {
+    translate_or(dInst, assignments, insp); // x86 or
+  }
+  else if (x86 && insp->getOperation().getID() >= e_div && insp->getOperation().getID() <= e_divss) {
+    translate_divide(dInst, assignments, insp); // x86 divide
+  }
+  else {
+    switch(insp->getCategory()) {
+      case c_CallInsn:
+        dInst->is_call = true;
+        translate_call(dInst, assignments, insp);
+        break;
+      case c_ReturnInsn:
+        translate_return(dInst, assignments, insp);
+        break;
+      case c_BranchInsn:
+        translate_jump(dInst, assignments, insp);
+        break;
+      case c_CompareInsn:
+        translate_compare(dInst, assignments, insp);
+        break;
+      case c_SysEnterInsn:
+        translate_enter(dInst, assignments, insp); // this function hasn't been implemented yet.
+        break;
+      case c_SyscallInsn:
+        dInst->is_call = true;
+        translate_sysCall(dInst, assignments, insp);
+        break;
+      case c_PrefetchInsn:
+        translate_prefectch(dInst, assignments, insp);
+        break;
+      case c_NoCategory:{
+        translate_assignments(insp, dInst, assignments); // default choice is always translate_assignments.
+        break;
+      }
+      default:
+        assert("Impossible!\n");
+        break;
+    }
+  }
+  locVec.clear();
+ // if (insp->getOperation().format().compare("push") == 0||insp->getOperation().format().compare("pop") == 0||insp->getOperation().format().compare("cmp") == 0)
+
+  DumpInstrListDyninst(dInst); // Debug function
+  DumpRegisterList(dInst); // Debug print function
+  
+  return;
+}
+
+
+
+
+//***************************************************************************
+// 
+//***************************************************************************
 
 // Check whether a machine register is flag in x86 or x86_64
-bool check_flags_registers(MachRegister mr){
+bool check_flags_registers(MachRegister mr)
+{
   if (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64){
-    if (mr == x86_64::cf \
-      || mr == x86_64::pf || mr == x86_64::af || mr == x86_64::zf\
-      || mr == x86_64::sf || mr == x86_64::tf || mr == x86_64::df || mr == x86_64::of\
-      || mr == x86_64::nt_ || mr == x86_64::if_ || mr == x86_64::flags) {
+    if (mr == x86_64::cf 
+	|| mr == x86_64::pf || mr == x86_64::af || mr == x86_64::zf
+	|| mr == x86_64::sf || mr == x86_64::tf || mr == x86_64::df
+	|| mr == x86_64::of
+	|| mr == x86_64::nt_ || mr == x86_64::if_ || mr == x86_64::flags) {
       return true; 
     }
-  } else if (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86){
-    if (mr == x86::cf || mr == x86::pf || mr == x86::af || mr == x86::zf\
-        || mr == x86::sf || mr == x86::tf || mr == x86::df || mr == x86::of\
+  }
+  else if (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86){
+    if (mr == x86::cf || mr == x86::pf || mr == x86::af || mr == x86::zf
+        || mr == x86::sf || mr == x86::tf || mr == x86::df || mr == x86::of
         || mr == x86::nt_ || mr == x86::if_ || mr == x86::flags) {
-        return true; 
+      return true; 
     }
   } 
   return false;
@@ -43,7 +425,8 @@ bool check_flags_registers(MachRegister mr){
 
 
 // Modified shorter printing methods for registers.
-void RegisterClassToShortString(RegisterClass rc){
+void RegisterClassToShortString(RegisterClass rc)
+{
    switch(rc){
 
       case RegisterClass_REG_OP :
@@ -79,32 +462,31 @@ void RegisterClassToShortString(RegisterClass rc){
 
 
 // Write out all inputs and output registers of an instruction
-void DumpRegisterList(DecodedInstruction *dInst){
-   int i = 0, j = 0;
-   for ( auto rit = dInst->micro_ops.begin(); rit != dInst->micro_ops.end(); rit++)
-   {
-      i++;
-      std::cout << "==--------------------------==\n";
-      std::cout << "Micro operation " << i << ":\n";
-      std::cout << "Source registers are:\n";
-      for ( auto oit = (*rit).src_reg_list.begin(); oit != (*rit).src_reg_list.end(); ++oit)
+void DumpRegisterList(DecodedInstruction *dInst)
+{
+  int i = 0, j = 0;
+  for ( auto rit = dInst->micro_ops.begin(); rit != dInst->micro_ops.end(); rit++) {
+    i++;
+    std::cout << "==--------------------------==\n";
+    std::cout << "Micro operation " << i << ":\n";
+    std::cout << "Source registers are:\n";
+    for ( auto oit = (*rit).src_reg_list.begin(); oit != (*rit).src_reg_list.end(); ++oit)
       {
-         j++;
-         std::cout << j << ":  Name: " << (*oit).name << "   Type: ";
-         RegisterClassToShortString((*oit).type);
-         std::cout << "\n";
+	j++;
+	std::cout << j << ":  Name: " << (*oit).name << "   Type: ";
+	RegisterClassToShortString((*oit).type);
+	std::cout << "\n";
       }
-      j = 0;
-      std::cout << "Destination registers are:\n";
-      for ( auto oit = (*rit).dest_reg_list.begin(); oit != (*rit).dest_reg_list.end(); ++oit)
-      {
-         j++;
-         std::cout << j << ":  Name: " << (*oit).name << "   Type: ";
-         RegisterClassToShortString((*oit).type);
-         std::cout << "\n";
-      }
-      j = 0;  
-   }
+    j = 0;
+    std::cout << "Destination registers are:\n";
+    for ( auto oit = (*rit).dest_reg_list.begin(); oit != (*rit).dest_reg_list.end(); ++oit) {
+      j++;
+      std::cout << j << ":  Name: " << (*oit).name << "   Type: ";
+      RegisterClassToShortString((*oit).type);
+      std::cout << "\n";
+    }
+    j = 0;  
+  }
 }
 
 
@@ -112,54 +494,55 @@ void DumpRegisterList(DecodedInstruction *dInst){
 void
 DumpInstrListDyninst(const DecodedInstruction *dInst)
 {
-    InstrList::const_iterator lit;
-    int j;
+  InstrList::const_iterator lit;
+  int j;
  
-    /*cerr*/std::cout << "Instruction of " << dInst->len << " bytes has " 
-         << dInst->micro_ops.size() << " micro-ops:" << endl;
-         std::cout << "program counter is " << dInst->pc << "\n";
-    for (lit=dInst->micro_ops.begin(), j=0 ; lit!=dInst->micro_ops.end() ; ++lit, ++j) {
-        /*cerr*/std::cout << j << ")"
-             << " IB:      " << Convert_InstrBin_to_string(lit->type) << endl
-             << "   Width:   " << lit->width << endl
-             << "   Veclen:  " << (int)lit->vec_len << endl
-             << "   ExUnit:  " << ExecUnitToString(lit->exec_unit) << endl
-             << "   ExType:  " << ExecUnitTypeToString(lit->exec_unit_type) << endl
-             << "   Primary: " << (lit->primary?"yes":"no") << endl;
+  /*cerr*/std::cout << "Instruction of " << dInst->len << " bytes has " 
+		    << dInst->micro_ops.size() << " micro-ops:" << endl;
+  std::cout << "program counter is " << dInst->pc << "\n";
+  for (lit=dInst->micro_ops.begin(), j=0 ; lit!=dInst->micro_ops.end() ; ++lit, ++j) {
+    std::cout << j << ")"
+	      << " IB:      " << Convert_InstrBin_to_string(lit->type) << endl
+	      << "   Width:   " << lit->width << endl
+	      << "   Veclen:  " << (int)lit->vec_len << endl
+	      << "   ExUnit:  " << ExecUnitToString(lit->exec_unit) << endl
+	      << "   ExType:  " << ExecUnitTypeToString(lit->exec_unit_type) << endl
+	      << "   Primary: " << (lit->primary?"yes":"no") << endl;
         
-        /*cerr*/std::cout << "   SrcOps: " << (int)lit->num_src_operands;
-        for (uint8_t i=0 ; i<lit->num_src_operands ; ++i) {
-            OperandType ot = (OperandType)extract_op_type(lit->src_opd[i]);
-            /*cerr*/std::cout << "  (" << OperandTypeToString(ot)
-                 << "/" << extract_op_index(lit->src_opd[i]) << ")";
-        }
-        
-        /*cerr*/std::cout << endl << "   DstOps: " << (int)lit->num_dest_operands;
-        for (uint8_t i=0 ; i<lit->num_dest_operands ; ++i) {
-            OperandType ot = (OperandType)extract_op_type(lit->dest_opd[i]);
-            /*cerr*/std::cout << "  (" << OperandTypeToString(ot)
-                 << "/" << extract_op_index(lit->dest_opd[i]) << ")";
-        }
+    std::cout << "   SrcOps: " << (int)lit->num_src_operands;
+    for (uint8_t i=0 ; i<lit->num_src_operands ; ++i) {
+      OperandType ot = (OperandType)extract_op_type(lit->src_opd[i]);
+      std::cout << "  (" << OperandTypeToString(ot)
+		<< "/" << extract_op_index(lit->src_opd[i]) << ")";
+    }
+    
+    std::cout << endl << "   DstOps: " << (int)lit->num_dest_operands;
+    for (uint8_t i=0 ; i<lit->num_dest_operands ; ++i) {
+      OperandType ot = (OperandType)extract_op_type(lit->dest_opd[i]);
+      std::cout << "  (" << OperandTypeToString(ot)
+		<< "/" << extract_op_index(lit->dest_opd[i]) << ")";
+    }
 
-        /*cerr*/std::cout << endl << "   ImmValues: " << (int)lit->num_imm_values; 
-        for (uint8_t i=0 ; i<lit->num_imm_values ; ++i) {
-            /*cerr*/std::cout << "  (" << (lit->imm_values[i].is_signed?"s":"u") << "/";
-            if (lit->imm_values[i].is_signed)
-               /*cerr*/std::cout << lit->imm_values[i].value.s << "/" << hex 
-                    << lit->imm_values[i].value.s << dec;
-            else
-               /*cerr*/std::cout << lit->imm_values[i].value.u << "/" << hex 
-                    << lit->imm_values[i].value.u << dec;
-            /*cerr*/std::cout << ")";
-        }
+    std::cout << endl << "   ImmValues: " << (int)lit->num_imm_values; 
+    for (uint8_t i=0 ; i<lit->num_imm_values ; ++i) {
+      std::cout << "  (" << (lit->imm_values[i].is_signed?"s":"u") << "/";
+      if (lit->imm_values[i].is_signed)
+	std::cout << lit->imm_values[i].value.s << "/" << hex 
+		  << lit->imm_values[i].value.s << dec;
+      else
+	std::cout << lit->imm_values[i].value.u << "/" << hex 
+			  << lit->imm_values[i].value.u << dec;
+      std::cout << ")";
+    }
         
-        /*cerr*/std::cout << dec << endl;
-   }
+    std::cout << dec << endl;
+  }
 }
 
 
 // Return if the variable ast is a flag register
-bool sourceOpIsFlag(VariableAST::Ptr ast_var){
+bool sourceOpIsFlag(VariableAST::Ptr ast_var)
+{
   Absloc aloc = ast_var->val().reg.absloc();
   if (aloc.type() == Absloc::Register) {
     RegisterAST reg = RegisterAST(aloc.reg());
@@ -171,7 +554,8 @@ bool sourceOpIsFlag(VariableAST::Ptr ast_var){
 
 
 // Return if the output field of a assignment is a flag register
-bool destOpIsFlag(Assignment::Ptr aptr) {
+bool destOpIsFlag(Assignment::Ptr aptr)
+{
   Absloc aloc = aptr->out().absloc();
   if (aloc.type() == Absloc::Register) {
     RegisterAST reg = RegisterAST(aloc.reg());
@@ -187,8 +571,8 @@ bool destOpIsFlag(Assignment::Ptr aptr) {
 // For certain operations, all of its children need to be traversed (2). In other
 // cases, maybe only the first child (1) or the second child (3) or even none
 // of its children will be traversed.
-int traverse_options(instruction_info* uop, RoseAST::Ptr ast){
-
+int traverse_options(instruction_info* uop, RoseAST::Ptr ast)
+{
   switch(ast->val().op){
     
     case ROSEOperation::invertOp:{
@@ -483,8 +867,7 @@ void get_width_from_tree(instruction_info* uop, AST::Ptr ast){
          {
             uop->width = ast_r->val().size;
          } else {
-            unsigned int i = 0;
-            for (i; i < ast->numChildren(); i++){
+            for (unsigned int i = 0; i < ast->numChildren(); i++) {
               get_width_from_tree(uop, ast->child(i));
             }
          }
@@ -1090,7 +1473,8 @@ void parse_assign(DecodedInstruction* dInst, Assignment::Ptr aptr, instruction_i
         }
       }
       if (flags) {
-        uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_REGISTER, uop->num_src_operands - 1);
+        uop->src_opd[uop->num_src_operands] = make_operand(OperandType_REGISTER, uop->num_src_operands - 1);
+	uop->num_src_operands++;
         append_src_regs(uop, OperandType_REGISTER, insp, get_machine_flag_reg(), 1); // not sure the size of the flag yet
       }
     } 
@@ -1123,8 +1507,8 @@ void get_dest_field(DecodedInstruction* dInst, Assignment::Ptr aptr, instruction
 
 }
 
-void translate_prefectch(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp){
-
+void translate_prefectch(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+{
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
   uop->type = IB_prefetch;
@@ -1133,7 +1517,9 @@ void translate_prefectch(DecodedInstruction* dInst, std::vector<Assignment::Ptr>
   uop->vec_len = 8; // Is this always true?
   uop->exec_unit = ExecUnit_VECTOR;
   uop->exec_unit_type = get_execution_type(insp);
-  uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_MEMORY, uop->num_src_operands);
+  uop->src_opd[uop->num_src_operands] = make_operand(OperandType_MEMORY, uop->num_src_operands);
+  uop->num_src_operands++;
+  
   for (unsigned int i = 0; i < assignments.size(); ++i)
   {
      if (assignments.at(i)->inputs().at(0).absloc().type() == Absloc::Register)
@@ -1148,8 +1534,8 @@ void translate_prefectch(DecodedInstruction* dInst, std::vector<Assignment::Ptr>
 
 // System call is translated into jump uop, with two destination operands:
 // program counter and flags.
-void translate_sysCall(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp){
-
+void translate_sysCall(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+{
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
   uop->type = IB_jump;
@@ -1160,16 +1546,20 @@ void translate_sysCall(DecodedInstruction* dInst, std::vector<Assignment::Ptr> a
   uop->exec_unit_type = get_execution_type(insp);
 
   MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
-  uop->dest_opd[uop->num_dest_operands] = make_operand(OperandType_REGISTER, uop->num_dest_operands++);
+  uop->dest_opd[uop->num_dest_operands] = make_operand(OperandType_REGISTER, uop->num_dest_operands);
+  uop->num_dest_operands++;
   append_dest_regs(uop, OperandType_REGISTER, insp, pc, pc.size() * 8);
-  uop->dest_opd[uop->num_dest_operands] = make_operand(OperandType_REGISTER, uop->num_dest_operands++);
+  
+  uop->dest_opd[uop->num_dest_operands] = make_operand(OperandType_REGISTER, uop->num_dest_operands);
+  uop->num_dest_operands++;
   append_dest_regs(uop, OperandType_REGISTER, insp, get_machine_flag_reg(), 1);
 }
 
 
 // Translate 'return' instruction into 3 uops: Load, Add, Return.
-void translate_return(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments,\
-                                            Dyninst::InstructionAPI::Instruction::Ptr insp){
+void translate_return(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments,
+                                            Dyninst::InstructionAPI::Instruction::Ptr insp)
+{
   if (assignments.size() != 2) 
     assert("Leave instruction should contain two and only two assignments.\n"); 
   
@@ -1188,7 +1578,8 @@ void translate_return(DecodedInstruction* dInst, std::vector<Assignment::Ptr> as
 
 
 // Translate the nop instruction 
-void translate_nop(DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insp) {
+void translate_nop(DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insp)
+{
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
   uop->type = IB_nop;
@@ -1201,7 +1592,8 @@ void translate_nop(DecodedInstruction* dInst, Dyninst::InstructionAPI::Instructi
 
 // Translate the divide instruction. Make it a special case because it contains 8 assignments 
 // and this way is easier. 
-void translate_divide(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp){
+void translate_divide(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+{
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
   uop->type = IB_div;
@@ -1219,7 +1611,8 @@ void translate_divide(DecodedInstruction* dInst, std::vector<Assignment::Ptr> as
       if (!check_flags_registers(aptr->inputs().at(i).absloc().reg()))
       {
         MachRegister mr = aptr->inputs().at(i).absloc().reg();
-        uop->src_opd[uop->num_src_operands] = make_operand(OperandType_REGISTER, uop->num_src_operands++);
+        uop->src_opd[uop->num_src_operands] = make_operand(OperandType_REGISTER, uop->num_src_operands);
+	uop->num_src_operands++;
         append_src_regs(uop, OperandType_REGISTER, insp, mr, mr.size() * 8);
         locVec.push_back(aptr->inputs().at(i).absloc());
         if (!uop->width)
@@ -1246,16 +1639,17 @@ void translate_divide(DecodedInstruction* dInst, std::vector<Assignment::Ptr> as
   // for x86 machines, we clapse all the flag output regions into one: x86::flags or x86_64::flags
   if (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86 || pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64)
   {
-    uop->dest_opd[uop->num_dest_operands++] = make_operand(OperandType_REGISTER, uop->num_dest_operands);
+    uop->dest_opd[uop->num_dest_operands] = make_operand(OperandType_REGISTER, uop->num_dest_operands);
+    uop->num_dest_operands++;
     append_dest_regs(uop, OperandType_REGISTER, insp, get_machine_flag_reg(), 1);
   }
-
 }
 
 
 // Translate test instruction. Make it into special cases for 'simplity'.
 // Test instruction is translated into one LogicalOp uop. 
-void translate_test(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp){
+void translate_test(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+{
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
   uop->type = IB_logical; 
@@ -1266,8 +1660,7 @@ void translate_test(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assi
   // We take the first assignment and all of them have the same input fields 
   // and different output fields with different flags, and we don't care
   // about the differences. 
-  if (assignments.at(0)->inputs().at(0).absloc().type() == Absloc::Register)
-  {
+  if (assignments.at(0)->inputs().at(0).absloc().type() == Absloc::Register) {
     MachRegister reg = assignments.at(0)->inputs().at(0).absloc().reg();
     if (!uop->width && uop->vec_len) // get width
       uop->width =  reg.size() * 8 / uop->vec_len; 
@@ -1292,15 +1685,16 @@ void translate_test(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assi
     }
 
     // test instruction always contains flags output region.
-    uop->dest_opd[uop->num_dest_operands++] = make_operand(OperandType_REGISTER, uop->num_dest_operands);
+    uop->dest_opd[uop->num_dest_operands] = make_operand(OperandType_REGISTER, uop->num_dest_operands);
+    uop->num_dest_operands++;
     append_dest_regs(uop, OperandType_REGISTER, insp, get_machine_flag_reg(), 1);
   }
-  
 }
 
 
 // Translate leave instruction.Usually contains 3 uops: Copy, Load, Add.
-void translate_leave(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp) {
+void translate_leave(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+{
   for (auto ait = assignments.begin(); ait != assignments.end(); ++ait) {
     dInst->micro_ops.push_back(instruction_info());
     instruction_info* uop = &dInst->micro_ops.back();
@@ -1317,8 +1711,10 @@ void translate_leave(DecodedInstruction* dInst, std::vector<Assignment::Ptr> ass
   create_add_micro(dInst, insp, assignments.at(0));
 }
 
+
 // Translate jump by traversing its AST.
-void translate_jump_ast(DecodedInstruction* dInst, instruction_info* uop, AST::Ptr ast, Dyninst::InstructionAPI::Instruction::Ptr insp, Assignment::Ptr aptr){
+void translate_jump_ast(DecodedInstruction* dInst, instruction_info* uop, AST::Ptr ast, Dyninst::InstructionAPI::Instruction::Ptr insp, Assignment::Ptr aptr)
+{
   if (uop->vec_len == 0) {
     uop->vec_len = get_vec_len(insp);
   }
@@ -1407,50 +1803,55 @@ void translate_jump_ast(DecodedInstruction* dInst, instruction_info* uop, AST::P
 
 
 // Traversing through AST of the jump assignment and calculate the value of its constant operand.
-void calculate_jump_val(AST::Ptr ast) {
-
+void calculate_jump_val(AST::Ptr ast)
+{
   if (ast->getID() == AST::V_RoseAST) {
     RoseAST::Ptr ast_r = RoseAST::convert(ast);
     if (ast_r->val().op == ROSEOperation::addOp) {
 
-      for (unsigned int i = 0; i < ast->numChildren(); ++i)
-      {
+      for (unsigned int i = 0; i < ast->numChildren(); ++i) {
         if (ast->child(i)->getID() == AST::V_ConstantAST) {
           ConstantAST::Ptr ast_c = ConstantAST::convert(ast->child(i));
           jump_val += ast_c->val().val;
-
-        } else if (ast->child(i)->getID() == AST::V_VariableAST){
+	  
+        }
+	else if (ast->child(i)->getID() == AST::V_VariableAST){
           VariableAST::Ptr ast_v = VariableAST::convert(ast->child(i));
           jump_val += ast_v->val().addr; // CHECK --> not all variables are rip
 
-        } else {
+        }
+	else {
           calculate_jump_val(ast->child(i));
         }
       }
-    } else if (ast_r->val().op == ROSEOperation::ifOp) {
+    }
+    else if (ast_r->val().op == ROSEOperation::ifOp) {
       calculate_jump_val(ast->child(1)); // need to CHECK
 
-    } else {
+    }
+    else {
       //return;
       //assert(!"Must be add operation for address calculation\n");
     }
   }
 }
 
+
 // Update the primary micro-op with a new destination operand--flags
-void update_dest_with_flag(DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insp){
-   for (auto oit = dInst->micro_ops.begin(); oit != dInst->micro_ops.end(); oit++){
-      if (oit->primary)
-      {
-        oit->dest_opd[oit->num_dest_operands++] = make_operand(OperandType_REGISTER, oit->num_dest_operands); // which index should I use
-        append_dest_regs(&(*oit), OperandType_REGISTER, insp, get_machine_flag_reg(), 1);
-      }
-   }
+void update_dest_with_flag(DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insp)
+{
+  for (auto oit = dInst->micro_ops.begin(); oit != dInst->micro_ops.end(); oit++) {
+    if (oit->primary) {
+      oit->dest_opd[oit->num_dest_operands++] = make_operand(OperandType_REGISTER, oit->num_dest_operands); // which index should I use
+      append_dest_regs(&(*oit), OperandType_REGISTER, insp, get_machine_flag_reg(), 1);
+    }
+  }
 }
 
 
 // Translate the jump instruction
-void translate_jump(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp){
+void translate_jump(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+{
   dInst->micro_ops.push_back(instruction_info());
   instruction_info *uop = &dInst->micro_ops.back();
 
@@ -1477,15 +1878,15 @@ void translate_jump(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assi
 
 
 // Haven't encounter any enter yet. Don't really know how MIAMI translate it.
-void translate_enter(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp){
-  
+void translate_enter(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+{
   return;
-
 }
 
 
 // Translate call instruction (two different kinds, with load (5 uops) or without load (4 uops)).
-void translate_call(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp){
+void translate_call(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+{
   for (unsigned int i = 0; i < assignments.size(); i++) {
     if (assignments.at(i)->inputs().size() > 0) {
       dInst->micro_ops.push_front(instruction_info());  // we push front because Dyninst reverses the order 
@@ -1507,33 +1908,33 @@ void translate_call(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assi
 
   // Find the asssignment with AST and create jump uop using the value retrieved from AST.
   for (unsigned int i = 0; i < assignments.size(); ++i) {
-      static std::pair<AST::Ptr, bool> astPair;
-      astPair = SymEval::expand(assignments.at(i), false);
-      if (astPair.second && NULL != astPair.first)
-      {
-        calculate_jump_val(astPair.first); // We need AST to find the value which the call jump to.
+    static std::pair<AST::Ptr, bool> astPair;
+    astPair = SymEval::expand(assignments.at(i), false);
+    if (astPair.second && NULL != astPair.first) {
+      calculate_jump_val(astPair.first); // We need AST to find the value which the call jump to.
 
-        if (dInst->micro_ops.size() == 3) { // If we have load uop, change the jump's src operand to INTERNAL
-          create_jump_micro(dInst, 0, insp, assignments.at(0), true);
-        } else { // no load operation
-          jump_val = dInst->len;
-          create_jump_micro(dInst, jump_val, insp, assignments.at(0), false);
-        }
-
-        jump_val = 0; // this is static
-        break;
-
+      if (dInst->micro_ops.size() == 3) { // If we have load uop, change the jump's src operand to INTERNAL
+	create_jump_micro(dInst, 0, insp, assignments.at(0), true);
       }
-    }  
+      else { // no load operation
+	jump_val = dInst->len;
+	create_jump_micro(dInst, jump_val, insp, assignments.at(0), false);
+      }
 
-    // the first add is usually the second assignment, so we pass the second one over. CHECK to make sure.
-    create_add_micro(dInst, insp, assignments.at(1)); 
+      jump_val = 0; // this is static
+      break;
+      
+    }
+  }  
 
+  // the first add is usually the second assignment, so we pass the second one over. CHECK to make sure.
+  create_add_micro(dInst, insp, assignments.at(1)); 
 }
 
 
 // Translate compare uop
-void translate_compare(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp){
+void translate_compare(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+{
   Assignment::Ptr assign = assignments.at(0);
   std::vector<AbsRegion> inputs = assign->inputs();
   for (unsigned int i = 0; i < inputs.size(); ++i)
@@ -1585,7 +1986,8 @@ void traverse_or(instruction_info* uop, AST::Ptr ast){
 
 
 // Translate or instruction. Make it into a special case for simplicity.
-void translate_or(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp){
+void translate_or(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insp)
+{
   dInst->micro_ops.push_back(instruction_info());
   instruction_info* uop = &dInst->micro_ops.back();
   uop->type = IB_logical;
@@ -1600,7 +2002,8 @@ void translate_or(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assign
   uop->dest_reg_list.clear();
   uop->dest_opd[uop->num_dest_operands++] = make_operand(OperandType_INTERNAL, 0);
   append_dest_regs(uop, OperandType_INTERNAL, insp, Dyninst::MachRegister(), uop->width * uop->vec_len);
-  uop->dest_opd[uop->num_dest_operands++] = make_operand(OperandType_REGISTER, uop->num_dest_operands);
+  uop->dest_opd[uop->num_dest_operands] = make_operand(OperandType_REGISTER, uop->num_dest_operands);
+  uop->num_dest_operands++;
   append_dest_regs(uop, OperandType_REGISTER, insp, get_machine_flag_reg(), 1);
 
   for (unsigned int i = 0; i < assignments.size(); ++i)
@@ -1635,215 +2038,80 @@ void translate_or(DecodedInstruction* dInst, std::vector<Assignment::Ptr> assign
 }
 
 
-// Parse the AST of an assignment.
-void parse_ast(DecodedInstruction* dInst, Assignment::Ptr aptr, instruction_info* uop, \
-                                                   AST::Ptr ast, Dyninst::InstructionAPI::Instruction::Ptr insp){
-  Absloc aloc;
-  if (uop->vec_len == 0) 
-    uop->vec_len = get_vec_len(insp);
-  if (uop->exec_unit == ExecUnit_LAST) 
-    uop->exec_unit = (uop->vec_len == 1) ? ExecUnit_SCALAR : ExecUnit_VECTOR;
-  if (uop->exec_unit_type == ExecUnitType_LAST) 
-    uop->exec_unit_type = get_execution_type(insp);
+//***************************************************************************
+// 
+//***************************************************************************
 
-  // special cases when memory field does not shown in ast --> CHECK
-  if (uop->type == IB_load && !uop->num_src_operands) {
-    for (unsigned int i = 0; i < aptr->inputs().size(); ++i) {
-      static std::pair<AST::Ptr, bool> astPair;
-      astPair = SymEval::expand(aptr, false);
-
-      if (!uop->width && astPair.second && NULL != astPair.first) 
-        get_width_from_tree(uop, astPair.first);
-
-      aloc = aptr->inputs().at(i).absloc();
-      if (aloc.type() == Absloc::Stack || aloc.type() == Absloc::Heap || aloc.type() == Absloc::Unknown) {
-        uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_MEMORY, 0);  // Does the index matter in the case of mem?
-        locVec.push_back(aloc);
-
-        // building the source register information with the right register to represent it
-        if (i != 0) { // The memory field is not is first input field. We choose the register field before it to represent mem field.
-          MachRegister mr = aptr->inputs().at(i-1).absloc().reg();
-          append_src_regs(uop, OperandType_MEMORY, insp, mr, mr.size() * 8);
-        } else { // Using default program counter to represent the memory field.
-          MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
-          append_src_regs(uop, OperandType_MEMORY, insp, pc, pc.size() * 8); 
-        }
-        return;
-      }
-    }
-  // If load already has a src operand (must be memory), ignore all the others memory fields 
-  // in the same assignment.
-  }else if (uop->type == IB_load && uop->num_src_operands) return; 
-
-
-  switch(ast->getID()){
-
-    case AST::V_ConstantAST : {
-
-      ConstantAST::Ptr ast_c = ConstantAST::convert(ast);
-      Absloc aloc_out = aptr->out().absloc();
-
-      // If get_operator function fail to provide a type for IB, then we check whether it
-      // is the special case of IB_copy or IB_store. 
-      if (uop->type == IB_unknown && aloc_out.type() == Absloc::Register) // copy from imm to reg
-      {
-        uop->type = IB_copy;
-      } else if (uop->type == IB_unknown && aptr->inputs().size()) { // store into [rip+x]??
-  
-       // uop->type = IB_store; CHECK!!!
-        uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_REGISTER, 1);
-
-        if (aloc_out.type() == Absloc::Register) {
-          append_src_regs(uop, OperandType_REGISTER, insp, aloc_out.reg(), aloc_out.reg().size() * 8);  
-        } else if (aptr->inputs().at(0).absloc().type() == Absloc::Register){
-          MachRegister input = aptr->inputs().at(0).absloc().reg();
-          append_src_regs(uop, OperandType_REGISTER, insp, input, input.size() * 8);
-        }
-
-        return;
-      }
-
-      if (uop->width == 0 && uop->vec_len) 
-        uop->width = (width_t) ast_c->val().size / uop->vec_len;
-
-      if (uop->num_imm_values < 2) {
-        uop->imm_values[uop->num_imm_values].is_signed = (uop->width == 64) ? true : false; //CHECK
-        uop->imm_values[uop->num_imm_values].value.s = ast_c->val().val; 
-        std::cout << "inside parse_ast, constant value is " << ast_c->val().val;
-        uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_IMMED, uop->num_imm_values++); // no need to find dependency of immediates
-        locVec.push_back(Absloc());  
-      }
-      return;
-    }
-
-    case AST::V_VariableAST : {
-
-      VariableAST::Ptr ast_var = VariableAST::convert(ast);
-
-      // If we do not have a type yet, then update type with either store or copy.
-      if (uop->type == IB_unknown) {
-         aloc = aptr->out().absloc();
-        if (aloc.type() == Absloc::Stack || aloc.type() == Absloc::Heap || aloc.type() == Absloc::Unknown) {
-          uop->type = IB_store; // Is it possible? function get_dest_field should already assign it. 
-        } else if (aloc.type() == Absloc::Register) {
-          uop->type = IB_copy;
-        }
-      } 
-
-      // update width 
-      if (uop->width == 0) {
-        if (aptr->out().absloc().type() == Absloc::Register) { // update the width according to the output Register operand's size
-          if(uop->vec_len) uop->width = aptr->out().absloc().reg().size() * 8 / uop->vec_len;
-
-        } else if (aptr->inputs().size()) { // update the width according to the input Register operand's size
-          for (unsigned int i = 0; i < aptr->inputs().size(); ++i) {
-            Absloc input_loc = aptr->inputs().at(i).absloc();
-            if (input_loc.type() == Absloc::Register) {
-              if (uop->vec_len) uop->width = input_loc.reg().size() * 8 / uop->vec_len;
-              break;
-            }
-          }
-        } else { // operands only concerning memory
-            uop->width = 64; // default 64 for Memory (load / store)--> FIXME
-        }
-      }
-
-      // Update source operand list when:
-      // 1. either the variable is not a flag
-      // 2. or if the flag operand has not been listed yet
-      if (sourceOpIsFlag(ast_var)) {
-        if (uop->flag == false) {
-          uop->flag = true;
-          uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_REGISTER, uop->num_src_operands); // flags shall not appear already
-          append_src_regs(uop, OperandType_REGISTER, insp, get_machine_flag_reg(), 1);
-        } else {} // do nothing if source flag is already updated.
-
-      } else {
-        // Special cases when memory field does not shown in ast 
-        if (uop->type == IB_load) {
-          for (unsigned int i = 0; i < aptr->inputs().size(); ++i) {
-            aloc = aptr->inputs().at(i).absloc();
-            if (aloc.type() == Absloc::Stack || aloc.type() == Absloc::Heap || aloc.type() == Absloc::Unknown) {
-              uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_MEMORY, 0);  // !!!!!!!!!!!!!!!!!
-              locVec.push_back(aloc);
-
-              // Building the source register information.
-              if (i != 0) {
-                 MachRegister mr = aptr->inputs().at(i-1).absloc().reg();
-                 append_src_regs(uop, OperandType_MEMORY, insp, mr, mr.size() * 8);
-              } else {
-                 MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
-                 append_src_regs(uop, OperandType_MEMORY, insp, pc, pc.size() * 8); 
-              }
-              return;
-            }
-          }
-        }
-
-        // Update register source operand.
-        if (ast_var->val().reg.absloc().type() == Absloc::Register) {
-          unsigned int idx = get_register_index(ast_var->val().reg.absloc());
-          uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_REGISTER, idx); 
-
-          // building the source register information
-          int size = 0;
-          // 'extract' part of the value. eg: 32 from 64 or 16 from 64.
-          if (opVec.size() && opVec.back()->val().op == ROSEOperation::extractOp) 
-            size = opVec.back()->val().size;
-          else 
-            size = ast_var->val().reg.absloc().reg().size();
-
-          append_src_regs(uop, OperandType_REGISTER, insp, ast_var->val().reg.absloc().reg(), size);
-        }
-      }
-      return;
-    }
-
-
-    case AST::V_RoseAST : {
-      RoseAST::Ptr ast_r = RoseAST::convert(ast);
-
-      if (uop->width == 0)
-         get_width_from_tree(uop, ast);
-      
-      // Depending on different operations, we traverse different choices of their children.
-      // Some we just ignore its children (0), some we traverse the first child (1), some 
-      // we traverse all of its children (2). 
-      int option = traverse_options(uop, ast_r);
-
-      switch(option){
-        case 2:
-          for (unsigned int i = 0; i < ast->numChildren(); i++) {
-            parse_ast(dInst, aptr, uop, ast->child(i), insp);
-          }
-          return;
-        case 1:
-          parse_ast(dInst, aptr, uop, ast->child(0), insp);
-          return;
-        case 0:
-          // special case to deal with sub instruction
-          if (ast_r->val().op == ROSEOperation::extractOp && ast->child(0)->getID() == AST::V_RoseAST && uop->type != IB_load) { 
-              uop->type = IB_unknown;
-              parse_ast(dInst, aptr, uop, ast->child(0), insp);
-          }
-            return;
-        default:
-          return;
-      }
-      return;
-    }
-
-    default: {
-      assert("Wrong type of AST node\n");
+// translate_all the assignments of an instruction
+void translate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insp, DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments)
+{
+  int flag = 0;
+  for (unsigned int i = 0; i < assignments.size(); i++) {
+    if (destOpIsFlag(assignments.at(i))) {
+      flag = 1;
+    } else {
+      // If it's not flag, we start processing the assignment.
+      translate_assignment(dInst, assignments.at(i), insp);
     }
   }
-  return;
+  if (dInst->micro_ops.size() == 1) dInst->micro_ops.back().primary = true; // only one uop, it must be primary.
+
+  if (!flag && dInst->micro_ops.size() == 1 && dInst->micro_ops.back().type == IB_add \
+                                              && dInst->micro_ops.back().vec_len <= 1) { // not including vector operand
+     dInst->micro_ops.back().type = IB_lea;
+     dInst->micro_ops.back().src_opd[dInst->micro_ops.back().num_src_operands++] = make_operand(OperandType_MEMORY, 0);
+
+    if (assignments.at(0)->inputs().size()) // lea get address not from rip
+    {
+      Absloc aloc = assignments.at(0)->inputs().at(0).absloc();
+      if (aloc.type() == Absloc::Register)
+      {
+         append_src_regs(&dInst->micro_ops.back(), OperandType_MEMORY, insp, aloc.reg(), aloc.reg().size() * 8);
+      }
+    }else {
+       append_src_regs(&dInst->micro_ops.back(), OperandType_MEMORY, insp, Dyninst::MachRegister(), 64);
+     }
+
+  /* Special case: processing push and pop.
+   * It seems that parse_ast cannot cannot get the CONSTANT values in 'add' uop, so we append it here.
+   * The reason it cannot get the constant value is because the traverse_options function do not traverse
+   * all the children of 'add' ROSEOperations' in most of the cases (but only the first one).
+   * We do it that way to stop the recursion sooner for the general uops. Many uops contains 'add' ROSEOperation.
+   * They are usually large and usually only the first branch of add's children is meaningful. CHECK*/
+
+  } else if (!flag && dInst->micro_ops.size() == 2 \
+    && dInst->micro_ops.back().type == IB_add && dInst->micro_ops.front().type == IB_store) // push
+  {
+    instruction_info* uop = &dInst->micro_ops.back(); // get the 'add' uop
+    uop->imm_values[uop->num_imm_values].is_signed = (uop->width == 64) ? true : false; 
+    uop->imm_values[uop->num_imm_values].value.s = -8; 
+    uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_IMMED, uop->num_imm_values++);
+    dInst->micro_ops.reverse(); // reverse the order of store and add. Dyninst order does not corresponds
+                                // well with MIAMI's order sometimes.
+
+  } else if (!flag && dInst->micro_ops.size() == 2 \
+    && dInst->micro_ops.back().type == IB_add && dInst->micro_ops.front().type == IB_load) // pop
+  {
+    instruction_info* uop = &dInst->micro_ops.back(); // get the 'add' uop
+    uop->imm_values[uop->num_imm_values].is_signed = (uop->width == 64) ? true : false; 
+    uop->imm_values[uop->num_imm_values].value.s = 8; 
+    uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_IMMED, uop->num_imm_values++);
+  }
+
+  if (flag) 
+    update_dest_with_flag(dInst, insp); // update the primary uop with a flag destination. (x86/x86_64)
+  if (flag && dInst->micro_ops.size() == 0) { 
+    translate_test(dInst, assignments, insp); // all dest ops are flags-->test uop
+  } else if (flag && dInst->micro_ops.size() == 0 && dInst->micro_ops.begin()->vec_len > 1)
+  {
+
+  }
+
 }
 
 
-
-void translate_assignment(DecodedInstruction* dInst, Assignment::Ptr aptr, Dyninst::InstructionAPI::Instruction::Ptr insp){
-
+void translate_assignment(DecodedInstruction* dInst, Assignment::Ptr aptr, Dyninst::InstructionAPI::Instruction::Ptr insp)
+{
   // start a new micro operation
   dInst->micro_ops.push_back(instruction_info());
   instruction_info *uop = &dInst->micro_ops.back();
@@ -1933,428 +2201,268 @@ void translate_assignment(DecodedInstruction* dInst, Assignment::Ptr aptr, Dynin
 }
 
 
-// translate_all the assignments of an instruction
-void translate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insp, DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments){
-  int flag = 0;
-  for (unsigned int i = 0; i < assignments.size(); i++) {
-    if (destOpIsFlag(assignments.at(i))) {
-      flag = 1;
-    } else {
-      // If it's not flag, we start processing the assignment.
-      translate_assignment(dInst, assignments.at(i), insp);
+// Parse the AST of an assignment.
+void parse_ast(DecodedInstruction* dInst, Assignment::Ptr aptr,
+	       instruction_info* uop, AST::Ptr ast,
+	       Dyninst::InstructionAPI::Instruction::Ptr insp)
+{
+  Absloc aloc;
+  if (uop->vec_len == 0) 
+    uop->vec_len = get_vec_len(insp);
+  if (uop->exec_unit == ExecUnit_LAST) 
+    uop->exec_unit = (uop->vec_len == 1) ? ExecUnit_SCALAR : ExecUnit_VECTOR;
+  if (uop->exec_unit_type == ExecUnitType_LAST) 
+    uop->exec_unit_type = get_execution_type(insp);
+
+  // special cases when memory field does not shown in ast --> CHECK
+  if (uop->type == IB_load && !uop->num_src_operands) {
+    for (unsigned int i = 0; i < aptr->inputs().size(); ++i) {
+      static std::pair<AST::Ptr, bool> astPair;
+      astPair = SymEval::expand(aptr, false);
+
+      if (!uop->width && astPair.second && NULL != astPair.first) 
+        get_width_from_tree(uop, astPair.first);
+
+      aloc = aptr->inputs().at(i).absloc();
+      if (aloc.type() == Absloc::Stack || aloc.type() == Absloc::Heap || aloc.type() == Absloc::Unknown) {
+        uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_MEMORY, 0);  // Does the index matter in the case of mem?
+        locVec.push_back(aloc);
+
+        // building the source register information with the right register to represent it
+        if (i != 0) { // The memory field is not is first input field. We choose the register field before it to represent mem field.
+          MachRegister mr = aptr->inputs().at(i-1).absloc().reg();
+          append_src_regs(uop, OperandType_MEMORY, insp, mr, mr.size() * 8);
+        }
+	else { // Using default program counter to represent the memory field.
+          MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
+          append_src_regs(uop, OperandType_MEMORY, insp, pc, pc.size() * 8); 
+        }
+        return;
+      }
     }
+  // If load already has a src operand (must be memory), ignore all the others memory fields 
+  // in the same assignment.
   }
-  if (dInst->micro_ops.size() == 1) dInst->micro_ops.back().primary = true; // only one uop, it must be primary.
+  else if (uop->type == IB_load && uop->num_src_operands) {
+    return;
+  }
 
-  if (!flag && dInst->micro_ops.size() == 1 && dInst->micro_ops.back().type == IB_add \
-                                              && dInst->micro_ops.back().vec_len <= 1) { // not including vector operand
-     dInst->micro_ops.back().type = IB_lea;
-     dInst->micro_ops.back().src_opd[dInst->micro_ops.back().num_src_operands++] = make_operand(OperandType_MEMORY, 0);
 
-    if (assignments.at(0)->inputs().size()) // lea get address not from rip
-    {
-      Absloc aloc = assignments.at(0)->inputs().at(0).absloc();
-      if (aloc.type() == Absloc::Register)
+  switch(ast->getID()){
+
+    case AST::V_ConstantAST : {
+
+      ConstantAST::Ptr ast_c = ConstantAST::convert(ast);
+      Absloc aloc_out = aptr->out().absloc();
+
+      // If get_operator function fail to provide a type for IB, then we check whether it
+      // is the special case of IB_copy or IB_store. 
+      if (uop->type == IB_unknown && aloc_out.type() == Absloc::Register) // copy from imm to reg
       {
-         append_src_regs(&dInst->micro_ops.back(), OperandType_MEMORY, insp, aloc.reg(), aloc.reg().size() * 8);
-      }
-    }else {
-       append_src_regs(&dInst->micro_ops.back(), OperandType_MEMORY, insp, Dyninst::MachRegister(), 64);
-     }
-
-  /* Special case: processing push and pop.
-   * It seems that parse_ast cannot cannot get the CONSTANT values in 'add' uop, so we append it here.
-   * The reason it cannot get the constant value is because the traverse_options function do not traverse
-   * all the children of 'add' ROSEOperations' in most of the cases (but only the first one).
-   * We do it that way to stop the recursion sooner for the general uops. Many uops contains 'add' ROSEOperation.
-   * They are usually large and usually only the first branch of add's children is meaningful. CHECK*/
-
-  } else if (!flag && dInst->micro_ops.size() == 2 \
-    && dInst->micro_ops.back().type == IB_add && dInst->micro_ops.front().type == IB_store) // push
-  {
-    instruction_info* uop = &dInst->micro_ops.back(); // get the 'add' uop
-    uop->imm_values[uop->num_imm_values].is_signed = (uop->width == 64) ? true : false; 
-    uop->imm_values[uop->num_imm_values].value.s = -8; 
-    uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_IMMED, uop->num_imm_values++);
-    dInst->micro_ops.reverse(); // reverse the order of store and add. Dyninst order does not corresponds
-                                // well with MIAMI's order sometimes.
-
-  } else if (!flag && dInst->micro_ops.size() == 2 \
-    && dInst->micro_ops.back().type == IB_add && dInst->micro_ops.front().type == IB_load) // pop
-  {
-    instruction_info* uop = &dInst->micro_ops.back(); // get the 'add' uop
-    uop->imm_values[uop->num_imm_values].is_signed = (uop->width == 64) ? true : false; 
-    uop->imm_values[uop->num_imm_values].value.s = 8; 
-    uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_IMMED, uop->num_imm_values++);
-  }
-
-  if (flag) 
-    update_dest_with_flag(dInst, insp); // update the primary uop with a flag destination. (x86/x86_64)
-  if (flag && dInst->micro_ops.size() == 0) { 
-    translate_test(dInst, assignments, insp); // all dest ops are flags-->test uop
-  } else if (flag && dInst->micro_ops.size() == 0 && dInst->micro_ops.begin()->vec_len > 1)
-  {
-
-  }
-
-}
-
-
-// Translate each instructions 
-void translate_instruction(Dyninst::InstructionAPI::Instruction::Ptr insp, std::vector<Assignment::Ptr> assignments, addrtype pc, DecodedInstruction* dInst){
-
-	dInst->len = (int) insp->size(); 
-	dInst->pc = (addrtype) pc; 
-	dInst->is_call = false;
-
-  // The instruction's pointer in dyninst may not point to the machine data which MIAMI wants.
-  // Haven't encounter any situations which mach_data is used. Thus, leave it like this for now.
-	dInst->mach_data =  const_cast<void*>( static_cast<const void*>(insp->ptr()) ); // CHECK
-
-  bool x86 = (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86 || \
-                 pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64);
-  if (x86 && insp->getOperation().getID() == e_leave){
-    translate_leave(dInst, assignments, insp); // special translation for leave instruction in x86
-
-  } else if (x86 && insp->getOperation().getID() == e_nop) {
-    translate_nop(dInst, insp); // special translation for nop instruction in x86
-
-  } else if (x86 && insp->getOperation().getID() >= e_or && insp->getOperation().getID() <= e_orps) {
-    translate_or(dInst, assignments, insp); // special translation for or instruction in x86
-
-  } else if (x86 && insp->getOperation().getID() >= e_div && insp->getOperation().getID() <= e_divss) {
-    translate_divide(dInst, assignments, insp); // special translation for divide instruction in x86
-
-  } else {
-    switch(insp->getCategory()){
-      case c_CallInsn:
-        dInst->is_call = true;
-        translate_call(dInst, assignments, insp);
-        break;
-      case c_ReturnInsn:
-        translate_return(dInst, assignments, insp);
-        break;
-      case c_BranchInsn:
-        translate_jump(dInst, assignments, insp);
-        break;
-      case c_CompareInsn:
-        translate_compare(dInst, assignments, insp);
-        break;
-      case c_SysEnterInsn:
-        translate_enter(dInst, assignments, insp); // this function hasn't been implemented yet.
-        break;
-      case c_SyscallInsn:
-        dInst->is_call = true;
-        translate_sysCall(dInst, assignments, insp);
-        break;
-      case c_PrefetchInsn:
-        translate_prefectch(dInst, assignments, insp);
-        break;
-      case c_NoCategory:{
-        translate_assignments(insp, dInst, assignments); // default choice is always translate_assignments.
-        break;
-      }
-      default:
-        assert("Impossible!\n");
-        break;
-    }
-  }
-  locVec.clear();
- // if (insp->getOperation().format().compare("push") == 0||insp->getOperation().format().compare("pop") == 0||insp->getOperation().format().compare("cmp") == 0)
-
-    DumpInstrListDyninst(dInst); // Debug function
-    DumpRegisterList(dInst); // Debug print function
+        uop->type = IB_copy;
+      } else if (uop->type == IB_unknown && aptr->inputs().size()) { // store into [rip+x]??
   
+       // uop->type = IB_store; CHECK!!!
+        uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_REGISTER, 1);
 
-  return ;
-	
+        if (aloc_out.type() == Absloc::Register) {
+          append_src_regs(uop, OperandType_REGISTER, insp, aloc_out.reg(), aloc_out.reg().size() * 8);  
+        } else if (aptr->inputs().at(0).absloc().type() == Absloc::Register){
+          MachRegister input = aptr->inputs().at(0).absloc().reg();
+          append_src_regs(uop, OperandType_REGISTER, insp, input, input.size() * 8);
+        }
+
+        return;
+      }
+
+      if (uop->width == 0 && uop->vec_len) 
+        uop->width = (width_t) ast_c->val().size / uop->vec_len;
+
+      if (uop->num_imm_values < 2) {
+        uop->imm_values[uop->num_imm_values].is_signed = (uop->width == 64) ? true : false; //CHECK
+        uop->imm_values[uop->num_imm_values].value.s = ast_c->val().val; 
+        std::cout << "inside parse_ast, constant value is " << ast_c->val().val;
+        uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_IMMED, uop->num_imm_values++); // no need to find dependency of immediates
+        locVec.push_back(Absloc());  
+      }
+      return;
+    }
+
+    case AST::V_VariableAST : {
+
+      VariableAST::Ptr ast_var = VariableAST::convert(ast);
+
+      // If we do not have a type yet, then update type with either store or copy.
+      if (uop->type == IB_unknown) {
+         aloc = aptr->out().absloc();
+        if (aloc.type() == Absloc::Stack || aloc.type() == Absloc::Heap || aloc.type() == Absloc::Unknown) {
+          uop->type = IB_store; // Is it possible? function get_dest_field should already assign it. 
+        } else if (aloc.type() == Absloc::Register) {
+          uop->type = IB_copy;
+        }
+      } 
+
+      // update width 
+      if (uop->width == 0) {
+        if (aptr->out().absloc().type() == Absloc::Register) { // update the width according to the output Register operand's size
+          if(uop->vec_len) uop->width = aptr->out().absloc().reg().size() * 8 / uop->vec_len;
+
+        } else if (aptr->inputs().size()) { // update the width according to the input Register operand's size
+          for (unsigned int i = 0; i < aptr->inputs().size(); ++i) {
+            Absloc input_loc = aptr->inputs().at(i).absloc();
+            if (input_loc.type() == Absloc::Register) {
+              if (uop->vec_len) uop->width = input_loc.reg().size() * 8 / uop->vec_len;
+              break;
+            }
+          }
+        } else { // operands only concerning memory
+            uop->width = 64; // default 64 for Memory (load / store)--> FIXME
+        }
+      }
+
+      // Update source operand list when:
+      // 1. either the variable is not a flag
+      // 2. or if the flag operand has not been listed yet
+      if (sourceOpIsFlag(ast_var)) {
+        if (uop->flag == false) {
+          uop->flag = true;
+          uop->src_opd[uop->num_src_operands] = make_operand(OperandType_REGISTER, uop->num_src_operands); // flags shall not appear already
+	  uop->num_src_operands++;
+          append_src_regs(uop, OperandType_REGISTER, insp, get_machine_flag_reg(), 1);
+        } else {} // do nothing if source flag is already updated.
+
+      } else {
+        // Special cases when memory field does not shown in ast 
+        if (uop->type == IB_load) {
+          for (unsigned int i = 0; i < aptr->inputs().size(); ++i) {
+            aloc = aptr->inputs().at(i).absloc();
+            if (aloc.type() == Absloc::Stack || aloc.type() == Absloc::Heap || aloc.type() == Absloc::Unknown) {
+              uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_MEMORY, 0);  // !!!!!!!!!!!!!!!!!
+              locVec.push_back(aloc);
+
+              // Building the source register information.
+              if (i != 0) {
+                 MachRegister mr = aptr->inputs().at(i-1).absloc().reg();
+                 append_src_regs(uop, OperandType_MEMORY, insp, mr, mr.size() * 8);
+              } else {
+                 MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
+                 append_src_regs(uop, OperandType_MEMORY, insp, pc, pc.size() * 8); 
+              }
+              return;
+            }
+          }
+        }
+
+        // Update register source operand.
+        if (ast_var->val().reg.absloc().type() == Absloc::Register) {
+          unsigned int idx = get_register_index(ast_var->val().reg.absloc());
+          uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_REGISTER, idx); 
+
+          // building the source register information
+          int size = 0;
+          // 'extract' part of the value. eg: 32 from 64 or 16 from 64.
+          if (opVec.size() && opVec.back()->val().op == ROSEOperation::extractOp) 
+            size = opVec.back()->val().size;
+          else 
+            size = ast_var->val().reg.absloc().reg().size();
+
+          append_src_regs(uop, OperandType_REGISTER, insp, ast_var->val().reg.absloc().reg(), size);
+        }
+      }
+      return;
+    }
+
+
+    case AST::V_RoseAST : {
+      RoseAST::Ptr ast_r = RoseAST::convert(ast);
+
+      if (uop->width == 0)
+         get_width_from_tree(uop, ast);
+      
+      // Depending on different operations, we traverse different choices of their children.
+      // Some we just ignore its children (0), some we traverse the first child (1), some 
+      // we traverse all of its children (2). 
+      int option = traverse_options(uop, ast_r);
+
+      switch(option){
+        case 2:
+          for (unsigned int i = 0; i < ast->numChildren(); i++) {
+            parse_ast(dInst, aptr, uop, ast->child(i), insp);
+          }
+          return;
+        case 1:
+          parse_ast(dInst, aptr, uop, ast->child(0), insp);
+          return;
+        case 0:
+          // special case to deal with sub instruction
+          if (ast_r->val().op == ROSEOperation::extractOp && ast->child(0)->getID() == AST::V_RoseAST && uop->type != IB_load) { 
+              uop->type = IB_unknown;
+              parse_ast(dInst, aptr, uop, ast->child(0), insp);
+          }
+            return;
+        default:
+          return;
+      }
+      return;
+    }
+
+    default: {
+      assert("Wrong type of AST node\n");
+    }
+  }
+  return;
 }
 
 
-// Called by load_module.C.
-// Initialize all the blocks for all the functions for a given module.
-void initialize_dyninst(const char* progName){
-
-	codeSource = new Dyninst::ParseAPI::SymtabCodeSource((char*)progName);
-
-	BPatch bpatch;
-	std::cout<<"palm-inst: "<<progName<<endl;
-	BPatch_addressSpace* app = bpatch.openBinary(progName,false);
-  BPatch_image *bpi = app->getImage();
-	functions = *(bpi->getProcedures(true));
-
-  for (unsigned int i = 0; i < functions.size(); ++i)
-  {
-    BPatch_flowGraph *fg =functions[i]->getCFG();
-    std::set<BPatch_basicBlock*> blks;
-    fg->getAllBasicBlocks(blks);
-    funcBlocks[i] = blks;
-
-  }
-}
-
-
-static int last_used_function = 0; // FIXME: tallent: static data
-
-// Get the corresponding function according to pc.
-int get_function(unsigned long pc) {
-  Dyninst::Address start, end;
-	
-  for (unsigned int i = 0; i < functions.size(); ++i) {
-    functions[i]->getAddressRange(start, end);
-    if (pc >= start && pc < end) {
-      return i;  
-    }
-  }
-
-  // no demangled name match, check again using function's base address
-  for (unsigned int i = 0; i < functions.size(); ++i) {
-    if ((unsigned long) functions[i]->getBaseAddr() == pc) {
-      last_used_function = i;
-      return i;
-    }
-  }
-
-  // what about the last block without a name
-  for (unsigned int i = 0; i < functions.size() - 1; ++i) {
-    if ((pc > (unsigned long) functions[i]->getBaseAddr()) && (pc < (unsigned long) functions[i+1]->getBaseAddr())) {
-      return i;
-    }
-  }
-
-  return last_used_function;
-}
-
+//***************************************************************************
+// 
+//***************************************************************************
 
 // Not used in the program
-void startCFG(BPatch_function* function,std::map<std::string,std::vector<BPatch_basicBlock*> >& paths, graph& g){
-	if (function!= 0 ) {
-		std::map<BPatch_basicBlock *,bool> seen;
-		
-		BPatch_flowGraph *fg =function->getCFG();		
-
-		std::vector<BPatch_basicBlock *> entryBlk;
-		std::vector<BPatch_basicBlock *> exitBlk;
-		fg->getExitBasicBlock(exitBlk);
-		fg->getEntryBasicBlock(entryBlk);
-
-		std::string pathStr;
-		if (entryBlk.size() > 0 and exitBlk.size()>0){
-			g.entry=g.basicBlockNoMap[entryBlk[0]->blockNo()];
-			g.exit=g.basicBlockNoMap[exitBlk[0]->blockNo()];
-			std::vector<BPatch_basicBlock*> path;
-			for(unsigned int b=0;b<entryBlk.size();b++){
+void startCFG(BPatch_function* function,std::map<std::string,std::vector<BPatch_basicBlock*> >& paths, graph& g)
+{
+  if (function!= 0 ) {
+    std::map<BPatch_basicBlock *,bool> seen;
+    
+    BPatch_flowGraph *fg =function->getCFG();		
+    
+    std::vector<BPatch_basicBlock *> entryBlk;
+    std::vector<BPatch_basicBlock *> exitBlk;
+    fg->getExitBasicBlock(exitBlk);
+    fg->getEntryBasicBlock(entryBlk);
+    
+    std::string pathStr;
+    if (entryBlk.size() > 0 and exitBlk.size()>0){
+      g.entry=g.basicBlockNoMap[entryBlk[0]->blockNo()];
+      g.exit=g.basicBlockNoMap[exitBlk[0]->blockNo()];
+      std::vector<BPatch_basicBlock*> path;
+      for(unsigned int b=0;b<entryBlk.size();b++){
         //std::cout << "startCFG entryblk size is "<<  entryBlk.size() << endl;
-				traverseCFG(entryBlk[b],seen,paths,path,pathStr,g);
-			}
-		}
-	}
-}
-
-
-// Get the Block for a given PC with function index f.
-Dyninst::ParseAPI::Block* get_block(int f, addrtype pc, graph& g){
-	std::map<std::string,std::vector<uint8_t> > pathInstructionsMap;
-	std::map<std::string,std::vector<BPatch_basicBlock*> > paths;
-	BPatch_function* func = functions[f];
-
-  Dyninst::Address _start, _end;
-  func->getAddressRange(_start, _end);
-
-	if (func!=0){
-    BPatch_basicBlock* bb;
-    std::set<BPatch_basicBlock*> blks = funcBlocks[f]; // get the set of blocks from the global map
-
-    for (auto bit = blks.begin(); bit != blks.end(); bit++)
-    {
-      bb = *bit;
-      if (bb->getStartAddress() <= pc && pc < bb->getEndAddress()) // end address pass the last insn
-      {
-        pblk = Dyninst::ParseAPI::convert(bb);
-        startAddr = (unsigned long) bb->getStartAddress();
-        endAddr = (unsigned long) bb->getEndAddress();
-
-        if (NULL != pblk){
-          unsigned long * bpc = (unsigned long *) codeSource->getPtrToInstruction(pblk->start());  
-        }else 
-          assert("Cannot find the function block\n");
-
-        return pblk;
+	traverseCFG(entryBlk[b],seen,paths,path,pathStr,g);
       }
     }
-
-  }else {
-    assert("Cannot find function\n");
   }
-
-
-		return NULL;
 }
-
-
-// Get all the assignments 'logical instruction' of a given instruction.
-void get_assignments(addrtype pc, BPatch_function *f, std::vector<Assignment::Ptr> * assignments, Dyninst::InstructionAPI::Instruction::Ptr* insp){
-
-	uint8_t* insn = (uint8_t*)codeSource->getPtrToInstruction(pblk->start());
-	const unsigned char * buf = (const unsigned char* ) insn;
-
-	ParseAPI::Function * func;
-	func = ParseAPI::convert(f);
-  if (NULL != pblk)
-  {
-    InstructionDecoder dec(buf, endAddr - startAddr, pblk->obj()->cs()->getArch());
-    (*insp) = dec.decode();
-    unsigned long insn_addr = startAddr;
-
-    // Decode the given instruction. I might make a mistake here. 
-    // The loop might decode all the instructions in the given block.
-    int k = 0;
-    while (NULL != (*insp) && insn_addr < pc){
-      insn_addr += (*insp)->size();
-      (*insp) = dec.decode();
-      k++;
-    }
-
-    AssignmentConverter ac(true);
-
-    if (Dyninst::InstructionAPI::Instruction::Ptr() != (*insp))
-      ac.convert((*insp), (uint8_t) insn_addr, func, pblk, *assignments);
-    else 
-      assert("Where is the instruction??\n");
-  
-  }
-
-	return;
-
-}
-
 
 
 // Called by startCFG. Not used in this program.
-void traverseCFG(BPatch_basicBlock* blk, std::map<BPatch_basicBlock *,bool> seen, std::map<std::string,std::vector<BPatch_basicBlock*> >& paths, std::vector<BPatch_basicBlock*> path, string pathStr, graph& g){
-	seen[blk]=true;
+void traverseCFG(BPatch_basicBlock* blk, std::map<BPatch_basicBlock *,bool> seen, std::map<std::string,std::vector<BPatch_basicBlock*> >& paths, std::vector<BPatch_basicBlock*> path, string pathStr, graph& g)
+{
+  seen[blk]=true;
 	
-	std::string graphBlkNo = std::to_string((long long)g.basicBlockNoMap[blk->blockNo()]);
-	pathStr+=graphBlkNo+"->";
+  std::string graphBlkNo = std::to_string((long long)g.basicBlockNoMap[blk->blockNo()]);
+  pathStr+=graphBlkNo+"->";
 	
-	path.push_back(blk);
+  path.push_back(blk);
 	
-	std::vector<BPatch_basicBlock*> targets;
-	blk->getTargets(targets);
-	for(unsigned int t=0;t<targets.size();t++){
-		if(seen.count(targets[t])==0){
-			traverseCFG(targets[t],seen,paths,path,pathStr,g);
-		}
-	}
-	if(g.exit==g.basicBlockNoMap[blk->blockNo()]){
-		paths[pathStr]=path;
-	}
+  std::vector<BPatch_basicBlock*> targets;
+  blk->getTargets(targets);
+  for(unsigned int t=0;t<targets.size();t++) {
+    if (seen.count(targets[t])==0) {
+      traverseCFG(targets[t],seen,paths,path,pathStr,g);
+    }
+  }
+  if (g.exit==g.basicBlockNoMap[blk->blockNo()]) {
+    paths[pathStr]=path;
+  }
 }
-
-
-// The function traverse the given AST and print out each of its nodes.
-void traverse_AST(AST::Ptr ast, std::string index, int num){
-
-  std::cout << "************************AST is: \n";
-
-  if (index.compare("0") == 0) {
-    std::cout << "Root is:\n";
-  } else {
-    std::cout << index << "\n";
-  }
-      
-  if (ast->getID() == AST::V_RoseAST)
-  {
-    RoseAST::Ptr self = RoseAST::convert(ast);
-    std::cout << "RoseAST val is " << self->format() << "\n";
-    std::cout << "RoseOperation val is " << self->val().format() << "\n";
-    std::cout << "RoseOperation size is " << self->val().size << "\n";
-    std::cout << "RoseOperation op is " << self->val().op << "\n";  
-  
-  }else if (ast->getID() == AST::V_ConstantAST)
-  {
-    ConstantAST::Ptr self = ConstantAST::convert(ast);
-    std::cout << "ConstantAST val is " << self->format() << "\n";
-    std::cout << "Constant val is " << self->val().val << "\n";
-    std::cout << "bit size of the val is " << self->val().size << "\n";
-
-  }else if (ast->getID() == AST::V_VariableAST)
-  {
-    VariableAST::Ptr self = VariableAST::convert(ast);
-    std::cout << "VariableAST val is " << self->format() << "\n";
-    std::cout << "Variable region is " << self->val().reg.format() << "\n";
-    std::cout << "variable address is " << self->val().addr << "\n";
-  }
-
-  std::cout << "\n";
-
-  int i = 0;
-  while (i < num) {
-    if (index.compare("0") == 0) {
-      traverse_AST(ast->child(i), std::to_string((long long)i+1), ast->child(i)->numChildren());
-    } else {
-      std::string index_str = index + "." + std::to_string((long long)i+1);
-      traverse_AST(ast->child(i), index_str, ast->child(i)->numChildren());
-    }
-    
-    i++; 
-  }
-      
-}
-
-
-
-// This function is called by routine.C.
-// It translate the an instruction's dyninst IR into MIAMI IR and 
-// return the length of the translated instruction to increment the pc.
-int dyninst_translate(std::string func_name, unsigned long pc, DecodedInstruction* dInst) {
-  graph g;
-
-  std::vector<int> path;
-  
-  int f = get_function(pc);
-  std::cout << "dyninst_translate: function: " << functions[f]->getDemangledName() << endl;
-  
-  pblk = get_block(f, pc, g);
-  if (NULL != pblk) {
-    Dyninst::InstructionAPI::Instruction::Ptr insp;
-    std::vector<Assignment::Ptr> assignments;
-    get_assignments(pc, functions[f], &assignments, &insp);
-
-    if (NULL != insp) {
-      std::cout << insp->getOperation().format().c_str() << "\n";
-    }
-    else {
-      assert("Cannot find the instruction.\n");
-      return 0;
-    }
-    for (unsigned int i = 0; i < assignments.size(); i++) {
-      // Print out each assignment in dyninst format
-
-      std::cout << "----------------------------------------\n";
-      std::cout << "Assignment  is:  " << assignments.at(i)->format() << endl;
-      //std::cout << "        Address is     " << (*(*ait)).addr() << "\n";
-              
-      // print out all the nodes in an AST.
-      static std::pair<AST::Ptr, bool> assignPair;
-      assignPair = SymEval::expand(assignments.at(i), false);
-      if (assignPair.second && (NULL != assignPair.first)) {
-	int a = assignPair.first->numChildren();
-	traverse_AST(assignPair.first, "0", assignPair.first->numChildren());
-      }
-    }
-    num_of_assignments = assignments.size();
-    const std::string ie = insp->format();
-
-    std::cout << ie << "\n";
-    translate_instruction(insp, assignments, pc, dInst);
-    
-  }
-  else {
-    dInst->no_dyn_translation = true;
-  }
-
-  return dInst->len;
-}
-	
-

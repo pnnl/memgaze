@@ -4,7 +4,7 @@
 
 
 static std::vector<int> blockNums;
-static BPatch_flowGraph *fg;
+//static BPatch_flowGraph *fg;
 static BPatch_image *img;
 static std::vector<BPatch_basicBlock*> blockVector;
 static std::vector<BPatch_function*> funcs;

@@ -1,3 +1,23 @@
+// -*-Mode: C++;-*-
+
+//*BeginPNNLCopyright********************************************************
+//
+// $HeadURL$
+// $Id$
+//
+//**********************************************************EndPNNLCopyright*
+
+//***************************************************************************
+//
+// Translate ISA Instructions to MIAMI's "internal representation" via
+// DynInst's "internal representation".
+//
+//***************************************************************************
+
+//***************************************************************************
+// 
+//***************************************************************************
+
 #include <stdint.h>
 #include <fnmatch.h>
 
@@ -12,6 +32,9 @@
 
 
 //***************************************************************************
+// 
+//***************************************************************************
+
 using namespace std;
 #include "BPatch.h"
 #include "BPatch_object.h"
@@ -41,6 +64,7 @@ using namespace DataflowAPI;
 #include "SymEval.h"
 #include "DynAST.h"
 
+
 // Copied directly from DyninstHelper.h
 struct graph{
         std::map<std::string, std::string> declarations;
@@ -61,15 +85,22 @@ struct graph{
 };
 
 
-
 using namespace MIAMI;
 
 
+//***************************************************************************
+// 
+//***************************************************************************
 
 void initialize_dyninst(const char* prog_name);
-void traverseCFG(BPatch_basicBlock* blk,std::map<BPatch_basicBlock *,bool> seen, std::map<std::string,std::vector<BPatch_basicBlock*> >& paths, std::vector<BPatch_basicBlock*> path, string pathStr, graph& g);
-void startCFG(BPatch_function* function,std::map<std::string,std::vector<BPatch_basicBlock*> >& paths,graph& g);
-Dyninst::ParseAPI::Block* get_block(int f, addrtype pc, graph& g);
 
 int dyninst_translate(std::string func_name, unsigned long  pc, MIAMI::DecodedInstruction* dInst);
-void translate_instruction(Dyninst::InstructionAPI::Instruction::Ptr insp, std::vector<Assignment::Ptr> assignments, addrtype pc, DecodedInstruction* dInst);
+
+
+//***************************************************************************
+// 
+//***************************************************************************
+
+void startCFG(BPatch_function* function,std::map<std::string,std::vector<BPatch_basicBlock*> >& paths,graph& g);
+
+void traverseCFG(BPatch_basicBlock* blk,std::map<BPatch_basicBlock *,bool> seen, std::map<std::string,std::vector<BPatch_basicBlock*> >& paths, std::vector<BPatch_basicBlock*> path, string pathStr, graph& g);
