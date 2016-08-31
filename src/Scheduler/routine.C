@@ -33,6 +33,8 @@
 #include "dyninst-insn-xlate.hpp"
 #include "dyninst-cfg-xlate.hpp"
 
+void compute_lineinfo_for_block_dyninst(LoadModule *lm, ScopeImplementation *pscope, CFG::Node *b);
+
 using namespace std;
 using namespace MIAMI;
 
@@ -195,25 +197,19 @@ Routine::parse_include_exclude_files(const std::string& include_file,
 bool 
 Routine::is_valid_for_analysis()
 {
-   //std::cout << "Routine: is_valid_for_analysis\n";
    if (!validity_computed)
    {
       // traverse the include/exclude patterns to determine if 
       // routine is valid
-      //std::cout << "Routine: is_valid_for_analysis 1\n";
       bool is_valid = true;
       if (!includePatterns.empty())
       {
-        // std::cout << "Routine: is_valid_for_analysis 2\n";
          // make default false. If we find pattern that matches, then 
          // it will be set to true
          is_valid = false;
-         //std::cout << "Routine: is_valid_for_analysis 3\n";
+         
          StringList::iterator lit = includePatterns.begin();
-
-         //std::cout << "Routine: is_valid_for_analysis 4\n";
-         for ( ; lit!=includePatterns.end() ; ++lit){
-           // std::cout << "Routine: is_valid_for_analysis 5\n";
+         for ( ; lit!=includePatterns.end() ; ++lit) {
             if (!fnmatch(lit->c_str(), name.c_str(), 0) )  // pattern matches
             {
                is_valid = true;
@@ -221,12 +217,10 @@ Routine::is_valid_for_analysis()
             }
          }
       }
-      //std::cout << "Routine: is_valid_for_analysis 6\n";
       if (!excludePatterns.empty())
       {
          StringList::iterator lit = excludePatterns.begin();
-         for ( ; lit!=excludePatterns.end() ; ++lit){
-           // std::cout << "Routine: is_valid_for_analysis 7\n";
+         for ( ; lit!=excludePatterns.end() ; ++lit) {
             if (!fnmatch(lit->c_str(), name.c_str(), 0) )  // pattern matches
             {
                is_valid = false;
@@ -809,63 +803,25 @@ Routine::computeStrideFormulasForRoutine(RIFGNodeId node, TarjanIntervals *tarj,
    }  // not zero
 }
 
-void compute_lineinfo_for_block_dyninst(LoadModule *lm, ScopeImplementation *pscope, CFG::Node *b){
-   std::vector<unsigned long> addressVec = get_instructions_address_from_block(b);
-   //std::cout << "routine: compute_lineinfo_for_block_dyninst: 8\n";
-   if (!addressVec.size())
-   {
-      assert("No instructions available");
-      return;
-   }
-   std::string func, file;
-   int32_t lineNumber1 = 0, lineNumber2 = 0;
-   
-#if DEBUG_COMPUTE_LINEINFO
-   std::cerr << "LineInfo for block [" << std::hex << b->getStartAddress() 
-             << "," << b->getEndAddress() << "]" << std::dec << " exec-count " 
-             << b->ExecCount() << std::endl;
-#endif
-   // iterate over variable length instructions. Define an architecture independent API
-   // for common instruction decoding tasks. That API can be implemented differently for
-   // each architecture type
-   //CFG::ForwardInstructionIterator iit(b);
-   for (unsigned int i = 0; i < addressVec.size(); ++i)
-   {
-      addrtype pc = addressVec.at(i);
-      lm->GetSourceFileInfo(pc, 0, file, func, lineNumber1, lineNumber2);
-      //std::cout << "routine: compute_lineinfo_for_block_dyninst: func is " << func << endl;
-      unsigned int findex = mdriver.GetFileIndex(file);
-      //std::cout << "routine: compute_lineinfo_for_block_dyninst: findex is " << findex << "\n";
-      //std::cout << "routine: compute_lineinfo_for_block_dyninst: l1 is " << lineNumber1 << " l2 is " << lineNumber2 << "\n";
-      mdriver.AddSourceFileInfo(findex, lineNumber1, lineNumber2);
-      pscope->addSourceFileInfo(findex, func, lineNumber1, lineNumber2);
-     // std::cout << "routine: lineMappings size is " << pscope->GetLineMappings().size() << endl;
-
-   }
-}
-
 int
 Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
 {
    int ires;
-   //std::cout << "routine: main_analysis 1\n";
    // compute execution frequency of every edge and block
    CFG *cfg = ControlFlowGraph();
-   //std::cout << "routine: main_analysis 2\n";
 //   computeSchedule = _computeSchedule;
    mo = _mo;
    
    if (name.compare(mo->debug_routine) == 0)  // they are equal
    {
       // draw CFG
-      //std::cout << "routine: main_analysis 3\n";
       cfg->draw_CFG(name.c_str(), 0, mo->debug_parts);
    }
    
    /* compute BB ad edge frequencies */
    if (mo->do_cfgcounts)
    {
-     // std::cout << "routine: main_analysis 4\n";
+      std::cout << "Routine::main_analysis:cfg counts\n";
       ires = cfg->computeBBAndEdgeCounts();
       if (ires < 0)
       {
@@ -873,7 +829,6 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
          return (-1);
       }
    }
-   //std::cout << "routine: main_analysis 5\n";
    
    MiamiRIFG mCfg(cfg);
    TarjanIntervals tarj(mCfg);  // computes tarjan intervals
@@ -881,7 +836,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
    cfg->set_node_levels(root, &tarj, &mCfg, 0);
    
    // for DEBUGGING
-#if 0
+#if 0 // begin debug1
    BaseSlice bslice(cfg, *rFormulas);
    register_info ri;
    CFG::NodesIterator nit(*cfg);
@@ -931,8 +886,8 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
       
       ++ nit;
    }
-#endif
-#if 0
+#endif // end debug1
+#if 0  // begin debug2
    CFG::NodesIterator nit(*cfg);
    while ((bool)nit)
    {
@@ -957,8 +912,8 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
       
       ++ nit;
    }
-#endif
-#if 0
+#endif // end debug2
+#if 0  // begin debug3
    CFG::NodesIterator nit(*cfg);
    while ((bool)nit)
    {
@@ -988,11 +943,11 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
       fprintf(stderr, "====================================\n");
       ++ nit;
    }
-#endif
-#if 0   
+#endif // end debug3
+#if 0  // begin palm-skip1
    if (mo->do_scopetree)
    {
-      std::cout << "routine: main_analysis 7\n";
+      std::cout << "Routine::main_analysis:scopetree\n";
       // call mark_loop_back_edges after computing the tarjan intervals
       CFG::AddrEdgeMMap *entryEdges = new CFG::AddrEdgeMMap ();
       CFG::AddrEdgeMMap *callEntryEdges = new CFG::AddrEdgeMMap ();
@@ -1033,7 +988,17 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
          _key = MIAMIU::CRC64Hash::Evaluate(fName.c_str(), fName.length());
       else
          _key = MIAMIU::CRC32Hash::Evaluate(fName.c_str(), fName.length());
-      
+         
+#if DEBUG_PROG_SCOPE
+      fprintf (stderr, "File %s has CRC hash %p, demangled routine name %s, lines [%d,%d]\n", 
+            fName.c_str(), (void*)_key, rName.c_str(), lineNumber1, lineNumber2);
+      cerr << "Parent scope: " << prog->ToString() << " has following children:" << endl;
+      CodeScope::iterator tmpit = prog->begin();
+      for ( ; tmpit!=prog->end() ; ++tmpit)
+         cerr << "    - " << tmpit->second->ToString() << " with key " 
+              << hex << tmpit->first << dec << endl;
+#endif
+
       CodeScope::iterator siit = prog->find(_key);
       FileScope *fscope;
       if (siit != prog->end ())  // found a file with this CRC
@@ -1041,7 +1006,10 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
       else
       {
          fscope = new FileScope (prog, fName, _key);
-
+#if DEBUG_PROG_SCOPE
+         fprintf (stderr, "New FileScope, fname=%s, xml=%s\n", fName.c_str(), 
+                fscope->XMLScopeHeader().c_str());
+#endif
       }
       assert (fscope != NULL);
       RoutineScope *rscope = new RoutineScope (fscope, rName, start_addr);
@@ -1050,11 +1018,18 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
           exit (-11);
       }
       unsigned int findex = mdriver.GetFileIndex(fName);
-
+#if DEBUG_PROG_SCOPE
+      cerr << "Routine " << rName << " is in file >" << fName
+           << "< with index " << findex << endl;
+#endif
       rscope->addSourceFileInfo(findex, func, lineNumber1, lineNumber2);
       rscope->setMarkedWith(tarj.LoopIndex(root));
       // add lines in the global map as well
       mdriver.AddSourceFileInfo(findex, lineNumber1, lineNumber2);
+#if PROFILE_SCHEDULER
+      MIAMIP::report_time (stderr, "Initialize data for routine %s", rName.c_str());
+#endif
+
 
       if (name.compare(mo->debug_routine) == 0)  // they are equal
       {
@@ -1067,6 +1042,12 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
          // so that when I analyze an instruction, all references on all paths to that 
          // instruction are already analyzed (have symbolic formulas)
          ReferenceSlice *rslice = 0;
+#if DEBUG_STATIC_MEMORY
+         DEBUG_STMEM(1,
+            fprintf(stderr, "\n**** Computing base formulas for routine [%s / %d] ****\n",
+                    rscope->ToString().c_str(), 0);
+         )
+#endif
          RFormulasMap &refFormulas = *rFormulas;
          rslice = new ReferenceSlice(cfg, refFormulas);
          computeBaseFormulas(rslice, cfg, refFormulas);
@@ -1078,6 +1059,9 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
             rslice = 0;
          }
          
+#if PROFILE_SCHEDULER
+         MIAMIP::report_time (stderr, "Compute symbolic formulas for routine %s", rName.c_str());
+#endif
       }
       // pass level info as well.
       if (build_paths_for_interval (rscope, root, &tarj, &mCfg, tarj.LoopIndex(root), 0,
@@ -1086,17 +1070,27 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
           fprintf (stderr, "==>>> ERROR: ROUTINE_SCOPE has been deleted by build_path_for_intervals, but program continues with bad pointer!!! <<<==\n");
           fflush (stderr);
       }
+         
+#if BUILD_PATHS
+
+#if NOT_NOW  /* cannot do this until I have static analysis of memory references */
+      // compute hot foot print information for each routine
+      computeHotFootPrintRecursively (rscope);
+#endif
+      // deallocate unnecessary data structures
+      recursivelyTrimFatInPaths (rscope);
+#endif   // NOT_NOW
 
       delete (entryEdges);
       delete (callEntryEdges);
    } else  // do_scopetree == false
-#endif
+#endif // end palm-skip1
    {
-     // do not build scope trees. However, test if we have to do
-     // some other type of static analysis: instruction mix, stream reuse bining ...
+      // do not build scope trees. However, test if we have to do
+      // some other type of static analysis: instruction mix, stream reuse bining ...
       if (mo->do_idecode || mo->do_streams || mo->do_ref_scope_index)
       {
-         //std::cout << "routine: main_analysis 7\n";
+	 std::cout << "Routine::main_analysis:no-scopetree:decoding\n";
          AddrIntSet scopeMemRefs;
          
          // Get an index for this "scope" first
@@ -1107,32 +1101,26 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
          LoadModule *lm = InLoadModule();
          lm->SetSIForScope(scopeId, prog);
          prog->setScopeId(scopeId);
-         //std::cout << "routine: main_analysis 8\n";
          addrtype reloc = lm->RelocationOffset();
          
-
          // traverse all blocks and decode the instructions in them
          // I have to iterate over all the blocks
          CFG::NodesIterator nnit(*cfg);
-
          while ((bool)nnit)
          {
             RefIClassMap refsClass;  // I am not using this information, but 
                                      // I need to pass an appropriate parameter
             CFG::Node *b = (CFG::Node*)nnit;
-            if (b->Size()>0 && (b->ExecCount()>0 || mo->do_ref_scope_index)){
+            if (b->Size()>0 && (b->ExecCount()>0 || mo->do_ref_scope_index)) {
                compute_lineinfo_for_block_dyninst(InLoadModule(), prog, b);
-              // std::cout << "routine: main_analysis: prog lineMappings is " << prog->GetLineMappings().size() << endl;
-               //std::cout << "routine: main_analysis 9 before for_block ExecCount is " << b->ExecCount() << "\n";
+	       //cout << "lineMappings: " << prog->GetLineMappings().size();
+               //cout << "ExecCount: " << b->ExecCount() << "\n";
                decode_instructions_for_block(prog, b, b->ExecCount(), scopeMemRefs, refsClass);
-               //std::cout << "routine: main_analysis 9 after for_block\n";
             }
             ++ nnit;
          }
-         //std::cout << "routine: main_analysis: after decode_instructions_for_block\n";
          if (mo->do_ref_scope_index)
          {
-            //std::cout << "routine: main_analysis do_ref_scope_index\n";
             AddrIntSet::iterator ais = scopeMemRefs.begin();
             for ( ; ais!=scopeMemRefs.end() ; ++ais)
             {
@@ -1147,7 +1135,6 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
          
          if (mo->do_streams)
          {
-           // std::cout << "routine: main_analysis 10\n";
             // I need to get the set of memory refs in this scope
             LoadModule *img = InLoadModule();
             RFormulasMap &refFormulas = *rFormulas;
@@ -1199,11 +1186,11 @@ Routine::build_paths_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
       saddress = b->getStartAddress();
       rlevel = tarj->GetLevel(node);
    }
-   //int32_t nodeScopeId = img->AllocateIndexForScopePC(saddress+reloc, rlevel);
+   int32_t nodeScopeId = img->AllocateIndexForScopePC(saddress+reloc, rlevel);
    // In memreuse we also set the parent of a scope. Do we need this info??
    // Decide later. However, I want to record the pscope associated with a scope ID.
-   //img->SetSIForScope(nodeScopeId, pscope);  // set ScopeImplementation for this scope
-   //pscope->setScopeId(nodeScopeId);
+   img->SetSIForScope(nodeScopeId, pscope);  // set ScopeImplementation for this scope
+   pscope->setScopeId(nodeScopeId);
 //   img->SetParentForScope(nodeScopeId, parentId);
 
    if (b->ExecCount() > 0)
@@ -1291,22 +1278,20 @@ Routine::build_paths_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
       }
    }
    
-   //std::cout << "build_paths_for_interval: cfg name is " << this->ControlFlowGraph()->Name() << endl;
-   CFG::Node *root_b = static_cast<CFG::Node*>(this->ControlFlowGraph()->CfgEntry()); //static_cast<CFG::Node*>(mCfg->GetRIFGNode(node));
-
+   CFG::Node *root_b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(node));
    if (!is_zero || mo->do_ref_scope_index)
    {
       if (mo->do_streams || mo->do_idecode || mo->do_ref_scope_index)
       {
          AddrIntSet scopeMemRefs;
          RefIClassMap refClasses;
-         //std::cout << "build_paths_for_interval: before decode_instructions_for_block" << endl;
+         
          // traverse all blocks and decode the instructions in them
-        // if (root_b->Size()>0 && (root_b->ExecCount()>0 || mo->do_ref_scope_index))
+         if (root_b->Size()>0 && (root_b->ExecCount()>0 || mo->do_ref_scope_index)) {
             decode_instructions_for_block(pscope, root_b, root_b->ExecCount(), 
                        scopeMemRefs, refClasses);
-
          //, nodeScopeId);
+	 }
          for (kid = tarj->TarjInners(node) ; kid != RIFG_NIL ; 
                   kid = tarj->TarjNext(kid))
             if (! tarj->NodeIsLoopHeader(kid))
@@ -1332,7 +1317,7 @@ Routine::build_paths_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
                // Get a unique index for this memory micro-op
                int32_t iidx = img->AllocateIndexForInstPC(ais->first+reloc, ais->second);
                // set also the scope index for this reference
-               //img->SetScopeIndexForReference(iidx, nodeScopeId);
+               img->SetScopeIndexForReference(iidx, nodeScopeId);
                
                // I should also group references into sets, based on their strides
                // Aggregate references based on their type (load/store, int/fp,
@@ -1474,61 +1459,46 @@ Routine::ComputeObjectNameForRef(addrtype pc, int32_t memop)
    return ("~-TODO-~");
 }
 
-
-
 void
 Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *b, int64_t count,
       AddrIntSet& memRefs, RefIClassMap& refsClass)
-
 {
-   LoadModule *lm = InLoadModule();
-   addrtype reloc = lm->RelocationOffset();
+   //LoadModule *lm = InLoadModule();
+   //addrtype reloc = lm->RelocationOffset();
    // iterate over variable length instructions. Define an architecture independent API
    // for common instruction decoding tasks. That API can be implemented differently for
    // each architecture type
    ICIMap& scopeImix = pscope->getInstructionMixInfo();
-  // CFG::ForwardInstructionIterator iit(b);
-   unsigned long dpc = b->getStartAddress();
-   //std::cout << "routine: decode_instructions_for_block startAddr is " << hex << dpc << " endAddr is " << b->getEndAddress() <<endl;
-   while (dpc < b->getEndAddress())
+   //CFG::ForwardInstructionIterator iit(b);
+   unsigned long pc = b->getStartAddress();
+   while (pc < b->getEndAddress())
    {
-      //addrtype pc = b->getStartAddress();
-      //dyninst_translate(func_name, pc, &dInst);
-      MIAMI::DecodedInstruction *dInst;
-      dInst = new DecodedInstruction();
+      MIAMI::DecodedInstruction* dInst = new MIAMI::DecodedInstruction();
 
-      int len = isaXlate_insn(name, dpc, dInst);
-      if (!len || (dInst->no_dyn_translation && !dInst->micro_ops.size()))
-      {
+      int len = isaXlate_insn(name, pc, dInst);
+      if (!len || (dInst->no_dyn_translation && !dInst->micro_ops.size())) {
          std::cout << "routine: no dyninst translation\n";
          return;
       }
-      //std::cout << "routine: decode_instructions_for_block len is " << dInst->len << endl;
 
-      dpc += len;
+      pc += len;
 
-      //int res = decode_instruction_at_pc((void*)(pc+reloc), b->getEndAddress()-pc, &dInst);
-      //if (res < 0)  // error while decoding
-        // return;
-      
       // Now iterate over the micro-ops of the decoded instruction
       MIAMI::InstrList::iterator lit = dInst->micro_ops.begin();
-     // std::cout << "routine: decode_instructions_for_block micro_ops size is " << dInst->micro_ops.size() << endl;
       for (int i=0 ; lit!=dInst->micro_ops.end() ; ++lit, ++i)
       {
-        // std::cout << "routine: decode_instructions_for_block: 1\n";
          MIAMI::instruction_info& iiobj = (*lit);
          InstructionClass iclass;
-        // std::cout << "mo->ibin is " << mo->do_ibins << " count is " << count << endl;
-         if ( 1/* (mo->do_ibins && count>0) */|| (mo->do_ref_scope_index && InstrBinIsMemoryType(iiobj.type)) )
-         { 
-            //std::cout << "routine: decode_instructions_for_block: 2\n";
+
+         if ( 1 /*(mo->do_ibins && count>0)*/ ||
+              (mo->do_ref_scope_index && InstrBinIsMemoryType(iiobj.type))
+            )
+         {
             iclass.Initialize(iiobj.type, iiobj.exec_unit, 
                     iiobj.width*iiobj.vec_len, iiobj.exec_unit_type,
                     iiobj.width);
             if (mo->do_ibins)
             {
-               //std::cout << "routine: decode_instructions_for_block: 3\n";
                ICIMap::iterator imit = scopeImix.find(iclass);
                if (imit != scopeImix.end())
                   imit->second += count;
@@ -1537,34 +1507,29 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
             }
          } else
             iclass.Initialize();  // default initialization; not used, but to appease the compiler
+         
          if (InstrBinIsMemoryType(iiobj.type))
          {
-            //std::cout << "routine: decode_instructions_for_block: 5\n";
             if (mo->do_streams || mo->do_ref_scope_index)
             {
-               
                int opidx = iiobj.get_memory_operand_index();
-              // std::cout << "routine: decode_instructions_for_block: index is " << opidx << "\n";
                assert(opidx >= 0);
-               memRefs.insert(AddrIntPair(dpc, opidx));
+               memRefs.insert(AddrIntPair(pc, opidx));
                
                if (mo->do_ref_scope_index)
                   refsClass.insert(RefIClassMap::value_type(
-                        AddrIntPair(dpc, opidx), iclass));
+                        AddrIntPair(pc, opidx), iclass));
             }
          }
 
       }
-      //std::cout << "routine: dpc is " << hex << dpc << " end address is " << b->getEndAddress() << dec << endl;
-     // ++ iit;
+      //++ iit;
    }
-   return;
 }
 
 void
 Routine::compute_lineinfo_for_block (ScopeImplementation *pscope, CFG::Node *b)
 {
-   //std::cout << "routine: compute_lineinfo_for_block: 1\n";
    std::string func, file;
    int32_t lineNumber1 = 0, lineNumber2 = 0;
    
@@ -1573,19 +1538,15 @@ Routine::compute_lineinfo_for_block (ScopeImplementation *pscope, CFG::Node *b)
              << "," << b->getEndAddress() << "]" << std::dec << " exec-count " 
              << b->ExecCount() << std::endl;
 #endif
-   ///std::cout << "routine: compute_lineinfo_for_block: 2\n";
    // iterate over variable length instructions. Define an architecture independent API
    // for common instruction decoding tasks. That API can be implemented differently for
    // each architecture type
    CFG::ForwardInstructionIterator iit(b);
-   //std::cout << "routine: compute_lineinfo_for_block: 3\n";
    while ((bool)iit)
    {
-      //std::cout << "routine: compute_lineinfo_for_block: 4\n";
       addrtype pc = iit.Address();
       InLoadModule()->GetSourceFileInfo(pc, 0, file, func, lineNumber1, lineNumber2);
       unsigned int findex = mdriver.GetFileIndex(file);
-     // std::cout << "routine: compute_lineinfo_for_block: 5\n";
 #if DEBUG_PROG_SCOPE
       cerr << "Scope in routine " << name << " is in file >"
            << file << "< with index " << findex << endl;
@@ -1593,7 +1554,42 @@ Routine::compute_lineinfo_for_block (ScopeImplementation *pscope, CFG::Node *b)
       mdriver.AddSourceFileInfo(findex, lineNumber1, lineNumber2);
       pscope->addSourceFileInfo(findex, func, lineNumber1, lineNumber2);
       ++ iit;
-     // std::cout << "routine: compute_lineinfo_for_block: 6\n";
+   }
+}
+
+
+void compute_lineinfo_for_block_dyninst(LoadModule *lm, ScopeImplementation *pscope, CFG::Node *b) {
+   std::vector<unsigned long> addressVec = get_instructions_address_from_block(b);
+   //std::cout << "routine: compute_lineinfo_for_block_dyninst: 8\n";
+   if (!addressVec.size())
+   {
+      assert("No instructions available");
+      return;
+   }
+   std::string func, file;
+   int32_t lineNumber1 = 0, lineNumber2 = 0;
+   
+#if DEBUG_COMPUTE_LINEINFO
+   std::cerr << "LineInfo for block [" << std::hex << b->getStartAddress() 
+             << "," << b->getEndAddress() << "]" << std::dec << " exec-count " 
+             << b->ExecCount() << std::endl;
+#endif
+   // iterate over variable length instructions. Define an architecture independent API
+   // for common instruction decoding tasks. That API can be implemented differently for
+   // each architecture type
+   //CFG::ForwardInstructionIterator iit(b);
+   for (unsigned int i = 0; i < addressVec.size(); ++i)
+   {
+      addrtype pc = addressVec.at(i);
+      lm->GetSourceFileInfo(pc, 0, file, func, lineNumber1, lineNumber2);
+      //std::cout << "routine: compute_lineinfo_for_block_dyninst: func is " << func << endl;
+      unsigned int findex = mdriver.GetFileIndex(file);
+      //std::cout << "routine: compute_lineinfo_for_block_dyninst: findex is " << findex << "\n";
+      //std::cout << "routine: compute_lineinfo_for_block_dyninst: l1 is " << lineNumber1 << " l2 is " << lineNumber2 << "\n";
+      mdriver.AddSourceFileInfo(findex, lineNumber1, lineNumber2);
+      pscope->addSourceFileInfo(findex, func, lineNumber1, lineNumber2);
+     // std::cout << "routine: lineMappings size is " << pscope->GetLineMappings().size() << endl;
+
    }
 }
 
@@ -1605,7 +1601,7 @@ Routine::constructPaths (ScopeImplementation *pscope, CFG::Node *b, int marker,
             int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, 
             CFG::AddrEdgeMMap *callEntryEdges)
 {
-   std::cout << "routine: constructPaths\n";
+   std::cout << "Routine::constructPaths\n";
    CFG::NodeList ba;
    CFG::EdgeList ea;
    RSIListList rl;
@@ -1644,7 +1640,6 @@ Routine::constructPaths (ScopeImplementation *pscope, CFG::Node *b, int marker,
    CFG::AddrEdgeMMap::iterator eit;
    for (eit=_entries.first ; eit!=_entries.second ; ++eit)
    {
-      std::cout << "routine: inside for (eit = ...\n";
       CFG::Edge *in_e = dynamic_cast<CFG::Edge*>(eit->second);
       int64_t inCount = in_e->secondExecCount();
 #if DEBUG_BLOCK_PATHS_PRINT
@@ -1882,7 +1877,7 @@ Routine::constructPaths (ScopeImplementation *pscope, CFG::Node *b, int marker,
       ++ it;
    }
    
-#if  DEBUG_BLOCK_PATHS_PRINT
+#if DEBUG_BLOCK_PATHS_PRINT
      DEBUG_PATHS (4, 
      {
         fprintf(stderr, "\n* * * * * * * * * * BEFORE * * * * * * * * * * * *\n");
@@ -1891,9 +1886,9 @@ Routine::constructPaths (ScopeImplementation *pscope, CFG::Node *b, int marker,
         for (BPMap::iterator bpit=bpmtemp->begin() ; bpit!=bpmtemp->end() ; ++bpit)
         {
            fprintf(stderr, "FREQ %" PRIu64 " : ", bpit->second->count);
-           for (unsigned int i=0 ; i<bpit->first->size ; i++){
+           for (unsigned int i=0 ; i<bpit->first->size ; i++) {
               fprintf(stderr, " 0x%lx    ", bpit->first->blocks[i]->getStartAddress());
-           }
+	   }
            fprintf(stderr, " *** \n");
         }
         fprintf(stderr, "**** [%s / %d] List of all blocks in this loop ****\n",
@@ -2058,7 +2053,6 @@ Routine::constructPaths (ScopeImplementation *pscope, CFG::Node *b, int marker,
       {
          RFormulasMap &refFormulas = *rFormulas;
 #if 1
-         std::cout << "routine: before 1st DGBuilder\n";
          sch = new MIAMI_DG::DGBuilder(name.c_str(), pathId, 
               1 /*args.optimistic_memory_dep*/, refFormulas,
               InLoadModule(),

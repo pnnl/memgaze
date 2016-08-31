@@ -342,7 +342,7 @@ MIAMI::LoadModule* create_loadModule(int count, std::string file_name){
   std::vector<BPatch_object*> objs;
   img->getObjects(objs);
   unsigned long start_addr =  get_start_address(&objs, file_name);
-  unsigned long low_offset = get_low_offset(&objs, file_name);
+  //unsigned long low_offset = get_low_offset(&objs, file_name);
   LoadModule *lm = new LoadModule (count /*id*/, start_addr, codeSrc->loadAddress()/*low_offset*/, file_name, 0/*hashKey*/);
   return lm;
 }
