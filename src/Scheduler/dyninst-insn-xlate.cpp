@@ -121,7 +121,7 @@ int isaXlate_insn(std::string func_name, unsigned long pc, MIAMI::DecodedInstruc
     dynXlate_dumpInsn(insn, assignments, pc);
     std::cout << "\n";
 
-    XED_dumpInsn((void*)pc, insn->size());
+    xed_dump_insn((void*)pc, insn->size());
     std::cout << "\n";
     
     dynXlate_insn(insn, assignments, pc, dInst);
@@ -227,8 +227,8 @@ void isaXlate_getDyninstInsn(addrtype pc, BPatch_function *f, std::vector<Assign
   ParseAPI::Function* func = ParseAPI::convert(f);
 
 #if 0
-  // FIXME: tallent: This decodes all instructions in a block...
-  // FIXME: tallent: Furthermore, it is not aligned with XED...
+  // FIXME: tallent: This is O(|instructions in block|).
+  // FIXME: tallent: Furthermore, it does not actually decode 'pc'
   
   void* buf = codeSource->getPtrToInstruction(pblk->start());
   InstructionDecoder dec(buf, endAddr - startAddr, pblk->obj()->cs()->getArch());
