@@ -1,3 +1,5 @@
+# -*-Mode: sh;-*-
+
 cpplibs=
 ldd ${PIN_HOME}/ia32/bin/pinbin | grep "not found" > /dev/null
 if [ $? -eq 0 ]; then
@@ -25,4 +27,7 @@ then
    fi
 fi
 
-MIAMI_PIN_ARGS="${ichild} ${WITH_PIN_ARGS} -separate_memory"
+# tallent: "-separate_memory" supported by PIN 2.13 but not 2.14
+#MIAMI_PIN_ARGS="${ichild} ${WITH_PIN_ARGS} -separate_memory"
+
+MIAMI_PIN_ARGS="${ichild} ${WITH_PIN_ARGS}"
