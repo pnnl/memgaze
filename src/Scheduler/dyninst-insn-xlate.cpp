@@ -35,15 +35,16 @@ typedef std::list<instruction_info> InstrList;
 // 
 //***************************************************************************
 
-// FIXME: tallent: static data. Should be part of LoadModule or Routine
+// FIXME: tallent: static data. Should be part of LoadModule
 
-static Dyninst::ParseAPI::SymtabCodeSource* codeSource;
-static BPatch_image *img;
+static Dyninst::ParseAPI::SymtabCodeSource* lm_codeSource;
+static BPatch_image* lm_image;
+static std::vector<BPatch_function*>* lm_functions;
 
-static std::vector<BPatch_function*> functions;
-
+// FIXME: tallent: static data. Should be of Routine
 static std::vector<BPatch_basicBlock*> blockVector;
 static std::map<int, BPatch_basicBlock*> blockMap;
+
 static std::map<int, std::set<BPatch_basicBlock*>> funcBlocks;
 
 //static std::vector<BPatch_function*> functions;
@@ -82,28 +83,29 @@ void dumpMIAMIInsn(const MIAMI::DecodedInstruction *dInst);
 // The function is used in MiamiDriver.C to get the image from its name.
 MIAMI::LoadModule* create_loadModule(int count, std::string file_name, uint32_t hashKey)
 {
-  //FIXME:tallent Dyninst::ParseAPI::SymtabCodeSource* codeSource;
-  codeSource = new Dyninst::ParseAPI::SymtabCodeSource((char*)file_name.c_str());
+  //FIXME:tallent Dyninst::ParseAPI::SymtabCodeSource* lm_codeSource;
+  lm_codeSource = new Dyninst::ParseAPI::SymtabCodeSource((char*)file_name.c_str());
 
   BPatch bpatch;
   BPatch_addressSpace* app = bpatch.openBinary(file_name.c_str(),false);
-  img = app->getImage(); // global varible
+  lm_image = app->getImage(); // global varible
 
   std::vector<BPatch_object*> objs;
-  img->getObjects(objs);
+  lm_image->getObjects(objs);
   
   unsigned long start_addr = get_start_address(&objs, file_name);
   //unsigned long low_offset = get_low_offset(&objs, file_name);
+
+  lm_functions = lm_image->getProcedures(true);
   
-  LoadModule *lm = new LoadModule (count /*id*/, start_addr, codeSource->loadAddress()/*low_offset*/, file_name, hashKey);
+  LoadModule *lm = new LoadModule (count /*id*/, start_addr, lm_codeSource->loadAddress()/*low_offset*/, file_name, hashKey);
   return lm;
 }
 
 
 int get_routine_number()
 {
-  functions = *(img->getProcedures(true));
-  return (int) functions.size();
+  return (int) lm_functions->size();
 }
 
 
@@ -139,7 +141,7 @@ void traverse_cfg(MIAMI::CFG* cfg, BPatch_basicBlock* bb, CFG::Node* nn);
 
 MIAMI::Routine* create_routine(MIAMI::LoadModule* lm, int i)
 {
-  BPatch_function* func = functions.at(i);
+  BPatch_function* func = lm_functions->at(i);
   std::string func_name = func->getName();
 
   Dyninst::Address _start, _end;
@@ -160,13 +162,13 @@ MIAMI::Routine* create_routine(MIAMI::LoadModule* lm, int i)
 
 int dyninst_build_CFG(MIAMI::CFG* cfg, std::string func_name)
 {
-  if (!functions.size()) return 0;
+  if (!lm_functions->size()) return 0;
     
-  for (unsigned int i = 0; i < functions.size(); ++i)
+  for (unsigned int i = 0; i < lm_functions->size(); ++i)
   {
-    if (functions.at(i)->getName().compare(func_name))
+    if (lm_functions->at(i)->getName().compare(func_name))
     {
-      BPatch_flowGraph *fg = functions.at(i)->getCFG();
+      BPatch_flowGraph *fg = lm_functions->at(i)->getCFG();
       fg->createSourceBlocks();
       std::vector<BPatch_basicBlock*> entries;
       fg->getEntryBasicBlock(entries);
@@ -344,17 +346,17 @@ void isaXlate_init(const char* progName)
   std::cout << "binary: " << progName << endl;
 
 #if 0 // FIXME:tallent
-  codeSource = new Dyninst::ParseAPI::SymtabCodeSource((char*)progName);
+  lm_codeSource = new Dyninst::ParseAPI::SymtabCodeSource((char*)progName);
 
   BPatch bpatch;
   BPatch_addressSpace* app = bpatch.openBinary(progName,false);
   
-  BPatch_image *img = app->getImage();
-  functions = *(img->getProcedures(true));
+  BPatch_image *lm_image = app->getImage();
+  lm_functions = *(lm_image->getProcedures(true));
 #endif
   
-  for (unsigned int i = 0; i < functions.size(); ++i) {
-    BPatch_flowGraph *fg = functions[i]->getCFG();
+  for (unsigned int i = 0; i < lm_functions->size(); ++i) {
+    BPatch_flowGraph *fg = (*lm_functions)[i]->getCFG();
     std::set<BPatch_basicBlock*> blks;
     fg->getAllBasicBlocks(blks);
     funcBlocks[i] = blks;
@@ -372,7 +374,7 @@ int isaXlate_insn(std::string func_name, unsigned long pc, MIAMI::DecodedInstruc
   if (pblk) {
     Dyninst::InstructionAPI::Instruction::Ptr insn;
     std::vector<Assignment::Ptr> assignments;
-    isaXlate_getDyninstInsn(pc, functions[f], &assignments, &insn);
+    isaXlate_getDyninstInsn(pc, (*lm_functions)[f], &assignments, &insn);
 
     if (!insn) {
       assert("Cannot find instruction.\n");
@@ -382,7 +384,7 @@ int isaXlate_insn(std::string func_name, unsigned long pc, MIAMI::DecodedInstruc
     num_of_assignments = assignments.size();
 
     std::cout << "**********************************************************\n"
-	      << "isaXlate_insn(" << functions[f]->getDemangledName() << ")\n";
+	      << "isaXlate_insn(" << (*lm_functions)[f]->getDemangledName() << ")\n";
     
     dynXlate_dumpInsn(insn, assignments, pc);
     std::cout << "\n";
@@ -416,24 +418,24 @@ int isaXlate_getFunction(unsigned long pc)
 {
   Dyninst::Address start, end;
 	
-  for (unsigned int i = 0; i < functions.size(); ++i) {
-    functions[i]->getAddressRange(start, end);
+  for (unsigned int i = 0; i < lm_functions->size(); ++i) {
+    (*lm_functions)[i]->getAddressRange(start, end);
     if (pc >= start && pc < end) {
       return i;  
     }
   }
 
   // no demangled name match, check again using function's base address
-  for (unsigned int i = 0; i < functions.size(); ++i) {
-    if ((unsigned long) functions[i]->getBaseAddr() == pc) {
+  for (unsigned int i = 0; i < lm_functions->size(); ++i) {
+    if ((unsigned long) (*lm_functions)[i]->getBaseAddr() == pc) {
       last_used_function = i;
       return i;
     }
   }
 
   // what about the last block without a name
-  for (unsigned int i = 0; i < functions.size() - 1; ++i) {
-    if ((pc > (unsigned long) functions[i]->getBaseAddr()) && (pc < (unsigned long) functions[i+1]->getBaseAddr())) {
+  for (unsigned int i = 0; i < lm_functions->size() - 1; ++i) {
+    if ((pc > (unsigned long) (*lm_functions)[i]->getBaseAddr()) && (pc < (unsigned long) (*lm_functions)[i+1]->getBaseAddr())) {
       return i;
     }
   }
@@ -447,7 +449,7 @@ Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc)
 {
   std::map<std::string,std::vector<uint8_t> > pathInstructionsMap;
   std::map<std::string,std::vector<BPatch_basicBlock*> > paths;
-  BPatch_function* func = functions[f];
+  BPatch_function* func = (*lm_functions)[f];
   
   Dyninst::Address _start, _end;
   func->getAddressRange(_start, _end);
@@ -464,7 +466,7 @@ Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc)
         endAddr = (unsigned long) bb->getEndAddress();
 
         if (NULL != pblk){
-          //unsigned long * bpc = (unsigned long *) codeSource->getPtrToInstruction(pblk->start());
+          //unsigned long * bpc = (unsigned long *) lm_codeSource->getPtrToInstruction(pblk->start());
         }
 	else {
           assert("Cannot find the function block\n");
@@ -496,7 +498,7 @@ void isaXlate_getDyninstInsn(addrtype pc, BPatch_function *f, std::vector<Assign
   // FIXME: tallent: This is O(|instructions in block|).
   // FIXME: tallent: Furthermore, it does not actually decode 'pc'
   
-  void* buf = codeSource->getPtrToInstruction(pblk->start());
+  void* buf = lm_codeSource->getPtrToInstruction(pblk->start());
   InstructionDecoder dec(buf, endAddr - startAddr, pblk->obj()->cs()->getArch());
   (*insn) = dec.decode();
   unsigned long insn_addr = startAddr;
