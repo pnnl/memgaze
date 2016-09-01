@@ -121,7 +121,7 @@ int isaXlate_insn(std::string func_name, unsigned long pc, MIAMI::DecodedInstruc
     dynXlate_dumpInsn(insn, assignments, pc);
     std::cout << "\n";
 
-    xed_dump_insn((void*)pc, insn->size());
+    dump_instruction_at_pc((void*)pc, insn->size());
     std::cout << "\n";
     
     dynXlate_insn(insn, assignments, pc, dInst);

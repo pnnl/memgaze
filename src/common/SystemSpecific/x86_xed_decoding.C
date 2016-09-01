@@ -1777,7 +1777,7 @@ debug_decode_instruction_at_pc(void *pc, int len)
 
 
 void
-xed_dump_insn(void *pc, int len)
+dump_instruction_at_pc(void *pc, int len)
 {
   std::cout << "========== XED Instruction "
 	    << "(" << std::hex << pc << std::dec << ", " << len << " bytes)"
