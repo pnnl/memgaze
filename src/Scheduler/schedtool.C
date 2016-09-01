@@ -176,6 +176,14 @@ VOID Fini (int code, VOID * v)
 int 
 main (int argc, char *argv[])
 {
+    const char* MIAMI_DEBUG_WAIT = getenv("MIAMI_DEBUG_WAIT");
+    if (MIAMI_DEBUG_WAIT) {
+      volatile int DEBUGGER_WAIT = 1;
+      while (DEBUGGER_WAIT);
+
+      unsetenv("MIAMI_DEBUG_WAIT");
+    }
+  
 //    PIN_InitSymbolsAlt(IFUNC_SYMBOLS);
     PIN_InitSymbols();
 
