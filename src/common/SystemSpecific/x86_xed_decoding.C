@@ -1776,24 +1776,28 @@ debug_decode_instruction_at_pc(void *pc, int len)
 }
 
 
-void
+int
 dump_instruction_at_pc(void *pc, int len)
 {
   std::cout << "========== XED Instruction "
-	    << "(" << std::hex << pc << std::dec << ", " << len << " bytes)"
+	    << "(" << std::hex << pc << std::dec << ", upto " << len << " bytes)"
 	    << " ==========\n";
 
   xed_decoded_inst_t xedd;
   int res = decode_instruction(pc, len, &xedd);
-  
+
   if (res < 0) {
-    return;
+    return -1;
   }
+
+  int real_len = xed_decoded_inst_get_length(&xedd);
 
   const int bufSz = 1024;
   char buf[bufSz] = {};
   xed_decoded_inst_dump(&xedd, buf, bufSz);
-  std::cout << buf << "\n";
+  std::cout << buf << " <len=" << real_len << " bytes>\n";
+
+  return real_len;
 }
   
 

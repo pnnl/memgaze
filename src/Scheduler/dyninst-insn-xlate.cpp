@@ -183,6 +183,7 @@ int dyninst_build_CFG(MIAMI::CFG* cfg, std::string func_name)
         cfg->setCfgFlags(CFG_HAS_ENTRY_POINTS);
 
       std::map<int, BPatch_basicBlock*> blockMap;
+      func_blockVec.clear(); // FIXME:tallent
       
       for (unsigned int i = 0; i < entries.size(); ++i)
       {
@@ -400,7 +401,7 @@ int isaXlate_insn(std::string func_name, unsigned long pc, MIAMI::DecodedInstruc
     dynXlate_dumpInsn(insn, assignments, pc);
     std::cout << "\n";
 
-    dump_instruction_at_pc((void*)pc, insn->size());
+    dump_instruction_at_pc((void*)pc, InstructionDecoder::maxInstructionLength);
     std::cout << "\n";
     
     dynXlate_insn(insn, assignments, pc, dInst);

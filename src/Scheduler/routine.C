@@ -1112,7 +1112,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
             CFG::Node *b = (CFG::Node*)nnit;
             if (b->Size()>0 && (b->ExecCount()>0 || mo->do_ref_scope_index)) {
 	       std::cout << "Routine::main_analysis():no-scopetree:decoding-blk(" << (void*)b->getStartAddress() << ")\n";
-               compute_lineinfo_for_block_dyninst(InLoadModule(), prog, b);
+               //FIXME:tallent: compute_lineinfo_for_block_dyninst(InLoadModule(), prog, b);
 	       //cout << "lineMappings: " << prog->GetLineMappings().size();
                decode_instructions_for_block(prog, b, b->ExecCount(), scopeMemRefs, refsClass);
             }
