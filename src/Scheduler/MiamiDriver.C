@@ -271,7 +271,7 @@ void
 MIAMI_Driver::Finalize(const std::string& outFile)
 {
    // now write all the performance data into fout
-  std::cout << "MiamiDriver: Finalize 1\n";
+  std::cout << "MIAMI_Driver::Finalize\n";
    Machine *tmach = 0;
    if (mo->has_mdl)
       tmach =  targets.front();
@@ -283,7 +283,6 @@ MIAMI_Driver::Finalize(const std::string& outFile)
    // If we perform memory analysis, parse the MRD files here
    if (perform_memory_analysis) 
    {
-    std::cout << "MiamiDriver: perform_memory_analysis\n";
       // Iterate over all MRDData elements, and parse the corresponding file.
       fprintf(stderr, "Parsing the MRD files ...\n");
       MIAMI_MEM_REUSE::MRDDataVec::iterator mit = mrdData.begin();
@@ -330,7 +329,6 @@ MIAMI_Driver::Finalize(const std::string& outFile)
    double threshold = mo->getOutputThreshold();
    if (mo->dump_xml)
    {
-    std::cout <<"Finalize: inside dump_xml\n";
       FILE *fout = fopen((fname+".xml").c_str(), "wt");
       if (fout == NULL)
       {
@@ -343,7 +341,6 @@ MIAMI_Driver::Finalize(const std::string& outFile)
       
       if (compute_reuse)   // print the reuse pairs and the flat view
       {
-        std::cout << "MiamiDriver: compute_reuse\n";
          fout = fopen((fname+"-flat.xml").c_str(), "wt");
          if (fout == NULL)
          {
@@ -373,7 +370,6 @@ MIAMI_Driver::Finalize(const std::string& outFile)
    
    if (mo->units_usage)
    {
-      std::cout << "MiamiDriver: units_usage\n";
       // aggregate unit usage information bottom-up
       perform_memory_analysis = false;
       aggregate_resources_used_for_scope (prog, tmach);
@@ -405,7 +401,6 @@ MIAMI_Driver::Finalize(const std::string& outFile)
 
    if (mo->do_ibins)
    {
-    std::cout << "MiamiDriver: do_ibins\n";
       ScopeImplementation *scope = 0;
       // Check if we dump only the counts for a particular scope
       if (mo->scope_name.length()>0)
@@ -461,7 +456,7 @@ MIAMI_Driver::Finalize(const std::string& outFile)
 void
 MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, addrtype low_offset)
 {
-   std::cout << "LoadImage: iname is " << iname << endl;
+   std::cout << "MIAMI_Driver::LoadImage: " << iname << endl;
 #if DEBUG_CFG_COUNTS
    DEBUG_CFG(1,
       fprintf(stderr, "MIAMI_Driver::LoadImage called for id %u, name %s, start_addr 0x%" PRIxaddr 
@@ -514,10 +509,10 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
                  << " for reading. Cannot compute its checksum." << endl;
          }
       }
-      //dyninst CFG builder
+
+      // FIXME: tallent
       newimg = create_loadModule(loadedImgs, (std::string)iname);
       //newimg = new LoadModule (id, start_addr, low_offset, iname, hashKey);
-      //std::cout << "MiamiDriver: loadmodule id is " << id << " start_addr is " << hex << start_addr << dec << " low_offset is " << hex << low_offset << dec << " iname is " << iname << " haskey is " << hex << hashKey << dec << "\n";
       
       ++ loadedImgs;
       
@@ -537,22 +532,16 @@ void
 MIAMI_Driver::aggregate_counts_for_scope (ScopeImplementation *pscope,
        Machine *tmach, int no_fpga_acc)
 {
+   std::cout << "MIAMI_Driver::aggregate_counts_for_scope()\n";
    int i;
    // first compute exclusive time stats as the sum over all local paths
-   if (NULL == pscope)
-   {
-     assert("MiamiDriver: pscope is NULL\n");
-   }
    BPMap* bpm = pscope->Paths();
-   //std::cout << "MiamiDriver: aggregate_counts_for_scope: paths size is " << pscope->Paths()->size() << "\n";
    TimeAccount& stats = pscope->getExclusiveTimeStats();
    if (bpm != NULL)
    {
-
       BPMap::iterator bit = bpm->begin();
       for( ; bit!=bpm->end() ; ++bit )
       {
-        //std::cout << "MiamiDriver: aggregate_counts_for_scope: 3\n";
          PathInfo *_path = bit->second;
 //         _path->timeStats.computeBandwidthTime (tmach);
          stats += (_path->timeStats * _path->count);
@@ -563,7 +552,6 @@ MIAMI_Driver::aggregate_counts_for_scope (ScopeImplementation *pscope,
    // we have memory hierarchy metrics at scope level only.
    // when/if we add them to the path level, compute bandwidth 
    // requirements and delays per path (above), and comment this call
-   //std::cout << "MiamiDriver: aggregate_counts_for_scope: 4\n";
    if (perform_memory_analysis && tmach) 
       stats.computeBandwidthTime (tmach);
 
@@ -578,7 +566,6 @@ MIAMI_Driver::aggregate_counts_for_scope (ScopeImplementation *pscope,
    int numLevels = 0, numLevels3 = 0;
    if (tmach)
    {
-    //std::cout << "MiamiDriver: aggregate_counts_for_scope: 5\n";
       MemLevelAssocTable *memLevels = tmach->getMemoryLevels ();
       numLevels = memLevels->NumberOfElements ();
       numLevels3 = numLevels + numLevels + numLevels;
@@ -595,7 +582,6 @@ MIAMI_Driver::aggregate_counts_for_scope (ScopeImplementation *pscope,
    
    for( it=pscope->begin() ; it!=pscope->end() ; it++ )
    {
-    //std::cout << "MiamiDriver: aggregate_counts_for_scope: 6\n";
       ScopeImplementation *sci = 
                dynamic_cast<ScopeImplementation*>(it->second);
       aggregate_counts_for_scope(sci, tmach, no_fpga_acc);
@@ -613,7 +599,6 @@ MIAMI_Driver::aggregate_counts_for_scope (ScopeImplementation *pscope,
       // add the values per name from the inner scopes
       if (tmach)
       {
-        std::cout << "MiamiDriver: aggregate_counts_for_scope: 7\n";
          CharDoublePMap &subInclVals = sci->getInclusiveStatsPerName();
          for (cit=subInclVals.begin() ; cit!=subInclVals.end() ; ++cit)
          {
@@ -643,7 +628,6 @@ MIAMI_Driver::aggregate_counts_for_scope (ScopeImplementation *pscope,
    // I compute the inclusive metrics. 
    if (!no_fpga_acc)
    {
-    std::cout << "MiamiDriver: aggregate_counts_for_scope: 8\n";
       double inclCost = pscope->getInclusiveTimeStats().getNoDependencyTime ();
       pscope->getInclusiveTimeStats().addNonFpgaComputeTime (inclCost);
       stats.addNonFpgaComputeTime (inclCost);

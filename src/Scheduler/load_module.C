@@ -199,26 +199,26 @@ LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
    int ires = 0;
 #endif
    Routine *rout = NULL;
+   
    addrtype _offset, _start, _end;
    char *_name = 0;
    
    // save start/end addresses and name in prefix format (len followed by name)
    res = fread(&_offset, sizeof(addrtype), 1, fd);
-   CHECK_COND(res!=1, "reading offset for routine %u", r)
+   CHECK_COND(res!=1, "reading offset for routine %u", r);
    res = fread(&_start, sizeof(addrtype), 1, fd);
-   CHECK_COND(res!=1, "reading start addr for routine %u", r)
+   CHECK_COND(res!=1, "reading start addr for routine %u", r);
    res = fread(&_end, sizeof(addrtype), 1, fd);
-   CHECK_COND(res!=1, "reading end addr for routine %u", r)
+   CHECK_COND(res!=1, "reading end addr for routine %u", r);
    // size_t _size = _end - _start;
    
    // now read the routine name
    uint32_t len;
    res = fread(&len, 4, 1, fd);
-   CHECK_COND(res!=1 || len<1 || len>1024, "reading name length for routine %u, res=%ld, len=%u", 
-            r, res, len)
+   CHECK_COND(res!=1 || len<1 || len>1024, "reading name length for routine %u, res=%ld, len=%u", r, res, len);
    _name = new char[len+1];
    res = fread(_name, 1, len, fd);
-   CHECK_COND(res!=len, "reading name for routine %u", r)
+   CHECK_COND(res!=len, "reading name for routine %u", r);
    _name[len] = 0;
 #if VERBOSE_DEBUG_LOAD_MODULE
    DEBUG_LOAD_MODULE(4,
@@ -227,8 +227,7 @@ LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
    )
 #endif
    //rout = new Routine(this, _start, _size, string(_name), _offset, reloc_offset);
-
-   CHECK_COND(rout==NULL, "allocating object for routine %u", r)
+   CHECK_COND(rout==NULL, "allocating object for routine %u", r);
    
 #if DEBUG_CFG_COUNTS
    DEBUG_CFG(3,
@@ -239,6 +238,7 @@ LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
 #if DEBUG_CFG_COUNTS
    ires = 
 #endif
+   // FIXME: tallent
    //rout->loadCFGFromFile(fd);
    // get_dyninst_cfg(rout);
 #if DEBUG_CFG_COUNTS
@@ -355,15 +355,15 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
       } else
          InitializeSaveStaticAnalysisData (newstan, hash);
    }
+   
    isaXlate_init((const char*)this->Name().c_str());
-
 
    for (uint32_t r=0 ; r<numRoutines ; ++r)
    {
+      std::cout << "LoadModule::analyzeRoutines():" << r << "\n";
       Routine *rout = create_routine((LoadModule*)this, r);
       if (rout == NULL)
       {
-         std::cout << "analyzeRoutines: routine is NULL\n";
          if (mo->do_linemap)
             FinalizeSourceFileInfo();
          return (-1);
@@ -371,7 +371,6 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
       addrtype rstart = rout->Start();
       if (mo->do_staticmem)
       {
-         //std::cout << "analyzeRoutines: we need to do staticmem\n";
          AddrOffsetMap::iterator ait = rOffsets.find(rstart);
          if (ait != rOffsets.end())
          {
@@ -383,12 +382,11 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
       
       if (1/*rout->is_valid_for_analysis()*/)
       {
-
-#if 0  //VERBOSE_DEBUG_LOAD_MODULE
+#if VERBOSE_DEBUG_LOAD_MODULE
          DEBUG_LOAD_MODULE(1,
             fprintf (stderr, "Starting analysis for routine %s\n", rout->Name().c_str());
          )
-#endif   
+#endif
          ires = rout->main_analysis(img_scope, mo);
          if (ires < 0)
          {
@@ -401,7 +399,6 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
       
       /*if (mo->do_staticmem && newstan)
       {
-         std::cout << "analyzeRoutines: 1\n";
          uint64_t foffset = rout->SaveStaticData(newstan);
          newROffsets.insert(AddrOffsetMap::value_type(rstart, foffset));
       }*/
@@ -409,7 +406,6 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
       delete (rout);
    }
 
-   //std::cout << "load_module: analyzeRoutines: lineMapping size is " << img_scope->GetLineMappings().size() << endl;
    if (mo->do_staticmem)
    {
       // first iterate over all the entries in rOffsets and save the information about the
@@ -421,7 +417,6 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
          // entries with non-zero offsets
          if (ait->second != 0)
          {
-            //std::cout << "analyzeRoutines: 5\n";
             RFormulasMap tempFormulas(0);
             LoadStaticAnalysisData(fstan, ait->second, tempFormulas);
             uint64_t foffset = SaveStaticAnalysisData(newstan, tempFormulas);
@@ -432,14 +427,12 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
          fclose(fstan);
       if (newstan)
       {
-         //std::cout << "analyzeRoutines: 6\n";
          FinalizeSaveStaticAnalysisData (newstan, &newROffsets);
          fclose(newstan);
          
          // I just need to copy the content of the temp file to the permanent location
          // we should have a temporary file name because the file descriptor was valid
          assert(temp_file_name);
-        // std::cout << "analyzeRoutines: 7\n";
          if (MIAMIU::CopyFile(db_name.c_str(), temp_file_name) < 0)  // error
          {
             perror("MIAMIU::CopyFile");
@@ -458,7 +451,7 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
 
    // Set the prog's lineMappings from image's lineMappings
    prog->setLineMappings(img_scope->GetLineMappings());
-   //std::cout << "load_module: analyzeRoutines: lineMapping size2 is " << prog->GetLineMappings().size() << endl;
+
    return (0);
 }
 
