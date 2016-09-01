@@ -282,7 +282,7 @@ main (int argc, char *argv[])
                << ", start addr=0x" << IMG_StartAddress(img)
                << ", mapped size=0x" << IMG_SizeMapped(img) << dec
                << ", has the following sections:" << endl;
-#if 1
+#if 0
           for (SEC sec= IMG_SecHead(img) ; SEC_Valid(sec) ; sec = SEC_Next(sec))
           {
              cerr << "Section " << SEC_Name(sec) << " of type " << SEC_Type(sec)

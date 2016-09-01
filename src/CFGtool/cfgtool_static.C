@@ -658,7 +658,6 @@ VOID ImageLoad(IMG img, VOID *v)
 
    MIAMI::addrtype load_offset = IMG_LoadOffset(img);
    newimg = new MIAMI::LoadModule (id, load_offset, IMG_LowAddress(img)-load_offset, IMG_Name(img)); 
-   std::cout << "ImageLoad: name=" << IMG_Name(img) << "; raddr=" << hex << IMG_LowAddress(img)-load_offset << dec << "\n";
    ++ MIAMI_CFG::loadedImgs;
 }
 /* ===================================================================== */
