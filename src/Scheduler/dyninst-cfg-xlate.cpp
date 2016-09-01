@@ -1,224 +1,25 @@
+// -*-Mode: C++;-*-
+
+//*BeginPNNLCopyright********************************************************
+//
+// $HeadURL$
+// $Id$
+//
+//**********************************************************EndPNNLCopyright*
 
 #include "routine.h"
 #include "dyninst-cfg-xlate.hpp"
 
+
+//***************************************************************************
+// 
+//***************************************************************************
+
+#if 0
+
 static std::vector<int> blockNums;
 //static BPatch_flowGraph *fg;
-static BPatch_image *img;
-static std::vector<BPatch_basicBlock*> blockVector;
-static std::vector<BPatch_function*> funcs;
 
-
-//***************************************************************************
-// 
-//***************************************************************************
-
-unsigned long get_start_address(std::vector<BPatch_object*> * objs, std::string file_name);
-
-//***************************************************************************
-
-// The function is used in MiamiDriver.C to get the image from its name.
-MIAMI::LoadModule* create_loadModule(int count, std::string file_name)
-{
-  Dyninst::ParseAPI::SymtabCodeSource* codeSrc;
-  codeSrc = new Dyninst::ParseAPI::SymtabCodeSource((char*)file_name.c_str());
-
-  BPatch bpatch;
-  BPatch_addressSpace* app = bpatch.openBinary(file_name.c_str(),false);
-  img = app->getImage(); // global varible
-
-  std::vector<BPatch_object*> objs;
-  img->getObjects(objs);
-  unsigned long start_addr =  get_start_address(&objs, file_name);
-  //unsigned long low_offset = get_low_offset(&objs, file_name);
-  LoadModule *lm = new LoadModule (count /*id*/, start_addr, codeSrc->loadAddress()/*low_offset*/, file_name, 0/*hashKey*/);
-  return lm;
-}
-
-static std::map<int, BPatch_basicBlock*> blockMap;
-
-// Called by load_module.C 
-MIAMI::Routine* create_routine(MIAMI::LoadModule* lm, int i)
-{
-  BPatch_function* func = funcs.at(i);
-  std::string func_name = func->getName();
-
-  Dyninst::Address _start, _end;
-  if(!(func->getAddressRange(_start, _end))) {
-    assert("create_routine: Address not available!");
-  }
-
-  Routine * rout = new Routine(lm, _start, _end - _start, func_name, _start/*offset*/, lm->RelocationOffset());
-  MIAMI::CFG* g = rout->ControlFlowGraph();
-  if (g == NULL) 
-      g = new CFG(rout, func_name);
-
-   dyninst_build_CFG(g, func_name);
-   blockMap.clear();
-   return rout;
-}
-
-
-unsigned long get_start_address(std::vector<BPatch_object*> * objs, std::string file_name)
-{
-  for (unsigned int i = 0; i < objs->size(); ++i) {
-    if (objs->at(i)->pathName().compare(file_name) == 0) 
-      return objs->at(i)->fileOffsetToAddr(0);
-    
-  }
-  return 0;
-}
-
-
-unsigned long get_low_offset(std::vector<BPatch_object*> * objs, std::string file_name)
-{
-  for (unsigned int i = 0; i < objs->size(); ++i) {
-    if (objs->at(i)->pathName().compare(file_name) == 0) 
-      return objs->at(i)->fileOffsetToAddr(1);
-    
-  }
-  return 0;
-}
-
-int get_routine_number()
-{
-  funcs = *(img->getProcedures(true));
-  return (int) funcs.size();
-
-}
-
-
-
-//***************************************************************************
-// 
-//***************************************************************************
-
-// This function is not used.
-std::vector<unsigned long> get_instructions_address_from_block(MIAMI::CFG::Node *b)
-{
-  std::vector<unsigned long> addressVec;
-  unsigned long start, end, cur;
-  start = b->getStartAddress();
-  end = b->getEndAddress();
-  if (!blockVector.size())
-  {
-    assert("No blocks available.\n");
-  }
-  unsigned int i;
-  for (i = 0; i < blockVector.size(); ++i)
-  {
-    if (blockVector.at(i)->getStartAddress() <= start && blockVector.at(i)->getEndAddress() > start)
-    {
-      break;
-    }
-  }
-
-  BPatch_basicBlock* bb = blockVector.at(i);
-  std::vector<Dyninst::InstructionAPI::Instruction::Ptr> insns;
-  bb->getInstructions(insns);
-  cur = start;
-
-  for (unsigned int i = 0; i < insns.size(); ++i)
-  {
-    if (cur < end)
-    {
-      addressVec.push_back((unsigned int) cur);
-      cur += insns.at(i)->size();
-    } else { break; }
-  }
-  if (addressVec.size())
-  {
-    return addressVec;
-  } else {
-    assert("No block found given the address.\n");
-    return addressVec;
-  }
-}
-
-
-//***************************************************************************
-// 
-//***************************************************************************
-
-// Should make special cases for repeatition block and call surrogate block like MIAMI
-// does, or should I directly translating Dyninst block into MIAMI block.
-
-void traverse_cfg(MIAMI::CFG* cfg, BPatch_basicBlock* bb, CFG::Node* nn){
-  blockVector.push_back(bb);
-
-  if (NULL == blockMap[bb->getBlockNumber()])
-  {
-    blockMap[bb->getBlockNumber()] = bb;
-
-    if (NULL != bb->getCallTarget()) {
-      nn = new CFG::Node(cfg, bb->getStartAddress(), bb->getStartAddress(), MIAMI::PrivateCFG::MIAMI_CALL_SITE);
-      nn->setTarget(bb->getEndAddress()); // What does this mean?
-    }
-    cfg->add(nn);
-
-    if (bb->isEntryBlock())
-    {
-      nn->setRoutineEntry();
-      cfg->topNodes.push_back(nn);
-      CFG::Edge* edge = new CFG::Edge(static_cast<CFG::Node*>(cfg->cfg_entry), nn, MIAMI::PrivateCFG::MIAMI_CFG_EDGE);
-      cfg->add(edge);
-    } 
-
-    std::vector<BPatch_basicBlock*> targets;
-    bb->getTargets(targets);
-
-    for (unsigned int i = 0; i < targets.size(); ++i)
-    {
-      CFG::CFG::Node* newNode = new CFG::Node(cfg, targets.at(i)->getStartAddress(), targets.at(i)->getEndAddress(), MIAMI::PrivateCFG::MIAMI_CODE_BLOCK);
-      CFG::Edge* newEdge = new CFG::Edge(nn, newNode, MIAMI::PrivateCFG::MIAMI_CFG_EDGE);
-      cfg->add(newEdge);        
-      traverse_cfg(cfg, targets.at(i), newNode);
-    }  
-    
-    if (!targets.size()) //sink
-    {
-      CFG::Edge* edge = new CFG::Edge(nn, static_cast<CFG::Node*>(cfg->cfg_exit), MIAMI::PrivateCFG::MIAMI_CFG_EDGE);
-      cfg->add(edge);
-    }
-  }
-  return;
-}
-
-
-
-int dyninst_build_CFG(MIAMI::CFG* cfg, std::string func_name){
-  if (!funcs.size()) return 0;
-    
-  for (unsigned int i = 0; i < funcs.size(); ++i)
-  {
-    if (funcs.at(i)->getName().compare(func_name))
-    {
-      BPatch_flowGraph *fg = funcs.at(i)->getCFG();
-      fg->createSourceBlocks();
-      std::vector<BPatch_basicBlock*> entries;
-      fg->getEntryBasicBlock(entries);
-
-      if (entries.size())
-        cfg->setCfgFlags(CFG_HAS_ENTRY_POINTS);
-      
-      for (unsigned int i = 0; i < entries.size(); ++i)
-      {
-        CFG::Node* nn = new CFG::Node(cfg, entries.at(i)->getStartAddress(), entries.at(i)->getEndAddress(), MIAMI::PrivateCFG::MIAMI_CODE_BLOCK);
-        traverse_cfg(cfg, entries.at(i), nn);
-      }
-      cfg->computeTopNodes();
-      cfg->removeCfgFlags(CFG_GRAPH_IS_MODIFIED);
-      cfg->ComputeNodeRanks();
-    }
-  }
-  return 1;
-  
-}
-
-
-//***************************************************************************
-// 
-//***************************************************************************
 
 /* Not used.
 bool visited(BPatch_basicBlock* bb){
@@ -411,4 +212,4 @@ void process_block(BPatch_basicBlock* bb, MIAMI::Routine * robj, std::string fun
 }
 */
 
-
+#endif

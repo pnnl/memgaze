@@ -18,7 +18,8 @@
 #include "report_time.h"
 #include "CRCHash.h"
 #include "miami_utils.h"
-#include "dyninst-cfg-xlate.hpp"
+
+#include "dyninst-insn-xlate.hpp"
 
 namespace MIAMI
 {
@@ -510,7 +511,7 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
          }
       }
       
-      newimg = create_loadModule(loadedImgs, (std::string)iname);
+      newimg = create_loadModule(loadedImgs, (std::string)iname, hashKey);
       //newimg = new LoadModule (id, start_addr, low_offset, iname, hashKey);
       ++ loadedImgs;
       

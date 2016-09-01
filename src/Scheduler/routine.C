@@ -31,7 +31,7 @@
 #include "Assertion.h"
 
 #include "dyninst-insn-xlate.hpp"
-#include "dyninst-cfg-xlate.hpp"
+
 
 void compute_lineinfo_for_block_dyninst(LoadModule *lm, ScopeImplementation *pscope, CFG::Node *b);
 
@@ -1114,7 +1114,6 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
 	       std::cout << "Routine::main_analysis():no-scopetree:decoding-blk(" << (void*)b->getStartAddress() << ")\n";
                compute_lineinfo_for_block_dyninst(InLoadModule(), prog, b);
 	       //cout << "lineMappings: " << prog->GetLineMappings().size();
-               //cout << "ExecCount: " << b->ExecCount() << "\n";
                decode_instructions_for_block(prog, b, b->ExecCount(), scopeMemRefs, refsClass);
             }
             ++ nnit;
@@ -1582,14 +1581,10 @@ void compute_lineinfo_for_block_dyninst(LoadModule *lm, ScopeImplementation *psc
    {
       addrtype pc = addressVec.at(i);
       lm->GetSourceFileInfo(pc, 0, file, func, lineNumber1, lineNumber2);
-      //std::cout << "routine: compute_lineinfo_for_block_dyninst: func is " << func << endl;
       unsigned int findex = mdriver.GetFileIndex(file);
-      //std::cout << "routine: compute_lineinfo_for_block_dyninst: findex is " << findex << "\n";
-      //std::cout << "routine: compute_lineinfo_for_block_dyninst: l1 is " << lineNumber1 << " l2 is " << lineNumber2 << "\n";
       mdriver.AddSourceFileInfo(findex, lineNumber1, lineNumber2);
       pscope->addSourceFileInfo(findex, func, lineNumber1, lineNumber2);
      // std::cout << "routine: lineMappings size is " << pscope->GetLineMappings().size() << endl;
-
    }
 }
 

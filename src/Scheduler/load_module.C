@@ -19,8 +19,8 @@
 #include "tarjans/MiamiRIFG.h"
 #include "tarjans/TarjanIntervals.h"
 #include "debug_scheduler.h"
+
 #include "dyninst-insn-xlate.hpp"
-#include "dyninst-cfg-xlate.hpp"
 
 using namespace MIAMI;
 using namespace std;

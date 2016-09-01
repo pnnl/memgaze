@@ -19,8 +19,9 @@
 // 
 //***************************************************************************
 
-#include "dyninst-insn-xlate.hpp"
 #include "instr_bins.H"
+
+#include "dyninst-insn-xlate.hpp"
 
 //***************************************************************************
 
@@ -34,14 +35,19 @@ typedef std::list<instruction_info> InstrList;
 // 
 //***************************************************************************
 
-// FIXME: tallent: static data
+// FIXME: tallent: static data. Should be part of LoadModule or Routine
 
 static Dyninst::ParseAPI::SymtabCodeSource* codeSource;
+static BPatch_image *img;
 
 static std::vector<BPatch_function*> functions;
-static int last_used_function = 0;
 
+static std::vector<BPatch_basicBlock*> blockVector;
+static std::map<int, BPatch_basicBlock*> blockMap;
 static std::map<int, std::set<BPatch_basicBlock*>> funcBlocks;
+
+//static std::vector<BPatch_function*> functions;
+static int last_used_function = 0;
 
 static Dyninst::ParseAPI::Block* pblk;
 static unsigned long startAddr = 0;
@@ -54,8 +60,8 @@ static int jump_val = 0;
 
 
 //***************************************************************************
-// 
-//***************************************************************************
+
+unsigned long get_start_address(std::vector<BPatch_object*> * objs, std::string file_name);
 
 int isaXlate_getFunction(unsigned long pc);
 Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc);
@@ -69,10 +75,267 @@ void dumpMIAMIInsn(const MIAMI::DecodedInstruction *dInst);
 
 
 //***************************************************************************
+// 
+//***************************************************************************
 
-// FIXME: Why are these called twice? Translation should be once...
-//   Routine::decode_instructions_for_block()
-//   DGBuilder::build_node_for_instruction()
+
+// The function is used in MiamiDriver.C to get the image from its name.
+MIAMI::LoadModule* create_loadModule(int count, std::string file_name, uint32_t hashKey)
+{
+  //FIXME:tallent Dyninst::ParseAPI::SymtabCodeSource* codeSource;
+  codeSource = new Dyninst::ParseAPI::SymtabCodeSource((char*)file_name.c_str());
+
+  BPatch bpatch;
+  BPatch_addressSpace* app = bpatch.openBinary(file_name.c_str(),false);
+  img = app->getImage(); // global varible
+
+  std::vector<BPatch_object*> objs;
+  img->getObjects(objs);
+  
+  unsigned long start_addr = get_start_address(&objs, file_name);
+  //unsigned long low_offset = get_low_offset(&objs, file_name);
+  
+  LoadModule *lm = new LoadModule (count /*id*/, start_addr, codeSource->loadAddress()/*low_offset*/, file_name, hashKey);
+  return lm;
+}
+
+
+int get_routine_number()
+{
+  functions = *(img->getProcedures(true));
+  return (int) functions.size();
+}
+
+
+unsigned long get_start_address(std::vector<BPatch_object*> * objs, std::string file_name)
+{
+  for (unsigned int i = 0; i < objs->size(); ++i) {
+    if (objs->at(i)->pathName().compare(file_name) == 0) 
+      return objs->at(i)->fileOffsetToAddr(0);
+    
+  }
+  return 0;
+}
+
+
+unsigned long get_low_offset(std::vector<BPatch_object*> * objs, std::string file_name)
+{
+  for (unsigned int i = 0; i < objs->size(); ++i) {
+    if (objs->at(i)->pathName().compare(file_name) == 0) 
+      return objs->at(i)->fileOffsetToAddr(1);
+    
+  }
+  return 0;
+}
+
+
+//***************************************************************************
+// 
+//***************************************************************************
+
+int dyninst_build_CFG(MIAMI::CFG* cfg, std::string func_name);
+void traverse_cfg(MIAMI::CFG* cfg, BPatch_basicBlock* bb, CFG::Node* nn);
+
+
+MIAMI::Routine* create_routine(MIAMI::LoadModule* lm, int i)
+{
+  BPatch_function* func = functions.at(i);
+  std::string func_name = func->getName();
+
+  Dyninst::Address _start, _end;
+  if(!(func->getAddressRange(_start, _end))) {
+    assert("create_routine: Address not available!");
+  }
+
+  Routine * rout = new Routine(lm, _start, _end - _start, func_name, _start/*offset*/, lm->RelocationOffset());
+  MIAMI::CFG* g = rout->ControlFlowGraph();
+  if (g == NULL) 
+      g = new CFG(rout, func_name);
+
+   dyninst_build_CFG(g, func_name);
+   blockMap.clear();
+   return rout;
+}
+
+
+int dyninst_build_CFG(MIAMI::CFG* cfg, std::string func_name)
+{
+  if (!functions.size()) return 0;
+    
+  for (unsigned int i = 0; i < functions.size(); ++i)
+  {
+    if (functions.at(i)->getName().compare(func_name))
+    {
+      BPatch_flowGraph *fg = functions.at(i)->getCFG();
+      fg->createSourceBlocks();
+      std::vector<BPatch_basicBlock*> entries;
+      fg->getEntryBasicBlock(entries);
+
+      if (entries.size())
+        cfg->setCfgFlags(CFG_HAS_ENTRY_POINTS);
+      
+      for (unsigned int i = 0; i < entries.size(); ++i)
+      {
+        CFG::Node* nn = new CFG::Node(cfg, entries.at(i)->getStartAddress(), entries.at(i)->getEndAddress(), MIAMI::PrivateCFG::MIAMI_CODE_BLOCK);
+        traverse_cfg(cfg, entries.at(i), nn);
+      }
+      cfg->computeTopNodes();
+      cfg->removeCfgFlags(CFG_GRAPH_IS_MODIFIED);
+      cfg->ComputeNodeRanks();
+    }
+  }
+  return 1;
+  
+}
+
+
+// Should make special cases for repeatition block and call surrogate block like MIAMI
+// does, or should I directly translating Dyninst block into MIAMI block.
+
+void traverse_cfg(MIAMI::CFG* cfg, BPatch_basicBlock* bb, CFG::Node* nn)
+{
+  blockVector.push_back(bb);
+
+  if (NULL == blockMap[bb->getBlockNumber()])
+  {
+    blockMap[bb->getBlockNumber()] = bb;
+
+    if (NULL != bb->getCallTarget()) {
+      nn = new CFG::Node(cfg, bb->getStartAddress(), bb->getStartAddress(), MIAMI::PrivateCFG::MIAMI_CALL_SITE);
+      nn->setTarget(bb->getEndAddress()); // What does this mean?
+    }
+    cfg->add(nn);
+
+    if (bb->isEntryBlock())
+    {
+      nn->setRoutineEntry();
+      cfg->topNodes.push_back(nn);
+      CFG::Edge* edge = new CFG::Edge(static_cast<CFG::Node*>(cfg->cfg_entry), nn, MIAMI::PrivateCFG::MIAMI_CFG_EDGE);
+      cfg->add(edge);
+    } 
+
+    std::vector<BPatch_basicBlock*> targets;
+    bb->getTargets(targets);
+
+    for (unsigned int i = 0; i < targets.size(); ++i)
+    {
+      CFG::CFG::Node* newNode = new CFG::Node(cfg, targets.at(i)->getStartAddress(), targets.at(i)->getEndAddress(), MIAMI::PrivateCFG::MIAMI_CODE_BLOCK);
+      CFG::Edge* newEdge = new CFG::Edge(nn, newNode, MIAMI::PrivateCFG::MIAMI_CFG_EDGE);
+      cfg->add(newEdge);        
+      traverse_cfg(cfg, targets.at(i), newNode);
+    }  
+    
+    if (!targets.size()) //sink
+    {
+      CFG::Edge* edge = new CFG::Edge(nn, static_cast<CFG::Node*>(cfg->cfg_exit), MIAMI::PrivateCFG::MIAMI_CFG_EDGE);
+      cfg->add(edge);
+    }
+  }
+  return;
+}
+
+
+// This function is not used.
+std::vector<unsigned long> get_instructions_address_from_block(MIAMI::CFG::Node *b)
+{
+  std::vector<unsigned long> addressVec;
+  unsigned long start, end, cur;
+  start = b->getStartAddress();
+  end = b->getEndAddress();
+  if (!blockVector.size())
+  {
+    assert("No blocks available.\n");
+  }
+  unsigned int i;
+  for (i = 0; i < blockVector.size(); ++i)
+  {
+    if (blockVector.at(i)->getStartAddress() <= start && blockVector.at(i)->getEndAddress() > start)
+    {
+      break;
+    }
+  }
+
+  BPatch_basicBlock* bb = blockVector.at(i);
+  std::vector<Dyninst::InstructionAPI::Instruction::Ptr> insns;
+  bb->getInstructions(insns);
+  cur = start;
+
+  for (unsigned int i = 0; i < insns.size(); ++i)
+  {
+    if (cur < end)
+    {
+      addressVec.push_back((unsigned int) cur);
+      cur += insns.at(i)->size();
+    } else { break; }
+  }
+  if (addressVec.size())
+  {
+    return addressVec;
+  } else {
+    assert("No block found given the address.\n");
+    return addressVec;
+  }
+}
+
+
+//***************************************************************************
+
+void traverseCFG(BPatch_basicBlock* blk, std::map<BPatch_basicBlock *,bool> seen, std::map<std::string,std::vector<BPatch_basicBlock*> >& paths, std::vector<BPatch_basicBlock*> path, string pathStr, graph& g);
+
+
+// Not used in the program
+void startCFG(BPatch_function* function,std::map<std::string,std::vector<BPatch_basicBlock*> >& paths, graph& g)
+{
+  if (function!= 0 ) {
+    std::map<BPatch_basicBlock *,bool> seen;
+    
+    BPatch_flowGraph *fg =function->getCFG();		
+    
+    std::vector<BPatch_basicBlock *> entryBlk;
+    std::vector<BPatch_basicBlock *> exitBlk;
+    fg->getExitBasicBlock(exitBlk);
+    fg->getEntryBasicBlock(entryBlk);
+    
+    std::string pathStr;
+    if (entryBlk.size() > 0 and exitBlk.size()>0){
+      g.entry=g.basicBlockNoMap[entryBlk[0]->blockNo()];
+      g.exit=g.basicBlockNoMap[exitBlk[0]->blockNo()];
+      std::vector<BPatch_basicBlock*> path;
+      for(unsigned int b=0;b<entryBlk.size();b++){
+        //std::cout << "startCFG entryblk size is "<<  entryBlk.size() << endl;
+	traverseCFG(entryBlk[b],seen,paths,path,pathStr,g);
+      }
+    }
+  }
+}
+
+
+// Called by startCFG. Not used in this program.
+void traverseCFG(BPatch_basicBlock* blk, std::map<BPatch_basicBlock *,bool> seen, std::map<std::string,std::vector<BPatch_basicBlock*> >& paths, std::vector<BPatch_basicBlock*> path, string pathStr, graph& g)
+{
+  seen[blk]=true;
+	
+  std::string graphBlkNo = std::to_string((long long)g.basicBlockNoMap[blk->blockNo()]);
+  pathStr+=graphBlkNo+"->";
+	
+  path.push_back(blk);
+	
+  std::vector<BPatch_basicBlock*> targets;
+  blk->getTargets(targets);
+  for(unsigned int t=0;t<targets.size();t++) {
+    if (seen.count(targets[t])==0) {
+      traverseCFG(targets[t],seen,paths,path,pathStr,g);
+    }
+  }
+  if (g.exit==g.basicBlockNoMap[blk->blockNo()]) {
+    paths[pathStr]=path;
+  }
+}
+
+
+//***************************************************************************
+// 
+//***************************************************************************
 
 
 // Initialize all the blocks for all the functions for a given module.
@@ -80,12 +343,15 @@ void isaXlate_init(const char* progName)
 {
   std::cout << "binary: " << progName << endl;
 
+#if 0 // FIXME:tallent
   codeSource = new Dyninst::ParseAPI::SymtabCodeSource((char*)progName);
 
   BPatch bpatch;
   BPatch_addressSpace* app = bpatch.openBinary(progName,false);
-  BPatch_image *bpi = app->getImage();
-  functions = *(bpi->getProcedures(true));
+  
+  BPatch_image *img = app->getImage();
+  functions = *(img->getProcedures(true));
+#endif
   
   for (unsigned int i = 0; i < functions.size(); ++i) {
     BPatch_flowGraph *fg = functions[i]->getCFG();
@@ -2413,55 +2679,3 @@ dumpMIAMIInsn(const MIAMI::DecodedInstruction *dInst)
 }
 
 
-//***************************************************************************
-// 
-//***************************************************************************
-
-// Not used in the program
-void startCFG(BPatch_function* function,std::map<std::string,std::vector<BPatch_basicBlock*> >& paths, graph& g)
-{
-  if (function!= 0 ) {
-    std::map<BPatch_basicBlock *,bool> seen;
-    
-    BPatch_flowGraph *fg =function->getCFG();		
-    
-    std::vector<BPatch_basicBlock *> entryBlk;
-    std::vector<BPatch_basicBlock *> exitBlk;
-    fg->getExitBasicBlock(exitBlk);
-    fg->getEntryBasicBlock(entryBlk);
-    
-    std::string pathStr;
-    if (entryBlk.size() > 0 and exitBlk.size()>0){
-      g.entry=g.basicBlockNoMap[entryBlk[0]->blockNo()];
-      g.exit=g.basicBlockNoMap[exitBlk[0]->blockNo()];
-      std::vector<BPatch_basicBlock*> path;
-      for(unsigned int b=0;b<entryBlk.size();b++){
-        //std::cout << "startCFG entryblk size is "<<  entryBlk.size() << endl;
-	traverseCFG(entryBlk[b],seen,paths,path,pathStr,g);
-      }
-    }
-  }
-}
-
-
-// Called by startCFG. Not used in this program.
-void traverseCFG(BPatch_basicBlock* blk, std::map<BPatch_basicBlock *,bool> seen, std::map<std::string,std::vector<BPatch_basicBlock*> >& paths, std::vector<BPatch_basicBlock*> path, string pathStr, graph& g)
-{
-  seen[blk]=true;
-	
-  std::string graphBlkNo = std::to_string((long long)g.basicBlockNoMap[blk->blockNo()]);
-  pathStr+=graphBlkNo+"->";
-	
-  path.push_back(blk);
-	
-  std::vector<BPatch_basicBlock*> targets;
-  blk->getTargets(targets);
-  for(unsigned int t=0;t<targets.size();t++) {
-    if (seen.count(targets[t])==0) {
-      traverseCFG(targets[t],seen,paths,path,pathStr,g);
-    }
-  }
-  if (g.exit==g.basicBlockNoMap[blk->blockNo()]) {
-    paths[pathStr]=path;
-  }
-}

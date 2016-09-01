@@ -35,7 +35,6 @@
 // 
 //***************************************************************************
 
-using namespace std;
 #include "BPatch.h"
 #include "BPatch_object.h"
 #include "BPatch_addressSpace.h"
@@ -46,17 +45,23 @@ using namespace std;
 #include "BPatch_flowGraph.h"
 #include "BPatch_statement.h"
 
-using namespace Dyninst;
 #include "Function.h"
 #include "Instruction.h"
 #include "InstructionDecoder.h"
 #include "InstructionSource.h"
 #include "slicing.h"
 
-
+using namespace Dyninst;
 using namespace InstructionAPI;
 using namespace DataflowAPI;
+using namespace ParseAPI;
+using namespace PatchAPI;
 
+
+//***************************************************************************
+
+#include "load_module.h"
+#include "routine.h"
 #include "CodeObject.h"
 #include "CFG.h"
 #include "Graph.h"
@@ -64,6 +69,9 @@ using namespace DataflowAPI;
 #include "SymEval.h"
 #include "DynAST.h"
 
+using namespace MIAMI;
+
+//***************************************************************************
 
 // Copied directly from DyninstHelper.h
 struct graph{
@@ -85,11 +93,20 @@ struct graph{
 };
 
 
-using namespace MIAMI;
+//***************************************************************************
+// 
+//***************************************************************************
+
+MIAMI::LoadModule* create_loadModule(int count, std::string file_name, uint32_t hashKey);
+int get_routine_number();
 
 
 //***************************************************************************
-// 
+
+MIAMI::Routine* create_routine(MIAMI::LoadModule* lm, int i);
+
+std::vector<unsigned long> get_instructions_address_from_block(MIAMI::CFG::Node *b);
+
 //***************************************************************************
 
 void isaXlate_init(const char* prog_name);
@@ -101,6 +118,3 @@ int isaXlate_insn(std::string func_name, unsigned long  pc, MIAMI::DecodedInstru
 // 
 //***************************************************************************
 
-void startCFG(BPatch_function* function,std::map<std::string,std::vector<BPatch_basicBlock*> >& paths,graph& g);
-
-void traverseCFG(BPatch_basicBlock* blk,std::map<BPatch_basicBlock *,bool> seen, std::map<std::string,std::vector<BPatch_basicBlock*> >& paths, std::vector<BPatch_basicBlock*> path, string pathStr, graph& g);
