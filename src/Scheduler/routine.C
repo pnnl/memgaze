@@ -1462,20 +1462,21 @@ void
 Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *b, int64_t count,
       AddrIntSet& memRefs, RefIClassMap& refsClass)
 {
-   //LoadModule *lm = InLoadModule();
-   //addrtype reloc = lm->RelocationOffset();
+   LoadModule *lm = InLoadModule();
+   addrtype reloc = lm->RelocationOffset();
    // iterate over variable length instructions. Define an architecture independent API
    // for common instruction decoding tasks. That API can be implemented differently for
    // each architecture type
    ICIMap& scopeImix = pscope->getInstructionMixInfo();
-   //CFG::ForwardInstructionIterator iit(b);
+   //CFG::ForwardInstructionIterator iit(b); // FIXME:tallent: causes a SEGV, probably b/c create_routine() does not compute CFG correctly
    unsigned long pc = b->getStartAddress();
    while (pc < b->getEndAddress())
    {
       MIAMI::DecodedInstruction* dInst = new MIAMI::DecodedInstruction();
 
+      // FIXME:tallent pass the actual basic block as context
       int len = isaXlate_insn(name, pc, dInst);
-      if (!len || (dInst->no_dyn_translation && !dInst->micro_ops.size())) {
+      if (dInst->no_dyn_translation || len == 0 || dInst->micro_ops.size() == 0) {
          std::cout << "routine: no dyninst translation\n";
          return;
       }

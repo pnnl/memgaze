@@ -36,7 +36,6 @@ typedef std::list<instruction_info> InstrList;
 //***************************************************************************
 
 // FIXME: tallent: static data. Should be part of LoadModule
-
 static Dyninst::ParseAPI::SymtabCodeSource* lm_codeSource;
 static BPatch_image* lm_image;
 static std::vector<BPatch_function*>* lm_functions;
@@ -45,17 +44,12 @@ static std::map<int, std::set<BPatch_basicBlock*>> lm_func2blockMap;
 // FIXME: tallent: static data. Should be part of Routine... or not...
 static std::vector<BPatch_basicBlock*> func_blockVec;
 
-static int last_used_function = 0;
-
 // FIXME: tallent: static data. Should be part of translation context
 static Dyninst::ParseAPI::Block* insn_myBlock;
-//static unsigned long insn_myBlockStartAddr = 0;
-//static unsigned long insn_myBlockEndAddr = 0;
 static int insn_numAssignments = 0;
-
-static std::vector<Absloc> locVec;
-static std::vector<RoseAST::Ptr> opVec;
-static int jump_val = 0;
+static std::vector<Absloc> insn_locVec;
+static std::vector<RoseAST::Ptr> insn_opVec;
+static int insn_jump_tgt = 0;
 
 
 //***************************************************************************
@@ -151,17 +145,18 @@ MIAMI::Routine* create_routine(MIAMI::LoadModule* lm, int i)
   std::string func_name = func->getName();
 
   Dyninst::Address _start, _end;
-  if(!(func->getAddressRange(_start, _end))) {
+  if (!(func->getAddressRange(_start, _end))) {
     assert("create_routine: Address not available!");
   }
 
   Routine * rout = new Routine(lm, _start, _end - _start, func_name, _start/*offset*/, lm->RelocationOffset());
-  MIAMI::CFG* g = rout->ControlFlowGraph();
-  if (g == NULL) 
-      g = new CFG(rout, func_name);
 
-   dyninst_build_CFG(g, func_name);
-   return rout;
+  MIAMI::CFG* cfg = rout->ControlFlowGraph();
+  assert(cfg);
+  
+  dyninst_build_CFG(cfg, func_name); // FIXME:tallent: something is broken?
+  
+  return rout;
 }
 
 
@@ -196,7 +191,6 @@ int dyninst_build_CFG(MIAMI::CFG* cfg, std::string func_name)
     }
   }
   return 1;
-  
 }
 
 
@@ -353,9 +347,9 @@ void traverseCFG(BPatch_basicBlock* blk, std::map<BPatch_basicBlock *,bool> seen
 // Initialize all the blocks for all the functions for a given module.
 void isaXlate_init(const char* progName)
 {
+#if 0 // FIXME:tallent
   std::cout << "binary: " << progName << endl;
 
-#if 0 // FIXME:tallent
   lm_codeSource = new Dyninst::ParseAPI::SymtabCodeSource((char*)progName);
 
   BPatch bpatch;
@@ -380,7 +374,7 @@ void isaXlate_init(const char* progName)
 // return the length of the translated instruction to increment the pc.
 int isaXlate_insn(std::string func_name, unsigned long pc, MIAMI::DecodedInstruction* dInst)
 {
-  int f = isaXlate_getFunction(pc);
+  int f = isaXlate_getFunction(pc); // FIXME: use (Routine*)->[blocks] map
   insn_myBlock = isaXlate_getBlock(f, pc);
   
   if (insn_myBlock) {
@@ -425,6 +419,8 @@ int isaXlate_insn(std::string func_name, unsigned long pc, MIAMI::DecodedInstruc
 // |blocks| * |insn-in-block|).  Should grab function and block only
 // as necessary.
 
+static int last_used_function = 0; // FIXME
+
 // Get the corresponding function according to pc.
 int isaXlate_getFunction(unsigned long pc)
 {
@@ -432,11 +428,13 @@ int isaXlate_getFunction(unsigned long pc)
 	
   for (unsigned int i = 0; i < lm_functions->size(); ++i) {
     (*lm_functions)[i]->getAddressRange(start, end);
-    if (pc >= start && pc < end) {
+    if (start <= pc && pc < end) {
       return i;  
     }
   }
 
+  assert(false); // FIXME
+  
   // no demangled name match, check again using function's base address
   for (unsigned int i = 0; i < lm_functions->size(); ++i) {
     if ((unsigned long) (*lm_functions)[i]->getBaseAddr() == pc) {
@@ -459,40 +457,20 @@ int isaXlate_getFunction(unsigned long pc)
 // Get the Block for a given PC with function index f.
 Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc)
 {
-  std::map<std::string,std::vector<uint8_t> > pathInstructionsMap;
-  std::map<std::string,std::vector<BPatch_basicBlock*> > paths;
-  BPatch_function* func = (*lm_functions)[f];
+  std::set<BPatch_basicBlock*>& blkSet = lm_func2blockMap[f];
   
-  Dyninst::Address _start, _end;
-  func->getAddressRange(_start, _end);
-  
-  if (func != 0) {
-    BPatch_basicBlock* bb;
-    std::set<BPatch_basicBlock*> blks = lm_func2blockMap[f]; // get the set of blocks from the global map
-    
-    for (auto bit = blks.begin(); bit != blks.end(); bit++) {
-      bb = *bit;
-      if (bb->getStartAddress() <= pc && pc < bb->getEndAddress()) { // end address pass the last insn
-	insn_myBlock = Dyninst::ParseAPI::convert(bb);
-	//insn_myBlockStartAddr = (unsigned long) bb->getStartAddress();
-        //insn_myBlockEndAddr = (unsigned long) bb->getEndAddress();
-
-        if (NULL != insn_myBlock){
-          //unsigned long * bpc = (unsigned long *) lm_codeSource->getPtrToInstruction(insn_myBlock->start());
-        }
-	else {
-          assert("Cannot find the function block\n");
-	}
-
-        return insn_myBlock;
+  for (auto bit = blkSet.begin(); bit != blkSet.end(); bit++) {
+    BPatch_basicBlock* bb = *bit;
+    if (bb->getStartAddress() <= pc && pc < bb->getEndAddress()) { // end address pass the last insn
+      insn_myBlock = Dyninst::ParseAPI::convert(bb);
+      if (NULL == insn_myBlock) {
+	assert("Cannot find the function block\n");
       }
+      
+      return insn_myBlock;
     }
-    
   }
-  else {
-    assert("Cannot find function\n");
-  }
-	
+  
   return NULL;
 }
 
@@ -631,7 +609,8 @@ void dynXlate_insn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vector<A
         break;
     }
   }
-  locVec.clear();
+
+  insn_locVec.clear();
   
   return;
 }
@@ -873,7 +852,7 @@ void traverse_rose(AST::Ptr ast){
   if (ast->getID() == AST::V_RoseAST)
   {
     RoseAST::Ptr ast_r = RoseAST::convert(ast);
-    opVec.push_back(ast_r);
+    insn_opVec.push_back(ast_r);
     for (unsigned int i = 0; i < ast->numChildren(); ++i)
     {
       if (ast->child(i)->getID() == AST::V_RoseAST)
@@ -957,13 +936,13 @@ ExecUnitType get_execution_type(Dyninst::InstructionAPI::Instruction::Ptr insn){
 // Return register index relative to registers in the instruction.
 unsigned int get_register_index(Absloc a){
   
-  for (unsigned int i = 0; i < locVec.size(); ++i) {
-    if (locVec.at(i).format().compare(a.format()) == 0){
+  for (unsigned int i = 0; i < insn_locVec.size(); ++i) {
+    if (insn_locVec.at(i).format().compare(a.format()) == 0){
       return i;
     }
   }
-  locVec.push_back(a);
-  return locVec.size() - 1;
+  insn_locVec.push_back(a);
+  return insn_locVec.size() - 1;
 }
 
 
@@ -1233,14 +1212,14 @@ void create_load_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI
 // Get the right operator from the AST (if exists) of an assignment. Stack all the operators in a vector and 
 // choosing the operator according to certain rules.
 void get_operator(instruction_info* uop, AST::Ptr ast, Assignment::Ptr aptr, Dyninst::InstructionAPI::Instruction::Ptr insn, MIAMI::DecodedInstruction* dInst){
-  opVec.clear();
+  insn_opVec.clear();
   //if (uop->type != IB_unknown) return;
 
   traverse_rose(ast);
-  if (opVec.size() == 0) 
+  if (insn_opVec.size() == 0) 
     return;
 
-  for (auto it = opVec.begin(); it != opVec.end(); it++) {
+  for (auto it = insn_opVec.begin(); it != insn_opVec.end(); it++) {
     ROSEOperation::Op op = (*it)->val().op;
 
     if (op == ROSEOperation::ifOp) {
@@ -1601,7 +1580,7 @@ void parse_assign(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, instru
           if (uop->type == IB_unknown) {
             uop->type = IB_load; // Simply a load uop, different from the above, which creates a new load uop.
             uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_MEMORY, 0);
-            locVec.push_back(aloc);
+            insn_locVec.push_back(aloc);
             if (i == inputs.size() - 1) { // If the last field is memory, we use default program counter to represent it.
                MachRegister pc = Absloc::makePC(insn_myBlock->obj()->cs()->getArch()).reg();
                append_src_regs(uop, OperandType_MEMORY, insn, pc, pc.size());
@@ -1654,7 +1633,7 @@ void get_dest_field(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, inst
     uop->dest_opd[uop->num_dest_operands++] = make_operand(OperandType_MEMORY, 0); // index for memory FIXME
     uop->type = IB_store;
   }
-  locVec.push_back(out_aloc);
+  insn_locVec.push_back(out_aloc);
 
 
 }
@@ -1766,7 +1745,7 @@ void dynXlate_divide(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::P
         uop->src_opd[uop->num_src_operands] = make_operand(OperandType_REGISTER, uop->num_src_operands);
 	uop->num_src_operands++;
         append_src_regs(uop, OperandType_REGISTER, insn, mr, mr.size() * 8);
-        locVec.push_back(aptr->inputs().at(i).absloc());
+        insn_locVec.push_back(aptr->inputs().at(i).absloc());
         if (!uop->width)
           uop->width = mr.size() * 8;
       }
@@ -1938,8 +1917,8 @@ void dynXlate_jump_ast(MIAMI::DecodedInstruction* dInst, instruction_info* uop, 
         uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_REGISTER, idx);
 
         int size = 0;
-        if (opVec.size() && opVec.back()->val().op == ROSEOperation::extractOp)
-          size = opVec.back()->val().size; // don't need to time it by 8, its already in bit
+        if (insn_opVec.size() && insn_opVec.back()->val().op == ROSEOperation::extractOp)
+          size = insn_opVec.back()->val().size; // don't need to time it by 8, its already in bit
         else 
           size = ast_v->val().reg.absloc().reg().size() * 8;
           append_src_regs(uop, OperandType_REGISTER, insn, ast_v->val().reg.absloc().reg(), size);
@@ -1964,12 +1943,12 @@ void calculate_jump_val(AST::Ptr ast)
       for (unsigned int i = 0; i < ast->numChildren(); ++i) {
         if (ast->child(i)->getID() == AST::V_ConstantAST) {
           ConstantAST::Ptr ast_c = ConstantAST::convert(ast->child(i));
-          jump_val += ast_c->val().val;
+          insn_jump_tgt += ast_c->val().val;
 	  
         }
 	else if (ast->child(i)->getID() == AST::V_VariableAST){
           VariableAST::Ptr ast_v = VariableAST::convert(ast->child(i));
-          jump_val += ast_v->val().addr; // CHECK --> not all variables are rip
+          insn_jump_tgt += ast_v->val().addr; // CHECK --> not all variables are rip
 
         }
 	else {
@@ -2015,12 +1994,12 @@ void dynXlate_jump(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr
     calculate_jump_val(astPair.first);
   }
   
-  if (jump_val) { // If the AST gives the constant operand
-    jump_val = jump_val - dInst->len;
+  if (insn_jump_tgt) { // If the AST gives the constant operand
+    insn_jump_tgt = insn_jump_tgt - dInst->len;
     uop->imm_values[uop->num_imm_values].is_signed = (uop->width == 64) ? true : false; //FIXME
-    uop->imm_values[uop->num_imm_values].value.s = jump_val;
+    uop->imm_values[uop->num_imm_values].value.s = insn_jump_tgt;
     uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_IMMED, uop->num_imm_values++); 
-    jump_val = 0;  
+    insn_jump_tgt = 0;  
   }
 
   Absloc out_aloc = assignments.at(0)->out().absloc();
@@ -2069,11 +2048,11 @@ void dynXlate_call(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr
 	create_jump_micro(dInst, 0, insn, assignments.at(0), true);
       }
       else { // no load operation
-	jump_val = dInst->len;
-	create_jump_micro(dInst, jump_val, insn, assignments.at(0), false);
+	insn_jump_tgt = dInst->len;
+	create_jump_micro(dInst, insn_jump_tgt, insn, assignments.at(0), false);
       }
 
-      jump_val = 0; // this is static
+      insn_jump_tgt = 0; // this is static
       break;
       
     }
@@ -2094,7 +2073,7 @@ void dynXlate_compare(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::
     Absloc aloc = inputs.at(i).absloc();
     if (aloc.type() == Absloc::Stack || aloc.type() == Absloc::Heap || aloc.type() == Absloc::Unknown) {
       create_load_micro(dInst, insn, assign, 0); // Create load uop if we have mem as input field.
-      locVec.push_back(aloc);
+      insn_locVec.push_back(aloc);
     }
   }
 
@@ -2316,7 +2295,7 @@ void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
                                    // since AST does not contain information of memory field, but we need
                                    // to create another load uop. 
           create_load_micro(dInst, insn, aptr, 0);
-          locVec.push_back(aptr->inputs().at(i).absloc());
+          insn_locVec.push_back(aptr->inputs().at(i).absloc());
 
           // Change the REGISTER operand by INTERNAL operand since we have another load uop. 
           // Not the best practice to change the last element of source operands like the
@@ -2378,7 +2357,7 @@ void dynXlate_insnectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
       aloc = aptr->inputs().at(i).absloc();
       if (aloc.type() == Absloc::Stack || aloc.type() == Absloc::Heap || aloc.type() == Absloc::Unknown) {
         uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_MEMORY, 0);  // Does the index matter in the case of mem?
-        locVec.push_back(aloc);
+        insn_locVec.push_back(aloc);
 
         // building the source register information with the right register to represent it
         if (i != 0) { // The memory field is not is first input field. We choose the register field before it to represent mem field.
@@ -2436,7 +2415,7 @@ void dynXlate_insnectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
         uop->imm_values[uop->num_imm_values].value.s = ast_c->val().val; 
         // std::cout << "inside dynXlate_insnectAST, constant value is " << ast_c->val().val;
         uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_IMMED, uop->num_imm_values++); // no need to find dependency of immediates
-        locVec.push_back(Absloc());
+        insn_locVec.push_back(Absloc());
       }
       return;
     }
@@ -2494,7 +2473,7 @@ void dynXlate_insnectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
             aloc = aptr->inputs().at(i).absloc();
             if (aloc.type() == Absloc::Stack || aloc.type() == Absloc::Heap || aloc.type() == Absloc::Unknown) {
               uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_MEMORY, 0);  // !!!!!!!!!!!!!!!!!
-              locVec.push_back(aloc);
+              insn_locVec.push_back(aloc);
 
               // Building the source register information.
               if (i != 0) {
@@ -2518,8 +2497,8 @@ void dynXlate_insnectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
           // building the source register information
           int size = 0;
           // 'extract' part of the value. eg: 32 from 64 or 16 from 64.
-          if (opVec.size() && opVec.back()->val().op == ROSEOperation::extractOp) 
-            size = opVec.back()->val().size;
+          if (insn_opVec.size() && insn_opVec.back()->val().op == ROSEOperation::extractOp) 
+            size = insn_opVec.back()->val().size;
           else 
             size = ast_var->val().reg.absloc().reg().size();
 
