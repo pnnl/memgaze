@@ -821,7 +821,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
    /* compute BB ad edge frequencies */
    if (mo->do_cfgcounts)
    {
-      std::cout << "Routine::main_analysis:cfg counts\n";
+      std::cout << "Routine::main_analysis():cfg-counts\n";
       ires = cfg->computeBBAndEdgeCounts();
       if (ires < 0)
       {
@@ -947,7 +947,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
 #if 0  // begin palm-skip1
    if (mo->do_scopetree)
    {
-      std::cout << "Routine::main_analysis:scopetree\n";
+      std::cout << "Routine::main_analysis():scopetree\n";
       // call mark_loop_back_edges after computing the tarjan intervals
       CFG::AddrEdgeMMap *entryEdges = new CFG::AddrEdgeMMap ();
       CFG::AddrEdgeMMap *callEntryEdges = new CFG::AddrEdgeMMap ();
@@ -1090,7 +1090,6 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
       // some other type of static analysis: instruction mix, stream reuse bining ...
       if (mo->do_idecode || mo->do_streams || mo->do_ref_scope_index)
       {
-	 std::cout << "Routine::main_analysis:no-scopetree:decoding\n";
          AddrIntSet scopeMemRefs;
          
          // Get an index for this "scope" first
@@ -1112,6 +1111,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
                                      // I need to pass an appropriate parameter
             CFG::Node *b = (CFG::Node*)nnit;
             if (b->Size()>0 && (b->ExecCount()>0 || mo->do_ref_scope_index)) {
+	       std::cout << "Routine::main_analysis():no-scopetree:decoding-blk(" << (void*)b->getStartAddress() << ")\n";
                compute_lineinfo_for_block_dyninst(InLoadModule(), prog, b);
 	       //cout << "lineMappings: " << prog->GetLineMappings().size();
                //cout << "ExecCount: " << b->ExecCount() << "\n";
