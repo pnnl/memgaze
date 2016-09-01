@@ -40,20 +40,18 @@ typedef std::list<instruction_info> InstrList;
 static Dyninst::ParseAPI::SymtabCodeSource* lm_codeSource;
 static BPatch_image* lm_image;
 static std::vector<BPatch_function*>* lm_functions;
+static std::map<int, std::set<BPatch_basicBlock*>> lm_func2blockMap;
 
-// FIXME: tallent: static data. Should be of Routine
-static std::vector<BPatch_basicBlock*> blockVector;
-static std::map<int, BPatch_basicBlock*> blockMap;
+// FIXME: tallent: static data. Should be part of Routine... or not...
+static std::vector<BPatch_basicBlock*> func_blockVec;
 
-static std::map<int, std::set<BPatch_basicBlock*>> funcBlocks;
-
-//static std::vector<BPatch_function*> functions;
 static int last_used_function = 0;
 
-static Dyninst::ParseAPI::Block* pblk;
-static unsigned long startAddr = 0;
-static unsigned long endAddr = 0;
-static int num_of_assignments = 0;
+// FIXME: tallent: static data. Should be part of translation context
+static Dyninst::ParseAPI::Block* insn_myBlock;
+//static unsigned long insn_myBlockStartAddr = 0;
+//static unsigned long insn_myBlockEndAddr = 0;
+static int insn_numAssignments = 0;
 
 static std::vector<Absloc> locVec;
 static std::vector<RoseAST::Ptr> opVec;
@@ -97,6 +95,13 @@ MIAMI::LoadModule* create_loadModule(int count, std::string file_name, uint32_t 
   //unsigned long low_offset = get_low_offset(&objs, file_name);
 
   lm_functions = lm_image->getProcedures(true);
+
+  for (unsigned int i = 0; i < lm_functions->size(); ++i) {
+    BPatch_flowGraph *fg = (*lm_functions)[i]->getCFG();
+    std::set<BPatch_basicBlock*> blks;
+    fg->getAllBasicBlocks(blks);
+    lm_func2blockMap[i] = blks;
+  }
   
   LoadModule *lm = new LoadModule (count /*id*/, start_addr, lm_codeSource->loadAddress()/*low_offset*/, file_name, hashKey);
   return lm;
@@ -136,7 +141,8 @@ unsigned long get_low_offset(std::vector<BPatch_object*> * objs, std::string fil
 //***************************************************************************
 
 int dyninst_build_CFG(MIAMI::CFG* cfg, std::string func_name);
-void traverse_cfg(MIAMI::CFG* cfg, BPatch_basicBlock* bb, CFG::Node* nn);
+void traverse_cfg(MIAMI::CFG* cfg, BPatch_basicBlock* bb, CFG::Node* nn,
+		  std::map<int, BPatch_basicBlock*>& blockMap);
 
 
 MIAMI::Routine* create_routine(MIAMI::LoadModule* lm, int i)
@@ -155,7 +161,6 @@ MIAMI::Routine* create_routine(MIAMI::LoadModule* lm, int i)
       g = new CFG(rout, func_name);
 
    dyninst_build_CFG(g, func_name);
-   blockMap.clear();
    return rout;
 }
 
@@ -163,7 +168,8 @@ MIAMI::Routine* create_routine(MIAMI::LoadModule* lm, int i)
 int dyninst_build_CFG(MIAMI::CFG* cfg, std::string func_name)
 {
   if (!lm_functions->size()) return 0;
-    
+
+  // FIXME: tallent: this searches all routine
   for (unsigned int i = 0; i < lm_functions->size(); ++i)
   {
     if (lm_functions->at(i)->getName().compare(func_name))
@@ -175,11 +181,13 @@ int dyninst_build_CFG(MIAMI::CFG* cfg, std::string func_name)
 
       if (entries.size())
         cfg->setCfgFlags(CFG_HAS_ENTRY_POINTS);
+
+      std::map<int, BPatch_basicBlock*> blockMap;
       
       for (unsigned int i = 0; i < entries.size(); ++i)
       {
         CFG::Node* nn = new CFG::Node(cfg, entries.at(i)->getStartAddress(), entries.at(i)->getEndAddress(), MIAMI::PrivateCFG::MIAMI_CODE_BLOCK);
-        traverse_cfg(cfg, entries.at(i), nn);
+        traverse_cfg(cfg, entries.at(i), nn, blockMap);
       }
       cfg->computeTopNodes();
       cfg->removeCfgFlags(CFG_GRAPH_IS_MODIFIED);
@@ -194,9 +202,10 @@ int dyninst_build_CFG(MIAMI::CFG* cfg, std::string func_name)
 // Should make special cases for repeatition block and call surrogate block like MIAMI
 // does, or should I directly translating Dyninst block into MIAMI block.
 
-void traverse_cfg(MIAMI::CFG* cfg, BPatch_basicBlock* bb, CFG::Node* nn)
+void traverse_cfg(MIAMI::CFG* cfg, BPatch_basicBlock* bb, CFG::Node* nn,
+		  std::map<int, BPatch_basicBlock*>& blockMap)
 {
-  blockVector.push_back(bb);
+  func_blockVec.push_back(bb);
 
   if (NULL == blockMap[bb->getBlockNumber()])
   {
@@ -224,7 +233,7 @@ void traverse_cfg(MIAMI::CFG* cfg, BPatch_basicBlock* bb, CFG::Node* nn)
       CFG::CFG::Node* newNode = new CFG::Node(cfg, targets.at(i)->getStartAddress(), targets.at(i)->getEndAddress(), MIAMI::PrivateCFG::MIAMI_CODE_BLOCK);
       CFG::Edge* newEdge = new CFG::Edge(nn, newNode, MIAMI::PrivateCFG::MIAMI_CFG_EDGE);
       cfg->add(newEdge);        
-      traverse_cfg(cfg, targets.at(i), newNode);
+      traverse_cfg(cfg, targets.at(i), newNode, blockMap);
     }  
     
     if (!targets.size()) //sink
@@ -244,20 +253,20 @@ std::vector<unsigned long> get_instructions_address_from_block(MIAMI::CFG::Node 
   unsigned long start, end, cur;
   start = b->getStartAddress();
   end = b->getEndAddress();
-  if (!blockVector.size())
+  if (!func_blockVec.size())
   {
     assert("No blocks available.\n");
   }
   unsigned int i;
-  for (i = 0; i < blockVector.size(); ++i)
+  for (i = 0; i < func_blockVec.size(); ++i)
   {
-    if (blockVector.at(i)->getStartAddress() <= start && blockVector.at(i)->getEndAddress() > start)
+    if (func_blockVec.at(i)->getStartAddress() <= start && func_blockVec.at(i)->getEndAddress() > start)
     {
       break;
     }
   }
 
-  BPatch_basicBlock* bb = blockVector.at(i);
+  BPatch_basicBlock* bb = func_blockVec.at(i);
   std::vector<Dyninst::InstructionAPI::Instruction::Ptr> insns;
   bb->getInstructions(insns);
   cur = start;
@@ -354,13 +363,15 @@ void isaXlate_init(const char* progName)
   BPatch_image *lm_image = app->getImage();
   lm_functions = *(lm_image->getProcedures(true));
 #endif
-  
+
+#if 0 // FIXME:tallent: for one routine this computes the CFG for *all* routines
   for (unsigned int i = 0; i < lm_functions->size(); ++i) {
     BPatch_flowGraph *fg = (*lm_functions)[i]->getCFG();
     std::set<BPatch_basicBlock*> blks;
     fg->getAllBasicBlocks(blks);
-    funcBlocks[i] = blks;
+    lm_func2blockMap[i] = blks;
   }
+#endif  
 }
 
 
@@ -369,9 +380,9 @@ void isaXlate_init(const char* progName)
 int isaXlate_insn(std::string func_name, unsigned long pc, MIAMI::DecodedInstruction* dInst)
 {
   int f = isaXlate_getFunction(pc);
-  pblk = isaXlate_getBlock(f, pc);
+  insn_myBlock = isaXlate_getBlock(f, pc);
   
-  if (pblk) {
+  if (insn_myBlock) {
     Dyninst::InstructionAPI::Instruction::Ptr insn;
     std::vector<Assignment::Ptr> assignments;
     isaXlate_getDyninstInsn(pc, (*lm_functions)[f], &assignments, &insn);
@@ -381,7 +392,7 @@ int isaXlate_insn(std::string func_name, unsigned long pc, MIAMI::DecodedInstruc
       return 0;
     }
 
-    num_of_assignments = assignments.size();
+    insn_numAssignments = assignments.size();
 
     std::cout << "**********************************************************\n"
 	      << "isaXlate_insn(" << (*lm_functions)[f]->getDemangledName() << ")\n";
@@ -456,23 +467,23 @@ Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc)
   
   if (func != 0) {
     BPatch_basicBlock* bb;
-    std::set<BPatch_basicBlock*> blks = funcBlocks[f]; // get the set of blocks from the global map
+    std::set<BPatch_basicBlock*> blks = lm_func2blockMap[f]; // get the set of blocks from the global map
     
     for (auto bit = blks.begin(); bit != blks.end(); bit++) {
       bb = *bit;
       if (bb->getStartAddress() <= pc && pc < bb->getEndAddress()) { // end address pass the last insn
-	pblk = Dyninst::ParseAPI::convert(bb);
-	startAddr = (unsigned long) bb->getStartAddress();
-        endAddr = (unsigned long) bb->getEndAddress();
+	insn_myBlock = Dyninst::ParseAPI::convert(bb);
+	//insn_myBlockStartAddr = (unsigned long) bb->getStartAddress();
+        //insn_myBlockEndAddr = (unsigned long) bb->getEndAddress();
 
-        if (NULL != pblk){
-          //unsigned long * bpc = (unsigned long *) lm_codeSource->getPtrToInstruction(pblk->start());
+        if (NULL != insn_myBlock){
+          //unsigned long * bpc = (unsigned long *) lm_codeSource->getPtrToInstruction(insn_myBlock->start());
         }
 	else {
           assert("Cannot find the function block\n");
 	}
 
-        return pblk;
+        return insn_myBlock;
       }
     }
     
@@ -488,9 +499,9 @@ Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc)
 // Get all the assignments 'logical instruction' of a given instruction.
 void isaXlate_getDyninstInsn(addrtype pc, BPatch_function *f, std::vector<Assignment::Ptr> * assignments, Dyninst::InstructionAPI::Instruction::Ptr* insn)
 {
-  assert(NULL != pblk);
+  assert(NULL != insn_myBlock);
 
-  Architecture arch = pblk->obj()->cs()->getArch();
+  Architecture arch = insn_myBlock->obj()->cs()->getArch();
 
   ParseAPI::Function* func = ParseAPI::convert(f);
 
@@ -498,10 +509,10 @@ void isaXlate_getDyninstInsn(addrtype pc, BPatch_function *f, std::vector<Assign
   // FIXME: tallent: This is O(|instructions in block|).
   // FIXME: tallent: Furthermore, it does not actually decode 'pc'
   
-  void* buf = lm_codeSource->getPtrToInstruction(pblk->start());
-  InstructionDecoder dec(buf, endAddr - startAddr, pblk->obj()->cs()->getArch());
+  void* buf = lm_codeSource->getPtrToInstruction(insn_myBlock->start());
+  InstructionDecoder dec(buf, insn_myBlockEndAddr - insn_myBlockStartAddr, insn_myBlock->obj()->cs()->getArch());
   (*insn) = dec.decode();
-  unsigned long insn_addr = startAddr;
+  unsigned long insn_addr = insn_myBlockStartAddr;
     
   // Decode the given instruction. I might make a mistake here. 
   // The loop might decode all the instructions in the given block.
@@ -515,7 +526,7 @@ void isaXlate_getDyninstInsn(addrtype pc, BPatch_function *f, std::vector<Assign
   AssignmentConverter ac(true);
   
   if (Dyninst::InstructionAPI::Instruction::Ptr() != (*insn))
-    ac.convert((*insn), (uint8_t) insn_addr, func, pblk, *assignments);
+    ac.convert((*insn), (uint8_t) insn_addr, func, insn_myBlock, *assignments);
   else 
     assert("Where is the instruction??\n");
   
@@ -526,7 +537,7 @@ void isaXlate_getDyninstInsn(addrtype pc, BPatch_function *f, std::vector<Assign
   (*insn) = dec.decode();
 
   AssignmentConverter ac(true);
-  ac.convert((*insn), pc, func, pblk, *assignments);
+  ac.convert((*insn), pc, func, insn_myBlock, *assignments);
   
 #endif
 }
@@ -571,8 +582,8 @@ void dynXlate_insn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vector<A
   // Haven't encounter any situations which mach_data is used. Thus, leave it like this for now.
   dInst->mach_data = const_cast<void*>( static_cast<const void*>(insn->ptr()) ); // CHECK
 
-  bool x86 = (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86
-	      || pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64);
+  bool x86 = (insn_myBlock->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86
+	      || insn_myBlock->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64);
   if (x86 && insn->getOperation().getID() == e_leave) {
     dynXlate_leave(dInst, assignments, insn); // x86 leave
   }
@@ -633,7 +644,7 @@ void dynXlate_insn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vector<A
 // Check whether a machine register is flag in x86 or x86_64
 bool check_flags_registers(MachRegister mr)
 {
-  if (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64){
+  if (insn_myBlock->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64){
     if (mr == x86_64::cf 
 	|| mr == x86_64::pf || mr == x86_64::af || mr == x86_64::zf
 	|| mr == x86_64::sf || mr == x86_64::tf || mr == x86_64::df
@@ -642,7 +653,7 @@ bool check_flags_registers(MachRegister mr)
       return true; 
     }
   }
-  else if (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86){
+  else if (insn_myBlock->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86){
     if (mr == x86::cf || mr == x86::pf || mr == x86::af || mr == x86::zf
         || mr == x86::sf || mr == x86::tf || mr == x86::df || mr == x86::of
         || mr == x86::nt_ || mr == x86::if_ || mr == x86::flags) {
@@ -874,13 +885,13 @@ void traverse_rose(AST::Ptr ast){
 
 // If x86 or x86_64, return the representation of all the flags.
 MachRegister get_machine_flag_reg(){
-  if (NULL == pblk)
+  if (NULL == insn_myBlock)
     return Dyninst::MachRegister();
   
-  if (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64)
+  if (insn_myBlock->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64)
     return x86_64::flags;  
 
-  else if (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86)
+  else if (insn_myBlock->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86)
     return x86::flags; 
 
   else 
@@ -891,12 +902,12 @@ MachRegister get_machine_flag_reg(){
 
 // For x86 or x86_64, check whether a register is zf flag register.
 bool check_is_zf(MachRegister mr) {
-  if (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86) 
+  if (insn_myBlock->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86) 
   {
     if (mr == x86::zf)
       return true;
     
-  } else if (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64)
+  } else if (insn_myBlock->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64)
   {
     if (mr == x86_64::zf)
       return true;
@@ -962,12 +973,12 @@ int get_src_reg_lsb(MachRegister mr) {
 
 // Return if a register is a 'stack' register (used for stack)
 int check_stack_register(MachRegister mr) {
-  if (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64)
+  if (insn_myBlock->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64)
   { 
     if ((x86_64::st0 <= mr && mr <= x86_64::st7) || mr == x86_64::mm0) {
       return 1;
    } 
-  } else if (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86){
+  } else if (insn_myBlock->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86){
     if (mr == x86::mm0)
     {
       return 1;
@@ -1123,7 +1134,7 @@ void append_all_dest_registers(instruction_info* uop, Dyninst::InstructionAPI::I
               if (aptr->out().absloc().type() == Absloc::Register){
                 append_dest_regs(uop, OperandType_REGISTER, insn, aptr->out().absloc().reg(), uop->width * uop->vec_len); 
               }else {
-                MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
+                MachRegister pc = Absloc::makePC(insn_myBlock->obj()->cs()->getArch()).reg();
                 append_dest_regs(uop, OperandType_REGISTER, insn, pc, pc.size() * 8);  
               }  
             }
@@ -1138,7 +1149,7 @@ void append_all_dest_registers(instruction_info* uop, Dyninst::InstructionAPI::I
                if (aloc.type() == Absloc::Register)
                   append_src_regs(uop, OperandType_MEMORY, insn, aloc.reg(), uop->width * uop->vec_len);  
                else                                         // Find no register field, use default program counter
-                  append_src_regs(uop, OperandType_MEMORY, insn, Absloc::makePC(pblk->obj()->cs()->getArch()).reg(), uop->width * uop->vec_len);
+                  append_src_regs(uop, OperandType_MEMORY, insn, Absloc::makePC(insn_myBlock->obj()->cs()->getArch()).reg(), uop->width * uop->vec_len);
             }
             break;
          }
@@ -1186,7 +1197,7 @@ void create_load_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI
   // load uop's source must be memory field (idx here not important)
   uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_MEMORY, 0); 
 
-  if (num_of_assignments > 1 || dInst->micro_ops.size() > 1) // Store is not the primary operation, then it load into internal
+  if (insn_numAssignments > 1 || dInst->micro_ops.size() > 1) // Store is not the primary operation, then it load into internal
     uop->dest_opd[uop-> num_dest_operands++] = make_operand(OperandType_INTERNAL, idx);  
   else // Load into register
     uop->dest_opd[uop-> num_dest_operands++] = make_operand(OperandType_REGISTER, 0);
@@ -1195,7 +1206,7 @@ void create_load_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI
   // related to the memory field. The xed function related to this is xed_decoded_inst_get_?*?_reg.
   // Usually, chances are the first/second register in the inputs field represents the memory. 
   // If cannot find any not, use the default choice--program counter.
-  MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
+  MachRegister pc = Absloc::makePC(insn_myBlock->obj()->cs()->getArch()).reg();
   if (aptr->inputs().size() && aptr->inputs().at(0).absloc().type() == Absloc::Register) 
   {
      MachRegister mr = aptr->inputs().at(0).absloc().reg();
@@ -1209,7 +1220,7 @@ void create_load_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI
      append_src_regs(uop, OperandType_MEMORY, insn, pc, pc.size() * 8); 
   }
 
-  if (num_of_assignments > 1 || dInst->micro_ops.size() > 1) // Load info into internal
+  if (insn_numAssignments > 1 || dInst->micro_ops.size() > 1) // Load info into internal
     append_dest_regs(uop, OperandType_INTERNAL, insn, Dyninst::MachRegister(), uop->width * uop->vec_len);
   else { 
     // special case,usually with st0 which comes from parse_assign. We will append registers later
@@ -1284,13 +1295,13 @@ int check_vector_regs(Dyninst::InstructionAPI::Instruction::Ptr insn, Assignment
   {
     RegisterAST reg = RegisterAST(aptr->out().absloc().reg());
     MachRegister mr = reg.getID().getBaseRegister();
-    if (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86)
+    if (insn_myBlock->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86)
     {
       if (mr == x86::xmm0 || mr == x86::xmm1 || mr == x86::xmm2 || mr == x86::xmm3 \
       || mr == x86::xmm4 || mr == x86::xmm5 || mr == x86::xmm6 || mr == x86::xmm7)
         return 4;
 
-    } else if (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64)
+    } else if (insn_myBlock->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64)
     {
       if ( mr == x86_64::xmm0 || mr == x86_64::xmm1 || mr == x86_64::xmm2 || mr == x86_64::xmm3 \
       || mr == x86_64::xmm4 || mr == x86_64::xmm5 || mr == x86_64::xmm6 || mr == x86_64::xmm7 ) 
@@ -1333,7 +1344,7 @@ void create_store_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAP
      }
   }
   // If no register information found for the memory field, use default choice PC register --> check if this is the case
-  append_src_regs(uop, OperandType_MEMORY, insn, Absloc::makePC(pblk->obj()->cs()->getArch()).reg(), 64);
+  append_src_regs(uop, OperandType_MEMORY, insn, Absloc::makePC(insn_myBlock->obj()->cs()->getArch()).reg(), 64);
   return;
 
 }
@@ -1379,7 +1390,7 @@ void create_jump_micro(MIAMI::DecodedInstruction* dInst, int jump_val, Dyninst::
     idx = get_register_index(assign->inputs().at(0).absloc()); // use the index of register used in store
   }
 
-  MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
+  MachRegister pc = Absloc::makePC(insn_myBlock->obj()->cs()->getArch()).reg();
   if (mem) { // If we have a load uop, then the source of jump comes from INTERNAL operand.
     uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_INTERNAL, 0);
     append_src_regs(uop, OperandType_INTERNAL, insn, pc, pc.size() * 8);
@@ -1591,7 +1602,7 @@ void parse_assign(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, instru
             uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_MEMORY, 0);
             locVec.push_back(aloc);
             if (i == inputs.size() - 1) { // If the last field is memory, we use default program counter to represent it.
-               MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
+               MachRegister pc = Absloc::makePC(insn_myBlock->obj()->cs()->getArch()).reg();
                append_src_regs(uop, OperandType_MEMORY, insn, pc, pc.size());
 
             } else if (i < inputs.size() - 1) { // If not, the memory is represented by the register field after itself. 
@@ -1685,7 +1696,7 @@ void dynXlate_sysCall(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::
   uop->exec_unit = (uop->vec_len == 1) ? ExecUnit_SCALAR : ExecUnit_VECTOR;
   uop->exec_unit_type = get_execution_type(insn);
 
-  MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
+  MachRegister pc = Absloc::makePC(insn_myBlock->obj()->cs()->getArch()).reg();
   uop->dest_opd[uop->num_dest_operands] = make_operand(OperandType_REGISTER, uop->num_dest_operands);
   uop->num_dest_operands++;
   append_dest_regs(uop, OperandType_REGISTER, insn, pc, pc.size() * 8);
@@ -1777,7 +1788,7 @@ void dynXlate_divide(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::P
   }
 
   // for x86 machines, we clapse all the flag output regions into one: x86::flags or x86_64::flags
-  if (pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86 || pblk->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64)
+  if (insn_myBlock->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86 || insn_myBlock->obj()->cs()->getArch() == Dyninst::Architecture::Arch_x86_64)
   {
     uop->dest_opd[uop->num_dest_operands] = make_operand(OperandType_REGISTER, uop->num_dest_operands);
     uop->num_dest_operands++;
@@ -2374,7 +2385,7 @@ void dynXlate_insnectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
           append_src_regs(uop, OperandType_MEMORY, insn, mr, mr.size() * 8);
         }
 	else { // Using default program counter to represent the memory field.
-          MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
+          MachRegister pc = Absloc::makePC(insn_myBlock->obj()->cs()->getArch()).reg();
           append_src_regs(uop, OperandType_MEMORY, insn, pc, pc.size() * 8); 
         }
         return;
@@ -2490,7 +2501,7 @@ void dynXlate_insnectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
                  append_src_regs(uop, OperandType_MEMORY, insn, mr, mr.size() * 8);
               }
 	      else {
-                 MachRegister pc = Absloc::makePC(pblk->obj()->cs()->getArch()).reg();
+                 MachRegister pc = Absloc::makePC(insn_myBlock->obj()->cs()->getArch()).reg();
                  append_src_regs(uop, OperandType_MEMORY, insn, pc, pc.size() * 8); 
               }
               return;
