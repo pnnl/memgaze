@@ -509,11 +509,9 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
                  << " for reading. Cannot compute its checksum." << endl;
          }
       }
-
-      // FIXME: tallent
+      
       newimg = create_loadModule(loadedImgs, (std::string)iname);
       //newimg = new LoadModule (id, start_addr, low_offset, iname, hashKey);
-      
       ++ loadedImgs;
       
       // read only data for this image.
@@ -524,7 +522,6 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
       
       // if string not empty, dump CFG of this routine
       newimg->analyzeRoutines(fd, prog, mo);
-      std::cout << "MiamiDriver: LoadImage: prog line Mapping is " << prog->GetLineMappings().size() << "\n";
    }
 }
 

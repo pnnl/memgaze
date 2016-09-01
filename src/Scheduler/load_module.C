@@ -201,8 +201,8 @@ LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
    Routine *rout = NULL;
    
    addrtype _offset, _start, _end;
+   size_t _size = 0;
    char *_name = 0;
-   
    // save start/end addresses and name in prefix format (len followed by name)
    res = fread(&_offset, sizeof(addrtype), 1, fd);
    CHECK_COND(res!=1, "reading offset for routine %u", r);
@@ -210,7 +210,7 @@ LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
    CHECK_COND(res!=1, "reading start addr for routine %u", r);
    res = fread(&_end, sizeof(addrtype), 1, fd);
    CHECK_COND(res!=1, "reading end addr for routine %u", r);
-   // size_t _size = _end - _start;
+   _size = _end - _start;
    
    // now read the routine name
    uint32_t len;
@@ -226,7 +226,7 @@ LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
           _name, (void*)_start, (void*)_end, (void*)_offset, (void*)(base_addr+_offset));
    )
 #endif
-   //rout = new Routine(this, _start, _size, string(_name), _offset, reloc_offset);
+   rout = new Routine(this, _start, _size, string(_name), _offset, reloc_offset);
    CHECK_COND(rout==NULL, "allocating object for routine %u", r);
    
 #if DEBUG_CFG_COUNTS
@@ -238,9 +238,7 @@ LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
 #if DEBUG_CFG_COUNTS
    ires = 
 #endif
-   // FIXME: tallent
-   //rout->loadCFGFromFile(fd);
-   // get_dyninst_cfg(rout);
+      rout->loadCFGFromFile(fd);
 #if DEBUG_CFG_COUNTS
    DEBUG_CFG(3,
       fprintf (stderr, "CFG loaded with result %d\n", ires);
@@ -260,7 +258,6 @@ load_error:
 int 
 LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
 {
-   //size_t res;
    int ires;
    ires = fseek(fd, file_offset, SEEK_SET);
    if (ires < 0)  // error
@@ -271,7 +268,7 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
    
    // next get the number of routines
    uint32_t numRoutines = 0;
-   //res = fread(&numRoutines, 4, 1, fd);
+   //size_t res = fread(&numRoutines, 4, 1, fd);
    //if (res!=1 || numRoutines>1024*1024)
       //fprintf(stderr, "ERROR while reading routine count res=%ld, numRoutines=%u\n", 
             //res, numRoutines);
@@ -362,6 +359,7 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
    {
       std::cout << "LoadModule::analyzeRoutines():" << r << "\n";
       Routine *rout = create_routine((LoadModule*)this, r);
+      //Routine *rout = loadOneRoutine(fd, r);
       if (rout == NULL)
       {
          if (mo->do_linemap)
@@ -451,6 +449,8 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
 
    // Set the prog's lineMappings from image's lineMappings
    prog->setLineMappings(img_scope->GetLineMappings());
+
+   std::cout << "LoadModule::analyzeRoutines: line mapping " << prog->GetLineMappings().size() << "\n";
 
    return (0);
 }
