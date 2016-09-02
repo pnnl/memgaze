@@ -23,7 +23,7 @@
 #include "debug_scheduler.h"
 
 #include "instr_info.H"
-#include "instruction_decoding.h"
+#include "instruction-xlate.hpp"
 
 #include "dyninst-insn-xlate.hpp"
 
@@ -44,7 +44,6 @@ static int deleteInstsInMap(void *arg0, addrtype pc, void *value)
 
 #define DECODE_INSTRUCTIONS_IN_PATH 0
 static PathID targetPath(0xe7367c, 37, 2);
-static std::string image_name;
 
 DGBuilder::DGBuilder(const char* func_name, PathID _pathId, 
            int _opt_mem_dep, RFormulasMap& _refAddr, LoadModule *_img,
@@ -61,7 +60,7 @@ DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
           avgNumIters);
    )
 #endif
-   image_name = _img->Name();
+   
    // we do not read this flag right now.
    // Assume we do not have pessimistic memory dependencies.
    pessimistic_memory_dep = 0;
@@ -115,16 +114,14 @@ DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
    // memory dependencies. Write a method that traverses only memory 
    // instructions, along memory dependencies, and removes any trivial deps.
 //   if (avgNumIters > ONE_ITERATION_EPSILON) 
-   std::cout << "DGBuilder 1\n";
    pruneTrivialMemoryDependencies();
-   std::cout << "DGBuilder 2\n";
+   
    finalizeGraphConstruction();
-   std::cout << "DGBuilder 3\n";
+   
    setCfgFlags(CFG_CONSTRUCTED);
-   std::cout << "DGBuilder 4\n";
+   
    // delete the decoded instructions stored in builtNodes
-   //builtNodes.map(deleteInstsInMap, NULL);
-   std::cout << "DGBuilder 5\n";
+   builtNodes.map(deleteInstsInMap, NULL);
 }
 
 
@@ -143,7 +140,7 @@ void
 DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerRegs)
 {
    int i, numLoops = 0;
-   CFG* g;
+   CFG *g = ba[0]->inCfg();
    // try to find a block with a non NULL CFG pointer. Inner loop nodes are special 
    // nodes that are not part of the CFG and they have an uninitialized pointer.
    for (i=1 ; i<numBlocks && g==NULL ; ++i)
@@ -169,8 +166,6 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerR
                inMapper.clear();  // internal registers are valid only across 
                                   // micro-ops part of one native instruction
                build_node_for_instruction(pc, ba[i], fabs(fa[i]));
-            
-               std::cout << "after build_node_for_instruction\n";
                num_instructions += 1;
                if (ba[i]->is_delay_block())
                {
@@ -237,7 +232,6 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerR
       }
    }
 
-   std::cout << "build graph 1\n";
    // compute the top nodes here. Register carried dependencies are not 
    // taken into account anyway
    // add also control dependencies from the lastBranch to the top nodes
@@ -282,7 +276,7 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerR
    // I should disable SWP. This is what most compilers do.
    // if (hasBarrierNodes())
    //    avgNumIters = 1.0;
-   std::cout << "build graph 2\n";
+   
    if (avgNumIters <= ONE_ITERATION_EPSILON)  // no SWP for this path
    {
       if (lastBranch && !lastBranch->isBarrierNode()) // it was not added before
@@ -320,16 +314,13 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerR
          }
          recentBranches.clear();
       }
-      else if (!lastBranch){
-         assert (!"Can we have a path without a lastBranch? Look at this path pal."); //FIXME WHERE TO INSERT THE INNER LOOP?
-      }
-         
+      else if (!lastBranch)
+         assert (!"Can we have a path without a lastBranch? Look at this path pal.");
          // if the assert above ever fails, understand when it can happen and
          // place a inner_loop_entry node there, just to restrict the 
          // scheduling from wrapping around.
    }
-   std::cout << "here 1\n";
-   std::cout << "build graph 3\n";
+   
    // add the loop carried register dependencies; go through all the blocks
    // again. Only if this path was executed multiple times.
    if (avgNumIters > ONE_ITERATION_EPSILON)
@@ -345,7 +336,6 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerR
 
             SchedDG::Node* node = static_cast<SchedDG::Node*>(dInst->micro_ops.front().data);
             assert(node != NULL);
-             std::cout << "build graph 3.5\n";
             handle_inner_loop_register_dependencies (node, innerRegs[numLoops], 0);
             ++ numLoops;
          }
@@ -369,13 +359,10 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerR
                      assert(node != NULL);
                      if (node->is_intrinsic_type ())
                         handle_intrinsic_register_dependencies (node, 0);
-                     else{
-                        std::cout << "build graph 4\n";
+                     else
                         handle_register_dependencies (dInst, *lit, node, ba[i], 0);
-                     }
-                        
                   }
-                  std::cout << "build graph 5\n";
+
                   if (ba[i]->is_delay_block())
                   {
                      prev_inst_may_have_delay_slot = false;
@@ -384,43 +371,12 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerR
 //                     fpRegs = &fpMapper;
                      break;
                   }
-
                   ++ iit;
                }
-               std::cout << "build graph 6\n";
             }
-            std::cout << "build graph 7\n";
       }
    }
 }
-
-//static int function_index = 0;
-/*
-void change_plt_to_inner_loop(CFG::Node* ba, DecodedInstruction* dInst) {
-         int type = IB_inner_loop;  // CFG_LOOP_ENTRY_TYPE;
-         pc = numLoops + 1;
-         //assert(dInst == NULL);
-         //dInst = new MIAMI::DecodedInstruction();
-         dInst->micro_ops.push_back(MIAMI::instruction_info());
-         MIAMI::instruction_info &primary_uop = dInst->micro_ops.back();
-         
-         primary_uop.type = (MIAMI::InstrBin)type;
-         primary_uop.width = 0;
-         primary_uop.vec_len = 1;
-         primary_uop.exec_unit = ExecUnit_SCALAR;
-         primary_uop.exec_unit_type = ExecUnitType_INT;
-         primary_uop.num_src_operands = 0;
-         primary_uop.num_dest_operands = 0;
-
-         SchedDG::Node* node = new Node(this, pc, 0, primary_uop);
-         node->setInOrderIndex(nextUopIndex++);
-         add(node);
-         markBarrierNode (node);
-         primary_uop.data = node;
-         handle_inner_loop_register_dependencies (node, innerRegs[numLoops], 1);
-         handle_control_dependencies (node, type, ba[i], -fa[i]);
-         numLoops += 1;
-}*/
 
 
 int
@@ -429,20 +385,13 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
    MIAMI::DecodedInstruction* &dInst = builtNodes[pc];
    assert(dInst == NULL);
    dInst = new MIAMI::DecodedInstruction();
+   
    CFG* cfg = b->inCfg();
-   const std::string& f_name = cfg->name();
-   std::cout << "function name is " << f_name << endl;
-
-   std::cout << "pc is " << (unsigned long) pc << endl;
-   std::cout << "offset is " << (unsigned long) reloc_offset << endl;
-
-   //int res = InstructionXlate::xlate(pc/*+reloc*/, b->getEndAddress()-pc, &dInst);
-   //int res = decode_instruction_at_pc((void*)(pc+reloc_offset), b->getEndAddress()-pc, dInst);
-   int res = isaXlate_insn(pc/*+reloc_offset*/, dInst);
-   if (res != 0 || dInst->micro_ops.size() == 0) {
-      std::cout << "no_dyn_translation\n";
-      //  change_plt_to_inner_loop(b, dInst);  
-   }
+   std::cout << "DGBuilder::build_node_for_instruction: " << cfg->name() << endl;
+   int res = InstructionXlate::xlate(pc/*+reloc_offset*/, b->getEndAddress()-pc, dInst);
+#if 0
+   res = isaXlate_insn(pc/*+reloc_offset*/, dInst);
+#endif
    
 #if DECODE_INSTRUCTIONS_IN_PATH
    if (!targetPath || targetPath==pathId)
@@ -457,13 +406,13 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
       
    // one native instruction can be decoded into multiple micro-ops
    // iterate over them
-   std::cout << "here\n";
    MIAMI::InstrList::iterator lit = dInst->micro_ops.begin();
    int num_uops = dInst->micro_ops.size();  // number of micro-ops in this instruction
    for (int i=0 ; lit!=dInst->micro_ops.end() ; ++lit, ++i)
    {
       MIAMI::instruction_info& iiobj = (*lit);
       int type = iiobj.type;
+
       // entry value holds information about input and output registers
       // of fortran intrinsics and other short inlinable functions
       EntryValue *entryVal = 0;
@@ -482,13 +431,11 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
          }
       }
 #endif
-#if 1//DEBUG_GRAPH_CONSTRUCTION
+#if DEBUG_GRAPH_CONSTRUCTION
       DEBUG_GRAPH (7,
          fprintf(stderr, " -> process micro-op %d of instruction at 0x%lx of type %s\n",
                i, pc, Convert_InstrBin_to_string((InstrBin)type) );
       )
-      printf(" -> process micro-op %d of instruction at 0x%lx of type %s\n",
-               i, pc, Convert_InstrBin_to_string((InstrBin)type) );
 #endif
       SchedDG::Node* node = new Node(this, pc, i, iiobj);
       if (entryVal)
@@ -503,9 +450,9 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
          markBarrierNode (node);
 
       iiobj.data = node;
+
       if (node->is_memory_reference())
       {
-         std::cout << "inside for loop 5\n";
          int stackAccess = 0;
          // find index of memory operand corresponding to this memory micro-op
          int opidx = -1;
@@ -520,9 +467,7 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
             assert(!"I cannot find memory operand for micro-op!!!");
          }
          node->setMemoryOpIndex(opidx);
-         std::cout << "inside for loop 6\n";
          handle_memory_dependencies (node, pc, opidx, type, stackAccess);
-         std::cout << "inside for loop 7\n";
          
          // store all the PCs corresponding to memory references
          // if needed, differentiate between loads and stores
@@ -530,13 +475,11 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
       }
       if (node->is_intrinsic_type ())
          handle_intrinsic_register_dependencies (node, 1);
-      else{
-         std::cout << "inside for loop 9\n";
+      else
          handle_register_dependencies (dInst, iiobj, node, b, 1);
-      }
-         std::cout << "inside for loop 9.5\n";
+   
       handle_control_dependencies (node, type, b, freq);
-      std::cout << "inside for loop 10\n";
+
 #if DECODE_INSTRUCTIONS_IN_PATH
       if (!targetPath || targetPath==pathId)
       {
@@ -544,7 +487,6 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
          std::cerr << std::endl;
       }
 #endif
-      std::cout << "inside for loop 11\n";
    }
    return (res);
 }
@@ -563,7 +505,6 @@ DGBuilder::handle_control_dependencies (SchedDG::Node *node, int type,
    // if this is a delay slot and I do not have a register dependency from 
    // last branch to this instruction, then this instruction is logically
    // before the branch. Check if this is such a delay slot.
-   std::cout << "Inside handle_control_dependencies\n";
    bool delay_process_later = false;
    if (b->is_delay_block() && lastBranch && 
               b->firstIncoming()->source()==lastBranchBB &&
@@ -710,7 +651,6 @@ DGBuilder::handle_control_dependencies (SchedDG::Node *node, int type,
       prevBranchId = lastBranchId;
       
       lastBranch = node;
-      std::cout << "After lastBranch = node\n";
       lastBranchBB = b;
       lastBranchId = node->getId();
       // the fraction of times the next edge was taken
@@ -2071,10 +2011,8 @@ DGBuilder::handle_register_dependencies(MIAMI::DecodedInstruction *dInst,
    {
       regs = iiobj.src_reg_list;
       MIAMI::RInfoList::iterator rlit = regs.begin();
-
       for ( ; rlit!=regs.end() ; ++rlit)
       {
-  
          // use the register_actual_name to map AL, AH, AX, EAX, RAX 
          // to the same register. Eventually, I will use the actual
          // bit range information from the registers as well.
@@ -2101,7 +2039,6 @@ DGBuilder::handle_register_dependencies(MIAMI::DecodedInstruction *dInst,
             }
          }
       }
-
    }
    
    // separately, I need to iterate over internal operands to create
@@ -2112,7 +2049,6 @@ DGBuilder::handle_register_dependencies(MIAMI::DecodedInstruction *dInst,
    uint8_t i = 0;
    if (firstIteration)
    {
-      std::cout << "here 4\n";
       for (i=0 ; i<iiobj.num_src_operands ; ++i)
       {
          int op_num = extract_op_index(iiobj.src_opd[i]);
@@ -2154,7 +2090,6 @@ DGBuilder::handle_register_dependencies(MIAMI::DecodedInstruction *dInst,
    // fetch all destination registers in the regs list
    if (iiobj.dest_reg_list.size()/*MIAMI::mach_inst_dest_registers(dInst, &iiobj, regs)*/)
    {
-      std::cout << "here 5\n";
       regs = iiobj.dest_reg_list;
       MIAMI::RInfoList::iterator rlit = regs.begin();
       for ( ; rlit!=regs.end() ; ++rlit)
@@ -2190,7 +2125,6 @@ DGBuilder::handle_register_dependencies(MIAMI::DecodedInstruction *dInst,
    // cannot be carried dependencies
    if (firstIteration)
    {
-      std::cout << "here 6\n";
       for (i=0 ; i<iiobj.num_dest_operands ; ++i)
       {
          int op_num = extract_op_index(iiobj.dest_opd[i]);
