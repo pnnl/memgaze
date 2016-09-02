@@ -1113,7 +1113,6 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
             if (b->Size()>0 && (b->ExecCount()>0 || mo->do_ref_scope_index)) {
 	       std::cout << "Routine::main_analysis():no-scopetree:decoding-blk(" << (void*)b->getStartAddress() << ")\n";
                //FIXME:tallent: compute_lineinfo_for_block_dyninst(InLoadModule(), prog, b);
-	       //cout << "lineMappings: " << prog->GetLineMappings().size();
                decode_instructions_for_block(prog, b, b->ExecCount(), scopeMemRefs, refsClass);
             }
             ++ nnit;
@@ -1470,15 +1469,15 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
    // each architecture type
    ICIMap& scopeImix = pscope->getInstructionMixInfo();
    //CFG::ForwardInstructionIterator iit(b); // FIXME:tallent: causes a SEGV, probably b/c create_routine() does not compute CFG correctly
-   unsigned long pc = b->getStartAddress();
+   unsigned long pc = b->getStartAddress(); // relocated
    while (pc < b->getEndAddress())
    {
-      int res = InstructionXlate::xlate_dbg(pc/*+reloc*/, b->getEndAddress()-pc, &dInst);
+      int res = InstructionXlate::xlate_dbg(pc, b->getEndAddress()-pc, &dInst);
       if (res < 0) { // error while decoding
          return;
       }
 
-#if 1
+#if 0
       MIAMI::DecodedInstruction* dInst2 = new MIAMI::DecodedInstruction(); // FIXME:tallent memory leak
       int res1 = isaXlate_insn(pc, dInst2);
       if (res1 != 0 || dInst2->micro_ops.size() == 0) {
@@ -1494,7 +1493,7 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
          MIAMI::instruction_info& iiobj = (*lit);
          InstructionClass iclass;
 
-         if ( 1 /*(mo->do_ibins && count>0)*/ ||
+         if ( (mo->do_ibins && count>0) || 
               (mo->do_ref_scope_index && InstrBinIsMemoryType(iiobj.type))
             )
          {
