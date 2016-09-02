@@ -38,47 +38,62 @@ OperandTypeToString(OperandType o)
 void
 DumpInstrList(const DecodedInstruction *dInst)
 {
-    InstrList::const_iterator lit;
-    int j;
-    cerr << "Instruction of " << dInst->len << " bytes has " 
-         << dInst->micro_ops.size() << " micro-ops:" << endl;
-    for (lit=dInst->micro_ops.begin(), j=0 ; lit!=dInst->micro_ops.end() ; ++lit, ++j) {
-        cerr << j << ")"
-             << " IB:      " << Convert_InstrBin_to_string(lit->type) << endl
-             << "   Width:   " << lit->width << endl
-             << "   Veclen:  " << (int)lit->vec_len << endl
-             << "   ExUnit:  " << ExecUnitToString(lit->exec_unit) << endl
-             << "   ExType:  " << ExecUnitTypeToString(lit->exec_unit_type) << endl
-             << "   Primary: " << (lit->primary?"yes":"no") << endl;
-        
-        cerr << "   SrcOps: " << (int)lit->num_src_operands;
-        for (uint8_t i=0 ; i<lit->num_src_operands ; ++i) {
-            OperandType ot = (OperandType)extract_op_type(lit->src_opd[i]);
-            cerr << "  (" << OperandTypeToString(ot)
-                 << "/" << extract_op_index(lit->src_opd[i]) << ")";
-        }
-        
-        cerr << endl << "   DstOps: " << (int)lit->num_dest_operands;
-        for (uint8_t i=0 ; i<lit->num_dest_operands ; ++i) {
-            OperandType ot = (OperandType)extract_op_type(lit->dest_opd[i]);
-            cerr << "  (" << OperandTypeToString(ot)
-                 << "/" << extract_op_index(lit->dest_opd[i]) << ")";
-        }
+  using std::cerr;
 
-        cerr << endl << "   ImmValues: " << (int)lit->num_imm_values;
-        for (uint8_t i=0 ; i<lit->num_imm_values ; ++i) {
-            cerr << "  (" << (lit->imm_values[i].is_signed?"s":"u") << "/";
-            if (lit->imm_values[i].is_signed)
-               cerr << lit->imm_values[i].value.s << "/" << hex 
-                    << lit->imm_values[i].value.s << dec;
-            else
-               cerr << lit->imm_values[i].value.u << "/" << hex 
-                    << lit->imm_values[i].value.u << dec;
-            cerr << ")";
-        }
+  cerr << "========== MIAMI Instruction "
+       << "(" << std::hex << (void*)dInst->pc << std::dec
+       << "; uops=" << dInst->micro_ops.size()
+       <<  "; bytes=" << dInst->len << ")" << " ==========\n";
+  
+
+  int i = 0;
+  for (auto it = dInst->micro_ops.begin(); it != dInst->micro_ops.end(); ++it, ++i) {
+    cerr << i << ")"
+	 << " Bin, Width, VecLen: "
+	 << Convert_InstrBin_to_string(it->type) << ", "
+	 << it->width << ", "
+	 << (int)it->vec_len
+      	 << (it->primary? " (primary)" : "") << endl;
+    cerr << "   ExUnit, ExType:  " << ExecUnitToString(it->exec_unit) << ", "
+	 << ExecUnitTypeToString(it->exec_unit_type) << endl;
         
-        cerr << dec << endl;
-   }
+    cerr << "   SrcOps(" << (int)it->num_src_operands << ")/Reg: ";
+    for (uint8_t i = 0; i < it->num_src_operands; ++i) {
+      OperandType ot = (OperandType)extract_op_type(it->src_opd[i]);
+      cerr << " (" << OperandTypeToString(ot)
+	   << "/" << extract_op_index(it->src_opd[i]) << ")";
+    }
+
+    for (auto it2 = it->src_reg_list.begin(); it2 != it->src_reg_list.end(); ++it2) {
+      cerr << " [nm,ty: " << it2->name << ", " << RegisterClassToString(it2->type) << "]";
+    }
+    cerr << endl;
+    
+    cerr << "   DstOps(" << (int)it->num_dest_operands << ")/Reg:";
+    for (uint8_t i = 0; i < it->num_dest_operands ; ++i) {
+      OperandType ot = (OperandType)extract_op_type(it->dest_opd[i]);
+      cerr << " (" << OperandTypeToString(ot)
+	   << "/" << extract_op_index(it->dest_opd[i]) << ") ";
+    }
+
+    for (auto it2 = it->dest_reg_list.begin(); it2 != it->dest_reg_list.end(); ++it2) {
+      cerr << " [nm,ty: " << it2->name << ", " << RegisterClassToString(it2->type) << "]";
+    }
+    cerr << endl;
+    
+    cerr << "   Imm(" << (int)it->num_imm_values << ")";
+    for (uint8_t i = 0; i < it->num_imm_values; ++i) {
+      cerr << " (" << (it->imm_values[i].is_signed?"s":"u") << "/";
+      if (it->imm_values[i].is_signed)
+	cerr << it->imm_values[i].value.s << "/"
+	     << hex << it->imm_values[i].value.s << dec;
+      else
+	cerr << it->imm_values[i].value.u << "/"
+	     << hex << it->imm_values[i].value.u << dec;
+      cerr << ")";
+    }
+    cerr << endl;    
+  }
 }
 
     

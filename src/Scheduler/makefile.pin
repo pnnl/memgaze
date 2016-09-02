@@ -44,7 +44,8 @@ COMMON_OBJS = \
   default_values.o xml.o code_scope.o report_time.o source_file_mapping_binutils.o \
   file_utilities.o debug_miami.o loadable_class.o miami_globals.o miami_utils.o  \
   private_load_module.o slice_references.o Dominator.o mark_back_edges.o uop_code_cache.o \
-  base_slice.o static_memory_analysis.o register_class.o instr_info.o instr_bins.o \
+  base_slice.o static_memory_analysis.o \
+  instruction-xlate.o register_class.o instr_info.o instr_bins.o \
   static_branch_analysis.o instruction_class.o canonical_ops.o \
   math_routines.o 
 
@@ -80,6 +81,7 @@ endif
 vpath %.C $(MIAMI_HOME)/src/Scheduler
 vpath %.cpp $(MIAMI_HOME)/src/Scheduler
 vpath %.C $(MIAMI_HOME)/src/common
+vpath %.cpp $(MIAMI_HOME)/src/common
 vpath %.C $(MIAMI_HOME)/src/OAUtils
 vpath %.C $(MIAMI_HOME)/src/tarjans
 

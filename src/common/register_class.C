@@ -47,13 +47,13 @@ RegisterClassToString(RegisterClass rc)
    switch (rc)
    {
       case RegisterClass_INVALID:         return "Invalid";
-      case RegisterClass_REG_OP:          return "RegOperand";
-      case RegisterClass_MEM_OP:          return "MemOperand";
-      case RegisterClass_LEA_OP:          return "LEAOperand";
-      case RegisterClass_STACK_REG:       return "StackRegister";
-      case RegisterClass_STACK_OPERATION: return "StackOperation";
-      case RegisterClass_TEMP_REG:        return "TempRegister";
-      case RegisterClass_PSEUDO:          return "PseudoRegister";
+      case RegisterClass_REG_OP:          return "RegOp";
+      case RegisterClass_MEM_OP:          return "MemOp";
+      case RegisterClass_LEA_OP:          return "LEAOp";
+      case RegisterClass_STACK_REG:       return "StackReg";
+      case RegisterClass_STACK_OPERATION: return "StackOp";
+      case RegisterClass_TEMP_REG:        return "TempReg";
+      case RegisterClass_PSEUDO:          return "PseudoReg";
       default: assert(!"Invalid RegisterClass. Should not be here.");
    }
    return (NULL);

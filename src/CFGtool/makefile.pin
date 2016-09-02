@@ -33,7 +33,7 @@ CFGSTATIC_OBJS = CFG.o routine.o load_module.o cfg_data.o
 PIN_COMMON_OBJS = on_demand_pin.o use_mpi_rank.o instruction_decoding_pin.o
 COMMON_OBJS = PrivateCFG.o printable_class.o private_routine.o \
    file_utilities.o miami_globals.o static_memory_analysis.o \
-   register_class.o instr_info.o instr_bins.o base_slice.o \
+   instruction-xlate.o register_class.o instr_info.o instr_bins.o base_slice.o \
    instruction_class.o uop_code_cache.o slice_references.o Assertion.o \
    debug_miami.o loadable_class.o static_branch_analysis.o \
    canonical_ops.o miami_utils.o
@@ -60,6 +60,7 @@ MAIN_PIN_OBJS = $(PIN_CFGDYN_OBJS:%=$(OBJDIR)pinobj/%) $(PIN_CFGSTATIC_OBJS:%=$(
 # finds files for the compiling rules
 vpath %.C $(MIAMI_HOME)/src/CFGtool
 vpath %.C $(MIAMI_HOME)/src/common
+vpath %.cpp $(MIAMI_HOME)/src/common
 vpath %.C $(MIAMI_HOME)/src/OAUtils
 vpath %.C $(MIAMI_HOME)/src/tarjans
 

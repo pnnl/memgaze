@@ -431,14 +431,15 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
    assert(dInst == NULL);
    dInst = new MIAMI::DecodedInstruction();
    CFG* cfg = b->inCfg();
-   std::string f_name = cfg->name();
+   const std::string& f_name = cfg->name();
    std::cout << "function name is " << f_name << endl;
 
    std::cout << "pc is " << (unsigned long) pc << endl;
    std::cout << "offset is " << (unsigned long) reloc_offset << endl;
-   
+
+   //int res = InstructionXlate::xlate(pc/*+reloc*/, b->getEndAddress()-pc, &dInst);
    //int res = decode_instruction_at_pc((void*)(pc+reloc_offset), b->getEndAddress()-pc, dInst);
-   isaXlate_insn(f_name, (unsigned long)(pc/*+reloc_offset*/), dInst);
+   isaXlate_insn(pc/*+reloc_offset*/, dInst);
    int res = -1;
    if (dInst->no_dyn_translation)
    {

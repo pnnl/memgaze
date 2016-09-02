@@ -111,7 +111,7 @@ std::vector<unsigned long> get_instructions_address_from_block(MIAMI::CFG::Node 
 
 void isaXlate_init(const char* prog_name);
 
-int isaXlate_insn(std::string func_name, unsigned long  pc, MIAMI::DecodedInstruction* dInst);
+int isaXlate_insn(unsigned long  pc, MIAMI::DecodedInstruction* dInst);
 
 
 //***************************************************************************

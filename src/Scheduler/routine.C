@@ -20,7 +20,7 @@
 #include "load_module.h"
 #include "CRCHash.h"
 #include "source_file_mapping.h"
-#include "instruction_decoding.h"
+#include "instruction-xlate.hpp"
 #include "debug_scheduler.h"
 #include "DGBuilder.h"
 #include "report_time.h"
@@ -1462,6 +1462,7 @@ void
 Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *b, int64_t count,
       AddrIntSet& memRefs, RefIClassMap& refsClass)
 {
+   MIAMI::DecodedInstruction dInst;
    LoadModule *lm = InLoadModule();
    addrtype reloc = lm->RelocationOffset();
    // iterate over variable length instructions. Define an architecture independent API
@@ -1472,20 +1473,25 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
    unsigned long pc = b->getStartAddress();
    while (pc < b->getEndAddress())
    {
-      MIAMI::DecodedInstruction* dInst = new MIAMI::DecodedInstruction();
-
-      // FIXME:tallent pass the actual basic block as context
-      int len = isaXlate_insn(name, pc, dInst);
-      if (dInst->no_dyn_translation || len == 0 || dInst->micro_ops.size() == 0) {
-         std::cout << "routine: no dyninst translation\n";
+      int res = InstructionXlate::xlate(pc/*+reloc*/, b->getEndAddress()-pc, &dInst);
+      if (res < 0) { // error while decoding
          return;
       }
 
-      pc += len;
+#if 0
+      MIAMI::DecodedInstruction* dInst2 = new MIAMI::DecodedInstruction(); // FIXME:tallent memory leak
+
+      // FIXME:tallent pass the actual basic block as context
+      int len = isaXlate_insn(pc, dInst2);
+      if (dInst2->no_dyn_translation || dInst2->micro_ops.size() == 0) {
+         std::cout << "Routine::decode_instructions_for_block:error!\n";
+      }
+#endif      
+      pc += dInst.len;
 
       // Now iterate over the micro-ops of the decoded instruction
-      MIAMI::InstrList::iterator lit = dInst->micro_ops.begin();
-      for (int i=0 ; lit!=dInst->micro_ops.end() ; ++lit, ++i)
+      MIAMI::InstrList::iterator lit = dInst.micro_ops.begin();
+      for (int i=0 ; lit!=dInst.micro_ops.end() ; ++lit, ++i)
       {
          MIAMI::instruction_info& iiobj = (*lit);
          InstructionClass iclass;

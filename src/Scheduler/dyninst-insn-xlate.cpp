@@ -23,13 +23,6 @@
 
 #include "dyninst-insn-xlate.hpp"
 
-//***************************************************************************
-
-using namespace MIAMI;
-
-typedef std::map<MachRegister, int> RegisterMap;
-typedef std::list<instruction_info> InstrList;
-
 
 //***************************************************************************
 // 
@@ -63,8 +56,6 @@ void dynXlate_insn(Dyninst::InstructionAPI::Instruction::Ptr insp, std::vector<A
 
 
 void dynXlate_dumpInsn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vector<Assignment::Ptr> assignments, addrtype pc);
-
-void dumpMIAMIInsn(const MIAMI::DecodedInstruction *dInst);
 
 
 //***************************************************************************
@@ -308,7 +299,7 @@ void startCFG(BPatch_function* function,std::map<std::string,std::vector<BPatch_
       g.exit=g.basicBlockNoMap[exitBlk[0]->blockNo()];
       std::vector<BPatch_basicBlock*> path;
       for(unsigned int b=0;b<entryBlk.size();b++){
-        //std::cout << "startCFG entryblk size is "<<  entryBlk.size() << endl;
+        //std::cerr << "startCFG entryblk size is "<<  entryBlk.size() << endl;
 	traverseCFG(entryBlk[b],seen,paths,path,pathStr,g);
       }
     }
@@ -348,7 +339,7 @@ void traverseCFG(BPatch_basicBlock* blk, std::map<BPatch_basicBlock *,bool> seen
 void isaXlate_init(const char* progName)
 {
 #if 0 // FIXME:tallent
-  std::cout << "binary: " << progName << endl;
+  std::cerr << "binary: " << progName << endl;
 
   lm_codeSource = new Dyninst::ParseAPI::SymtabCodeSource((char*)progName);
 
@@ -372,7 +363,7 @@ void isaXlate_init(const char* progName)
 
 // It translate the an instruction's dyninst IR into MIAMI IR and 
 // return the length of the translated instruction to increment the pc.
-int isaXlate_insn(std::string func_name, unsigned long pc, MIAMI::DecodedInstruction* dInst)
+int isaXlate_insn(unsigned long pc, MIAMI::DecodedInstruction* dInst)
 {
   int f = isaXlate_getFunction(pc); // FIXME: use (Routine*)->[blocks] map
   insn_myBlock = isaXlate_getBlock(f, pc);
@@ -389,19 +380,17 @@ int isaXlate_insn(std::string func_name, unsigned long pc, MIAMI::DecodedInstruc
 
     insn_numAssignments = assignments.size();
 
-    std::cout << "**********************************************************\n"
+    std::cerr << "**********************************************************\n"
 	      << "isaXlate_insn(" << (*lm_functions)[f]->getDemangledName() << ")\n";
     
     dynXlate_dumpInsn(insn, assignments, pc);
-    std::cout << "\n";
+    std::cerr << "\n";
 
-    dump_instruction_at_pc((void*)pc, InstructionDecoder::maxInstructionLength);
-    std::cout << "\n";
-    
-    dynXlate_insn(insn, assignments, pc, dInst);
+    // testing
+    //dynXlate_insn(insn, assignments, pc, dInst);
 
-    dumpMIAMIInsn(dInst);
-    std::cout << "\n";
+    DumpInstrList(dInst);
+    std::cerr << "\n";
   }
   else {
     dInst->no_dyn_translation = true;
@@ -643,32 +632,6 @@ bool check_flags_registers(MachRegister mr)
   return false;
 }
 
-
-// Modified shorter printing methods for registers.
-const char* RegisterClassToShortString(RegisterClass rc)
-{
-   switch(rc){
-      case RegisterClass_REG_OP:
-	return "REG_OP";
-      case RegisterClass_MEM_OP:
-         return "MEM_OP";
-      case RegisterClass_LEA_OP:
-         return "LEA_OP";
-      case RegisterClass_STACK_REG:
-         return "STACK_REG";
-      case RegisterClass_STACK_OPERATION:
-         return "STACK_OPERATION";
-      case RegisterClass_TEMP_REG:
-         return "TEMP_REG";
-      case RegisterClass_PSEUDO:
-         return "PSEUDO";
-      case RegisterClass_LAST:
-         return "LAST";
-      default:
-         return "UNKNOWN";
-   }
-   assert(false);
-}
 
 
 // Return if the variable ast is a flag register
@@ -1485,7 +1448,7 @@ void create_add_micro(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI:
 // If assignment has no AST, parse it according to it's input and output field --> multiple cases untranslatable. 
 void parse_assign(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, instruction_info* uop, Dyninst::InstructionAPI::Instruction::Ptr insn){
   
-  std::cout << "parse_assign\n";
+  std::cerr << "parse_assign\n";
 
   if (uop->vec_len == 0) 
     uop->vec_len = get_vec_len(insn);
@@ -2413,7 +2376,7 @@ void dynXlate_insnectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
       if (uop->num_imm_values < 2) {
         uop->imm_values[uop->num_imm_values].is_signed = (uop->width == 64) ? true : false; //CHECK
         uop->imm_values[uop->num_imm_values].value.s = ast_c->val().val; 
-        // std::cout << "inside dynXlate_insnectAST, constant value is " << ast_c->val().val;
+        // std::cerr << "inside dynXlate_insnectAST, constant value is " << ast_c->val().val;
         uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_IMMED, uop->num_imm_values++); // no need to find dependency of immediates
         insn_locVec.push_back(Absloc());
       }
@@ -2557,14 +2520,14 @@ void dynXlate_dumpAssignmentAST(AST::Ptr ast, std::string index, int num);
 
 void dynXlate_dumpInsn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vector<Assignment::Ptr> assignments, addrtype pc)
 {
-  using std::cout;
-  cout << "========== DynInst Instruction "
+  using std::cerr;
+  cerr << "========== DynInst Instruction "
        << "(" << std::hex << (void*)pc << std::dec << "): " << insn->format()
        << " [" << insn->size() << " bytes] "
        << " ==========\n";
   
   for (unsigned int i = 0; i < assignments.size(); i++) {
-    cout << "assignment " << i << ":" << assignments.at(i)->format() << "\n";
+    cerr << "assignment " << i << ":" << assignments.at(i)->format() << "\n";
     std::pair<AST::Ptr, bool> assignPair = SymEval::expand(assignments.at(i), false);
     if (assignPair.second && (NULL != assignPair.first)) {
       dynXlate_dumpAssignmentAST(assignPair.first, "0", assignPair.first->numChildren());
@@ -2575,28 +2538,28 @@ void dynXlate_dumpInsn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vect
 
 void dynXlate_dumpAssignmentAST(AST::Ptr ast, std::string index, int num)
 {
-  using std::cout;
-  cout << index << ": ";
+  using std::cerr;
+  cerr << index << ": ";
   
   if (ast->getID() == AST::V_RoseAST) {
     RoseAST::Ptr self = RoseAST::convert(ast);
-    cout << "RoseAST <op:size>: " << self->format() << "\n";
-    //cout << "RoseOperation val is " << self->val().format() << "\n";
-    //cout << "RoseOperation size is " << self->val().size << "\n";
-    //cout << "RoseOperation op is " << self->val().op << "\n";
+    cerr << "RoseAST <op:size>: " << self->format() << "\n";
+    //cerr << "RoseOperation val is " << self->val().format() << "\n";
+    //cerr << "RoseOperation size is " << self->val().size << "\n";
+    //cerr << "RoseOperation op is " << self->val().op << "\n";
   }
   else if (ast->getID() == AST::V_ConstantAST) {
     ConstantAST::Ptr self = ConstantAST::convert(ast);
-    cout << "ConstantAST <val:size>: " << self->format() << "\n";
-    //cout << "Constant val is " << self->val().val << "\n";
-    //cout << "bit size of the val is " << self->val().size << "\n";
+    cerr << "ConstantAST <val:size>: " << self->format() << "\n";
+    //cerr << "Constant val is " << self->val().val << "\n";
+    //cerr << "bit size of the val is " << self->val().size << "\n";
 
   }
   else if (ast->getID() == AST::V_VariableAST) {
     VariableAST::Ptr self = VariableAST::convert(ast);
-    cout << "VariableAST <region:addr>: " << self->format() << "\n";
-    //cout << "Variable region is " << self->val().reg.format() << "\n";
-    //cout << "variable address is " << self->val().addr << "\n";
+    cerr << "VariableAST <region:addr>: " << self->format() << "\n";
+    //cerr << "Variable region is " << self->val().reg.format() << "\n";
+    //cerr << "variable address is " << self->val().addr << "\n";
   }
 
   int i = 0;
@@ -2611,64 +2574,5 @@ void dynXlate_dumpAssignmentAST(AST::Ptr ast, std::string index, int num)
 }
 
 
-void
-dumpMIAMIInsn(const MIAMI::DecodedInstruction *dInst)
-{
-  using std::cout;
-
-  cout << "========== MIAMI Instruction "
-       << "(" << std::hex << (void*)dInst->pc << std::dec
-       << "; uops=" << dInst->micro_ops.size()
-       <<  "; bytes=" << dInst->len << ")" << " ==========\n";
-
-  int i = 0;
-  for (auto it = dInst->micro_ops.begin(); it != dInst->micro_ops.end(); ++it, ++i) {
-    cout << i << ")"
-	 << " Bin, Width, VecLen: "
-	 << Convert_InstrBin_to_string(it->type) << ", "
-	 << it->width << ", "
-	 << (int)it->vec_len
-      	 << (it->primary? " (primary)" : "") << endl;
-    cout << "   ExUnit, ExType:  " << ExecUnitToString(it->exec_unit) << ", "
-	 << ExecUnitTypeToString(it->exec_unit_type) << endl;
-        
-    cout << "   SrcOps(" << (int)it->num_src_operands << ")/Reg: ";
-    for (uint8_t i = 0; i < it->num_src_operands; ++i) {
-      OperandType ot = (OperandType)extract_op_type(it->src_opd[i]);
-      cout << " (" << OperandTypeToString(ot)
-	   << "/" << extract_op_index(it->src_opd[i]) << ")";
-    }
-
-    for (auto it2 = it->src_reg_list.begin(); it2 != it->src_reg_list.end(); ++it2) {
-      cout << " [nm,ty: " << it2->name << ", " << RegisterClassToShortString(it2->type) << "]";
-    }
-    cout << endl;
-    
-    cout << "   DstOps(" << (int)it->num_dest_operands << ")/Reg:";
-    for (uint8_t i = 0; i < it->num_dest_operands ; ++i) {
-      OperandType ot = (OperandType)extract_op_type(it->dest_opd[i]);
-      cout << " (" << OperandTypeToString(ot)
-	   << "/" << extract_op_index(it->dest_opd[i]) << ") ";
-    }
-
-    for (auto it2 = it->dest_reg_list.begin(); it2 != it->dest_reg_list.end(); ++it2) {
-      cout << " [nm,ty: " << it2->name << ", " << RegisterClassToShortString(it2->type) << "]";
-    }
-    cout << endl;
-    
-    cout << "   Imm(" << (int)it->num_imm_values << ")";
-    for (uint8_t i = 0; i < it->num_imm_values; ++i) {
-      cout << " (" << (it->imm_values[i].is_signed?"s":"u") << "/";
-      if (it->imm_values[i].is_signed)
-	cout << it->imm_values[i].value.s << "/"
-	     << hex << it->imm_values[i].value.s << dec;
-      else
-	cout << it->imm_values[i].value.u << "/"
-	     << hex << it->imm_values[i].value.u << dec;
-      cout << ")";
-    }
-    cout << endl;    
-  }
-}
 
 
