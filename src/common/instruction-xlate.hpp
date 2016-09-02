@@ -40,10 +40,12 @@ public:
   static int xlate(unsigned long pc, int len, MIAMI::DecodedInstruction* dInst);
 
   static int xlate_dbg(unsigned long pc, int len,
-		       MIAMI::DecodedInstruction* dInst);
+		       MIAMI::DecodedInstruction* dInst,
+		       const char* ctxt = NULL);
 
   static int xlate_dbg(unsigned long pc, int len,
 		       MIAMI::DecodedInstruction* dInst,
-		       MIAMI::DecodedInstruction* dInst1);
+		       MIAMI::DecodedInstruction* dInst1 = NULL,
+		       const char* ctxt = NULL);
   
 };

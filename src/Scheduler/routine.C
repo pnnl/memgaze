@@ -1466,7 +1466,7 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
    while ((bool)iit)
    {
       addrtype pc = iit.Address();
-      int res = InstructionXlate::xlate_dbg(pc+reloc, b->getEndAddress()-pc, &dInst);
+      int res = InstructionXlate::xlate_dbg(pc+reloc, b->getEndAddress()-pc, &dInst, "Routine::decode_instructions_for_block");
       if (res < 0) { // error while decoding
          return;
       }

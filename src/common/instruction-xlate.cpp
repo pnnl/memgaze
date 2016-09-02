@@ -37,14 +37,17 @@ InstructionXlate::xlate(unsigned long pc, int len,
 
 int
 InstructionXlate::xlate_dbg(unsigned long pc, int len,
-			    MIAMI::DecodedInstruction* dInst)
+			    MIAMI::DecodedInstruction* dInst,
+			    const char* ctxt)
 {
   using std::cerr;
 
+  std::string ctxt_str = (ctxt) ? ((std::string)ctxt + ":") : "";
+
   void* pc_ptr = (void*)pc;
-  
+
   cerr << "**********************************************************\n"
-       << "InstructionXlate::xlate(" << (void*)pc << ")\n\n";
+       << ctxt_str << "InstructionXlate::xlate(" << pc_ptr << ")\n\n";
 
   MIAMI::dump_instruction_at_pc(pc_ptr, len);
   std::cout << "\n";
@@ -62,7 +65,8 @@ InstructionXlate::xlate_dbg(unsigned long pc, int len,
 int
 InstructionXlate::xlate_dbg(unsigned long pc, int len,
 			    MIAMI::DecodedInstruction* dInst,
-			    MIAMI::DecodedInstruction* dInst1)
+			    MIAMI::DecodedInstruction* dInst1,
+			    const char* ctxt)
 {
   int ret = 0;
 
