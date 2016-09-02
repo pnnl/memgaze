@@ -511,7 +511,7 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
          }
       }
       
-      newimg = create_loadModule(loadedImgs, (std::string)iname, hashKey);
+      newimg = create_loadModule(id, iname, start_addr, low_offset, hashKey);
       //newimg = new LoadModule (id, start_addr, low_offset, iname, hashKey);
       ++ loadedImgs;
       

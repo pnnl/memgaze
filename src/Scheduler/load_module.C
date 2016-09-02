@@ -224,9 +224,13 @@ LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
    DEBUG_LOAD_MODULE(4,
       fprintf (stderr, "Creating Routine %s w/ start %p, end %p, offset %p, img_base+offset %p\n",
           _name, (void*)_start, (void*)_end, (void*)_offset, (void*)(base_addr+_offset));
-   )
+   );
 #endif
+#if 0 // FIXME: tallent: this no longer sets any state! Yay!
+   rout = create_routine((LoadModule*)this, r);
+#else
    rout = new Routine(this, _start, _size, string(_name), _offset, reloc_offset);
+#endif
    CHECK_COND(rout==NULL, "allocating object for routine %u", r);
    
 #if DEBUG_CFG_COUNTS
@@ -269,12 +273,12 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
    
    // next get the number of routines
    uint32_t numRoutines = 0;
-#if 0   
    res = fread(&numRoutines, 4, 1, fd);
    if (res!=1 || numRoutines>1024*1024)
       fprintf(stderr, "ERROR while reading routine count res=%ld, numRoutines=%u\n", 
             res, numRoutines);
-#else
+   
+#if 0
    std::cout << "LoadModule::analyzeRoutines: Ignoring CFG file and analyzing all routines\n";
    numRoutines = get_routine_number();
 #endif
@@ -360,15 +364,14 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
 
    for (uint32_t r=0 ; r<numRoutines ; ++r)
    {
-      std::cout << "LoadModule::analyzeRoutines():" << r << "\n";
-      Routine *rout = create_routine((LoadModule*)this, r);
-      //Routine *rout = loadOneRoutine(fd, r);
+      Routine *rout = loadOneRoutine(fd, r);
       if (rout == NULL)
       {
          if (mo->do_linemap)
             FinalizeSourceFileInfo();
          return (-1);
       }
+      std::cout << "LoadModule::analyzeRoutines(): " << rout->Name() << "\n";
       addrtype rstart = rout->Start();
       if (mo->do_staticmem)
       {
@@ -381,7 +384,7 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
          }
       }
       
-      if (1/*rout->is_valid_for_analysis()*/)
+      if (rout->is_valid_for_analysis()/*1*/)
       {
 #if VERBOSE_DEBUG_LOAD_MODULE
          DEBUG_LOAD_MODULE(1,
@@ -449,11 +452,7 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
    /* clean up any memory used by the debug info for this image */
    if (mo->do_linemap)
       FinalizeSourceFileInfo();
-
-   // Set the prog's lineMappings from image's lineMappings
-   //prog->setLineMappings(img_scope->GetLineMappings());
-   //std::cout << "LoadModule::analyzeRoutines: line mapping " << prog->GetLineMappings().size() << "\n";
-
+   
    return (0);
 }
 

@@ -64,7 +64,9 @@ void dynXlate_dumpInsn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vect
 
 
 // The function is used in MiamiDriver.C to get the image from its name.
-MIAMI::LoadModule* create_loadModule(int count, std::string file_name, uint32_t hashKey)
+MIAMI::LoadModule*
+create_loadModule(uint32_t id, std::string& file_name,
+		  addrtype start_addr, addrtype low_offset, uint32_t hashKey)
 {
   //FIXME:tallent Dyninst::ParseAPI::SymtabCodeSource* lm_codeSource;
   lm_codeSource = new Dyninst::ParseAPI::SymtabCodeSource((char*)file_name.c_str());
@@ -75,9 +77,12 @@ MIAMI::LoadModule* create_loadModule(int count, std::string file_name, uint32_t 
 
   std::vector<BPatch_object*> objs;
   lm_image->getObjects(objs);
-  
+
+#if 0  
   unsigned long start_addr = get_start_address(&objs, file_name);
   //unsigned long low_offset = get_low_offset(&objs, file_name);
+  //low_offset = lm_codeSource->loadAddress();
+#endif
 
   lm_functions = lm_image->getProcedures(true);
 
@@ -88,7 +93,7 @@ MIAMI::LoadModule* create_loadModule(int count, std::string file_name, uint32_t 
     lm_func2blockMap[i] = blks;
   }
   
-  LoadModule *lm = new LoadModule (count /*id*/, start_addr, lm_codeSource->loadAddress()/*low_offset*/, file_name, hashKey);
+  LoadModule *lm = new LoadModule (id, start_addr, low_offset, file_name, hashKey);
   return lm;
 }
 
@@ -144,8 +149,10 @@ MIAMI::Routine* create_routine(MIAMI::LoadModule* lm, int i)
 
   MIAMI::CFG* cfg = rout->ControlFlowGraph();
   assert(cfg);
-  
-  dyninst_build_CFG(cfg, func_name); // FIXME:tallent: something is broken?
+
+#if 0 // FIXME:tallent: something appears to be broken
+  dyninst_build_CFG(cfg, func_name);
+#endif
   
   return rout;
 }

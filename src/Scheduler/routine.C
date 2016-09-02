@@ -32,7 +32,6 @@
 
 #include "dyninst-insn-xlate.hpp"
 
-
 void compute_lineinfo_for_block_dyninst(LoadModule *lm, ScopeImplementation *pscope, CFG::Node *b);
 
 using namespace std;
@@ -134,7 +133,6 @@ Routine::loadCFGFromFile(FILE *fd)
       CHECK_COND(g==NULL, "allocating CFG object for routine %s", name.c_str())
    }
    
-   //ires = dyninst_build_CFG(static_cast<CFG*>(g), name);
    ires = static_cast<CFG*>(g)->loadFromFile(fd, entries, traces, reloc_offset);
    return (ires);
    
@@ -944,7 +942,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
       ++ nit;
    }
 #endif // end debug3
-#if 0  // begin palm-skip1
+#if 1  // begin palm-skip1
    if (mo->do_scopetree)
    {
       std::cout << "Routine::main_analysis():scopetree\n";
@@ -1112,7 +1110,6 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
             CFG::Node *b = (CFG::Node*)nnit;
             if (b->Size()>0 && (b->ExecCount()>0 || mo->do_ref_scope_index)) {
 	       std::cout << "Routine::main_analysis():no-scopetree:decoding-blk(" << (void*)b->getStartAddress() << ")\n";
-               //FIXME:tallent: compute_lineinfo_for_block_dyninst(InLoadModule(), prog, b);
                decode_instructions_for_block(prog, b, b->ExecCount(), scopeMemRefs, refsClass);
             }
             ++ nnit;
@@ -1468,11 +1465,13 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
    // for common instruction decoding tasks. That API can be implemented differently for
    // each architecture type
    ICIMap& scopeImix = pscope->getInstructionMixInfo();
-   //CFG::ForwardInstructionIterator iit(b); // FIXME:tallent: causes a SEGV, probably b/c create_routine() does not compute CFG correctly
-   unsigned long pc = b->getStartAddress(); // relocated
-   while (pc < b->getEndAddress())
+   CFG::ForwardInstructionIterator iit(b);
+   //addrtype pc = b->getStartAddress(); // relocated
+   while ((bool)iit)
+   //while (pc < b->getEndAddress())
    {
-      int res = InstructionXlate::xlate_dbg(pc, b->getEndAddress()-pc, &dInst);
+      addrtype pc = iit.Address();
+      int res = InstructionXlate::xlate_dbg(pc+reloc, b->getEndAddress()-pc, &dInst);
       if (res < 0) { // error while decoding
          return;
       }
@@ -1484,7 +1483,7 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
          std::cout << "Routine::decode_instructions_for_block:error!\n";
       }
 #endif
-      pc += dInst.len;
+      //pc += dInst.len;
 
       // Now iterate over the micro-ops of the decoded instruction
       MIAMI::InstrList::iterator lit = dInst.micro_ops.begin();
@@ -1526,7 +1525,7 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
          }
 
       }
-      //++ iit;
+      ++ iit;
    }
 }
 

@@ -97,7 +97,12 @@ struct graph{
 // 
 //***************************************************************************
 
-MIAMI::LoadModule* create_loadModule(int count, std::string file_name, uint32_t hashKey);
+//MIAMI::LoadModule* create_loadModule(int count, std::string file_name, uint32_t hashKey);
+
+MIAMI::LoadModule*
+create_loadModule(uint32_t id, std::string& file_name,
+		  addrtype start_addr, addrtype low_offset, uint32_t hashKey);
+
 int get_routine_number();
 
 
