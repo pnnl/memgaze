@@ -357,7 +357,7 @@ void isaXlate_init(const char* progName)
     fg->getAllBasicBlocks(blks);
     lm_func2blockMap[i] = blks;
   }
-#endif  
+#endif
 }
 
 

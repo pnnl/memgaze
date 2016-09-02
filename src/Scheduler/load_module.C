@@ -258,6 +258,7 @@ load_error:
 int 
 LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
 {
+   size_t res;
    int ires;
    ires = fseek(fd, file_offset, SEEK_SET);
    if (ires < 0)  // error
@@ -268,11 +269,15 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
    
    // next get the number of routines
    uint32_t numRoutines = 0;
-   //size_t res = fread(&numRoutines, 4, 1, fd);
-   //if (res!=1 || numRoutines>1024*1024)
-      //fprintf(stderr, "ERROR while reading routine count res=%ld, numRoutines=%u\n", 
-            //res, numRoutines);
+#if 0   
+   res = fread(&numRoutines, 4, 1, fd);
+   if (res!=1 || numRoutines>1024*1024)
+      fprintf(stderr, "ERROR while reading routine count res=%ld, numRoutines=%u\n", 
+            res, numRoutines);
+#else
+   std::cout << "LoadModule::analyzeRoutines: Ignoring CFG file and analyzing all routines\n";
    numRoutines = get_routine_number();
+#endif
    
    /* create program scope for this load module */   
    img_scope = new ImageScope(prog, img_name, img_id);
@@ -352,7 +357,7 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
       } else
          InitializeSaveStaticAnalysisData (newstan, hash);
    }
-   
+
    for (uint32_t r=0 ; r<numRoutines ; ++r)
    {
       std::cout << "LoadModule::analyzeRoutines():" << r << "\n";
@@ -393,11 +398,11 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
          }
       }
       
-      /*if (mo->do_staticmem && newstan)
+      if (mo->do_staticmem && newstan)
       {
          uint64_t foffset = rout->SaveStaticData(newstan);
          newROffsets.insert(AddrOffsetMap::value_type(rstart, foffset));
-      }*/
+      }
       
       delete (rout);
    }
@@ -446,9 +451,8 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
       FinalizeSourceFileInfo();
 
    // Set the prog's lineMappings from image's lineMappings
-   prog->setLineMappings(img_scope->GetLineMappings());
-
-   std::cout << "LoadModule::analyzeRoutines: line mapping " << prog->GetLineMappings().size() << "\n";
+   //prog->setLineMappings(img_scope->GetLineMappings());
+   //std::cout << "LoadModule::analyzeRoutines: line mapping " << prog->GetLineMappings().size() << "\n";
 
    return (0);
 }
