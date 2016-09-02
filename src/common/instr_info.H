@@ -58,23 +58,26 @@ struct instruction_info
       num_imm_values = 0;
       data = 0;
       flag = false;
-
    }
    
    int num_src_operands_of_type(OperandType type, int pos = 0) const
    {
       int i, cnt = 0;
-      for (i=pos ; i<num_src_operands ; ++i)
-         if (extract_op_type(src_opd[i]) == type)  // match
+      for (i=pos ; i<num_src_operands ; ++i) {
+	 if (extract_op_type(src_opd[i]) == type) { // match
             ++ cnt;
+	 }
+      }
       return (cnt);
    }
    int num_dest_operands_of_type(OperandType type, int pos = 0) const
    {
       int i, cnt = 0;
-      for (i=pos ; i<num_dest_operands ; ++i)
-         if (extract_op_type(dest_opd[i]) == type)  // match
+      for (i=pos ; i<num_dest_operands ; ++i) {
+	 if (extract_op_type(dest_opd[i]) == type) { // match
             ++ cnt;
+	 }
+      }
       return (cnt);
    }
    
@@ -84,15 +87,11 @@ struct instruction_info
    int first_src_operand_of_type(OperandType type, int pos = 0) const
    {
       if (pos<0) return (-1);
-      for (int i=pos ; i<num_src_operands ; ++i){
-        // std::cerr << "extract_op_type is " << extract_op_type(src_opd[i]) << "\n";
-         //std::cerr << "type is " << type << "\n";
-         if (extract_op_type(src_opd[i]) == type)  {
-            // match
+      for (int i=pos ; i<num_src_operands ; ++i) {
+ 	 if (extract_op_type(src_opd[i]) == type) { // match
             return (extract_op_index(src_opd[i]));
          }
       }
-         
       return (-1);
    }
    int first_dest_operand_of_type(OperandType type, int pos = 0) const
@@ -158,7 +157,6 @@ public:
    {
       mach_data = 0;
       len = 0;
-      no_dyn_translation = false;
    }
    ~DecodedInstruction()
    {
@@ -175,7 +173,6 @@ public:
    // pointed to by this pointer
    // destrutor frees memory if pointer is not NULL
    void *mach_data;
-   bool no_dyn_translation;
 };
 
 const char* OperandTypeToString(OperandType o);

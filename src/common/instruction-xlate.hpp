@@ -39,6 +39,11 @@ public:
   
   static int xlate(unsigned long pc, int len, MIAMI::DecodedInstruction* dInst);
 
-  static int xlate_dbg(unsigned long pc, int len, MIAMI::DecodedInstruction* dInst, MIAMI::DecodedInstruction* dInst1);
+  static int xlate_dbg(unsigned long pc, int len,
+		       MIAMI::DecodedInstruction* dInst);
+
+  static int xlate_dbg(unsigned long pc, int len,
+		       MIAMI::DecodedInstruction* dInst,
+		       MIAMI::DecodedInstruction* dInst1);
   
 };

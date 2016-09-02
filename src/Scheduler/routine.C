@@ -1473,20 +1473,18 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
    unsigned long pc = b->getStartAddress();
    while (pc < b->getEndAddress())
    {
-      int res = InstructionXlate::xlate(pc/*+reloc*/, b->getEndAddress()-pc, &dInst);
+      int res = InstructionXlate::xlate_dbg(pc/*+reloc*/, b->getEndAddress()-pc, &dInst);
       if (res < 0) { // error while decoding
          return;
       }
 
-#if 0
+#if 1
       MIAMI::DecodedInstruction* dInst2 = new MIAMI::DecodedInstruction(); // FIXME:tallent memory leak
-
-      // FIXME:tallent pass the actual basic block as context
-      int len = isaXlate_insn(pc, dInst2);
-      if (dInst2->no_dyn_translation || dInst2->micro_ops.size() == 0) {
+      int res1 = isaXlate_insn(pc, dInst2);
+      if (res1 != 0 || dInst2->micro_ops.size() == 0) {
          std::cout << "Routine::decode_instructions_for_block:error!\n";
       }
-#endif      
+#endif
       pc += dInst.len;
 
       // Now iterate over the micro-ops of the decoded instruction

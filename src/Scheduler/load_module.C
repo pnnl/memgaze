@@ -353,8 +353,6 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
          InitializeSaveStaticAnalysisData (newstan, hash);
    }
    
-   isaXlate_init((const char*)this->Name().c_str());
-
    for (uint32_t r=0 ; r<numRoutines ; ++r)
    {
       std::cout << "LoadModule::analyzeRoutines():" << r << "\n";

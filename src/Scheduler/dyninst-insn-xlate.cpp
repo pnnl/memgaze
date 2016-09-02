@@ -361,6 +361,8 @@ void isaXlate_init(const char* progName)
 }
 
 
+// tallent: Requires 'Function' and 'Block' context.
+
 // It translate the an instruction's dyninst IR into MIAMI IR and 
 // return the length of the translated instruction to increment the pc.
 int isaXlate_insn(unsigned long pc, MIAMI::DecodedInstruction* dInst)
@@ -380,23 +382,20 @@ int isaXlate_insn(unsigned long pc, MIAMI::DecodedInstruction* dInst)
 
     insn_numAssignments = assignments.size();
 
-    std::cerr << "**********************************************************\n"
-	      << "isaXlate_insn(" << (*lm_functions)[f]->getDemangledName() << ")\n";
-    
     dynXlate_dumpInsn(insn, assignments, pc);
     std::cerr << "\n";
 
     // testing
-    //dynXlate_insn(insn, assignments, pc, dInst);
+    dynXlate_insn(insn, assignments, pc, dInst);
 
     DumpInstrList(dInst);
     std::cerr << "\n";
   }
   else {
-    dInst->no_dyn_translation = true;
+    return -1;
   }
 
-  return dInst->len;
+  return 0;
 }
 
 

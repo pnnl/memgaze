@@ -62,7 +62,6 @@ DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
    )
 #endif
    image_name = _img->Name();
-   isaXlate_init((const char*)image_name.c_str());
    // we do not read this flag right now.
    // Assume we do not have pessimistic memory dependencies.
    pessimistic_memory_dep = 0;
@@ -439,17 +438,11 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
 
    //int res = InstructionXlate::xlate(pc/*+reloc*/, b->getEndAddress()-pc, &dInst);
    //int res = decode_instruction_at_pc((void*)(pc+reloc_offset), b->getEndAddress()-pc, dInst);
-   isaXlate_insn(pc/*+reloc_offset*/, dInst);
-   int res = -1;
-   if (dInst->no_dyn_translation)
-   {
+   int res = isaXlate_insn(pc/*+reloc_offset*/, dInst);
+   if (res != 0 || dInst->micro_ops.size() == 0) {
       std::cout << "no_dyn_translation\n";
-    //  change_plt_to_inner_loop(b, dInst);  
+      //  change_plt_to_inner_loop(b, dInst);  
    }
-   if (dInst->micro_ops.size() != 0) { // check if we need to make it into inner loop
-      res = 1; 
-   }
-
    
 #if DECODE_INSTRUCTIONS_IN_PATH
    if (!targetPath || targetPath==pathId)
