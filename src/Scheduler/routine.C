@@ -940,7 +940,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
       ++ nit;
    }
 #endif // end debug3
-#if 1  // begin palm-skip1
+   
    if (mo->do_scopetree)
    {
       std::cout << "Routine::main_analysis():scopetree\n";
@@ -1080,7 +1080,6 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
       delete (entryEdges);
       delete (callEntryEdges);
    } else  // do_scopetree == false
-#endif // end palm-skip1
    {
       // do not build scope trees. However, test if we have to do
       // some other type of static analysis: instruction mix, stream reuse bining ...
@@ -1464,9 +1463,7 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
    // each architecture type
    ICIMap& scopeImix = pscope->getInstructionMixInfo();
    CFG::ForwardInstructionIterator iit(b);
-   //addrtype pc = b->getStartAddress(); // relocated
    while ((bool)iit)
-   //while (pc < b->getEndAddress())
    {
       addrtype pc = iit.Address();
       int res = InstructionXlate::xlate_dbg(pc+reloc, b->getEndAddress()-pc, &dInst);
@@ -1476,12 +1473,11 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
 
 #if 0
       MIAMI::DecodedInstruction* dInst2 = new MIAMI::DecodedInstruction(); // FIXME:tallent memory leak
-      int res1 = isaXlate_insn(pc, dInst2);
+      int res1 = isaXlate_insn(pc+reloc, dInst2);
       if (res1 != 0 || dInst2->micro_ops.size() == 0) {
          std::cout << "Routine::decode_instructions_for_block:error!\n";
       }
 #endif
-      //pc += dInst.len;
 
       // Now iterate over the micro-ops of the decoded instruction
       MIAMI::InstrList::iterator lit = dInst.micro_ops.begin();

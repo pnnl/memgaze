@@ -138,10 +138,12 @@ void dyninst_note_routine(MIAMI::LoadModule* lm, int i)
     assert("dyninst_note_routine: Address not available!");
   }
 
+#if 0
   Routine * rout = new Routine(lm, _start, _end - _start, func_name, _start/*offset*/, lm->RelocationOffset());
 
   MIAMI::CFG* cfg = rout->ControlFlowGraph();
   assert(cfg);
+#endif
 
 #if 0 // FIXME:tallent: something appears to be broken
   dyninst_build_CFG(cfg, func_name);

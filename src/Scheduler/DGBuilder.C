@@ -386,11 +386,9 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
    assert(dInst == NULL);
    dInst = new MIAMI::DecodedInstruction();
    
-   CFG* cfg = b->inCfg();
-   std::cout << "DGBuilder::build_node_for_instruction: " << cfg->name() << endl;
    int res = InstructionXlate::xlate_dbg(pc+reloc_offset, b->getEndAddress()-pc, dInst);
 #if 0
-   res = isaXlate_insn(pc/*+reloc_offset*/, dInst);
+   res = isaXlate_insn(pc+reloc_offset, dInst);
 #endif
    
 #if DECODE_INSTRUCTIONS_IN_PATH
