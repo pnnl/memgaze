@@ -177,12 +177,10 @@ BaseGraph::add (BaseGraph::Node* n)
 {
   if (n == 0)
     throw EmptyNode();
-#if 0 // FIXME:tallent what is this for?!  
   if (node_set.find(n) != node_set.end())
     throw DuplicateNode(n);
   if (n->in_use)
     throw NodeInUse(n);
-#endif
   if (root_node == 0)
     root_node = n;
   n->in_use = true;
