@@ -388,7 +388,7 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
    
    CFG* cfg = b->inCfg();
    std::cout << "DGBuilder::build_node_for_instruction: " << cfg->name() << endl;
-   int res = InstructionXlate::xlate(pc/*+reloc_offset*/, b->getEndAddress()-pc, dInst);
+   int res = InstructionXlate::xlate_dbg(pc+reloc_offset, b->getEndAddress()-pc, dInst);
 #if 0
    res = isaXlate_insn(pc/*+reloc_offset*/, dInst);
 #endif
@@ -2007,9 +2007,8 @@ DGBuilder::handle_register_dependencies(MIAMI::DecodedInstruction *dInst,
    // iterate over all source registers first
    MIAMI::RInfoList regs;
    // fetch all source registers in the regs list
-   if (1/*MIAMI::mach_inst_src_registers(dInst, &iiobj, regs)*/)
+   if (MIAMI::mach_inst_src_registers(dInst, &iiobj, regs))
    {
-      regs = iiobj.src_reg_list;
       MIAMI::RInfoList::iterator rlit = regs.begin();
       for ( ; rlit!=regs.end() ; ++rlit)
       {
@@ -2088,9 +2087,8 @@ DGBuilder::handle_register_dependencies(MIAMI::DecodedInstruction *dInst,
 
 
    // fetch all destination registers in the regs list
-   if (iiobj.dest_reg_list.size()/*MIAMI::mach_inst_dest_registers(dInst, &iiobj, regs)*/)
+   if (MIAMI::mach_inst_dest_registers(dInst, &iiobj, regs))
    {
-      regs = iiobj.dest_reg_list;
       MIAMI::RInfoList::iterator rlit = regs.begin();
       for ( ; rlit!=regs.end() ; ++rlit)
       {

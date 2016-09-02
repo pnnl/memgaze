@@ -97,20 +97,13 @@ struct graph{
 // 
 //***************************************************************************
 
-//MIAMI::LoadModule* create_loadModule(int count, std::string file_name, uint32_t hashKey);
+//MIAMI::LoadModule* dyninst_note_loadModule(int count, std::string file_name, uint32_t hashKey);
 
-MIAMI::LoadModule*
-create_loadModule(uint32_t id, std::string& file_name,
-		  addrtype start_addr, addrtype low_offset, uint32_t hashKey);
-
-int get_routine_number();
-
+void dyninst_note_loadModule(uint32_t id, std::string& file_name, addrtype start_addr, addrtype low_offset);
 
 //***************************************************************************
 
-MIAMI::Routine* create_routine(MIAMI::LoadModule* lm, int i);
-
-std::vector<unsigned long> get_instructions_address_from_block(MIAMI::CFG::Node *b);
+void dyninst_note_routine(MIAMI::LoadModule* lm, int i);
 
 //***************************************************************************
 

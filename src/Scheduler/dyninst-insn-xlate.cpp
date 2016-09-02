@@ -62,11 +62,7 @@ void dynXlate_dumpInsn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vect
 // 
 //***************************************************************************
 
-
-// The function is used in MiamiDriver.C to get the image from its name.
-MIAMI::LoadModule*
-create_loadModule(uint32_t id, std::string& file_name,
-		  addrtype start_addr, addrtype low_offset, uint32_t hashKey)
+void dyninst_note_loadModule(uint32_t id, std::string& file_name, addrtype start_addr, addrtype low_offset)
 {
   //FIXME:tallent Dyninst::ParseAPI::SymtabCodeSource* lm_codeSource;
   lm_codeSource = new Dyninst::ParseAPI::SymtabCodeSource((char*)file_name.c_str());
@@ -81,7 +77,7 @@ create_loadModule(uint32_t id, std::string& file_name,
 #if 0  
   unsigned long start_addr = get_start_address(&objs, file_name);
   //unsigned long low_offset = get_low_offset(&objs, file_name);
-  //low_offset = lm_codeSource->loadAddress();
+  unsigned long low_offset = lm_codeSource->loadAddress();
 #endif
 
   lm_functions = lm_image->getProcedures(true);
@@ -92,9 +88,6 @@ create_loadModule(uint32_t id, std::string& file_name,
     fg->getAllBasicBlocks(blks);
     lm_func2blockMap[i] = blks;
   }
-  
-  LoadModule *lm = new LoadModule (id, start_addr, low_offset, file_name, hashKey);
-  return lm;
 }
 
 
@@ -135,14 +128,14 @@ void traverse_cfg(MIAMI::CFG* cfg, BPatch_basicBlock* bb, CFG::Node* nn,
 		  std::map<int, BPatch_basicBlock*>& blockMap);
 
 
-MIAMI::Routine* create_routine(MIAMI::LoadModule* lm, int i)
+void dyninst_note_routine(MIAMI::LoadModule* lm, int i)
 {
   BPatch_function* func = lm_functions->at(i);
   std::string func_name = func->getName();
 
   Dyninst::Address _start, _end;
   if (!(func->getAddressRange(_start, _end))) {
-    assert("create_routine: Address not available!");
+    assert("dyninst_note_routine: Address not available!");
   }
 
   Routine * rout = new Routine(lm, _start, _end - _start, func_name, _start/*offset*/, lm->RelocationOffset());
@@ -153,8 +146,6 @@ MIAMI::Routine* create_routine(MIAMI::LoadModule* lm, int i)
 #if 0 // FIXME:tallent: something appears to be broken
   dyninst_build_CFG(cfg, func_name);
 #endif
-  
-  return rout;
 }
 
 
@@ -2580,5 +2571,41 @@ void dynXlate_dumpAssignmentAST(AST::Ptr ast, std::string index, int num)
 }
 
 
+//***************************************************************************
+// 
+//***************************************************************************
 
+#if 0
 
+// cf. Routine::compute_lineinfo_for_block()
+void compute_lineinfo_for_block_dyninst(LoadModule *lm, ScopeImplementation *pscope, CFG::Node *b) {
+   std::vector<unsigned long> addressVec = get_instructions_address_from_block(b);
+   //std::cout << "routine: compute_lineinfo_for_block_dyninst: 8\n";
+   if (!addressVec.size())
+   {
+      assert("No instructions available");
+      return;
+   }
+   std::string func, file;
+   int32_t lineNumber1 = 0, lineNumber2 = 0;
+   
+#if DEBUG_COMPUTE_LINEINFO
+   std::cerr << "LineInfo for block [" << std::hex << b->getStartAddress() 
+             << "," << b->getEndAddress() << "]" << std::dec << " exec-count " 
+             << b->ExecCount() << std::endl;
+#endif
+   // iterate over variable length instructions. Define an architecture independent API
+   // for common instruction decoding tasks. That API can be implemented differently for
+   // each architecture type
+   //CFG::ForwardInstructionIterator iit(b);
+   for (unsigned int i = 0; i < addressVec.size(); ++i)
+   {
+      addrtype pc = addressVec.at(i);
+      lm->GetSourceFileInfo(pc, 0, file, func, lineNumber1, lineNumber2);
+      unsigned int findex = mdriver.GetFileIndex(file);
+      mdriver.AddSourceFileInfo(findex, lineNumber1, lineNumber2);
+      pscope->addSourceFileInfo(findex, func, lineNumber1, lineNumber2);
+     // std::cout << "routine: lineMappings size is " << pscope->GetLineMappings().size() << endl;
+   }
+}
+#endif

@@ -32,8 +32,6 @@
 
 #include "dyninst-insn-xlate.hpp"
 
-void compute_lineinfo_for_block_dyninst(LoadModule *lm, ScopeImplementation *pscope, CFG::Node *b);
-
 using namespace std;
 using namespace MIAMI;
 
@@ -810,6 +808,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
 //   computeSchedule = _computeSchedule;
    mo = _mo;
    
+   std::cout << "Routine::main_analysis(): " << Name() << "\n";
    if (name.compare(mo->debug_routine) == 0)  // they are equal
    {
       // draw CFG
@@ -819,7 +818,6 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
    /* compute BB ad edge frequencies */
    if (mo->do_cfgcounts)
    {
-      std::cout << "Routine::main_analysis():cfg-counts\n";
       ires = cfg->computeBBAndEdgeCounts();
       if (ires < 0)
       {
@@ -1556,38 +1554,6 @@ Routine::compute_lineinfo_for_block (ScopeImplementation *pscope, CFG::Node *b)
       mdriver.AddSourceFileInfo(findex, lineNumber1, lineNumber2);
       pscope->addSourceFileInfo(findex, func, lineNumber1, lineNumber2);
       ++ iit;
-   }
-}
-
-
-void compute_lineinfo_for_block_dyninst(LoadModule *lm, ScopeImplementation *pscope, CFG::Node *b) {
-   std::vector<unsigned long> addressVec = get_instructions_address_from_block(b);
-   //std::cout << "routine: compute_lineinfo_for_block_dyninst: 8\n";
-   if (!addressVec.size())
-   {
-      assert("No instructions available");
-      return;
-   }
-   std::string func, file;
-   int32_t lineNumber1 = 0, lineNumber2 = 0;
-   
-#if DEBUG_COMPUTE_LINEINFO
-   std::cerr << "LineInfo for block [" << std::hex << b->getStartAddress() 
-             << "," << b->getEndAddress() << "]" << std::dec << " exec-count " 
-             << b->ExecCount() << std::endl;
-#endif
-   // iterate over variable length instructions. Define an architecture independent API
-   // for common instruction decoding tasks. That API can be implemented differently for
-   // each architecture type
-   //CFG::ForwardInstructionIterator iit(b);
-   for (unsigned int i = 0; i < addressVec.size(); ++i)
-   {
-      addrtype pc = addressVec.at(i);
-      lm->GetSourceFileInfo(pc, 0, file, func, lineNumber1, lineNumber2);
-      unsigned int findex = mdriver.GetFileIndex(file);
-      mdriver.AddSourceFileInfo(findex, lineNumber1, lineNumber2);
-      pscope->addSourceFileInfo(findex, func, lineNumber1, lineNumber2);
-     // std::cout << "routine: lineMappings size is " << pscope->GetLineMappings().size() << endl;
    }
 }
 

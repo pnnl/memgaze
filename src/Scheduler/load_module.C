@@ -226,11 +226,8 @@ LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
           _name, (void*)_start, (void*)_end, (void*)_offset, (void*)(base_addr+_offset));
    );
 #endif
-#if 0 // FIXME: tallent: this no longer sets any state! Yay!
-   rout = create_routine((LoadModule*)this, r);
-#else
    rout = new Routine(this, _start, _size, string(_name), _offset, reloc_offset);
-#endif
+   //dyninst_note_routine((LoadModule*)this, r);
    CHECK_COND(rout==NULL, "allocating object for routine %u", r);
    
 #if DEBUG_CFG_COUNTS
@@ -277,11 +274,6 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
    if (res!=1 || numRoutines>1024*1024)
       fprintf(stderr, "ERROR while reading routine count res=%ld, numRoutines=%u\n", 
             res, numRoutines);
-   
-#if 0
-   std::cout << "LoadModule::analyzeRoutines: Ignoring CFG file and analyzing all routines\n";
-   numRoutines = get_routine_number();
-#endif
    
    /* create program scope for this load module */   
    img_scope = new ImageScope(prog, img_name, img_id);
@@ -384,7 +376,7 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
          }
       }
       
-      if (rout->is_valid_for_analysis()/*1*/)
+      if (rout->is_valid_for_analysis())
       {
 #if VERBOSE_DEBUG_LOAD_MODULE
          DEBUG_LOAD_MODULE(1,
