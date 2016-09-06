@@ -363,7 +363,7 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
             FinalizeSourceFileInfo();
          return (-1);
       }
-      std::cout << "LoadModule::analyzeRoutines(): " << rout->Name() << "\n";
+      std::cerr << "[INFO]LoadModule::analyzeRoutines(): '" << rout->Name() << "'\n";
       addrtype rstart = rout->Start();
       if (mo->do_staticmem)
       {
@@ -380,7 +380,7 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
       {
 #if VERBOSE_DEBUG_LOAD_MODULE
          DEBUG_LOAD_MODULE(1,
-            fprintf (stderr, "Starting analysis for routine %s\n", rout->Name().c_str());
+            fprintf (stderr, "Starting analysis for routine '%s'\n", rout->Name().c_str());
          )
 #endif
          ires = rout->main_analysis(img_scope, mo);

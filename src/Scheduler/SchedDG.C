@@ -4846,6 +4846,7 @@ SchedDG::pruneControlDependencies()
 void 
 SchedDG::updateGraphForMachine(const Machine* _mach)
 {
+   std::cerr << "[INFO]SchedDG::updateGraphForMachine: '" << name() << "/" << _mach->MachineName() << "'\n";
    if (HasAllFlags (DG_MACHINE_DEFINED))   // machine defined before
       assert(!"SchedDG::updateGraphForMachine was invoked, but the graph \
       has been previously updated with a machine description.");

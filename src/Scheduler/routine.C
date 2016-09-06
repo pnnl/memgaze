@@ -808,7 +808,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
 //   computeSchedule = _computeSchedule;
    mo = _mo;
    
-   std::cout << "Routine::main_analysis(): " << Name() << "\n";
+   std::cerr << "[INFO]Routine::main_analysis(): '" << name << "'\n";
    if (name.compare(mo->debug_routine) == 0)  // they are equal
    {
       // draw CFG
@@ -943,7 +943,6 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
    
    if (mo->do_scopetree)
    {
-      std::cout << "Routine::main_analysis():scopetree\n";
       // call mark_loop_back_edges after computing the tarjan intervals
       CFG::AddrEdgeMMap *entryEdges = new CFG::AddrEdgeMMap ();
       CFG::AddrEdgeMMap *callEntryEdges = new CFG::AddrEdgeMMap ();
@@ -1106,7 +1105,6 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
                                      // I need to pass an appropriate parameter
             CFG::Node *b = (CFG::Node*)nnit;
             if (b->Size()>0 && (b->ExecCount()>0 || mo->do_ref_scope_index)) {
-	       std::cout << "Routine::main_analysis():no-scopetree:decoding-blk(" << (void*)b->getStartAddress() << ")\n";
                decode_instructions_for_block(prog, b, b->ExecCount(), scopeMemRefs, refsClass);
             }
             ++ nnit;
@@ -1151,6 +1149,7 @@ Routine::build_paths_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
    int kid;
    int is_zero = 1;
 
+   std::cerr << "[INFO]Routine::build_paths_for_interval(): '" << name << "'\n";
    b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(node));
    b->markWith(marker);
    
@@ -1561,7 +1560,7 @@ Routine::constructPaths (ScopeImplementation *pscope, CFG::Node *b, int marker,
             int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, 
             CFG::AddrEdgeMMap *callEntryEdges)
 {
-   std::cout << "Routine::constructPaths\n";
+   std::cerr << "[INFO]Routine::constructPaths(): '" << name << "'\n";
    CFG::NodeList ba;
    CFG::EdgeList ea;
    RSIListList rl;
@@ -2011,6 +2010,7 @@ Routine::constructPaths (ScopeImplementation *pscope, CFG::Node *b, int marker,
 
       if (mo->do_build_dg)
       {
+	 std::cerr << "[INFO]Routine::constructPaths:schedule: '" << name << "'\n";
          RFormulasMap &refFormulas = *rFormulas;
 #if 1
          sch = new MIAMI_DG::DGBuilder(name.c_str(), pathId, 

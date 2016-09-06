@@ -141,6 +141,7 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerR
 {
    int i, numLoops = 0;
    CFG *g = ba[0]->inCfg();
+   std::cerr << "[INFO]DGBuilder::build_graph: '" << name() << "'\n";
    // try to find a block with a non NULL CFG pointer. Inner loop nodes are special 
    // nodes that are not part of the CFG and they have an uninitialized pointer.
    for (i=1 ; i<numBlocks && g==NULL ; ++i)

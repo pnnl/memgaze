@@ -1215,7 +1215,10 @@ public:
    Edge* addUniqueDependency(Node* n1, Node* n2, int _ddirection, 
             int _dtype, int _ddistance, int _dlevel, int _overlapped,
             float _execProb=1.0 );
-  
+
+
+   const char* name() const { return routine_name; }
+
    // use arguments of type DGraph::Edge* and DGraph::Node*, to avoid the
    // warnings
    virtual void add (DGraph::Edge* e);

@@ -272,7 +272,7 @@ void
 MIAMI_Driver::Finalize(const std::string& outFile)
 {
    // now write all the performance data into fout
-  std::cout << "MIAMI_Driver::Finalize\n";
+  std::cerr << "[INFO]MIAMI_Driver::Finalize\n";
    Machine *tmach = 0;
    if (mo->has_mdl)
       tmach =  targets.front();
@@ -457,7 +457,7 @@ MIAMI_Driver::Finalize(const std::string& outFile)
 void
 MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, addrtype low_offset)
 {
-   std::cout << "MIAMI_Driver::LoadImage: " << iname << endl;
+   std::cerr << "[INFO]MIAMI_Driver::LoadImage: " << iname << endl;
 #if DEBUG_CFG_COUNTS
    DEBUG_CFG(1,
       fprintf(stderr, "MIAMI_Driver::LoadImage called for id %u, name %s, start_addr 0x%" PRIxaddr 
@@ -530,7 +530,6 @@ void
 MIAMI_Driver::aggregate_counts_for_scope (ScopeImplementation *pscope,
        Machine *tmach, int no_fpga_acc)
 {
-   std::cout << "MIAMI_Driver::aggregate_counts_for_scope()\n";
    int i;
    // first compute exclusive time stats as the sum over all local paths
    BPMap* bpm = pscope->Paths();
