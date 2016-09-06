@@ -29,21 +29,30 @@
 //***************************************************************************
 
 // FIXME: tallent: static data. Should be part of LoadModule
-static Dyninst::ParseAPI::SymtabCodeSource* lm_codeSource;
-static BPatch_image* lm_image;
-static std::vector<BPatch_function*>* lm_functions;
+static Dyninst::ParseAPI::SymtabCodeSource* lm_codeSource; // MIAMI::LoadModule
+static BPatch_image* lm_image;                             // MIAMI::LoadModule
+
+static std::vector<BPatch_function*>* lm_functions;  // MIAMI::Routine
+
+// Convert to per-Routine map: address-range -> basic-block
 static std::map<int, std::set<BPatch_basicBlock*>> lm_func2blockMap;
 
+// These will no longer be needed
 // FIXME: tallent: static data. Should be part of Routine... or not...
 static std::vector<BPatch_basicBlock*> func_blockVec;
 
+
+// incorporate isaXlate_insn() into InstructionXlate::xlate_dbg()
+
+//***************************************************************************
+
 // FIXME: tallent: static data. Should be part of translation context
 static Dyninst::ParseAPI::Block* insn_myBlock;
+
 static int insn_numAssignments = 0;
 static std::vector<Absloc> insn_locVec;
 static std::vector<RoseAST::Ptr> insn_opVec;
 static int insn_jump_tgt = 0;
-
 
 //***************************************************************************
 
