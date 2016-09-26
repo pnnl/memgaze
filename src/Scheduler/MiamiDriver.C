@@ -517,6 +517,7 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
       
       // read only data for this image.
       newimg->loadFromFile(fd, false);  // do not parse routines now
+      newimg->createDyninstImage(bpatch);
       
       // Now go and analyze each routine; compute counts for all blocks and edges,
       // recover executed paths, attempt to decode and schedule the instructions

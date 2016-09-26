@@ -36,6 +36,7 @@
 #include "register_class.h"
 #include "hashmaps.h"
 #include "miami_containers.h"
+#include "routine.h"
 
 namespace MIAMI_DG
 {
@@ -100,6 +101,13 @@ class DGBuilder : public SchedDG
 {
 public:
    DGBuilder(const char* func_name, MIAMI::PathID _pathId, int _opt_mem_dep,
+           RFormulasMap& _refAddr, 
+           LoadModule *_img,
+           int numBlocks, 
+           MIAMI::CFG::Node** ba, float* fa, RSIList* innerRegs, 
+           uint64_t _pathFreq = 1, float _avgNumIters = 1.0);
+
+   DGBuilder(Routine* _routine, MIAMI::PathID _pathId, int _opt_mem_dep,
            RFormulasMap& _refAddr, 
            LoadModule *_img,
            int numBlocks, 
@@ -219,6 +227,8 @@ private:
    int pessimistic_memory_dep;
    
    AddrSet memRefs;
+
+   Routine* routine;
 };
 
 }  /* namespace MIAMI_DG */

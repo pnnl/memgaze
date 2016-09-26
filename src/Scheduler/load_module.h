@@ -17,6 +17,8 @@
 #include <list>
 #include <vector>
 
+
+
 #include "miami_types.h"
 #include "private_load_module.h"
 #include "prog_scope.h"
@@ -26,6 +28,8 @@
 #include "scope_implementation.h"
 #include "hashmaps.h"
 #include "dense_container.h"
+
+#include <BPatch.h> // must be included after miami headers to compile
 
 namespace MIAMI
 {
@@ -55,7 +59,9 @@ public:
       nextInstIndex = nextScopeIndex = nextSetIndex = 1;
       img_scope = 0;
       undefScope = 0;
+      dyn_image = 0;
    }
+
    virtual ~LoadModule();
    
    int loadFromFile(FILE *fd, bool parse_routines=false);
@@ -113,6 +119,12 @@ public:
    void SetIrregularAccessForSet(int32_t setId, int loop);
    bool SetHasIrregularAccessAtDistance(int32_t setId, int dist);
 
+
+   void createDyninstImage(BPatch& bpatch);
+   BPatch_image* getDyninstImage()
+   {
+      return dyn_image;
+   }
 private:   
    int32_t nextInstIndex, nextScopeIndex, nextSetIndex;
    Int32Vector refParent;
@@ -151,6 +163,9 @@ private:
    // Define a default ScopeImplementation object for unidentified scopes
    GroupScope *undefScope;
    ImageScope *img_scope;
+
+   
+   BPatch_image* dyn_image;
 };
 
 }

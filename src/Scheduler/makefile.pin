@@ -37,7 +37,7 @@ SCHEDULER_OBJS = \
   path_id.o CycleSetDAG.o SchedDG.o DGBuilder.o stream_reuse_histograms.o \
   XML_output.o memory_reuse_histograms.o TemplateInstantiate.o
 
-PIN_COMMON_OBJS = instruction_decoding_pin.o
+PIN_COMMON_OBJS = instruction_decoding_pin.o instruction_decoding_dyninst.o
 
 COMMON_OBJS = \
   PrivateCFG.o printable_class.o private_routine.o Assertion.o BaseDominator.o \

@@ -31,6 +31,7 @@ namespace MIAMI
    extern const char* defaultVarName;
 }
 
+
 LoadModule::~LoadModule()
 {
    RoutineList::iterator rit = funcList.begin();
@@ -227,7 +228,7 @@ LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
    );
 #endif
    rout = new Routine(this, _start, _size, string(_name), _offset, reloc_offset);
-   //dyninst_note_routine((LoadModule*)this, r);
+   //dyninst_note_routine((LoadModule*)this, r); 
    CHECK_COND(rout==NULL, "allocating object for routine %u", r);
    
 #if DEBUG_CFG_COUNTS
@@ -699,5 +700,13 @@ LoadModule::SetHasIrregularAccessAtDistance(int32_t setId, int dist)
    assert (setId>0 && dist>=0);
    uint64_t key = ((uint64_t)dist << LOOP_IRREG_SHIFT_BITS) + setId;
    return (irregSetInfo.is_member(key));
+}
+
+
+void 
+LoadModule::createDyninstImage(BPatch& bpatch)
+{
+   BPatch_addressSpace* app = bpatch.openBinary(img_name.c_str(),false);
+   dyn_image = app->getImage();
 }
 

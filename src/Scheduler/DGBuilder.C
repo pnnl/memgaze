@@ -25,7 +25,7 @@
 #include "instr_info.H"
 #include "instruction-xlate.hpp"
 
-#include "dyninst-insn-xlate.hpp"
+//#include "dyninst-insn-xlate.hpp"
 
 
 using namespace MIAMI;
@@ -49,8 +49,8 @@ DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
            int _opt_mem_dep, RFormulasMap& _refAddr, LoadModule *_img,
            int numBlocks, CFG::Node** ba, float* fa, RSIList* innerRegs,
            uint64_t _pathFreq, float _avgNumIters)
-     : SchedDG(func_name, _pathId, _pathFreq, _avgNumIters, _refAddr, _img), 
-       optimistic_memory_dep(_opt_mem_dep)
+     : SchedDG(func_name, _pathId, _pathFreq, _avgNumIters, _refAddr, _img),
+     optimistic_memory_dep(_opt_mem_dep)
 {
    assert( (numBlocks>=1) || 
            !"Number of blocks to schedule is < 1. What's up?");
@@ -60,6 +60,88 @@ DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
           avgNumIters);
    )
 #endif
+   
+   // we do not read this flag right now.
+   // Assume we do not have pessimistic memory dependencies.
+   pessimistic_memory_dep = 0;
+   num_instructions = 0;
+   
+   nextGpReg = 1;
+   nextInReg = 1;
+   nextUopIndex = 1;
+   minPathAddress = ba[0]->getStartAddress();
+   maxPathAddress = ba[0]->getEndAddress();
+   // gmarin, 09/11/2013: The first block can be an inner loop, and
+   // inner loop nodes do not have an associated CFG, so the reloc_offset
+   // is always zero. Can all the blocks of a path be inner loops?
+   // Probabaly not, but it is safer to get it from the img object.
+   reloc_offset = img->RelocationOffset();  //ba[0]->RelocationOffset();
+   
+   for( int i=1 ; i<numBlocks ; ++i )
+   {
+      if (minPathAddress > ba[i]->getStartAddress())
+         minPathAddress = ba[i]->getStartAddress();
+      if (maxPathAddress < ba[i]->getEndAddress())
+         maxPathAddress = ba[i]->getEndAddress();
+   }
+   prev_inst_may_have_delay_slot = false;
+   instruction_has_stack_operation = false;
+   gpRegs = &gpMapper;
+//   fpRegs = &fpMapper;
+   prevBranch = NULL;
+   prevBarrier = lastBarrier = NULL;
+   lastBranchBB = NULL;
+   lastBranchProb = 0;
+   lastBranchId = 0;
+   // find how many register stacks are on this architecture.
+   // I have to maintain top markers for each one.
+   numRegStacks = number_of_register_stacks();
+   if (numRegStacks>0)
+   {
+      crt_stack_tops = new int[numRegStacks];
+      prev_stack_tops = new int[numRegStacks];
+      for (int i=0 ; i<numRegStacks ; ++i) {
+         crt_stack_tops[i] = prev_stack_tops[i] = max_stack_top_value(i);
+      }
+      stack_tops = crt_stack_tops;
+   } else {
+      stack_tops = crt_stack_tops = prev_stack_tops = 0;
+   }
+   
+   build_graph(numBlocks, ba, fa, innerRegs);
+   
+   // in loops with many indirect accesses we see an explosion of unnecessary 
+   // memory dependencies. Write a method that traverses only memory 
+   // instructions, along memory dependencies, and removes any trivial deps.
+//   if (avgNumIters > ONE_ITERATION_EPSILON) 
+   pruneTrivialMemoryDependencies();
+   
+   finalizeGraphConstruction();
+   
+   setCfgFlags(CFG_CONSTRUCTED);
+   
+   // delete the decoded instructions stored in builtNodes
+   builtNodes.map(deleteInstsInMap, NULL);
+}
+
+
+DGBuilder::DGBuilder(Routine* _routine, PathID _pathId, 
+           int _opt_mem_dep, RFormulasMap& _refAddr, LoadModule *_img,
+           int numBlocks, CFG::Node** ba, float* fa, RSIList* innerRegs,
+           uint64_t _pathFreq, float _avgNumIters)
+     : SchedDG(_routine->Name().c_str(), _pathId, _pathFreq, _avgNumIters, _refAddr, _img),
+     optimistic_memory_dep(_opt_mem_dep)
+{
+   assert( (numBlocks>=1) || 
+           !"Number of blocks to schedule is < 1. What's up?");
+#if DEBUG_GRAPH_CONSTRUCTION
+   DEBUG_GRAPH (1,
+      fprintf(stderr, "DGBuilder create path with %f average iterations\n", 
+          avgNumIters);
+   )
+#endif
+
+   routine = _routine;
    
    // we do not read this flag right now.
    // Assume we do not have pessimistic memory dependencies.
@@ -388,6 +470,18 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
    dInst = new MIAMI::DecodedInstruction();
    
    int res = InstructionXlate::xlate_dbg(pc+reloc_offset, b->getEndAddress()-pc, dInst, "DGBuilder::build_node_for_instruction");
+   BPatch_function* dyn_func = routine->getDynFunction();
+   if (dyn_func != 0){
+      BPatch_basicBlock* dyn_blk = routine->getBlockFromAddr(b->getStartAddress());
+      MIAMI::DecodedInstruction dInst2;
+      if (dyn_blk != 0){
+         int res1 = InstructionXlate::xlate_dyninst(pc+reloc_offset, b->getEndAddress()-pc,&dInst2,dyn_func,dyn_blk);
+      }
+      else{
+         fprintf(stderr,"Dyninst: no block found starting at addr: 0x%lx\n",b->getStartAddress());
+      }
+   }
+
 #if 0
    res = isaXlate_insn(pc+reloc_offset, dInst);
 #endif

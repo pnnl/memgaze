@@ -30,13 +30,16 @@
 #include "static_branch_analysis.h"
 #include "Assertion.h"
 
-#include "dyninst-insn-xlate.hpp"
+//#include "dyninst-insn-xlate.hpp"
+
+#include <BPatch_flowGraph.h>
 
 using namespace std;
 using namespace MIAMI;
 
 StringList MIAMI::Routine::includePatterns;
 StringList MIAMI::Routine::excludePatterns;
+
 
 #define MARKER_CODE 0xabcd
 #define DEBUG_PROG_SCOPE 0
@@ -55,6 +58,8 @@ Routine::Routine(LoadModule *_img, addrtype _start, usize_t _size,
    g = new CFG(this, _name);
 
    rFormulas = new RFormulasMap(0);
+   dyn_addrToBlock = new DynBlkMap;
+   createDyninstFunction();
 }
 
 Routine::~Routine()
@@ -1455,6 +1460,7 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
       AddrIntSet& memRefs, RefIClassMap& refsClass)
 {
    MIAMI::DecodedInstruction dInst;
+   MIAMI::DecodedInstruction dInst2;
    LoadModule *lm = InLoadModule();
    addrtype reloc = lm->RelocationOffset();
    // iterate over variable length instructions. Define an architecture independent API
@@ -1469,6 +1475,17 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
       if (res < 0) { // error while decoding
          return;
       }
+
+      if(dyn_func != 0){
+         if(dyn_addrToBlock->count(b->getStartAddress()) != 0){
+            int res1 = InstructionXlate::xlate_dyninst(pc+reloc, b->getEndAddress()-pc,&dInst2,dyn_func,(*dyn_addrToBlock)[b->getStartAddress()]);
+         }
+         else{
+            fprintf(stdout,"dyninst: blk not found\n");
+         }
+         
+      }
+
 
 #if 0
       MIAMI::DecodedInstruction* dInst2 = new MIAMI::DecodedInstruction(); // FIXME:tallent memory leak
@@ -2013,7 +2030,14 @@ Routine::constructPaths (ScopeImplementation *pscope, CFG::Node *b, int marker,
 	 std::cerr << "[INFO]Routine::constructPaths:schedule: '" << name << "'\n";
          RFormulasMap &refFormulas = *rFormulas;
 #if 1
-         sch = new MIAMI_DG::DGBuilder(name.c_str(), pathId, 
+         //sch = new MIAMI_DG::DGBuilder(name.c_str(), pathId, 
+         //     1 /*args.optimistic_memory_dep*/, refFormulas,
+         //     InLoadModule(),
+         // /*        mdriver.RefNames(), mdriver.RefsTable(), */
+         //     bpit->first->size, bpit->first->blocks, 
+         //     bpit->first->probabs, bpit->first->innerRegs,
+         //     bpit->second->count, avgCount);
+         sch = new MIAMI_DG::DGBuilder(this, pathId, 
               1 /*args.optimistic_memory_dep*/, refFormulas,
               InLoadModule(),
       /*        mdriver.RefNames(), mdriver.RefsTable(), */
@@ -2924,3 +2948,59 @@ Routine::addBlock(ScopeImplementation *pscope, CFG::Node *pentry, CFG::Node *thi
    return (ba.end());
 }
 
+void
+Routine::createDyninstFunction() // todo: better error checking
+{
+   dyn_func = 0;
+   BPatch_image* dyn_img = InLoadModule()->getDyninstImage();
+   std::vector<BPatch_function*> funcs;
+   bool found = dyn_img->findFunction(start_addr,funcs);
+   if (!found){
+      fprintf(stderr, "Unable find dyninst function from address 0x%lx, searching based on name: %s \n",start_addr,name.c_str());
+      dyn_img->findFunction(name.c_str(),funcs,true,true,true);
+   }
+   if (funcs.size() != 1){
+      if (funcs.size() == 0){
+         fprintf(stderr, "Unable to create dyninst function: %s \n",name.c_str());
+         return;
+      }
+      else {
+         fprintf(stderr, "Multiple dyninst functions for %s 0x%lx found: \n",name.c_str(),start_addr);
+         for (int i=0;i<funcs.size();i++){
+            fprintf(stderr,"%s 0x%lx\n",funcs[i]->getMangledName().c_str(),funcs[i]->getBaseAddr());
+            if(funcs[i]->getMangledName().compare(name) == 0 && funcs[i]->getBaseAddr() == (void*)start_addr){
+               dyn_func = funcs[i];
+               fprintf(stderr,"%s matched with address 0x%lx\n",funcs[i]->getMangledName().c_str(),funcs[i]->getBaseAddr());
+               break;
+            }
+         }
+      }
+   }
+   if (funcs.size() == 1){
+
+      dyn_func = funcs[0];
+   }
+   if (dyn_func != 0){
+      BPatch_flowGraph *fg = dyn_func->getCFG();
+      std::set<BPatch_basicBlock*> blks;
+      fg->getAllBasicBlocks(blks);
+      for (auto blk : blks){
+         (*dyn_addrToBlock)[blk->getStartAddress()]=blk;
+      }
+   }
+}
+
+BPatch_basicBlock* 
+Routine::getBlockFromAddr(addrtype addr){
+   if (dyn_addrToBlock->count(addr) != 0){
+      return (*dyn_addrToBlock)[addr];
+   }
+   else{
+      return 0;
+   }
+}
+
+BPatch_function* 
+Routine::getDynFunction(){
+   return dyn_func;
+}

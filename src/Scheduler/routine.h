@@ -16,6 +16,7 @@
 
 #include <list>
 #include <string>
+
 #include "CFG.h"
 #include "private_routine.h"
 #include "load_module.h"
@@ -27,10 +28,13 @@
 #include "miami_containers.h"
 #include "instruction_class.h"
 
+#include <BPatch.h>
+
 namespace MIAMI
 {
 typedef std::list<std::string> StringList;
 typedef std::map<AddrIntPair, InstructionClass, AddrIntPair::OrderPairs> RefIClassMap;
+typedef std::map<addrtype,BPatch_basicBlock*> DynBlkMap;
 
 class ScopeImplementation;
 
@@ -78,6 +82,10 @@ public:
    
    uint64_t SaveStaticData(FILE *fd);
    void FetchStaticData(FILE *fd, uint64_t offset);
+
+
+   BPatch_basicBlock* getBlockFromAddr(addrtype addr);
+   BPatch_function* getDynFunction();
    
 private:
    const char * ComputeObjectNameForRef(addrtype pc, int32_t memop);
@@ -120,6 +128,12 @@ private:
    // for analysis
    char valid_for_analysis : 1;
    char validity_computed : 1;
+
+
+   void createDyninstFunction();
+
+   BPatch_function* dyn_func;
+   DynBlkMap* dyn_addrToBlock; //get malloc error unless this is a pointer?
 };
 
 

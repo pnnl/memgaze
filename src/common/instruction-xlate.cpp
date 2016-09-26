@@ -21,6 +21,7 @@
 #include "instruction-xlate.hpp"
 
 #include "instruction_decoding.h"
+#include "instruction_decoding_dyninst.h"
 
 //***************************************************************************
 // 
@@ -59,6 +60,18 @@ InstructionXlate::xlate_dbg(unsigned long pc, int len,
   cerr << "\n";
 
   return ret;
+}
+
+int 
+InstructionXlate::xlate_dyninst(unsigned long pc, int len, 
+          MIAMI::DecodedInstruction* dInst, 
+          BPatch_function* f,
+          BPatch_basicBlock* blk){
+
+  void* pc_ptr = (void*)pc;
+
+  int ret = dyninst_decode_instruction_at_pc(pc_ptr,len,dInst,f,blk);
+  
 }
 
 

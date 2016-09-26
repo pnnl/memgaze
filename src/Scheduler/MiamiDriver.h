@@ -26,6 +26,8 @@
 //#include "stream_reuse_histograms.h"
 #include "miami_options.h"
 
+#include <BPatch.h>
+
 #include <stdio.h>
 #include <dlfcn.h>
 #include <stdlib.h>
@@ -232,6 +234,9 @@ private:
    MIAMIU::Ui2SetMap allFileLines;
    
    MIAMI_MEM_REUSE::MRDDataVec mrdData;
+
+
+   BPatch bpatch;
 };
 
 } /* namespace MIAMI */
