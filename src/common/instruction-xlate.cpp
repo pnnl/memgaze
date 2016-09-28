@@ -71,7 +71,7 @@ InstructionXlate::xlate_dyninst(unsigned long pc, int len,
   void* pc_ptr = (void*)pc;
 
   int ret = dyninst_decode_instruction_at_pc(pc_ptr,len,dInst,f,blk);
-  
+  DumpInstrList(dInst);
 }
 
 

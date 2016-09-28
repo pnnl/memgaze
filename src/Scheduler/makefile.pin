@@ -26,7 +26,6 @@ BINSCRIPT = $(MIAMI_HOME)/src/tools/run_static.in
 PIN_SCHEDULER_OBJS = schedtool.o 
 
 SCHEDULER_OBJS = \
-  dyninst-cfg-xlate.o dyninst-insn-xlate.o \
   CFG.o routine.o load_module.o debug_scheduler.o \
   block_path.o PathInfo.o TimeAccount.o Clique.o FindCliques.o \
   reuse_group.o Instruction.o Machine.o MemoryHierarchyLevel.o PatternGraph.o \
