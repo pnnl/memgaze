@@ -31,6 +31,7 @@ namespace MIAMI
       bool do_cfgcounts;  // compute BB and Edge counts
       bool do_scopetree;  // construct the scope tree
       bool do_cfgpaths;   // reconstruct paths
+
       bool do_build_dg;   // build dependence graph
       bool do_ideal_sched;// compute ideal schedule (no machine info)
       bool do_streams;    // aggregate stream reuse
@@ -48,9 +49,13 @@ namespace MIAMI
       bool no_scheduling; // do not compute scheduling even if we have a machine file
       bool do_ref_scope_index; // assign unique index to scopes and mem references inside each image
       bool detailed_metrics; // output additional performance metrics with dubious value
+
+      bool do_mycfgpaths;
       
       double threshold;   // a scope must contribute more than this fraction of any performance metric 
                           // to be included in the output database.
+
+
       
       string machine_file;
       string output_file_prefix;
@@ -64,6 +69,11 @@ namespace MIAMI
       string exec_name;
       string scope_name;
       MrdFileMap mrdFiles;
+
+      string binary_path;
+      string block_path;
+      string func_name;
+
       
       MiamiOptions() {
          do_scheduling = false;
@@ -95,11 +105,13 @@ namespace MIAMI
          // make default exec name and path in case we cannot open the first image??
          exec_path = ".";
          exec_name = "unknown-binary";
+
+         do_mycfgpaths = false;
       }
       
       bool CheckDependencies() {
          bool is_good = true;
-         if (do_cfgcounts && !cfg_file.length()) {
+         if (do_cfgcounts && !(cfg_file.length() || (binary_path.length() && func_name.length()))) {
             // we do not have a cfg file
             fprintf(stderr, "Some of the specified options require a CFG file. Repeat run with a valid CFG file.\n");
             is_good = false;
@@ -129,7 +141,7 @@ namespace MIAMI
          if (is_good)
          {
             assert((!do_scheduling && !do_ideal_sched) || do_build_dg);
-            assert(!do_build_dg || do_cfgpaths);
+            assert(!do_build_dg || (do_cfgpaths || do_mycfgpaths));
             assert(!do_cfgpaths || do_scopetree);
             assert(!do_staticmem || do_scopetree);
          }
@@ -332,6 +344,24 @@ namespace MIAMI
             do_ibins = true;
             do_cfgcounts = true;
             do_idecode= true;
+         }
+      }
+
+      void addBinaryPath(const string& bpath) {
+         if (bpath.length())
+            binary_path = bpath;
+      }
+
+      void addFuncName(const string& fname) {
+         if (fname.length())
+            func_name = fname;
+      }
+
+      void addBlockPath(const string& blkPath){
+         if (blkPath.length()){
+            block_path = blkPath;
+            do_mycfgpaths=true;
+            do_cfgpaths=false;
          }
       }
    };

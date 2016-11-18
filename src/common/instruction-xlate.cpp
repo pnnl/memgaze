@@ -21,8 +21,9 @@
 #include "instruction-xlate.hpp"
 
 #include "instruction_decoding.h"
+#if 0
 #include "instruction_decoding_dyninst.h"
-
+#endif
 //***************************************************************************
 // 
 //***************************************************************************
@@ -62,6 +63,7 @@ InstructionXlate::xlate_dbg(unsigned long pc, int len,
   return ret;
 }
 
+#if 0
 int 
 InstructionXlate::xlate_dyninst(unsigned long pc, int len, 
           MIAMI::DecodedInstruction* dInst, 
@@ -73,7 +75,7 @@ InstructionXlate::xlate_dyninst(unsigned long pc, int len,
   int ret = dyninst_decode_instruction_at_pc(pc_ptr,len,dInst,f,blk);
   DumpInstrList(dInst);
 }
-
+#endif
 
 int
 InstructionXlate::xlate_dbg(unsigned long pc, int len,

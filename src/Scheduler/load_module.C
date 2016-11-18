@@ -22,6 +22,9 @@
 
 #include "dyninst-insn-xlate.hpp"
 
+#include <CodeObject.h>
+#include <CodeSource.h>
+
 using namespace MIAMI;
 using namespace std;
 
@@ -218,7 +221,9 @@ LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
    res = fread(&len, 4, 1, fd);
    CHECK_COND(res!=1 || len<1 || len>1024, "reading name length for routine %u, res=%ld, len=%u", r, res, len);
    _name = new char[len+1];
+   
    res = fread(_name, 1, len, fd);
+   
    CHECK_COND(res!=len, "reading name for routine %u", r);
    _name[len] = 0;
 #if VERBOSE_DEBUG_LOAD_MODULE
@@ -255,6 +260,7 @@ LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
 load_error:
    if (_name) delete[] _name;
    return (NULL);
+   
 }
 
 int 
@@ -364,6 +370,7 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
             FinalizeSourceFileInfo();
          return (-1);
       }
+      if (rout->Name().find("_Z5test1i")!=std::string::npos){
       std::cerr << "[INFO]LoadModule::analyzeRoutines(): '" << rout->Name() << "'\n";
       addrtype rstart = rout->Start();
       if (mo->do_staticmem)
@@ -398,6 +405,7 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
       {
          uint64_t foffset = rout->SaveStaticData(newstan);
          newROffsets.insert(AddrOffsetMap::value_type(rstart, foffset));
+      }
       }
       
       delete (rout);
@@ -708,5 +716,75 @@ LoadModule::createDyninstImage(BPatch& bpatch)
 {
    BPatch_addressSpace* app = bpatch.openBinary(img_name.c_str(),false);
    dyn_image = app->getImage();
+   vector<BPatch_object*> objs;
+   dyn_image->getObjects(objs);
+   for (auto obj : objs){
+      cout<<obj->name()<<" "<<obj->pathName()<<endl;
+      vector<BPatch_module*> mods;
+      obj->modules(mods);
+      for (auto mod : mods){
+         char* buf =new char[100];
+         if(mod->getName(buf,100)!=NULL){
+            cout<<"\t"<<buf<<" "<<mod->getSize()<<std::endl;
+         }
+         delete[] buf;
+      }
+   }
+}
+
+int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const MiamiOptions *mo){
+   cout<<"dyninstAnalyzeRoutine"<<endl;
+   std::vector<BPatch_function*> tfunctions;
+   dyn_image->findFunction(routName.c_str(), tfunctions,false,true,false);
+   for(int f = 0;f<tfunctions.size();f++){ //search for inlined functions (possibly do special analysis in inlined function found)
+      cout<<tfunctions[f]->getName()<<tfunctions[f]->getMangledName()<<" inst: "<<tfunctions[f]->isInstrumentable()<<" "<<(unsigned int*)tfunctions[f]->getBaseAddr()<<std::endl;
+      BPatch_flowGraph *fg =tfunctions[f]->getCFG();
+      std::set<BPatch_basicBlock*> blks;
+      fg->getAllBasicBlocks(blks);
+      cout<<"num basic blocks: "<<blks.size()<<std::endl;
+      Dyninst::SymtabAPI::Symtab* symtab = Dyninst::SymtabAPI::convert(tfunctions[f]->getModule()->getObject());
+      cout<<(symtab == NULL)<<std::endl;
+      if (symtab!=NULL){
+         Dyninst::SymtabAPI::Function* tf;
+         if(symtab->findFuncByEntryOffset(tf,(Dyninst::Offset)tfunctions[f]->getBaseAddr())){
+            Dyninst::SymtabAPI::InlineCollection inlines = tf->getInlines();
+            cout<<"inlined: "<<inlines.size()<<std::endl;
+            for(Dyninst::SymtabAPI::InlineCollection::iterator it = inlines.begin();it != inlines.end(); ++it){
+               Dyninst::SymtabAPI::FunctionBase* inFunc = (*it);
+               cout<<"\t"<<inFunc->getName()<<std::endl;
+               std::pair<std::string, Dyninst::Offset> callSite = dynamic_cast<Dyninst::SymtabAPI::InlinedFunction*>(inFunc)->getCallsite();
+               cout<<callSite.first<<" "<<callSite.second<<std::endl;
+            }
+         }
+      }
+   }
+   Dyninst::Address start,end;
+   tfunctions[0]->getAddressRange(start,end);
+   Dyninst::ParseAPI::CodeSource* codeSrc = Dyninst::ParseAPI::convert(tfunctions[0])->obj()->cs();
+   base_addr = (MIAMI::addrtype)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-start);
+   reloc_offset=base_addr;
+   low_addr_offset = (MIAMI::addrtype)codeSrc->offset();
+   cout << (unsigned int*)codeSrc->getPtrToInstruction(start) <<" "<<(unsigned int*)start<<" "<<(unsigned int*)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-(Dyninst::Address)start)<<endl;
+   cout << (unsigned int*)codeSrc->offset()<<" "<<(unsigned int*)codeSrc->length()<<" "<<(unsigned int*)codeSrc->baseAddress()<<" "<<(unsigned int*)codeSrc->loadAddress()<<endl;
+   Routine* rout = new Routine(this, (addrtype)start, (usize_t) end-start, string(routName), (addrtype)start, reloc_offset);
+   std::cerr << "[INFO]LoadModule::analyzeRoutines(): '" << rout->Name() <<" "<<(unsigned int*)reloc_offset<< "'\n";
+   addrtype rstart = rout->Start();
+   rout->discover_CFG(rstart);
+   int ires;
+
+   img_scope = new ImageScope(prog, img_name, img_id);
+         
+   if (rout->is_valid_for_analysis()){
+      ires = rout->main_analysis(img_scope, mo);
+      if (ires < 0){
+         fprintf (stderr, "Error while analyzing routine %s\n", rout->Name().c_str());
+         if (mo->do_linemap)
+            FinalizeSourceFileInfo();
+         return (-1);
+      }
+   }
+      
+   delete (rout);
+
 }
 

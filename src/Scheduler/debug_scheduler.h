@@ -43,10 +43,10 @@ extern int module_debug_level;
 #define DEBUG_STREAM_REUSE 0
 #define DEBUG_STREAMS(x, y)   if ((x)<=stream_debug_level) {y}
 
-#define DEBUG_GRAPH_CONSTRUCTION 0
+#define DEBUG_GRAPH_CONSTRUCTION 1
 #define DEBUG_GRAPH(x, y)   if ((x)<=graph_debug_level) {y}
 
-#define DEBUG_BLOCK_PATHS_PRINT 0
+#define DEBUG_BLOCK_PATHS_PRINT 1
 #define DEBUG_PATHS(x, y)   if ((x)<=paths_debug_level) {y}
 
 #define DEBUG_MACHINE_CONSTRUCTION 1
@@ -55,6 +55,6 @@ extern int module_debug_level;
 #define VERBOSE_DEBUG_LOAD_MODULE 1
 #define DEBUG_LOAD_MODULE(x, y)   if ((x)<=module_debug_level) {y}
 
-#define PROFILE_SCHEDULER 0
+#define PROFILE_SCHEDULER 1
 
 #endif

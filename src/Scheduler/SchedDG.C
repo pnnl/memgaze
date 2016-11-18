@@ -1394,7 +1394,7 @@ public:
 typedef std::list<NodePair> NodePairList;
 
 #define DRAW_SUPER_STRUCTURES  0
-#define DRAW_DEBUG_GRAPH       0
+#define DRAW_DEBUG_GRAPH       1
 static PathID targetPath(0x40b985, 2, 1);
 
 void
@@ -4757,11 +4757,14 @@ SchedDG::dfs_forward (Node *nn, unsigned int mm, int distance)
 void
 SchedDG::Edge::computeLatency(const Machine *_mach, addrtype reloc)
 {
+  cout <<"SchedDG::Edge::computeLatency "<<(_flags & LATENCY_COMPUTED_EDGE)<<endl;
    if (_flags & LATENCY_COMPUTED_EDGE)
       return;    // computed it before
    
    InstructionClass sourceType = source()->makeIClass();
    InstructionClass sinkType = sink()->makeIClass();
+   cout <<Convert_InstrBin_to_string(sourceType.type)<<" "<<Convert_InstrBin_to_string(sinkType.type)<<endl;
+   cout << "has bypass: "<<_mach->hasBypassLatency (sourceType, dtype, sinkType)<<endl;
    int rez;
    if ((rez = _mach->hasBypassLatency (sourceType, dtype, sinkType)) >= 0)
    {
@@ -4787,6 +4790,7 @@ SchedDG::Edge::computeLatency(const Machine *_mach, addrtype reloc)
                              // inner loop does not overlap with any instruct.
       }
    }
+   cout << "minlatency: "<<minLatency<<endl;
    _flags |= LATENCY_COMPUTED_EDGE;
 }
 //--------------------------------------------------------------------------------------------------------------------

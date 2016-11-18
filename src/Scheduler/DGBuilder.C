@@ -151,6 +151,7 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
    nextGpReg = 1;
    nextInReg = 1;
    nextUopIndex = 1;
+   std::cout<<"blkPath: "<<routine->getBlockNoFromAddr(ba[0]->getStartAddress(),ba[0]->getEndAddress())<<":"<<ba[0]->getType();
    minPathAddress = ba[0]->getStartAddress();
    maxPathAddress = ba[0]->getEndAddress();
    // gmarin, 09/11/2013: The first block can be an inner loop, and
@@ -159,13 +160,22 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
    // Probabaly not, but it is safer to get it from the img object.
    reloc_offset = img->RelocationOffset();  //ba[0]->RelocationOffset();
    
+   
    for( int i=1 ; i<numBlocks ; ++i )
    {
+      std::cout<<"->"<<routine->getBlockNoFromAddr(ba[i]->getStartAddress(),ba[i]->getEndAddress())<<":"<<ba[i]->getType();
       if (minPathAddress > ba[i]->getStartAddress())
          minPathAddress = ba[i]->getStartAddress();
       if (maxPathAddress < ba[i]->getEndAddress())
          maxPathAddress = ba[i]->getEndAddress();
    }
+   std::cout<<std::endl;
+   std::cout<<"probs: "<<endl;
+   for( int i=1 ; i<numBlocks ; ++i ){
+      std::cout<<fa[i]<<endl;
+   }
+   std::cout<<std::endl;
+   std::cout<<"_pathFreq: "<<_pathFreq<<" avgNumIters: "<<_avgNumIters<<endl;
    prev_inst_may_have_delay_slot = false;
    instruction_has_stack_operation = false;
    gpRegs = &gpMapper;
@@ -470,6 +480,8 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
    dInst = new MIAMI::DecodedInstruction();
    
    int res = InstructionXlate::xlate_dbg(pc+reloc_offset, b->getEndAddress()-pc, dInst, "DGBuilder::build_node_for_instruction");
+// enable for dyninst decoding
+#if 0 
    BPatch_function* dyn_func = routine->getDynFunction();
    if (dyn_func != 0){
       BPatch_basicBlock* dyn_blk = routine->getBlockFromAddr(b->getStartAddress());
@@ -481,6 +493,7 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
          fprintf(stderr,"Dyninst: no block found starting at addr: 0x%lx\n",b->getStartAddress());
       }
    }
+#  endif
 
 #if 0
    res = isaXlate_insn(pc+reloc_offset, dInst);

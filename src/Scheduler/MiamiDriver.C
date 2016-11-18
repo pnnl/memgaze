@@ -146,84 +146,97 @@ MIAMI_Driver::Initialize(MiamiOptions *_mo, int _pid)
     
     pid = _pid;
     
-    if (mo->cfg_file.length()<1)  // required argument is missing
+    if (mo->cfg_file.length()<1 && mo->binary_path.length() < 1)  // required argument is missing
     {
        fprintf(stderr, "Required CFG_file_name is missing.\n");
        return (-1);
     }
-    
-    fd = fopen(mo->cfg_file.c_str(), "rb");
-    if (fd == NULL)
-    {
-       fprintf (stderr, "Cannot access cfg file %s\n", mo->cfg_file.c_str());
-       return (-2);
-    }
-    //  the last 8 bytes of the file contain the offset of the image table
-    int res = fseek(fd, -8L, SEEK_END);
-    if (res < 0)  // error
-    {
-       perror ("Changing offset in the CFG file failed");
-       return (-3);
-    }
-    
-    // read the offset of the image table
-    uint64_t tableOffset;
-    res = fread(&tableOffset, 8, 1, fd);
-    if (res != 1)
-    {
-       fprintf (stderr, "Cannot read the table offset from the cfg file %s\n", mo->cfg_file.c_str());
-       return (-4);
-    }
 
-    // go to start of the table
-    res = fseek(fd, tableOffset, SEEK_SET);
-    if (res < 0)  // error
-    {
-       perror ("Changing offset to start of table failed");
-       return (-5);
-    }
-    
-    // Now parse the table and populate a map data structure
-    res = fread(&maxImgs, 4, 1, fd);
-    if (res != 1)
-    {
-       fprintf (stderr, "Reading the number of images failed\n");
-       return (-6);
-    }
-    
-    allImgs = (LoadModule**) malloc ((maxImgs+1) * sizeof (LoadModule*));
-    for (uint32_t i=0 ; i<=maxImgs ; ++i)
-       allImgs[i] = 0;
-    imgNames = new std::string[maxImgs+1];
+    if (mo->cfg_file.length()>1){
+      
+      fd = fopen(mo->cfg_file.c_str(), "rb");
+      if (fd == NULL)
+      {
+         fprintf (stderr, "Cannot access cfg file %s\n", mo->cfg_file.c_str());
+         return (-2);
+      }
+      //  the last 8 bytes of the file contain the offset of the image table
+      int res = fseek(fd, -8L, SEEK_END);
+      if (res < 0)  // error
+      {
+         perror ("Changing offset in the CFG file failed");
+         return (-3);
+      }
+      
+      // read the offset of the image table
+      uint64_t tableOffset;
+      res = fread(&tableOffset, 8, 1, fd);
+      if (res != 1)
+      {
+         fprintf (stderr, "Cannot read the table offset from the cfg file %s\n", mo->cfg_file.c_str());
+         return (-4);
+      }
 
-    for (uint32_t i=0 ; i<maxImgs ; ++i)
-    {
-       int32_t nlen = 0;
-       uint64_t foffset = 0;
-       res = fread(&nlen, 4, 1, fd);
-       if (res != 1 || nlen<1 || nlen>2048)
-       {
-          fprintf (stderr, "Reading image %u name length failed\n", i);
-          return (-7);
-       }
-       char *buf = new char[nlen+1];
-       res = fread(buf, 1, nlen, fd);
-       if (res != nlen)
-       {
-          fprintf (stderr, "Reading image %u name failed\n", i);
-          return (-8);
-       }
-       buf[nlen] = 0;
-       res = fread(&foffset, 8, 1, fd);
-       if (res != 1)
-       {
-          fprintf (stderr, "Reading image %u file offset failed\n", i);
-          return (-9);
-       }
-       imgNames[i] = std::string(buf);
-       imgFileOffsets.insert(StringOffsetMap::value_type(
-           imgNames[i], foffset));
-       delete[] buf;
+      // go to start of the table
+      res = fseek(fd, tableOffset, SEEK_SET);
+      if (res < 0)  // error
+      {
+         perror ("Changing offset to start of table failed");
+         return (-5);
+      }
+      
+      // Now parse the table and populate a map data structure
+      res = fread(&maxImgs, 4, 1, fd);
+      if (res != 1)
+      {
+         fprintf (stderr, "Reading the number of images failed\n");
+         return (-6);
+      }
+      
+      allImgs = (LoadModule**) malloc ((maxImgs+1) * sizeof (LoadModule*));
+      for (uint32_t i=0 ; i<=maxImgs ; ++i)
+         allImgs[i] = 0;
+      imgNames = new std::string[maxImgs+1];
+
+      for (uint32_t i=0 ; i<maxImgs ; ++i)
+      {
+         int32_t nlen = 0;
+         uint64_t foffset = 0;
+         res = fread(&nlen, 4, 1, fd);
+         if (res != 1 || nlen<1 || nlen>2048)
+         {
+            fprintf (stderr, "Reading image %u name length failed\n", i);
+            return (-7);
+         }
+         char *buf = new char[nlen+1];
+         res = fread(buf, 1, nlen, fd);
+         if (res != nlen)
+         {
+            fprintf (stderr, "Reading image %u name failed\n", i);
+            return (-8);
+         }
+         buf[nlen] = 0;
+         res = fread(&foffset, 8, 1, fd);
+         if (res != 1)
+         {
+            fprintf (stderr, "Reading image %u file offset failed\n", i);
+            return (-9);
+         }
+         imgNames[i] = std::string(buf);
+         std::cout <<imgNames[i]<<" "<<(imgNames[i].find("a.out") != std::string::npos)<<std::endl;
+         imgFileOffsets.insert(StringOffsetMap::value_type(
+             imgNames[i], foffset));
+         delete[] buf;
+      }
+    }
+    else{ // a binary file was specified instead of a cfg
+      maxImgs = 1;
+      allImgs = (LoadModule**) malloc ((maxImgs+1) * sizeof (LoadModule*));
+      for (uint32_t i=0 ; i<=maxImgs ; ++i)
+         allImgs[i] = 0;
+      imgNames = new std::string[maxImgs+1];
+      imgNames[0] = mo->binary_path;
+      std::cout <<imgNames[0]<<" "<<(imgNames[0].find("a.out") != std::string::npos)<<std::endl;
     }
     
     /* create the root of the program scope tree */
@@ -457,7 +470,7 @@ MIAMI_Driver::Finalize(const std::string& outFile)
 void
 MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, addrtype low_offset)
 {
-   std::cerr << "[INFO]MIAMI_Driver::LoadImage: " << iname << endl;
+   std::cerr << "[INFO]MIAMI_Driver::LoadImage: " << iname <<std::hex<<" "<<start_addr<<" "<<low_offset<<std::dec<< endl;
 #if DEBUG_CFG_COUNTS
    DEBUG_CFG(1,
       fprintf(stderr, "MIAMI_Driver::LoadImage called for id %u, name %s, start_addr 0x%" PRIxaddr 
@@ -524,6 +537,30 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
       
       // if string not empty, dump CFG of this routine
       newimg->analyzeRoutines(fd, prog, mo);
+   }
+   else{
+      uint32_t hashKey = 0;
+      if (mo->do_staticmem)
+      {
+         FILE *img_fd = fopen(iname.c_str(), "rb");
+         if (img_fd)  // I was able to open it, compute its CRC32 hash
+         {
+            MIAMIU::CRC32Hash crc32;
+            crc32.UpdateForFile(img_fd);
+            hashKey = crc32.Evaluate();
+            fclose(img_fd);
+         } else
+         {
+            cerr << "WARNING: Cannot open image file " << iname 
+                 << " for reading. Cannot compute its checksum." << endl;
+         }
+      }
+      
+      newimg = new LoadModule (id, start_addr, low_offset, iname, hashKey);
+      //dyninst_note_loadModule(id, iname, start_addr, low_offset);
+      ++ loadedImgs;
+      newimg->createDyninstImage(bpatch);
+      newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
    }
 }
 

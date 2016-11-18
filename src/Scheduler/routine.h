@@ -34,7 +34,9 @@ namespace MIAMI
 {
 typedef std::list<std::string> StringList;
 typedef std::map<AddrIntPair, InstructionClass, AddrIntPair::OrderPairs> RefIClassMap;
-typedef std::map<addrtype,BPatch_basicBlock*> DynBlkMap;
+typedef std::map<std::pair<addrtype,addrtype>,BPatch_basicBlock*> DynBlkMap;
+typedef std::map<int,PrivateCFG::Node*> BlkNoMap;
+typedef std::map<std::pair<addrtype,addrtype>,int> BlkAddrMap;
 
 class ScopeImplementation;
 
@@ -84,7 +86,8 @@ public:
    void FetchStaticData(FILE *fd, uint64_t offset);
 
 
-   BPatch_basicBlock* getBlockFromAddr(addrtype addr);
+   BPatch_basicBlock* getBlockFromAddr(addrtype startAddr,addrtype endAddr);
+   int getBlockNoFromAddr(addrtype startAddr,addrtype endAddr);
    BPatch_function* getDynFunction();
    
 private:
@@ -94,6 +97,7 @@ private:
            TarjanIntervals *tarj, MiamiRIFG* mCfg, int marker, int level, 
            int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges);
 
+   void myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const std::string& path);
    void constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
             int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges);
 
@@ -132,8 +136,15 @@ private:
 
    void createDyninstFunction();
 
+   void createBlkNoToMiamiBlkMap(CFG* cfg);
+
+   int dyninst_discover_CFG(addrtype pc);
+
    BPatch_function* dyn_func;
    DynBlkMap* dyn_addrToBlock; //get malloc error unless this is a pointer?
+   BlkNoMap* dyn_blkNoToMiamiBlk;
+   BlkAddrMap* dyn_addrToBlkNo;
+
 };
 
 

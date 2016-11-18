@@ -33,6 +33,9 @@
 //#include "dyninst-insn-xlate.hpp"
 
 #include <BPatch_flowGraph.h>
+#include <CodeObject.h>
+#include <CodeSource.h>
+
 
 using namespace std;
 using namespace MIAMI;
@@ -52,6 +55,7 @@ Routine::Routine(LoadModule *_img, addrtype _start, usize_t _size,
         const std::string& _name, addrtype _offset, addrtype _reloc)
     : PrivateRoutine(_img, _start, _size, _name, _offset)
 {
+   cout <<"routine: "<<_name<<" "<< (unsigned int*)_start<<" "<<(unsigned int*)_offset<<" "<<(unsigned int*)_reloc<<endl;
    reloc_offset = _reloc;
    valid_for_analysis = 0;
    validity_computed = 0;
@@ -59,6 +63,8 @@ Routine::Routine(LoadModule *_img, addrtype _start, usize_t _size,
 
    rFormulas = new RFormulasMap(0);
    dyn_addrToBlock = new DynBlkMap;
+   dyn_blkNoToMiamiBlk = new BlkNoMap;
+   dyn_addrToBlkNo = new BlkAddrMap;
    createDyninstFunction();
 }
 
@@ -68,6 +74,14 @@ Routine::~Routine()
       delete g;
    if (rFormulas)
       delete (rFormulas);
+   if (dyn_addrToBlock)
+      delete dyn_addrToBlock;
+   if (dyn_func)
+      delete dyn_func;
+   // if (dyn_blkNoToAddr)
+   //    delete dyn_blkNoToAddr;
+   if (dyn_addrToBlkNo)
+      delete dyn_addrToBlkNo;
 }
 
 LoadModule* 
@@ -79,6 +93,7 @@ Routine::InLoadModule() const
 int
 Routine::loadCFGFromFile(FILE *fd)
 {
+   std::cout<<" in loadCFGFromFIle"<<std::endl;
 #define CHECK_COND(cond, err, ...) if (cond) \
    {fprintf(stderr, "ERROR: " err "\n", __VA_ARGS__); goto load_error; }
 #define CHECK_COND0(cond, err) if (cond) \
@@ -830,6 +845,8 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
          return (-1);
       }
    }
+
+   createBlkNoToMiamiBlkMap(cfg);
    
    MiamiRIFG mCfg(cfg);
    TarjanIntervals tarj(mCfg);  // computes tarjan intervals
@@ -1430,18 +1447,27 @@ Routine::build_paths_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
          }
       }
       
-      if (mo->do_cfgpaths)
+      if (mo->do_cfgpaths){
          constructPaths (pscope, root_b, marker, no_fpga_acc, entryEdges, 
                    callEntryEdges);
+      }
+      if(mo->do_mycfgpaths){
+         myConstructPaths(pscope,no_fpga_acc,mo->block_path);
+      }
+
       return (0);
    } else
    {
 #if DEBUG_PROG_SCOPE
       fprintf (stderr, "DELETING SCOPE\n");
 #endif
-      if (mo->do_cfgpaths)
+      if (mo->do_cfgpaths){
          constructPaths (pscope, root_b, marker, no_fpga_acc, entryEdges, 
                       callEntryEdges);
+      }
+      if(mo->do_mycfgpaths){
+         myConstructPaths(pscope,no_fpga_acc,mo->block_path);
+      }
       return (0);
    }
    return (0);
@@ -1476,6 +1502,8 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
          return;
       }
 
+// enable for dyninst decoding
+#if 0 
       if(dyn_func != 0){
          if(dyn_addrToBlock->count(b->getStartAddress()) != 0){
             int res1 = InstructionXlate::xlate_dyninst(pc+reloc, b->getEndAddress()-pc,&dInst2,dyn_func,(*dyn_addrToBlock)[b->getStartAddress()]);
@@ -1485,6 +1513,7 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
          }
          
       }
+#endif
 
 
 #if 0
@@ -1571,6 +1600,341 @@ Routine::compute_lineinfo_for_block (ScopeImplementation *pscope, CFG::Node *b)
 
 
 static PathID targetPath(0x4309a0, 2, 1);
+
+
+void split(const std::string &s, char delim, std::vector<int> &elems) {
+    std::stringstream ss;
+    ss.str(s);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+        elems.push_back(stoi(item));
+    }
+}
+
+void
+Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const string& spath)
+{
+   std::cerr << "[INFO]Routine::constructPaths(): '" << name << "'\n";
+   CFG::NodeList ba;
+   CFG::EdgeList ea;
+   RSIListList rl;
+   BMSet& entries = pscope->InnerEntries();
+   BMSet& exits = pscope->InnerExits();
+   PairRSIMap &pathRegs = pscope->PathRegisters ();
+   BPMap *bpmtemp = new BPMap();
+   LatencyType thisLoopLatency = 0;
+   uint64_t thisLoopUops = 0;
+//   LatencyType thisLoopInef = 0;
+
+   const Machine *tmach = 0;
+   if (mo->has_mdl)
+      tmach = mdriver.targets.front();
+   CFG *cfg = ControlFlowGraph();
+
+   vector<int> path;
+   split(spath,'>',path);
+   MIAMIU::FloatArray fa;
+   for (int i =0; i < path.size(); i++){
+      CFG::Node* blk = (CFG::Node*)(*dyn_blkNoToMiamiBlk)[path[i]];
+      ba.push_back(blk);
+      fa.push_back(1.0);
+   }
+
+
+   BlockPath *bp = new BlockPath(ba, (CFG::Node*)(*dyn_blkNoToMiamiBlk)[path[path.size()-1]], fa, rl, false);
+   bpmtemp->insert(BPMap::value_type(bp, new PathInfo(1)));
+   
+    /* Temporary method to account for memory stalls and such.
+    * Keep track of all memory references in this scope. After all paths
+    * are scheduled, I will compute an average IPC for the scope.
+    * Next, use the mechanistic model to compute memory stalls and
+    * memory overlap.
+    */
+   AddrSet scopeMemRefs;
+   int loopIdx = 1;
+   for (BPMap::iterator bpit=bpmtemp->begin() ; bpit!=bpmtemp->end() ; 
+                ++bpit, ++loopIdx)
+   {
+      // pathId is 64 bits; Use 32 bits for head block address,
+      // 16 bits for loop index, 16 bits for path index in loop
+      PathID pathId(bpit->first->blocks[0]->getStartAddress());
+      if (pscope->getScopeType()==LOOP_SCOPE)
+         pathId.scopeIdx = dynamic_cast<LoopScope*>(pscope)->Index();
+      else
+      {
+         assert (pscope->getScopeType()==ROUTINE_SCOPE);
+         pathId.scopeIdx = 1;  // routines have index 1 I think
+      }
+      pathId.pathIdx = loopIdx;
+      bpit->second->pathId = pathId;
+
+      // FIXME: must compute the average number of times the backedge 
+      // is taken everytime we enter the loop; Use a dummy value now
+      float exit_count = pscope->getExitCount();
+      assert (exit_count>0.f || bpmtemp->size()==1);
+      if (exit_count<0.0001)
+         exit_count = bpit->second->count;
+
+//         float avgCount = pscope->getTotalCount() / pscope->getExitCount();
+      float avgCount = bpit->second->count / exit_count; //pscope->getExitCount();
+      if (! bpit->first->isExitPath ())
+         avgCount += 1.0;
+
+      avgCount = 1.0;
+
+      // for now just dump the path to check that we can construct them correctly
+#if DEBUG_BLOCK_PATHS_PRINT
+      DEBUG_PATHS (3,
+         bpit->first->Dump(stderr);
+      )
+#endif
+      
+      MIAMI_DG::DGBuilder *sch = NULL;
+      
+#if DEBUG_BLOCK_PATHS_PRINT
+      DEBUG_PATHS (2,
+         fprintf(stderr, " *** Scheduling pathId %s\n", bpit->second->pathId.Name());
+      )
+#endif
+
+      if (mo->do_build_dg)
+      {
+    std::cerr << "[INFO]Routine::constructPaths:schedule: '" << name << "'\n";
+         RFormulasMap &refFormulas = *rFormulas;
+#if 1
+         //sch = new MIAMI_DG::DGBuilder(name.c_str(), pathId, 
+         //     1 /*args.optimistic_memory_dep*/, refFormulas,
+         //     InLoadModule(),
+         // /*        mdriver.RefNames(), mdriver.RefsTable(), */
+         //     bpit->first->size, bpit->first->blocks, 
+         //     bpit->first->probabs, bpit->first->innerRegs,
+         //     bpit->second->count, avgCount);
+         sch = new MIAMI_DG::DGBuilder(this, pathId, 
+              1 /*args.optimistic_memory_dep*/, refFormulas,
+              InLoadModule(),
+      /*        mdriver.RefNames(), mdriver.RefsTable(), */
+              bpit->first->size, bpit->first->blocks, 
+              bpit->first->probabs, bpit->first->innerRegs,
+              bpit->second->count, avgCount);
+#if PROFILE_SCHEDULER
+         MIAMIP::report_time (stderr, "Graph construction for path %s", pathId.Name());
+#endif
+
+         bpit->second->latency = 1;
+         bpit->second->num_uops = 1;
+         
+         if (mo->do_scheduling)
+         {
+            sch->updateGraphForMachine (tmach);
+            // compute the scheduling, return a pair containing the latency and the number
+            // of micro-ops in the path; we can compute IPCs and CPIs from this;
+            MIAMI_DG::schedule_result_t res = sch->computeScheduleLatency(0 /* args.graph_level */,
+                     mo->DetailedMetrics());
+
+            bpit->second->latency = res.first;
+            bpit->second->num_uops = res.second;
+
+
+#if PROFILE_SCHEDULER
+            MIAMIP::report_time (stderr, "Compute schedule for path %s", pathId.Name());
+#endif
+            // if it is an exit path, compute the input/output registers
+            if (avgCount<=1)
+            {
+               MIAMIU::UIPair pathKey (bpit->first->blocks[0]->getStartAddress(), 
+                         bpit->first->next_block->getStartAddress());
+               PairRSIMap::iterator prit = pathRegs.find (pathKey);
+               if (prit == pathRegs.end())  // did not see an exit path with this key
+               {
+                  prit = pathRegs.insert (pathRegs.begin(), 
+                         PairRSIMap::value_type (pathKey, RSIList()) );
+                  sch->computeRegisterScheduleInfo (prit->second);
+#if PROFILE_SCHEDULER
+                  MIAMIP::report_time (stderr, "Compute register mapping for path %s", pathId.Name());
+#endif
+               }
+            }
+
+#if NOT_NOW
+            CliqueList &myCliques = bpit->second->cliques;
+            HashMapUI &refsDist2Use = bpit->second->dist2use;
+            RGList &rGroups = bpit->second->reuseGroups;
+            sch->computeMemoryInformationForPath (refsTable, 
+                     rGroups, myCliques, refsDist2Use);
+            // traverse all the reuse groups and match them with the sets in each
+            // memory level
+            processReuseGroups (tmach, bpit->second);
+            
+            // compute the parallelism factor; 
+            // initially compute a loose upper bound
+            // set the miss rate for each reference to be equal to the execution
+            // frequency of the path
+            HashMapFP missCounts;
+            CliqueList::iterator clit = myCliques.begin();
+            for ( ; clit!=myCliques.end() ; ++clit)
+               for (int ll=0 ; ll<(*clit)->num_nodes ; ++ll)
+               {
+                  unsigned int crt_pc = (*clit)->vertices[ll];
+                  float &miss_val = missCounts [crt_pc];
+                  if (miss_val < 0)
+                     miss_val = bpit->second->count; 
+               }
+            float pFactor = compute_parallelism_factor (myCliques, missCounts,
+                  refsDist2Use, bpit->second->serialMemLat, 
+                  bpit->second->exposedMemLat);
+            cerr << "Path " << hex << pathId << dec << " has parallel factor "
+                 << pFactor << endl;
+#if PROFILE_SCHEDULER
+            MIAMIP::report_time (stderr, "Compute reuse groups and mem parallelism for path %s", pathId.Name());
+#endif
+
+#endif  // NOT_NOW
+         }  // if do_scheduling
+         
+#else  // if 1/0
+         bpit->second->latency = 1;
+         bpit->second->num_uops = 1;
+         if (pathId==targetPath)
+         {
+            sch = new MIAMI_DG::DGBuilder(name.c_str(), pathId, 
+                 1 /*args.optimistic_memory_dep*/, refFormulas,
+                 InLoadModule(),
+     /*            mdriver.RefNames(), mdriver.RefsTable(), */
+                 bpit->first->size, bpit->first->blocks, 
+                 bpit->first->probabs, bpit->first->innerRegs,
+                 bpit->second->count, avgCount);
+#if PROFILE_SCHEDULER
+            MIAMIP::report_time (stderr, "Graph construction w/ debug for path %s", pathId.Name());
+#endif
+
+            char bbuf1[64], bbuf2[64];
+            sprintf (bbuf1, "q-%s", pathId.Filename());
+            sprintf (bbuf2, "r-%s", pathId.Filename());
+            sch->draw_debug_graphics (bbuf1);
+            
+            if (mo->do_scheduling)
+            {
+               sch->updateGraphForMachine (tmach);
+               sch->draw_debug_graphics (bbuf2);
+            
+            // draw the dominator trees
+//            sch->draw_dominator_trees ("x6");
+
+               // compute the scheduling
+               MIAMI_DG::schedule_result_t res = sch->computeScheduleLatency(0 /* args.graph_level */,
+                        mo->DetailedMetrics());
+               bpit->second->latency = res.first;
+               bpit->second->num_uops = res.second;
+
+#if PROFILE_SCHEDULER
+               MIAMIP::report_time (stderr, "Compute schedule w/ debug for path %s", pathId.Name());
+#endif
+
+               // if it is an exit path, compute the input/output registers
+               if (avgCount<=1)
+               {
+                  UIPair pathKey (bpit->first->blocks[0]->start(), 
+                            bpit->first->next_block->start());
+                  PairRSIMap::iterator prit = pathRegs.find (pathKey);
+                  if (prit == pathRegs.end())  // did not see an exit path with this key
+                  {
+                     prit = pathRegs.insert (pathRegs.begin(),
+                            PairRSIMap::value_type (pathKey, RSIList()) );
+                     sch->computeRegisterScheduleInfo (prit->second);
+#if PROFILE_SCHEDULER
+                     MIAMIP::report_time (stderr, "Compute register mapping w/ debug for path %s", pathId.Name());
+#endif
+                  }
+               }
+#if NOT_NOW
+               CliqueList &myCliques = bpit->second->cliques;
+               HashMapUI &refsDist2Use = bpit->second->dist2use;
+               RGList &rGroups = bpit->second->reuseGroups;
+               sch->computeMemoryInformationForPath (refsTable, 
+                        rGroups, myCliques, refsDist2Use);
+               // traverse all the reuse groups and match them with the sets 
+               // in each memory level
+               processReuseGroups (tmach, bpit->second);
+
+               // compute the parallelism factor; 
+               // initially compute a loose upper bound
+               // set the miss rate for each reference to be equal to the execution
+               // frequency of the path
+               HashMapFP missCounts;
+               CliqueList::iterator clit = myCliques.begin();
+               for ( ; clit!=myCliques.end() ; ++clit)
+                  for (int ll=0 ; ll<(*clit)->num_nodes ; ++ll)
+                  {
+                     unsigned int crt_pc = (*clit)->vertices[ll];
+                     float &miss_val = missCounts [crt_pc];
+                     if (miss_val < 0)
+                        miss_val = bpit->second->count; 
+                  }
+               float pFactor = compute_parallelism_factor (myCliques, missCounts,
+                          refsDist2Use, bpit->second->serialMemLat, 
+                          bpit->second->exposedMemLat);
+               cerr << "Path " << hex << pathId << dec << " has parallel factor "
+                    << pFactor << endl;
+#if PROFILE_SCHEDULER
+               MIAMIP::report_time (stderr, "Compute reuse groups and mem parallelism (debug) for path %s", 
+                        pathId.Name());
+#endif
+
+#endif  // NOT_NOW
+            } // if do_scheduling
+         } // if path == targetPath
+#endif   // if 1/0
+         
+         if (sch)
+         {
+            bpit->second->timeStats = sch->getTimeStats();
+//            bpit->second->timeStats.addRetiredUops(bpit->second->num_uops);
+            bpit->second->unitUsage = sch->getUnitUsage();
+            
+            const AddrSet& pathRefs = sch->getMemoryReferences();
+            cout<<"memrefs: ";
+            for (auto i : pathRefs){
+               cout<<(unsigned int*)i<<" ";
+            }
+            cout<<endl;
+            scopeMemRefs.insert(pathRefs.begin(), pathRefs.end());
+            //sch->dump(cout);
+            //sch->draw_scheduling(cout,"schedule");
+            delete sch;
+#if PROFILE_SCHEDULER
+            MIAMIP::report_time (stderr, "Get time stats and deallocate scheduler for path %s", pathId.Name());
+#endif
+         }
+
+         std::cout<<"PALM: path lat: "<<bpit->second->latency<<" path uops: "<<bpit->second->num_uops<<" path count: "<<bpit->second->count<<" "<<bpit->second->serialMemLat<<" "<<bpit->second->exposedMemLat<<std::endl;
+         thisLoopLatency += (bpit->second->count)*(bpit->second->latency);
+         thisLoopUops += (bpit->second->count)*(bpit->second->num_uops);
+      }  // if do_build_dg
+   }
+   
+   if (!no_fpga_acc)
+   {
+#if NOT_NOW
+      decodeInstructionsInPath (pscope, bpmtemp);
+#endif
+#if PROFILE_SCHEDULER
+      MIAMIP::report_time (stderr, "Decode instructions for scope %s", 
+               pscope->ToString().c_str());
+#endif
+   }
+
+   pscope->Paths() = bpmtemp;
+   std::cout <<"lat: "<< thisLoopLatency << " numuops: "<<thisLoopUops<<std::endl;
+   pscope->Latency() = thisLoopLatency;
+   pscope->NumUops() = thisLoopUops;
+
+   if (mo->do_memlat)
+   {
+      // once all the paths are processed, compute exclusive memory stalls for this scope
+      mdriver.compute_memory_stalls_for_scope(pscope, scopeMemRefs);
+   }
+}
+
 
 void
 Routine::constructPaths (ScopeImplementation *pscope, CFG::Node *b, int marker,
@@ -1974,6 +2338,7 @@ Routine::constructPaths (ScopeImplementation *pscope, CFG::Node *b, int marker,
       )
 #endif
 
+
    /* Temporary method to account for memory stalls and such.
     * Keep track of all memory references in this scope. After all paths
     * are scheduled, I will compute an average IPC for the scope.
@@ -2060,6 +2425,7 @@ Routine::constructPaths (ScopeImplementation *pscope, CFG::Node *b, int marker,
                      mo->DetailedMetrics());
             bpit->second->latency = res.first;
             bpit->second->num_uops = res.second;
+
 
 #if PROFILE_SCHEDULER
             MIAMIP::report_time (stderr, "Compute schedule for path %s", pathId.Name());
@@ -2225,6 +2591,7 @@ Routine::constructPaths (ScopeImplementation *pscope, CFG::Node *b, int marker,
 #endif
          }
 
+         std::cout<<"PALM: path lat: "<<bpit->second->latency<<" path uops: "<<bpit->second->num_uops<<" path count: "<<bpit->second->count<<" "<<bpit->second->serialMemLat<<" "<<bpit->second->exposedMemLat<<std::endl;
          thisLoopLatency += (bpit->second->count)*(bpit->second->latency);
          thisLoopUops += (bpit->second->count)*(bpit->second->num_uops);
       }  // if do_build_dg
@@ -2242,6 +2609,7 @@ Routine::constructPaths (ScopeImplementation *pscope, CFG::Node *b, int marker,
    }
 
    pscope->Paths() = bpmtemp;
+   std::cout <<"lat: "<< thisLoopLatency << " numuops: "<<thisLoopUops<<std::endl;
    pscope->Latency() = thisLoopLatency;
    pscope->NumUops() = thisLoopUops;
 
@@ -2265,6 +2633,11 @@ Routine::addBlock(ScopeImplementation *pscope, CFG::Node *pentry, CFG::Node *thi
    // if this block is an entry into an inner loop, store the scope of the loop 
    // in the lScope variable
    ScopeImplementation *lScope = 0;
+   std::pair<addrtype,addrtype> myaddrs(thisb->getStartAddress(),thisb->getEndAddress());
+   if (dyn_addrToBlkNo->count(myaddrs) > 0){
+      std::cout<<"my block num is: "<<(*dyn_addrToBlkNo)[myaddrs]<<" "<<std::hex<<thisb->getStartAddress()<<" "<<thisb->getEndAddress()<<std::dec
+      <<" "<<rl.size()<<" "<<(*dyn_blkNoToMiamiBlk)[(*dyn_addrToBlkNo)[myaddrs]]<<" "<<thisb<<std::endl;
+   }
    
 #if DEBUG_BLOCK_PATHS_PRINT
    DEBUG_PATHS (6, 
@@ -2551,7 +2924,7 @@ Routine::addBlock(ScopeImplementation *pscope, CFG::Node *pentry, CFG::Node *thi
                // I do not know why I had the assert in the first place. I do not know if
                // any of the following code assumes the ea array is not empty, or if it
                // was just a sanity check. Comment for now.
-//            assert (! ea.empty());
+               //            assert (! ea.empty());
 
                CFG::Node *loop_node = inScope->LoopNode();
                assert(loop_node);
@@ -2951,6 +3324,7 @@ Routine::addBlock(ScopeImplementation *pscope, CFG::Node *pentry, CFG::Node *thi
 void
 Routine::createDyninstFunction() // todo: better error checking
 {
+   cout << "createDyninstFunction"<<endl;
    dyn_func = 0;
    BPatch_image* dyn_img = InLoadModule()->getDyninstImage();
    std::vector<BPatch_function*> funcs;
@@ -2981,26 +3355,346 @@ Routine::createDyninstFunction() // todo: better error checking
       dyn_func = funcs[0];
    }
    if (dyn_func != 0){
+
+      Dyninst::ParseAPI::CodeSource* codeSrc = Dyninst::ParseAPI::convert(dyn_func)->obj()->cs();
       BPatch_flowGraph *fg = dyn_func->getCFG();
       std::set<BPatch_basicBlock*> blks;
       fg->getAllBasicBlocks(blks);
+      int blkCnt = 0;
       for (auto blk : blks){
-         (*dyn_addrToBlock)[blk->getStartAddress()]=blk;
+         cout<<blkCnt<<" "<< (unsigned int*)blk->getStartAddress()<<" "<<(unsigned int*)blk->getEndAddress()<<" "<< (unsigned int*)codeSrc->getPtrToInstruction(blk->getStartAddress())<<endl;
+         (*dyn_addrToBlock)[std::make_pair(blk->getStartAddress(),blk->getEndAddress())]=blk;
+         (*dyn_addrToBlkNo)[std::make_pair(blk->getStartAddress(),blk->getEndAddress())]=blkCnt++;
+
+         uint8_t* addr =(uint8_t*)codeSrc->getPtrToInstruction(blk->getStartAddress());
+         int i =0;
+         while ((unsigned int*)(blk->getStartAddress() + i) < (unsigned int*)blk->getEndAddress()){
+            int len = 15;
+            cout<<(unsigned int*)(blk->getStartAddress() + i)<<" "<<(unsigned int*)blk->getEndAddress()<<" "<<(unsigned int*)(addr+i)<<" "<<endl;
+            //len = dump_instruction_at_pc((void*)(addr+i),len);
+            cout<<i<<" "<<len<<endl;
+            i+= len; 
+            cout<<(unsigned int*)(blk->getStartAddress() + i)<<" "<<(unsigned int*)blk->getEndAddress()<<" "<<(unsigned int*)(addr+i)<<" "<<endl;
+         }         
       }
    }
+   //exit(0);
+}
+
+void Routine::createBlkNoToMiamiBlkMap(CFG* cfg){
+   for (auto it = dyn_addrToBlkNo->begin();it!= dyn_addrToBlkNo->end(); ++it){
+      (*dyn_blkNoToMiamiBlk)[it->second] = cfg->findNodeContainingAddress(it->first.first);
+      std::cout<<it->second<<" "<<cfg->findNodeContainingAddress(it->first.first)<<" "<<(unsigned int*)it->first.first<<std::endl;
+   }
+         
 }
 
 BPatch_basicBlock* 
-Routine::getBlockFromAddr(addrtype addr){
-   if (dyn_addrToBlock->count(addr) != 0){
-      return (*dyn_addrToBlock)[addr];
+Routine::getBlockFromAddr(addrtype startAddr,addrtype endAddr){
+   std::pair<addrtype,addrtype> addrs(startAddr,endAddr);
+   if (dyn_addrToBlock->count(addrs) != 0){
+      return (*dyn_addrToBlock)[addrs];
    }
    else{
       return 0;
    }
 }
 
+int Routine::getBlockNoFromAddr(addrtype startAddr,addrtype endAddr){
+   std::pair<addrtype,addrtype> addrs(startAddr,endAddr);
+   if (dyn_addrToBlkNo->count(addrs) != 0){
+      return (*dyn_addrToBlkNo)[addrs];
+   }
+   else{
+      return -1;
+   }
+}
+
 BPatch_function* 
 Routine::getDynFunction(){
    return dyn_func;
+}
+
+int Routine::dyninst_discover_CFG(addrtype pc){
+   
+   // check if we have a block created for pc already
+   BBMap::iterator mits = _blocks.upper_bound(pc);
+   BBMap::iterator mite;  // = _blocks.upper_bound(_end-1);
+#if DEBUG_BBLs
+   if (name.compare(debugName)==0)
+   {
+      fprintf(stderr, "==> Routine %s, static check for block at address 0x%" PRIxaddr "\n", 
+             name.c_str(), pc);
+   }
+#endif
+   if (mits == _blocks.end() || pc<mits->second->getStartAddress())  // must create a new block
+   // did not find block, must decode instructions
+   {
+      addrtype saddr = pc, eaddr;  // how far I have to decode
+      if (mits == _blocks.end())
+         eaddr = End();  // up to the end of the routine
+      else
+         eaddr = mits->second->getStartAddress();  // up to the following known block
+      
+      int res = 0, res2 = 0;
+      int len = 0;    // get the instruction length in bytes
+      addrtype reloc = 0;//InLoadModule()->RelocationOffset();
+      while (pc<eaddr && !res && !res2)
+      {
+
+         // check if instruction is a branch
+         res = instruction_at_pc_transfers_control((void*)(pc+reloc), eaddr-pc, len);
+         dump_instruction_at_pc((void*)(pc+reloc),15);
+         cout<<name<<" pc: "<<(unsigned int*)pc<<" "<<len<<endl;
+         if (res<0)  // error while decoding
+         {
+            fprintf(stderr, " - ERROR: Bad decoding (%d) while discovering CFG for routine %s, at address 0x%" PRIxaddr 
+                    " (+reloc=0x%" PRIxaddr "), eaddr-pc=%" PRIaddr ", len=%d\n", 
+                    res, name.c_str(), pc, pc+reloc, eaddr-pc, len);
+            // Should I do anything on a bad instruction? I must wait to see 
+            // some concrete cases before making a decision.
+            return (res);
+         }
+         
+         // check if instruction has REP prefix
+         if (!res)
+            res2 = instruction_at_pc_stutters((void*)(pc+reloc), len, len);
+         pc += len;
+      }
+      
+#if DEBUG_BBLs
+      if (name.compare(debugName)==0)
+      {
+         fprintf(stderr, "--> Routine %s, static check from address 0x%" PRIxaddr " ended at address 0x%"
+              PRIxaddr ", res=%d, res2=%d\n", name.c_str(), saddr, pc, res, res2);
+      }
+#endif
+      // we exit the loop when either we reached eaddr, or we found a transfer control instruction
+      // which we consider to terminate the basic block
+      if (0 && pc>eaddr)
+      {
+         // This case is actually possible when an instruction has a prefix, but there is
+         // a path that jumps to the instruction itself, while another path falls through
+         // the prefix.
+         // Set an assert to catch if it happens in practice, but once verified, we can
+         // remove the assert.
+         // Found this case with a lock prefix. 
+         fprintf(stderr, "ERROR: Instruction decoding of bounded binary code stopped at address 0x%" PRIxaddr
+                 " which is beyond the earlier detected end address 0x%" PRIxaddr ".\n", pc, eaddr);
+         assert (pc <= eaddr);
+      }
+      assert (pc > saddr);  // we must have advanced at least one instruction
+      addrtype lpc = pc - len;  // PC address of last instruction
+      bool create_fallthru_edge = true, discover_fallthru_code = false;
+      assert (res || res2 || pc>=eaddr);
+      
+      // I must create a block from saddr to pc
+      // If last instruction is a REP prefixed instruction, then create a separate
+      // block for it. I will need to create another block for instructions up to
+      // the REP instruction in this case.
+      if (res2)  // it was a rep instruction
+      {
+         if (lpc > saddr)  // non-empty block before the REP instruction
+         {
+            AddBlock(saddr, lpc, PrivateCFG::MIAMI_CODE_BLOCK, 0);
+            // connect the two blocks with a fall-through edge
+            AddPotentialEdge(lpc, lpc, PrivateCFG::MIAMI_FALLTHRU_EDGE);
+         }
+         
+         // A REP prefixed instruction should take more than 1 byte
+         // The REP prefix is 1 byte, + the length of the actual instruction
+         AddBlock(lpc, pc, PrivateCFG::MIAMI_REP_BLOCK, 0);
+//         AddPotentialEdge(lpc+1, lpc+1, PrivateCFG::MIAMI_FALLTHRU_EDGE);
+//         AddBlock(lpc+1, pc, PrivateCFG::MIAMI_CODE_BLOCK, 0);
+         
+         // add a loop edge for the REP instruction
+         AddPotentialEdge(pc, lpc, PrivateCFG::MIAMI_DIRECT_BRANCH_EDGE);
+         // I also need to create a bypass edge to go around the REP instruction
+         // in case that its count is set to zero.
+         AddPotentialEdge(lpc, pc, PrivateCFG::MIAMI_BYPASS_EDGE);
+      } else  // no REP instruction found, add a single block
+         AddBlock(saddr, pc, PrivateCFG::MIAMI_CODE_BLOCK, 0);
+      
+      if (res)  // last decoded instruction was a transfer control instruction
+      {
+         assert (!res2);  // should not find a REP prefixed branch
+         
+         MIAMI::DecodedInstruction dInst;
+         addrtype target = 0;
+         res = decode_instruction_at_pc((void*)(lpc+reloc), len, &dInst);
+         assert (res>=0); // I just decoded this instruction earlier
+         
+         // I need to determine what type of branch instruction it is, direct or indirect
+         // and if we can compute the branch target
+         GFSliceVal targetF(sliceVal (0, TY_CONSTANT));
+         
+         InstrList::iterator lit = dInst.micro_ops.begin();
+         InstrBin branch_type = IB_INVALID;
+         for ( ; lit!=dInst.micro_ops.end() ; ++lit)
+         {
+            instruction_info *ii = &(*lit);
+            if (ii->type==IB_br_CC || ii->type==IB_branch || ii->type==IB_jump || ii->type==IB_ret)
+            {
+               branch_type = ii->type;
+               
+               res = ComputeBranchTargetFormula(&dInst, ii, -1, dInst.pc, targetF); 
+               coeff_t valueNum;
+               ucoeff_t valueDen;
+               if (!res && IsConstantFormula(targetF, valueNum, valueDen) && valueDen==1)
+                  target = valueNum;
+               break;
+            }
+         }
+         if (branch_type==IB_branch || branch_type==IB_ret)
+            // unconditonal branches and returns have no fall-through
+            create_fallthru_edge = false;
+         
+         // If I have the target address, discover the CFG starting from the target
+         PrivateCFG::EdgeType edge_type = PrivateCFG::MIAMI_DIRECT_BRANCH_EDGE;
+         if (branch_type==IB_jump)
+         {
+            edge_type = PrivateCFG::MIAMI_FALLTHRU_EDGE;
+            create_fallthru_edge = false;  // do not create fall-thru here, 
+            // it will be created by AddCallSurrogate from the call-site block
+            discover_fallthru_code = true;  // discover fall-thru code still
+         }
+         else if (branch_type==IB_ret)
+            edge_type = PrivateCFG::MIAMI_RETURN_EDGE;
+         
+         if (branch_type == IB_jump)  // indirect function call
+         {
+            // add an unresolved call surrogate
+            AddCallSurrogateBlock(lpc, pc, target, edge_type, true);
+            // AddCallSurrogateBlock function creates the fall-through edge
+            create_fallthru_edge = false;  // do not create it again, or it will be missplaced
+            // but I still need to attempt code discovery from the instruction 
+            // following the call
+            discover_fallthru_code = true;
+         }
+         else if (branch_type == IB_ret)
+            AddReturnEdge(pc);
+
+         if (! target)  // target could not be resolved
+         {
+            // write something about it
+#if DEBUG_INDIRECT_TRANSFER
+            DEBUG_INDIRECT(3,
+               fprintf(stderr, "STATIC CFG Discovery for routine %s, PC 0x%" PRIxaddr " (0x%" PRIxaddr ") is branch of type %d (%s) with unresolved target 0x%" PRIxaddr 
+                         ", some sort of INDIRECT control transfer. ",
+                        Name().c_str(), lpc-InLoadModule()->BaseAddr(), lpc, 
+                        branch_type, Convert_InstrBin_to_string(branch_type), 
+                        target);
+               cerr << "DecodedFormula: " << targetF << endl;
+            )
+#endif
+            
+            // do not attempt to resolve Returns
+            if (branch_type!=IB_ret && branch_type!=IB_jump)
+            {
+               // Find the block that contains the indirect jump
+               // if _blocks is not empty, then we must be building the CFG 
+               // as we speak; use the _blocks map to find the block.
+               // Otherwise, it may mean the CFG is completed (why are we trying 
+               // to resolve indirect jumps??), so use the provided findBlock method
+               PrivateCFG::Node *brB = FindCFGNodeAtAddress(lpc);
+               if (! brB)
+               {
+                  // we do not have a block for lpc, cry me a river
+                  cerr << "ERROR: Cannot find a block that includes control transfer instruction at 0x"
+                       << hex << lpc << dec << ". Cannot resolve indirect target." << endl;
+               } else
+               {
+#if DEBUG_INDIRECT_TRANSFER
+                  DEBUG_INDIRECT(1,
+                     cerr << endl << "Indirect " << Convert_InstrBin_to_string(branch_type)
+                          << " found at pc 0x" << hex << lpc << dec
+                          << " during static CFG discovery for routine "
+                          << Name() << ". Attempting to resolve it." << endl;
+                  )
+#endif
+                  AddrSet targets;
+                  ResolveBranchTargetFormula(targetF, g, brB, lpc, (InstrBin)branch_type, targets);
+                  if (! targets.empty())  // uhu, we found some targets
+                  {
+                     AddrSet::iterator ait;
+#if DEBUG_INDIRECT_TRANSFER
+                     DEBUG_INDIRECT(1,
+                        cerr << "INDIRECT " << Convert_InstrBin_to_string(branch_type)
+                             << " at 0x" << hex << lpc 
+                             << " resolves to the following possible targets:";
+                        for (ait=targets.begin() ; ait!=targets.end() ; ++ait)
+                           cerr << " 0x" << *ait;
+                        cerr << dec << endl;
+                     )
+#endif
+                  
+                     for (ait=targets.begin() ; ait!=targets.end() ; ++ait)
+                     {
+                        AddPotentialEdge(pc, *ait, PrivateCFG::MIAMI_INDIRECT_BRANCH_EDGE);
+                        discover_CFG(*ait);
+                     }
+                  }
+               }
+            }
+            // this must be an indirect jump
+            // branch must be instrumented to find address at run-time;
+            // hmm, it can leave holes in my precious CFG
+         } else
+//         if (target && branch_type!=IB_jump)
+         {
+            
+            // check if it is an intra-procedural branch
+            // gmarin, 2013/10/16: Apparently, pin provides bad routine bounds,
+            // I don't know why. Create call surrogate only on true calls.
+            // Otherwise, create a branch, and keep decoding.
+
+            // Add counter edge from this block to the newly discovered block
+            if (branch_type!=IB_jump && branch_type!=IB_ret)
+            {
+               AddPotentialEdge(pc, target, PrivateCFG::MIAMI_DIRECT_BRANCH_EDGE);
+            }
+               
+            discover_CFG(target);
+         } 
+
+         // if instruction has fall-through execution, create also a fal-through edge
+         // only unconditional branches do not have fall-through
+         // In PIN, calls are considered not to have fall-through, however, I create a
+         // fall-through edge, but these edges are not profilable, bummer
+#if DEBUG_BBLs
+         if (name.compare(debugName)==0)
+         {
+            fprintf(stderr, "STATIC Routine %s, PC 0x%" PRIxaddr " is branch of type %d (%s) with target 0x%" PRIxaddr 
+                      ", and fallthrough=%d\n",
+                     Name().c_str(), lpc, branch_type, Convert_InstrBin_to_string((InstrBin)branch_type), 
+                     target, create_fallthru_edge);
+         }
+#endif
+      }
+      
+      if (create_fallthru_edge)
+      {
+         // create a fall-through edge to the next block.
+         // What if the end address was the end of the routine? Should I create
+         // a fall-through edge to the exit node, even if no return?
+         if (pc < End())
+         {
+            AddPotentialEdge(pc, pc, PrivateCFG::MIAMI_FALLTHRU_EDGE);
+         } else  // we are at the end of the routine and we have a fall-through
+            // create a fall-through edge to the Exit node
+            AddReturnEdge(pc, PrivateCFG::MIAMI_FALLTHRU_EDGE);
+      }
+      if ((create_fallthru_edge || discover_fallthru_code) && pc<End())
+      {
+         discover_CFG(pc);
+      }
+   } else if (pc>mits->second->getStartAddress())
+   {
+      // check if we enter the middle of a block; I must split the block
+      AddBlock(pc, mits->second->getEndAddress(), PrivateCFG::MIAMI_CODE_BLOCK, 0);
+      
+      // If I created a code cache for this block, I need to separate it for the
+      // two new blocks
+   }
+   return (0);         
 }

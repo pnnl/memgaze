@@ -101,6 +101,7 @@ unsigned int
 Machine::computeLatency(addrtype pc, addrtype reloc, const InstructionClass& _source, 
           const InstructionClass& _sink, int templateIdx) const
 {
+   std::cout<<"Machine::computeLatency"<<std::endl;
    Instruction *temp = instructions->find(_source);
    if (!temp)
    {

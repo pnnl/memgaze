@@ -551,8 +551,11 @@ PrivateRoutine::discover_CFG(addrtype pc)
       addrtype reloc = InLoadModule()->RelocationOffset();
       while (pc<eaddr && !res && !res2)
       {
+         cout<<name<<" pc: "<<(unsigned int*)pc<<" "<<(unsigned int*)reloc<<" "<<(unsigned int*)(pc+reloc)<<endl;
          // check if instruction is a branch
          res = instruction_at_pc_transfers_control((void*)(pc+reloc), eaddr-pc, len);
+         dump_instruction_at_pc((void*)(pc+reloc),15);
+         
          if (res<0)  // error while decoding
          {
             fprintf(stderr, " - ERROR: Bad decoding (%d) while discovering CFG for routine %s, at address 0x%" PRIxaddr 

@@ -30,7 +30,8 @@ CFGDYN_OBJS = CFG.o routine.o load_module.o cfg_data.o
 PIN_CFGSTATIC_OBJS = cfgtool_static.o
 CFGSTATIC_OBJS = CFG.o routine.o load_module.o cfg_data.o
 
-PIN_COMMON_OBJS = on_demand_pin.o use_mpi_rank.o instruction_decoding_pin.o
+PIN_COMMON_OBJS = on_demand_pin.o use_mpi_rank.o instruction_decoding_pin.o 
+#instruction_decoding_dyninst.o
 COMMON_OBJS = PrivateCFG.o printable_class.o private_routine.o \
    file_utilities.o miami_globals.o static_memory_analysis.o \
    instruction-xlate.o register_class.o instr_info.o instr_bins.o base_slice.o \

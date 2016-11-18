@@ -81,7 +81,7 @@ Instruction::getMinLatency(const InstructionClass &consumerType, int templateIdx
       assert(!"Machine description language does not allow special cases yet.");
       return (0);
    }
-   
+   std::cout <<"instruction: "<<Convert_InstrBin_to_string(iclass.type)<<" "<<iclass.type<<" "<<templates[templateIdx]->getLength()<<std::endl;
    assert (templateIdx>=0 && templateIdx<(int)numTemplates);
    return (templates[templateIdx]->getLength());
 }

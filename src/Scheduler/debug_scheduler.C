@@ -12,8 +12,8 @@
 #include "debug_scheduler.h"
 
 int cfg_counts_debug_level = 7;
-int sched_debug_level = 0;
-int graph_debug_level = 5;
+int sched_debug_level = 1;
+int graph_debug_level = 7;
 int paths_debug_level = 7;
 int machine_debug_level = 1;
 int dom_debug_level = 1;

@@ -162,7 +162,7 @@ CFG::loadFromFile(FILE *fd, MIAMI::EntryMap& entries, MIAMI::EntryMap& traces, a
    
    if (!entries.empty())
       setCfgFlags(CFG_HAS_ENTRY_POINTS);
-   
+   cout <<"nNodes: "<<nNodes<<endl;
    for (i=0 ; i<nNodes ; ++i)
    {
       addrtype _start, _end;

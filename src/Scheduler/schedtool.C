@@ -90,6 +90,14 @@ KNOB<string> KnobScopeName (KNOB_MODE_WRITEONCE,    "pintool",
 KNOB<BOOL>   KnobGenerateXML (KNOB_MODE_WRITEONCE,    "pintool",
     "xml", "0", "generate XML output in hpcviewer format. Enabled by default only if a machine file is provided and scheduling is performed.");
 
+
+KNOB<string> KnobBinaryPath (KNOB_MODE_WRITEONCE,    "pintool",
+    "bin_path", "", "binary to analyze (required).");
+KNOB<string> KnobFuncName (KNOB_MODE_WRITEONCE,    "pintool",
+    "func", "", "function to analyze (required).");
+KNOB<string> KnobBlkPath (KNOB_MODE_WRITEONCE,    "pintool",
+    "blk_path", "", "specify basic blocks to analyze.");
+
 /* ===================================================================== */
 
 INT32 Usage()
@@ -191,6 +199,8 @@ main (int argc, char *argv[])
     {
         return Usage();
     }
+
+    MIAMI::instruction_decoding_init(NULL);
     
     MIAMI::MiamiOptions *mo = new MIAMI::MiamiOptions();
     // set the noScheduling option first, before adding the machine file,
@@ -217,6 +227,9 @@ main (int argc, char *argv[])
     mo->addScopeName(KnobScopeName.Value());
     mo->setOutputThreshold(KnobThreshold.Value());
     mo->setDetailedMetrics(KnobDetailedMetrics.Value());
+    mo->addBinaryPath(KnobBinaryPath.Value());
+    mo->addFuncName(KnobFuncName.Value());
+    mo->addBlockPath(KnobBlkPath.Value());
     
     int numMrdFiles = KnobMrdFiles.NumberOfValues();
     if (numMrdFiles > 0)
@@ -229,6 +242,15 @@ main (int argc, char *argv[])
     
     if (! mo->CheckDependencies())
        return (Usage());
+
+    // string pathStr = "";
+    // for(int i;i<argc;i++){
+    //   if(strcmp("-path",argv[i])==0){
+    //     pathStr = std::string(argv[++i]);
+    //     mo->addBlockPath(pathStr);
+    //     break;
+    //   }
+    // }
     
     // This tool is compiled both as a standalone tool
     // and as a dynamic object pintool. getpid is safe in the standalone
@@ -243,6 +265,7 @@ main (int argc, char *argv[])
     const std::string* iNames = MIAMI::mdriver.getImageNames();
     for (int i=0 ; i<nImgs ; ++i)
     {
+      //if (iNames[i].find("a.out") != std::string::npos){
        if (i==0)  // this is the first image, extract the path and the name of the executable
        {
           string ename, epath;
@@ -305,9 +328,57 @@ main (int argc, char *argv[])
        )
 #endif
    
+       if (mo->func_name.length() > 0){
+        RTN rtn = RTN_FindByName ( img, mo->func_name.c_str()); 
+        if (!RTN_Valid(rtn)){
+          cerr<<"Error: routine "<<mo->func_name<<" not found in: "<<iname<<endl;
+        }
+        else{
+          ADDRINT rStart = RTN_Address(rtn);
+          cout<<"routine: "<<mo->func_name<<" addr: "<<(unsigned int*)rStart<<endl;
+        }
+
+       }
+
        MIAMI::addrtype low_offset = IMG_LowAddress(img) - IMG_LoadOffset(img);
+       cerr << "Image: " << iname << ", id " << IMG_Id(img) << hex
+               << " load offset=0x" << IMG_LoadOffset(img)
+               << ", low addr=0x" << IMG_LowAddress(img)
+               << ", high addr=0x" << IMG_HighAddress(img)
+               << ", start addr=0x" << IMG_StartAddress(img)
+               << ", mapped size=0x" << IMG_SizeMapped(img) << dec
+               << ", has the following sections:" << endl;
+      switch (IMG_Type(img)){
+        case IMG_TYPE_STATIC:
+            cout<<"static"<<endl;
+            break;
+        case IMG_TYPE_SHARED:
+            cout<<"shared"<<endl;
+            break;
+        case IMG_TYPE_SHAREDLIB:
+            cout<<"shared library"<<endl;
+            break;
+        case IMG_TYPE_RELOCATABLE:
+            cout<<"relocatable"<<endl;
+            break;
+        default:
+            cout<<"unknown"<<endl;
+    }
+      for (SEC sec= IMG_SecHead(img) ; SEC_Valid(sec) ; sec = SEC_Next(sec))
+          {
+             cerr << "Section " << SEC_Name(sec) << " of type " << SEC_Type(sec)
+                  << " at address 0x" << hex << SEC_Address(sec) << " of size 0x" 
+                  << SEC_Size(sec) << dec << "/" << SEC_Size(sec) << " bytes:"
+                  << " valid? " << SEC_Valid(sec) << ", mapped? " << SEC_Mapped(sec)
+                  << ", executable? " << SEC_IsExecutable(sec) 
+                  << ", readable? " << SEC_IsReadable(sec)
+                  << ", writable? " << SEC_IsWriteable(sec) << endl;
+          }
        MIAMI::mdriver.LoadImage(i+1, iname, IMG_StartAddress(img)-low_offset, low_offset);
+
+        
        IMG_Close(img);
+      //}
     }
     MIAMI::mdriver.Finalize(KnobOutputFile.Value());
 #else
