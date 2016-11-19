@@ -758,6 +758,21 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
          }
       }
    }
+
+   if (mo->lat_path.size() > 0){
+      ifstream latFile;
+      latFile.open(mo->lat_path);
+      addrtype insn;
+      double lat;
+      while (latFile >> std::hex >> insn >> std::dec >> lat){
+         //cout<<(unsigned int*)insn << " "<<lat<<endl;
+         instLats[insn]=lat;
+      }
+      latFile.close(); 
+   }
+
+
+
    Dyninst::Address start,end;
    tfunctions[0]->getAddressRange(start,end);
    Dyninst::ParseAPI::CodeSource* codeSrc = Dyninst::ParseAPI::convert(tfunctions[0])->obj()->cs();
@@ -767,6 +782,7 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
    cout << (unsigned int*)codeSrc->getPtrToInstruction(start) <<" "<<(unsigned int*)start<<" "<<(unsigned int*)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-(Dyninst::Address)start)<<endl;
    cout << (unsigned int*)codeSrc->offset()<<" "<<(unsigned int*)codeSrc->length()<<" "<<(unsigned int*)codeSrc->baseAddress()<<" "<<(unsigned int*)codeSrc->loadAddress()<<endl;
    Routine* rout = new Routine(this, (addrtype)start, (usize_t) end-start, string(routName), (addrtype)start, reloc_offset);
+
    std::cerr << "[INFO]LoadModule::analyzeRoutines(): '" << rout->Name() <<" "<<(unsigned int*)reloc_offset<< "'\n";
    addrtype rstart = rout->Start();
    rout->discover_CFG(rstart);
@@ -788,3 +804,11 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
 
 }
 
+double LoadModule::getMemLoadLatency(addrtype insn){
+   if (instLats.count(insn) == 0){
+      return 0;
+   }
+   else{
+      return instLats[insn];
+   }
+}

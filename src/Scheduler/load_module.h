@@ -44,6 +44,8 @@ extern int32_t defInt32;
 typedef MIAMIU::BucketHashMap <uint64_t, int32_t, &defInt32, 128> BucketMapInt;
 typedef MIAMIU::BucketHashMap <int32_t, int32_t, &defInt32, 128> HashIntMap;
 
+typedef std::map<addrtype,double> InstLatMap;
+
 class LoadModule : public PrivateLoadModule
 {
    typedef std::vector<int32_t>  Int32Vector;
@@ -126,6 +128,8 @@ public:
    {
       return dyn_image;
    }
+
+   double getMemLoadLatency(addrtype insn);
 private:   
    int32_t nextInstIndex, nextScopeIndex, nextSetIndex;
    Int32Vector refParent;
@@ -167,6 +171,7 @@ private:
 
    
    BPatch_image* dyn_image;
+   InstLatMap instLats;
 };
 
 }

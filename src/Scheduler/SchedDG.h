@@ -754,7 +754,7 @@ public:
           return (realLatency);
     }
     float getProbability() const   { return (_prob); }
-    void computeLatency(const Machine* _mach, addrtype reloc);
+    void computeLatency(const Machine* _mach, addrtype reloc,SchedDG* sdg);
     inline bool HasLatency() const { return (_flags & LATENCY_COMPUTED_EDGE); }
     
     bool isBypassEdge() const  { return (_flags & HAS_BYPASS_RULE_EDGE); }

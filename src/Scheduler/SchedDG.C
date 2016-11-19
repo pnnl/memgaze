@@ -4755,7 +4755,7 @@ SchedDG::dfs_forward (Node *nn, unsigned int mm, int distance)
 #endif
 
 void
-SchedDG::Edge::computeLatency(const Machine *_mach, addrtype reloc)
+SchedDG::Edge::computeLatency(const Machine *_mach, addrtype reloc,SchedDG* sdg)
 {
   cout <<"SchedDG::Edge::computeLatency "<<(_flags & LATENCY_COMPUTED_EDGE)<<endl;
    if (_flags & LATENCY_COMPUTED_EDGE)
@@ -4790,7 +4790,10 @@ SchedDG::Edge::computeLatency(const Machine *_mach, addrtype reloc)
                              // inner loop does not overlap with any instruct.
       }
    }
-   cout << "minlatency: "<<minLatency<<endl;
+   if (source()->getAddress() != sink()->getAddress()){ //because a single instruction can be represented by multipl uops, only apply addition load latency when transitioning to a new instruction
+    minLatency += sdg->img->getMemLoadLatency(source()->getAddress());
+   }
+   cout <<"insn: "<<(unsigned int*)source()->getAddress()<<"->" <<(unsigned int*)sink()->getAddress() << " minlatency: "<<minLatency<<endl;
    _flags |= LATENCY_COMPUTED_EDGE;
 }
 //--------------------------------------------------------------------------------------------------------------------
@@ -4818,7 +4821,7 @@ SchedDG::computeEdgeLatencies()
       {
          if  (srcNode->isInstructionNode() && 
               destNode->isInstructionNode())
-            ee->computeLatency(mach, reloc_offset);
+            ee->computeLatency(mach, reloc_offset,this);
       }
       ++ eit;
    }

@@ -73,6 +73,7 @@ namespace MIAMI
       string binary_path;
       string block_path;
       string func_name;
+      string lat_path;
 
       
       MiamiOptions() {
@@ -355,6 +356,11 @@ namespace MIAMI
       void addFuncName(const string& fname) {
          if (fname.length())
             func_name = fname;
+      }
+
+      void addLatPath(const string& lpath) {
+         if (lpath.length())
+            lat_path = lpath;
       }
 
       void addBlockPath(const string& blkPath){

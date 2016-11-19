@@ -97,6 +97,8 @@ KNOB<string> KnobFuncName (KNOB_MODE_WRITEONCE,    "pintool",
     "func", "", "function to analyze (required).");
 KNOB<string> KnobBlkPath (KNOB_MODE_WRITEONCE,    "pintool",
     "blk_path", "", "specify basic blocks to analyze.");
+KNOB<string> KnobLatPath (KNOB_MODE_WRITEONCE,    "pintool",
+    "lat_path", "", "path containing instruction level load latency");
 
 /* ===================================================================== */
 
@@ -230,6 +232,7 @@ main (int argc, char *argv[])
     mo->addBinaryPath(KnobBinaryPath.Value());
     mo->addFuncName(KnobFuncName.Value());
     mo->addBlockPath(KnobBlkPath.Value());
+    mo->addLatPath(KnobLatPath.Value());
     
     int numMrdFiles = KnobMrdFiles.NumberOfValues();
     if (numMrdFiles > 0)
