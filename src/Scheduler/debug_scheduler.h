@@ -24,6 +24,7 @@ extern int memory_debug_level;
 extern int output_debug_level;
 extern int stream_debug_level;
 extern int module_debug_level;
+extern int palm_debug_level;
 
 #define DEBUG_CFG_COUNTS  0
 #define DEBUG_CFG(x, y)   if ((x)<=cfg_counts_debug_level) {y}
@@ -56,5 +57,8 @@ extern int module_debug_level;
 #define DEBUG_LOAD_MODULE(x, y)   if ((x)<=module_debug_level) {y}
 
 #define PROFILE_SCHEDULER 1
+
+#define VERBOSE_DEBUG_PALM 0
+#define DEBUG_PALM(x, y)   if ((x)<=palm_debug_level) {y}
 
 #endif

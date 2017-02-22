@@ -12,6 +12,6 @@
 #include "debug_miami.h"
 
 int static_mem_debug_level = 4;
-int indirect_debug_level = 2;
+int indirect_debug_level = 8;
 int inst_decode_debug_level = 2;
-int cfg_debug_level = 2;
+int cfg_debug_level = 8;

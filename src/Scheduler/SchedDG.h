@@ -1268,6 +1268,8 @@ public:
    
    const TimeAccount& getTimeStats () const { return (timeStats); }
    const TimeAccount& getUnitUsage () const { return (unitUsage); }
+
+   void printTimeAccount();
    
 private:
    int availableSlack (Edge *edge);

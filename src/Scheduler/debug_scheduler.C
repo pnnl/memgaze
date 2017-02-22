@@ -21,3 +21,4 @@ int memory_debug_level = 2;
 int output_debug_level = 1;
 int stream_debug_level = 1;
 int module_debug_level = 1;
+int palm_debug_level = 2;

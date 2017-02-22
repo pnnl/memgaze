@@ -19,7 +19,7 @@
 using namespace std;
 using namespace MIAMI;
 
-#define DEBUG_BBLs 0
+#define DEBUG_BBLs 1
 
 #if DEBUG_BBLs
 static const char *debugName = "strerror_r";
@@ -516,6 +516,7 @@ PrivateRoutine::MayFollowCallSite(addrtype pc, bool strict)
 int 
 PrivateRoutine::discover_CFG(addrtype pc)
 {
+   cout<<"discover_CFG: "<<(unsigned int*)pc<<" "<<(unsigned int*)Start()<<" "<<(unsigned int*)End()<<endl;
    if (pc<Start() || pc>=End())
    {
 #if DEBUG_BBLs
@@ -551,10 +552,10 @@ PrivateRoutine::discover_CFG(addrtype pc)
       addrtype reloc = InLoadModule()->RelocationOffset();
       while (pc<eaddr && !res && !res2)
       {
-         cout<<name<<" pc: "<<(unsigned int*)pc<<" "<<(unsigned int*)reloc<<" "<<(unsigned int*)(pc+reloc)<<endl;
+         cout<<name<<" pc: "<<(unsigned int*)pc<<" "<<(unsigned int*)reloc<<" "<<(unsigned int*)(pc+reloc)<<" "<<(unsigned int*)saddr<<" "<<(unsigned int*)eaddr<<endl;
          // check if instruction is a branch
          res = instruction_at_pc_transfers_control((void*)(pc+reloc), eaddr-pc, len);
-         dump_instruction_at_pc((void*)(pc+reloc),15);
+         //dump_instruction_at_pc((void*)(pc+reloc),15);
          
          if (res<0)  // error while decoding
          {
@@ -571,6 +572,7 @@ PrivateRoutine::discover_CFG(addrtype pc)
             res2 = instruction_at_pc_stutters((void*)(pc+reloc), len, len);
          pc += len;
       }
+      cout<<name<<" pc: "<<(unsigned int*)pc<<" "<<(unsigned int*)saddr<<" "<<(unsigned int*)eaddr<<" "<<res<<" "<<res2<<endl;
       
 #if DEBUG_BBLs
       if (name.compare(debugName)==0)
@@ -684,6 +686,7 @@ PrivateRoutine::discover_CFG(addrtype pc)
          else if (branch_type == IB_ret)
             AddReturnEdge(pc);
 
+         cout <<"0 -- t: "<<(unsigned int*)(target-reloc)<<" cfte: "<<create_fallthru_edge<<" dftc: "<<discover_fallthru_code<<endl;
          if (! target)  // target could not be resolved
          {
             // write something about it
@@ -765,6 +768,12 @@ PrivateRoutine::discover_CFG(addrtype pc)
             }
                
             discover_CFG(target);
+            if (branch_type!=IB_jump && branch_type!=IB_ret)
+            {
+               AddPotentialEdge(pc, target-reloc, PrivateCFG::MIAMI_DIRECT_BRANCH_EDGE);
+            }
+               
+            discover_CFG(target-reloc);
          } 
 
          // if instruction has fall-through execution, create also a fal-through edge
@@ -794,12 +803,15 @@ PrivateRoutine::discover_CFG(addrtype pc)
             // create a fall-through edge to the Exit node
             AddReturnEdge(pc, PrivateCFG::MIAMI_FALLTHRU_EDGE);
       }
+      cout <<"1 -- pc:"<<(unsigned int*)pc <<" cfte: "<<create_fallthru_edge<<" dftc: "<<discover_fallthru_code<<endl;
+
       if ((create_fallthru_edge || discover_fallthru_code) && pc<End())
       {
          discover_CFG(pc);
       }
    } else if (pc>mits->second->getStartAddress())
    {
+      cout <<" here?"<<endl;
       // check if we enter the middle of a block; I must split the block
       AddBlock(pc, mits->second->getEndAddress(), PrivateCFG::MIAMI_CODE_BLOCK, 0);
       

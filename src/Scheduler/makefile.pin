@@ -129,9 +129,10 @@ $(TOOLS): $(OBJS) $(MAIN_PIN_OBJS)
 
 $(SO_TOOLS): $(OBJS) $(SOMAIN_OBJS)
 	$(LINKER) -v $(TOOL_LDFLAGS) $(LINK_DEBUG) $(LINK_EXE)$@ $(OBJS) $(SOMAIN_OBJS) \
-	-Wl,--as-needed $(DYNINST_LDFLAGS) \
+    -Wl,-Bstatic $(DYNINST_LDFLAGS) \
 	$(TOOL_LPATHS) $(TOOL_LIBS) $(DBG) -lxed -lstdc++ \
-	-Wl,--as-needed $(BINUTILS_LDFLAGS)
+	-Wl,--as-needed $(BINUTILS_LDFLAGS) \
+    
 
 # I would like for the linker to select the static binutils libraries if they 
 # are available, but pick up the dynamic ones if there are no static libraries.
@@ -144,10 +145,12 @@ $(SO_TOOLS): $(OBJS) $(SOMAIN_OBJS)
 # find static versions of the libraries, even if dynamic ones are available. 
 $(SA_TOOLS) : $(OBJS) $(SAMAIN_OBJS)
 	$(LINKER) -v $(SATOOL_LDFLAGS) $(LINK_DEBUG) $(LINK_EXE)$@ $(OBJS) $(SAMAIN_OBJS) \
-	-Wl,--as-needed $(DYNINST_LDFLAGS) \
+    -Wl,$(DYNINST_LDFLAGS)  \
 	$(TOOL_LPATHS) $(DBG) -lxed -lstdc++ \
 	-Wl,-Bstatic $(BINUTILS_LDFLAGS) \
-	-Wl,--as-needed -Wl,-Bdynamic -lm -lz $(SATOOL_LIBS)
+	-Wl,--as-needed -Wl,-Bdynamic -lm -lz $(SATOOL_LIBS) \
+    
+    
 
 $(SA_WRAPPER) : $(SA_TOOLS)
 	@sed -e 's/XTOOLVARX/$(TOOL_VAR)/g' -e 's/XTOOLLIBX/$(TOOL_ROOTS)$(SATOOL_SUFFIX)/g' $(BINSCRIPT) > $(BINDIR)$(TOOL_ROOTS)
@@ -155,6 +158,7 @@ $(SA_WRAPPER) : $(SA_TOOLS)
 
 $(OPT_TOOLS): %$(PINTOOL_SUFFIX) : $(OPT_OBJS)
 	$(LINKER) -v $(TOOL_LDFLAGS) $(LINK_DEBUG) $(LINK_EXE)$@ $(OPT_OBJS) \
+    -Wl,$(DYNINST_LDFLAGS) \
 	$(TOOL_LPATHS) $(TOOL_LIBS) $(DBG) \
 	-lxed -lstdc++ \
 	$(BINUTILS_LDFLAGS)

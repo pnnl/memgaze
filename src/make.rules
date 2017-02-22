@@ -14,19 +14,31 @@ XED_HOME ?= ${PIN_HOME}/extras/xed2-intel64
 ## define special paths that must be added to the LD_LIBRARY_PATH when invoking
 ## MIAMI components. These may be libraries associated with a compiler from a
 ## non-standard location.
-MIAMI_LIBRARY_PATHS = $(BINUTILS_HOME)/lib:$(BINUTILS_HOME)/lib64:$(DYNINST_LIB)
+DYNINST_LIB_OLD_ABI=/home/frie869/modsim-tools/palm/trunk/external/dyninst-9.3.0/MYINSTALL_OLD_ABI/lib
+DYNINST_INC_OLD_ABI=/home/frie869/modsim-tools/palm/trunk/external/dyninst-9.3.0/MYINSTALL_OLD_ABI/include
+
+MIAMI_LIBRARY_PATHS = $(BINUTILS_HOME)/lib:$(BINUTILS_HOME)/lib64:$(DYNINST_LIB_OLD_ABI)
 
 
 BINUTILS_CFLAGS = -I$(BINUTILS_HOME)/include
 BINUTILS_LDFLAGS = \
 	-L$(BINUTILS_HOME)/lib -L$(BINUTILS_HOME)/lib64 \
-	-lbfd -liberty \
+	-lbfd -liberty 
 
 
-DYNINST_CXXFLAGS = -I$(DYNINST_INC)
+DYNINST_CXXFLAGS = -I$(DYNINST_INC_OLD_ABI)
 DYNINST_LDFLAGS = \
-	-L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) \
-	-ldyninstAPI -ldyninstAPI_RT -lparseAPI -lsymtabAPI -linstructionAPI -lcommon
+    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -ldyninstAPI \
+    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -lsymtabAPI \
+    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -lparseAPI \
+    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -lpatchAPI \
+    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -lcommon \
+    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -linstructionAPI \
+    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -lstackwalk \
+    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -lpcontrol \
+    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -ldynElf \
+    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -ldynDwarf \
+	
 
 
 TARGET_COMPILER?=gnu

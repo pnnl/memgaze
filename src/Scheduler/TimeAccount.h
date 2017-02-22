@@ -134,6 +134,8 @@ public:
    
    const UiToDoubleMap& getDataConst() const { return (data); }
    UiToDoubleMap& getData() { return (data); }
+
+   void printStats(const Machine *mach);
    
 private:
    UiToDoubleMap data;

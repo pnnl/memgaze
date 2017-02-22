@@ -234,10 +234,15 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerR
    int i, numLoops = 0;
    CFG *g = ba[0]->inCfg();
    std::cerr << "[INFO]DGBuilder::build_graph: '" << name() << "'\n";
+
+   bool lastInsnNOP = false;
+
    // try to find a block with a non NULL CFG pointer. Inner loop nodes are special 
    // nodes that are not part of the CFG and they have an uninitialized pointer.
    for (i=1 ; i<numBlocks && g==NULL ; ++i)
       g = ba[i]->inCfg();
+
+   std::cout<<"hmm 0"<<std::endl;
    
    for( i=0 ; i<numBlocks ; ++i )
    {
@@ -259,6 +264,15 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerR
                inMapper.clear();  // internal registers are valid only across 
                                   // micro-ops part of one native instruction
                build_node_for_instruction(pc, ba[i], fabs(fa[i]));
+               MIAMI::DecodedInstruction* &dInst = builtNodes[pc];
+               MIAMI::instruction_info &primary_uop = dInst->micro_ops.back();
+               if (primary_uop.type == MIAMI::InstrBin::IB_nop){
+                  lastInsnNOP = true;
+               }
+               else{
+                  lastInsnNOP = false;
+               }
+         std::cout <<"here "<< primary_uop.type <<" " << MIAMI::InstrBin::IB_nop<<std::endl;
                num_instructions += 1;
                if (ba[i]->is_delay_block())
                {
@@ -271,7 +285,8 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerR
                ++ iit;
             }
          }
-      } else
+      } 
+      else
       {
          // this is an inner loop entry. I need to create a special type of 
          // node that will act as a barrier.
@@ -285,12 +300,12 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerR
 #endif
 
          MIAMI::DecodedInstruction* &dInst = builtNodes[pc];
-         assert(dInst == NULL);
+         assert(dInst == NULL); 
          dInst = new MIAMI::DecodedInstruction();
          dInst->micro_ops.push_back(MIAMI::instruction_info());
          MIAMI::instruction_info &primary_uop = dInst->micro_ops.back();
-         
-         primary_uop.type = (MIAMI::InstrBin)type;
+
+         primary_uop.type = (MIAMI::InstrBin)type;         
          primary_uop.width = 0;
          primary_uop.vec_len = 1;
          primary_uop.exec_unit = ExecUnit_SCALAR;
@@ -324,6 +339,7 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerR
          numLoops += 1;
       }
    }
+   std::cout<<"hmm 1"<<std::endl;
 
    // compute the top nodes here. Register carried dependencies are not 
    // taken into account anyway
@@ -369,7 +385,7 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerR
    // I should disable SWP. This is what most compilers do.
    // if (hasBarrierNodes())
    //    avgNumIters = 1.0;
-   
+   std::cout <<"lastInsnNOP "<<lastInsnNOP<<std::endl;
    if (avgNumIters <= ONE_ITERATION_EPSILON)  // no SWP for this path
    {
       if (lastBranch && !lastBranch->isBarrierNode()) // it was not added before
@@ -407,7 +423,7 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerR
          }
          recentBranches.clear();
       }
-      else if (!lastBranch)
+      else if (!lastBranch && !lastInsnNOP)
          assert (!"Can we have a path without a lastBranch? Look at this path pal.");
          // if the assert above ever fails, understand when it can happen and
          // place a inner_loop_entry node there, just to restrict the 
@@ -476,7 +492,7 @@ int
 DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float freq)
 {
    MIAMI::DecodedInstruction* &dInst = builtNodes[pc];
-   assert(dInst == NULL);
+   //assert(dInst == NULL); // rfriese: probably need to make this an if to use with dyninst
    dInst = new MIAMI::DecodedInstruction();
    
    int res = InstructionXlate::xlate_dbg(pc+reloc_offset, b->getEndAddress()-pc, dInst, "DGBuilder::build_node_for_instruction");

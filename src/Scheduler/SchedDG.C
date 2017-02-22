@@ -2178,12 +2178,21 @@ SchedDG::recursive_buildSuperStructures (int crtIdx, Node **sEntry,
       EdgeList finishedEdges;
       int entryLevel = (sEntry[i]->isCfgEntry() ? 0 : sEntry[i]->getLevel());
       int exitLevel = (sExit[i]->isCfgExit() ? maximumGraphLevel : sExit[i]->getLevel());
-
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout << __func__ << " " <<"max path to exit ";
+      )
+#endif
       OutgoingEdgesIterator oeit (sEntry[i]);
       while ((bool)oeit)
       {
          Edge *ee = oeit;
          Node *nsink = ee->sink();
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout <<(unsigned int*)ee->sink()->getAddress()<<" ";
+            )
+#endif
          if (!(ee->IsRemoved()) && !(ee->IsInvisible(i)) && 
               (nsink->structureId==i) &&
               (ee->isSchedulingEdge() || ee->isSuperEdge() ||
@@ -2257,14 +2266,29 @@ SchedDG::recursive_buildSuperStructures (int crtIdx, Node **sEntry,
          }
          ++ oeit;
       }
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout  <<std::endl;
+            )
+#endif
    
       mm = new_marker();
       mm2 = new_marker();
       IncomingEdgesIterator ieit (sExit[i]);
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout << __func__ << " " <<"pathFromEntry: ";
+            )
+#endif
       while ((bool)ieit)
       {
          Edge *ee = ieit;
          Node *nsrc = ee->source();
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout <<(unsigned int*)ee->source()->getAddress()<<" ";
+            )
+#endif
          if (!(ee->IsRemoved()) && !(ee->IsInvisible(i)) && 
               (nsrc->structureId==i) &&
               (ee->isSchedulingEdge() || ee->isSuperEdge() ||
@@ -2315,6 +2339,11 @@ SchedDG::recursive_buildSuperStructures (int crtIdx, Node **sEntry,
          }
          ++ ieit;
       }
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout <<std::endl;
+            )
+#endif
       
       if (maxPathToExit != maxPathFromEntry)
       {
@@ -3295,6 +3324,11 @@ SchedDG::DiscoverSCCs(Node *nn, unsigned int mm, NodeList &nodesStack, int *dfsI
 void
 SchedDG::findDependencyCycles()
 {
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout<<__func__<<" here"<<endl;
+            )
+#endif
    int i;
    if (HasAllFlags (DG_CYCLES_COMPUTED))   // cycles are already computed
       assert(! "SchedDG::findDependencyCycles invoked, but cycles were \
@@ -3501,7 +3535,11 @@ SchedDG::findDependencyCycles()
            << endl;
    )
 #endif
-
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout<<__func__<<" numActualCycles: "<<numActualCycles<<endl;
+            )
+#endif
    setCfgFlags (DG_CYCLES_COMPUTED);
    
    // After computing the cycles, traverse all edges and mark as loop 
@@ -3818,7 +3856,13 @@ SchedDG::findDependencyCycles()
          {
             // determine the longest cycle
             // update cycle length info for each node
+
             int thisCyc = cycles[i]->getLatency();
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout << __func__ <<" "<<thisCyc<<" "<<i<<endl;
+            )
+#endif
             if (longestCycle<thisCyc)
                longestCycle = thisCyc;
             EdgeList::iterator eit = cycles[i]->edges->begin();
@@ -3949,6 +3993,11 @@ SchedDG::findCycle (SchedDG::Node* node, unsigned int m, unsigned int m2,
            unsigned int lastIdx, unsigned int &minIdx,
            int iters, int sccId)
 {
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout << __func__ << " " <<"n: "<<(unsigned int*)node->getAddress()<<endl;
+            )
+#endif
 //   if (node->visited (m+1, m2))  // node fully explored; nothing to do here
    if (node->visited(m2))  // node fully explored; nothing to do here
       return 0;
@@ -4268,6 +4317,11 @@ SchedDG::Cycle::Cycle(unsigned int _id, EdgeList& eList, DisjointSet *ds,
    lastNode = eList.back()->sink();
    int lastNodeId = ds->Find (lastNode->id);
    numDiffPaths = 1.0;
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout << __func__ << " "  <<(unsigned int*)firstNode->getAddress()<<" "<<(unsigned int*)lastNode->getAddress()<<" "<<lastNodeId<<endl;
+            )
+#endif
    for( ; eit!=eList.end() ; ++eit )
    {
       numEdges += 1;
@@ -4290,6 +4344,11 @@ SchedDG::Cycle::Cycle(unsigned int _id, EdgeList& eList, DisjointSet *ds,
          // without latency.
          assert (!"In Cycle constructor, found edge without latency info.");
       }
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout << __func__ << " "  << (*eit)->getLatency() <<" "<<(*eit)->getDistance()<<" "<<(unsigned int*)(*eit)->source()->getAddress()<<" "<<(unsigned int*)(*eit)->sink()->getAddress()<<endl;
+            )
+#endif
       if ((*eit)->getDistance() > 0)
          iters += (*eit)->getDistance();
       if (! (*eit)->isSuperEdge())
@@ -4299,9 +4358,17 @@ SchedDG::Cycle::Cycle(unsigned int _id, EdgeList& eList, DisjointSet *ds,
          numDiffPaths *= (*eit)->numPaths;
       }
    }
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout << __func__ << " "  <<(unsigned int*)firstNode->getAddress()<<" "<<(unsigned int*)lastNode->getAddress()<<" "<<lastNodeId<<endl;      )
+#endif
    if (hasLat)
       _flags |= (LATENCY_COMPUTED_CYCLE);
-   assert (iters>=1 || (firstNode!=lastNode));
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout << __func__ << " " <<"iters: "<<iters<<" (firstNode!=lastNode) "<<(firstNode!=lastNode)<<endl;      )
+#endif
+  assert (iters>=1 || (firstNode!=lastNode));
 //    && lastNode->isBarrierNode()));
    remainingLength = cLength;
 
@@ -4755,16 +4822,28 @@ SchedDG::dfs_forward (Node *nn, unsigned int mm, int distance)
 #endif
 
 void
-SchedDG::Edge::computeLatency(const Machine *_mach, addrtype reloc,SchedDG* sdg)
+SchedDG::Edge::computeLatency(const Machine *_mach, addrtype reloc, SchedDG* sdg)
 {
-  cout <<"SchedDG::Edge::computeLatency "<<(_flags & LATENCY_COMPUTED_EDGE)<<endl;
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout << __func__ << " "  <<"SchedDG::Edge::computeLatency "<<(_flags & LATENCY_COMPUTED_EDGE)<<endl;
+            )
+#endif
    if (_flags & LATENCY_COMPUTED_EDGE)
       return;    // computed it before
    
    InstructionClass sourceType = source()->makeIClass();
    InstructionClass sinkType = sink()->makeIClass();
-   cout <<Convert_InstrBin_to_string(sourceType.type)<<" "<<Convert_InstrBin_to_string(sinkType.type)<<endl;
-   cout << "has bypass: "<<_mach->hasBypassLatency (sourceType, dtype, sinkType)<<endl;
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout << __func__ << " "  <<Convert_InstrBin_to_string(sourceType.type)<<" "<<Convert_InstrBin_to_string(sinkType.type)<<endl;
+            )
+#endif
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout << __func__ << " "  << "has bypass: "<<_mach->hasBypassLatency (sourceType, dtype, sinkType)<<endl;
+            )
+#endif
    int rez;
    if ((rez = _mach->hasBypassLatency (sourceType, dtype, sinkType)) >= 0)
    {
@@ -4793,7 +4872,11 @@ SchedDG::Edge::computeLatency(const Machine *_mach, addrtype reloc,SchedDG* sdg)
    if (source()->getAddress() != sink()->getAddress()){ //because a single instruction can be represented by multipl uops, only apply addition load latency when transitioning to a new instruction
     minLatency += sdg->img->getMemLoadLatency(source()->getAddress());
    }
-   cout <<"insn: "<<(unsigned int*)source()->getAddress()<<"->" <<(unsigned int*)sink()->getAddress() << " minlatency: "<<minLatency<<endl;
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout << __func__ << " "  <<"insn: "<<(unsigned int*)source()->getAddress()<<"->" <<(unsigned int*)sink()->getAddress() << " minlatency: "<<minLatency<<endl;
+            )
+#endif
    _flags |= LATENCY_COMPUTED_EDGE;
 }
 //--------------------------------------------------------------------------------------------------------------------
@@ -8184,7 +8267,12 @@ SchedDG::processIncidentEdges (Node *newNode, int templIdx, int i, int unit)
                        reloc_offset,
                        srcIC,
                        tempE->sink()->makeIClass(), 
-                       templIdx);
+                       templIdx) + img->getMemLoadLatency(newNode->getAddress());
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout <<__func__<<" "<<(unsigned int*)newNode->getAddress()<<" lat: "<<tempE->realLatency<<endl;
+            )
+#endif
             if (tempE->overlapped>0 && (tempE->dtype==GP_REGISTER_TYPE
                      || tempE->dtype==ADDR_REGISTER_TYPE))
             {
@@ -8235,6 +8323,21 @@ SchedDG::processIncidentEdges (Node *newNode, int templIdx, int i, int unit)
          int diffCycles = (crtE->sink()->schedTime % edist) - 
                           crtE->source()->schedTime;
          // check if distance is too short
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout <<__func__<<" "<<(unsigned int*)crtE->sink()->getAddress()<<" "<<crtE->sink()->schedTime<<" "<<(edist)<<endl;
+            )
+#endif
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout <<__func__<<" "<<(unsigned int*)crtE->source()->getAddress()<<" "<<crtE->source()->schedTime<<endl;
+            )
+#endif
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout <<__func__<<" "<<crtE->getActualLatency()<<" "<<crtE->getLatency()<<" "<<crtE->realLatency<<" "<<diffCycles<<endl;
+            )
+#endif
          if (diffCycles < (int)(crtE->getActualLatency()))
          {
             // I do not know if I should have such a case
@@ -9524,7 +9627,8 @@ SchedDG::computeScheduleLatency(int graph_level, int detailed)
    // compute the loop exit condition
    markLoopBoilerplateNodes();
    
-   globalLbCycles = minSchedulingLengthDueToDependencies();
+   globalLbCycles = minSchedulingLengthDueToDependencies(); 
+
    mm = new_marker();
    totalResources = minSchedulingLengthDueToResources(restrictiveUnit, 
                 mm, NULL, vecBound, vecUnit);
@@ -9557,6 +9661,11 @@ SchedDG::computeScheduleLatency(int graph_level, int detailed)
    )
 #endif
 
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout <<__func__<<" "<<globalLbCycles<<" "<<totalResources<<" "<<numberOfInnerLoops<<endl;
+            )
+#endif
    if (globalLbCycles >= totalResources + numberOfInnerLoops)
    {
       min_length = globalLbCycles;
@@ -9611,6 +9720,11 @@ SchedDG::computeScheduleLatency(int graph_level, int detailed)
 
    resourceLimited = false;
    schedule_length = min_length;
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout<<__func__<<" sl: "<<schedule_length<<endl;
+            )
+#endif
    resourceLimitedScore = (float)totalResources / (float)globalLbCycles;
    // 02/15/2012, gmarin: Disable heavyOnResources edge sorting. It leads to DEADLOCK.
    heavyOnResources = false; // (resourceLimitedScore > 2.0);
@@ -10386,6 +10500,11 @@ SchedDG::markDependentRefs (int refIdx, Node *node, char *connected, int N,
 int
 SchedDG::minSchedulingLengthDueToDependencies()
 {
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout<<__func__<<" here"<<endl;
+            )
+#endif
    // compute several metrics for each node
    // 1. longest cycle (=1 if no cycle, or avgNumIters<=1)
    // 2. sum of the lengths of all cycles this node is part of (=1 if no cycle)
@@ -10424,6 +10543,12 @@ SchedDG::minSchedulingLengthDueToDependencies()
          maxPathFromRoot = pathLen;
       ++ beit;
    }
+
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout<<__func__<<" "<<maxPathFromRoot<<" "<<maxPathToLeaf<<endl;
+            )
+#endif
    
    // a leaf instruction is at distance one from scheduling end, because it
    // takes one cycle to issue it; however, a root instruction is at distance
@@ -10436,7 +10561,11 @@ SchedDG::minSchedulingLengthDueToDependencies()
       assert (maxPathToLeaf == maxPathFromRoot + 1);
    }
    maxPathRootToLeaf = maxPathToLeaf; 
-   
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout<<__func__<<" "<<maxPathRootToLeaf<<" "<<maxPathToLeaf<<endl;
+            )
+#endif
    // For each forward loop-independent edge, set the length of the longest
    // path from root to leaf that includes it
    // Check also if it is part of a path between two cycles.
@@ -10547,7 +10676,11 @@ SchedDG::minSchedulingLengthDueToDependencies()
    // create also the path slack structures
    // FOR starters we'll have slack info only for cycles, included in Cycle
    // class. usedSlack is reset to 0 at the start of each scheduling attempt.
-   
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout<<__func__<<" "<<maxPathRootToLeaf<<" "<<longestCycle<<endl;
+            )
+#endif
    if (avgNumIters>ONE_ITERATION_EPSILON || longestCycle>1)
    {
       return (longestCycle);
@@ -10589,6 +10722,11 @@ SchedDG::Node::computePathToLeaf (unsigned int marker, bool manyBarriers,
       {
          Node *sinkNode = oeit->sink ();
          int edgeLat = oeit->getLatency ();
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout <<__func__<<" "<<(unsigned int*)oeit->source()->getAddress()<<" "<<(unsigned int*)oeit->sink()->getAddress()<< edgeLat<<endl;
+            )
+#endif
          int rez = sinkNode->computePathToLeaf (marker, 
                       manyBarriers, ds);
          int rezEdges = sinkNode->edgesToLeaf;
@@ -12110,7 +12248,14 @@ SchedDG::draw_debug_min_graphics (const char* prefix)
 */
 }
 
+void
+SchedDG::printTimeAccount(){
+  printf("PALM: timestats\n");
+  timeStats.printStats(mach);
+  printf("PALM: unitusage\n");
+  unitUsage.printStats(mach);
 
+}
 void
 SchedDG::draw_legend (ostream& os)
 {

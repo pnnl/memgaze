@@ -33,6 +33,7 @@
 //#include "dyninst-insn-xlate.hpp"
 
 #include <BPatch_flowGraph.h>
+#include <Function.h>
 #include <CodeObject.h>
 #include <CodeSource.h>
 
@@ -1624,6 +1625,7 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
    BPMap *bpmtemp = new BPMap();
    LatencyType thisLoopLatency = 0;
    uint64_t thisLoopUops = 0;
+   double thisLoopMemLatency = 0;
 //   LatencyType thisLoopInef = 0;
 
    const Machine *tmach = 0;
@@ -1680,7 +1682,7 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
       if (! bpit->first->isExitPath ())
          avgCount += 1.0;
 
-      avgCount = 1.0;
+      avgCount = 1.0; //num of iterations 
 
       // for now just dump the path to check that we can construct them correctly
 #if DEBUG_BLOCK_PATHS_PRINT
@@ -1715,7 +1717,8 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
       /*        mdriver.RefNames(), mdriver.RefsTable(), */
               bpit->first->size, bpit->first->blocks, 
               bpit->first->probabs, bpit->first->innerRegs,
-              bpit->second->count, avgCount);
+              avgCount, avgCount);
+              //bpit->second->count, avgCount);
 #if PROFILE_SCHEDULER
          MIAMIP::report_time (stderr, "Graph construction for path %s", pathId.Name());
 #endif
@@ -1884,7 +1887,7 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
             } // if do_scheduling
          } // if path == targetPath
 #endif   // if 1/0
-         
+         double memLat = 0;
          if (sch)
          {
             bpit->second->timeStats = sch->getTimeStats();
@@ -1893,13 +1896,16 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
             
             const AddrSet& pathRefs = sch->getMemoryReferences();
             cout<<"memrefs: ";
+            
             for (auto i : pathRefs){
-               cout<<(unsigned int*)i<<" ";
+               cout<<(unsigned int*)i<<":"<<InLoadModule()->getMemLoadLatency(i)<<" ";
+               memLat +=InLoadModule()->getMemLoadLatency(i);
             }
             cout<<endl;
             scopeMemRefs.insert(pathRefs.begin(), pathRefs.end());
             //sch->dump(cout);
             //sch->draw_scheduling(cout,"schedule");
+            sch->printTimeAccount();
             delete sch;
 #if PROFILE_SCHEDULER
             MIAMIP::report_time (stderr, "Get time stats and deallocate scheduler for path %s", pathId.Name());
@@ -1909,6 +1915,7 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
          std::cout<<"PALM: path lat: "<<bpit->second->latency<<" path uops: "<<bpit->second->num_uops<<" path count: "<<bpit->second->count<<" "<<bpit->second->serialMemLat<<" "<<bpit->second->exposedMemLat<<std::endl;
          thisLoopLatency += (bpit->second->count)*(bpit->second->latency);
          thisLoopUops += (bpit->second->count)*(bpit->second->num_uops);
+         thisLoopMemLatency += memLat;
       }  // if do_build_dg
    }
    
@@ -1924,7 +1931,7 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
    }
 
    pscope->Paths() = bpmtemp;
-   std::cout <<"lat: "<< thisLoopLatency << " numuops: "<<thisLoopUops<<std::endl;
+   std::cout <<"lat: "<< thisLoopLatency << " numuops: "<<thisLoopUops<<" memLat: "<<thisLoopMemLatency<<std::endl;
    pscope->Latency() = thisLoopLatency;
    pscope->NumUops() = thisLoopUops;
 
@@ -3331,7 +3338,7 @@ Routine::createDyninstFunction() // todo: better error checking
    bool found = dyn_img->findFunction(start_addr,funcs);
    if (!found){
       fprintf(stderr, "Unable find dyninst function from address 0x%lx, searching based on name: %s \n",start_addr,name.c_str());
-      dyn_img->findFunction(name.c_str(),funcs,true,true,true);
+      dyn_img->findFunction(name.c_str(),funcs,true,true,true); 
    }
    if (funcs.size() != 1){
       if (funcs.size() == 0){
@@ -3384,7 +3391,7 @@ Routine::createDyninstFunction() // todo: better error checking
 void Routine::createBlkNoToMiamiBlkMap(CFG* cfg){
    for (auto it = dyn_addrToBlkNo->begin();it!= dyn_addrToBlkNo->end(); ++it){
       (*dyn_blkNoToMiamiBlk)[it->second] = cfg->findNodeContainingAddress(it->first.first);
-      std::cout<<it->second<<" "<<cfg->findNodeContainingAddress(it->first.first)<<" "<<(unsigned int*)it->first.first<<std::endl;
+      std::cout<<it->second<<" "<<cfg->findNodeContainingAddress(it->first.first)<<" "<<(unsigned int*)it->first.first<<" "<<(unsigned int*)it->first.second<<std::endl;
    }
          
 }

@@ -1379,6 +1379,17 @@ getTAShortNameForKey (unsigned int key, const Machine *mach)
    return (oss.str());
 }
 
+void TimeAccount::printStats(const Machine *mach){
+   UiToDoubleMap::const_iterator tait = data.begin();
+   std::ostringstream oss;
+   while(tait != data.end()){
+      oss<<"PALM: "<<getTANameForKey(tait->first, mach)<<" "<<getDisplayValue(tait->first,mach)<<"\n";
+      ++tait;
+   }
+  std::cout<<oss.str()<<"\n";
+
+}
+
 const char* 
 TAcomputePercentForKey (unsigned int key)
 {

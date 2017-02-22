@@ -737,7 +737,7 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
    std::vector<BPatch_function*> tfunctions;
    dyn_image->findFunction(routName.c_str(), tfunctions,false,true,false);
    for(int f = 0;f<tfunctions.size();f++){ //search for inlined functions (possibly do special analysis in inlined function found)
-      cout<<tfunctions[f]->getName()<<tfunctions[f]->getMangledName()<<" inst: "<<tfunctions[f]->isInstrumentable()<<" "<<(unsigned int*)tfunctions[f]->getBaseAddr()<<std::endl;
+      cout<<tfunctions[f]->getName()<<" "<<tfunctions[f]->getMangledName()<<" inst: "<<tfunctions[f]->isInstrumentable()<<" "<<(unsigned int*)tfunctions[f]->getBaseAddr()<<std::endl;
       BPatch_flowGraph *fg =tfunctions[f]->getCFG();
       std::set<BPatch_basicBlock*> blks;
       fg->getAllBasicBlocks(blks);
@@ -759,17 +759,7 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
       }
    }
 
-   if (mo->lat_path.size() > 0){
-      ifstream latFile;
-      latFile.open(mo->lat_path);
-      addrtype insn;
-      double lat;
-      while (latFile >> std::hex >> insn >> std::dec >> lat){
-         //cout<<(unsigned int*)insn << " "<<lat<<endl;
-         instLats[insn]=lat;
-      }
-      latFile.close(); 
-   }
+   
 
 
 
@@ -781,6 +771,21 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
    low_addr_offset = (MIAMI::addrtype)codeSrc->offset();
    cout << (unsigned int*)codeSrc->getPtrToInstruction(start) <<" "<<(unsigned int*)start<<" "<<(unsigned int*)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-(Dyninst::Address)start)<<endl;
    cout << (unsigned int*)codeSrc->offset()<<" "<<(unsigned int*)codeSrc->length()<<" "<<(unsigned int*)codeSrc->baseAddress()<<" "<<(unsigned int*)codeSrc->loadAddress()<<endl;
+   if (mo->lat_path.size() > 0){
+      ifstream latFile;
+      latFile.open(mo->lat_path);
+      addrtype insn;
+      double lat;
+      std::string latFuncNm;
+      std::string latDso;
+      while (latFile >> std::hex >> insn >> std::dec >> lat >> latFuncNm >> latDso){
+         if (routName.compare(latFuncNm) == 0){
+            cout<< std::hex<<(unsigned int*)low_addr_offset<<" "<<(unsigned int*)insn <<" "<<(unsigned int*)(low_addr_offset+insn)<<std::dec<< " "<<lat<<" "<<latFuncNm<<" "<<latDso<<endl;
+            instLats[low_addr_offset+insn]=lat;
+         }
+      }
+      latFile.close(); 
+   }
    Routine* rout = new Routine(this, (addrtype)start, (usize_t) end-start, string(routName), (addrtype)start, reloc_offset);
 
    std::cerr << "[INFO]LoadModule::analyzeRoutines(): '" << rout->Name() <<" "<<(unsigned int*)reloc_offset<< "'\n";
