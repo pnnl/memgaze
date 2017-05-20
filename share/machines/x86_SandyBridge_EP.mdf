@@ -23,7 +23,7 @@ WindowSize = 50;
 /* Write other rules that limit the number of instructions that can be
  * executed in parallel 
  */
-/* This example if from an Itanium machine model. Keep it as reference.
+/* This example is from an Itanium machine model. Keep it as reference.
 Maximum 6 from I_M, I_I, I_F, I_B {"at most 6 instructions issued per cycle"};
 */
 
