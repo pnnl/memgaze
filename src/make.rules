@@ -14,10 +14,14 @@ XED_HOME ?= ${PIN_HOME}/extras/xed2-intel64
 ## define special paths that must be added to the LD_LIBRARY_PATH when invoking
 ## MIAMI components. These may be libraries associated with a compiler from a
 ## non-standard location.
-DYNINST_LIB_OLD_ABI=/home/frie869/modsim-tools/palm/trunk/external/dyninst-9.3.0/MYINSTALL_OLD_ABI/lib
-DYNINST_INC_OLD_ABI=/home/frie869/modsim-tools/palm/trunk/external/dyninst-9.3.0/MYINSTALL_OLD_ABI/include
+#DYNINST_LIB_OLD_ABI=/home/frie869/modsim-tools/palm/trunk/external/dyninst-9.3.0/MYINSTALL_OLD_ABI/lib
+#DYNINST_INC_OLD_ABI=/home/frie869/modsim-tools/palm/trunk/external/dyninst-9.3.0/MYINSTALL_OLD_ABI/include
+DYNINST_LIB?=/home/frie869/modsim-tools/palm/trunk/external/dyninst-9.3.2/MYINSTALL/lib
+DYNINST_INC?=/home/frie869/modsim-tools/palm/trunk/external/dyninst-9.3.2/MYINSTALL/include
 
-MIAMI_LIBRARY_PATHS = $(BINUTILS_HOME)/lib:$(BINUTILS_HOME)/lib64:$(DYNINST_LIB_OLD_ABI)
+
+
+MIAMI_LIBRARY_PATHS = $(BINUTILS_HOME)/lib:$(BINUTILS_HOME)/lib64:$(DYNINST_LIB)
 
 
 BINUTILS_CFLAGS = -I$(BINUTILS_HOME)/include
@@ -26,18 +30,18 @@ BINUTILS_LDFLAGS = \
 	-lbfd -liberty 
 
 
-DYNINST_CXXFLAGS = -I$(DYNINST_INC_OLD_ABI)
+DYNINST_CXXFLAGS = -I$(DYNINST_INC)
 DYNINST_LDFLAGS = \
-    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -ldyninstAPI \
-    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -lsymtabAPI \
-    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -lparseAPI \
-    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -lpatchAPI \
-    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -lcommon \
-    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -linstructionAPI \
-    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -lstackwalk \
-    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -lpcontrol \
-    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -ldynElf \
-    -L$(DYNINST_LIB_OLD_ABI) -Wl,-rpath $(DYNINST_LIB_OLD_ABI) -ldynDwarf \
+    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -ldyninstAPI \
+    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -lsymtabAPI \
+    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -lparseAPI \
+    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -lpatchAPI \
+    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -lcommon \
+    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -linstructionAPI \
+    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -lstackwalk \
+    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -lpcontrol \
+    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -ldynElf \
+    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -ldynDwarf \
 	
 
 
