@@ -1,13 +1,13 @@
 
-# Set PIN_HOME and BINUTILS_HOME to point to the correct locations for your 
+# Set PIN_ROOT and BINUTILS_ROOT to point to the correct locations for your 
 # system
-PIN_HOME ?= ${HOME}/pkg/pin-2.13-62732-gcc.4.4.7-linux
+PIN_ROOT ?= ${HOME}/pkg/pin-2.13-62732-gcc.4.4.7-linux
 
-BINUTILS_HOME ?= ${HOME}/pkg/binutils-2.26
+BINUTILS_ROOT ?= ${HOME}/pkg/binutils-2.26
 
-DYNINST_HOME ?= ${HOME}/1modsim-tools-svn/palm/trunk/external/dyninstAPI-9.1.0/MYINSTALL
-DYNINST_INC = $(DYNINST_HOME)/include
-DYNINST_LIB = $(DYNINST_HOME)/lib
+DYNINST_ROOT ?= ${HOME}/1modsim-tools-svn/palm/trunk/external/dyninstAPI-9.1.0/MYINSTALL
+DYNINST_INC = $(DYNINST_ROOT)/include
+DYNINST_LIB = $(DYNINST_ROOT)/lib
 
 # Optionally, set the compilers used to build MIAMI.
 # PIN favors the GNU compilers for building the tools, thus we've tested

@@ -8,4 +8,4 @@ include ../../miami.config
 
 
 all clean cleanall info:
-	@make -f makefile.pin $@ PIN_ROOT=$(PIN_HOME) 
+	@make -f makefile.pin $@ PIN_ROOT=$(PIN_ROOT) 

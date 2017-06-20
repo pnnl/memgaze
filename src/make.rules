@@ -6,44 +6,31 @@
 # set up and include *.config files
 #
 ##############################################################
-PIN_ROOT = $(PIN_HOME)
+
 KIT = 1
 TARGET_OS = linux
 
-XED_HOME ?= ${PIN_HOME}/extras/xed2-intel64
-## define special paths that must be added to the LD_LIBRARY_PATH when invoking
-## MIAMI components. These may be libraries associated with a compiler from a
-## non-standard location.
-#DYNINST_LIB_OLD_ABI=/home/frie869/modsim-tools/palm/trunk/external/dyninst-9.3.0/MYINSTALL_OLD_ABI/lib
-#DYNINST_INC_OLD_ABI=/home/frie869/modsim-tools/palm/trunk/external/dyninst-9.3.0/MYINSTALL_OLD_ABI/include
-DYNINST_LIB?=/home/frie869/modsim-tools/palm/trunk/external/dyninst-9.3.2/MYINSTALL/lib
-DYNINST_INC?=/home/frie869/modsim-tools/palm/trunk/external/dyninst-9.3.2/MYINSTALL/include
+MIAMI_LIBRARY_PATHS = $(BINUTILS_ROOT)/lib:$(BINUTILS_ROOT)/lib64:$(DYNINST_LIB)
 
-
-
-MIAMI_LIBRARY_PATHS = $(BINUTILS_HOME)/lib:$(BINUTILS_HOME)/lib64:$(DYNINST_LIB)
-
-
-BINUTILS_CFLAGS = -I$(BINUTILS_HOME)/include
+BINUTILS_CFLAGS = -I$(BINUTILS_ROOT)/include
 BINUTILS_LDFLAGS = \
-	-L$(BINUTILS_HOME)/lib -L$(BINUTILS_HOME)/lib64 \
+	-L$(BINUTILS_ROOT)/lib -L$(BINUTILS_ROOT)/lib64 \
 	-lbfd -liberty 
 
 
 DYNINST_CXXFLAGS = -I$(DYNINST_INC)
 DYNINST_LDFLAGS = \
-    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -ldyninstAPI \
-    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -lsymtabAPI \
-    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -lparseAPI \
-    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -lpatchAPI \
-    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -lcommon \
-    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -linstructionAPI \
-    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -lstackwalk \
-    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -lpcontrol \
-    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -ldynElf \
-    -L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) -ldynDwarf \
-	
-
+	-L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) \
+	-ldyninstAPI \
+	-lsymtabAPI \
+	-lparseAPI \
+	-lpatchAPI \
+	-linstructionAPI \
+	-lstackwalk \
+	-lpcontrol \
+	-ldynElf \
+	-ldynDwarf \
+	-lcommon
 
 TARGET_COMPILER?=gnu
 ifdef OS
@@ -53,8 +40,8 @@ ifdef OS
 endif
 
 ifeq ($(TARGET_COMPILER),gnu)
-    include $(PIN_HOME)/source/tools/Config/unix.vars
-    include $(PIN_HOME)/source/tools/Config/makefile.unix.config
+    include $(PIN_ROOT)/source/tools/Config/unix.vars
+    include $(PIN_ROOT)/source/tools/Config/makefile.unix.config
     DBG ?= -g
     OPT ?= -O3
     WFLAGS = -Wall -Wno-error -Wno-unknown-pragmas -Wno-unused-function \
@@ -65,7 +52,7 @@ ifeq ($(TARGET_COMPILER),gnu)
 endif
 
 ifeq ($(TARGET_COMPILER),ms)
-    include $(PIN_HOME)/source/tools/Config/makefile.ms.config
+    include $(PIN_ROOT)/source/tools/Config/makefile.ms.config
     DBG?=
 endif
 
@@ -128,8 +115,8 @@ $(OBJDIR)tarjans/%.oo : %.C
 
 
 info:
-	@echo "PIN_HOME=$(PIN_HOME)"
-	@echo "DYNINST_HOME=$(DYNINST_HOME)"
+	@echo "PIN_ROOT=$(PIN_ROOT)"
+	@echo "DYNINST_ROOT=$(DYNINST_ROOT)"
 	@echo "MIAMI_HOME=$(MIAMI_HOME)"
 	@echo "MIAMI_TARGET=$(MIAMI_TARGET)"
 	@echo "TOOL_OBJ_DIR=$(TOOL_OBJ_DIR)"
@@ -138,7 +125,7 @@ info:
 
 all: tools
 	mkdir -p $(VARSDIR)
-	@echo "PIN_HOME=$(PIN_HOME)" > $(VARSFILE)
+	@echo "PIN_ROOT=$(PIN_ROOT)" > $(VARSFILE)
 	@echo "MIAMI_LIBRARY_PATHS=$(MIAMI_LIBRARY_PATHS)" >> $(VARSFILE)
 	@cp -p $(PINCONFIG) $(ETCDIR)
 

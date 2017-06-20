@@ -11,13 +11,13 @@ folder and edit it.
 
 MIAMI has two external dependencies, PIN and binutils.
 
-2. Set PIN_HOME to point to the root folder of a recent PIN kit. MIAMI has 
+2. Set PIN_ROOT to point to the root folder of a recent PIN kit. MIAMI has 
 been tested with the most recent PIN version, 2.13-62732 as of this writing. 
 Slightly older versions are also supported, but not versions older than 
 2.12-58423 that have a different build system. PIN can be downloaded from
 http://software.intel.com/en-us/articles/pintool-downloads.
 
-3. Set BINUTILS_HOME to point to the root folder of a binutils installation. 
+3. Set BINUTILS_ROOT to point to the root folder of a binutils installation. 
 MIAMI links against two binutils libraries, libbfd and libiberty, so make
 sure that your binutils installation has these two libraries or that they
 are installed in one of the default system directories.

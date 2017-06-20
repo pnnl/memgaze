@@ -1,13 +1,13 @@
 # -*-Mode: sh;-*-
 
 cpplibs=
-ldd ${PIN_HOME}/ia32/bin/pinbin | grep "not found" > /dev/null
+ldd ${PIN_ROOT}/ia32/bin/pinbin | grep "not found" > /dev/null
 if [ $? -eq 0 ]; then
-   cpplibs="${PIN_HOME}/ia32/runtime/cpplibs"
+   cpplibs="${PIN_ROOT}/ia32/runtime/cpplibs"
 fi
-ldd ${PIN_HOME}/intel64/bin/pinbin | grep "not found" > /dev/null
+ldd ${PIN_ROOT}/intel64/bin/pinbin | grep "not found" > /dev/null
 if [ $? -eq 0 ]; then
-   cpplibs="${PIN_HOME}/intel64/runtime/cpplibs:${cpplibs}"
+   cpplibs="${PIN_ROOT}/intel64/runtime/cpplibs:${cpplibs}"
 fi
 
 export LD_LIBRARY_PATH=${MIAMI_LIBRARY_PATHS}:${cpplibs}:${LD_LIBRARY_PATH}

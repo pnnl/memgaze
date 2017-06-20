@@ -20,4 +20,4 @@ else
 fi
 source ${DIR}/../etc/pin_config
 
-${PIN_HOME}/pin ${MIAMI_PIN_ARGS} -t ${DIR}/libexec/XTOOLLIBX $@
+${PIN_ROOT}/pin ${MIAMI_PIN_ARGS} -t ${DIR}/libexec/XTOOLLIBX $@
