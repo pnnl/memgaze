@@ -90,7 +90,7 @@ KNOB<string> KnobScopeName (KNOB_MODE_WRITEONCE,    "pintool",
 KNOB<BOOL>   KnobGenerateXML (KNOB_MODE_WRITEONCE,    "pintool",
     "xml", "0", "generate XML output in hpcviewer format. Enabled by default only if a machine file is provided and scheduling is performed.");
 
-
+/* ------- rfriese: added to use dyninst ------- */
 KNOB<string> KnobBinaryPath (KNOB_MODE_WRITEONCE,    "pintool",
     "bin_path", "", "binary to analyze (required).");
 KNOB<string> KnobFuncName (KNOB_MODE_WRITEONCE,    "pintool",
@@ -99,6 +99,7 @@ KNOB<string> KnobBlkPath (KNOB_MODE_WRITEONCE,    "pintool",
     "blk_path", "", "specify basic blocks to analyze.");
 KNOB<string> KnobLatPath (KNOB_MODE_WRITEONCE,    "pintool",
     "lat_path", "", "path containing instruction level load latency");
+/*------------------------------------------------*/
 
 /* ===================================================================== */
 
