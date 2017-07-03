@@ -1,33 +1,40 @@
 # -*-Mode: sh;-*-
+#########################################
+#
+#ozgur 
+#
+#Commented out whole file 
+#
+#########################################
 
-cpplibs=
-ldd ${PIN_ROOT}/ia32/bin/pinbin | grep "not found" > /dev/null
-if [ $? -eq 0 ]; then
-   cpplibs="${PIN_ROOT}/ia32/runtime/cpplibs"
-fi
-ldd ${PIN_ROOT}/intel64/bin/pinbin | grep "not found" > /dev/null
-if [ $? -eq 0 ]; then
-   cpplibs="${PIN_ROOT}/intel64/runtime/cpplibs:${cpplibs}"
-fi
-
-export LD_LIBRARY_PATH=${MIAMI_LIBRARY_PATHS}:${cpplibs}:${LD_LIBRARY_PATH}
-# Check if we need to use child injection
-ichild=""
-if [ -f /proc/sys/kernel/yama/ptrace_scope ]
-then
-   pscope=`cat /proc/sys/kernel/yama/ptrace_scope`
-   if [ "X${pscope}" == "X1" ]
-   then
-      echo "MIAMI defaults to child injection on this system."
-      echo "To use parent injection, run the following command as root:"
-      echo " echo 0 > /proc/sys/kernel/yama/ptrace_scope"
-      echo "To make this change permanent, edit '/etc/sysctl.d/10-ptrace.conf' and set the value to 0."
-      echo
-      ichild="-injection child"
-   fi
-fi
-
-# tallent: "-separate_memory" supported by PIN 2.13 but not 2.14
-#MIAMI_PIN_ARGS="${ichild} ${WITH_PIN_ARGS} -separate_memory"
-
-MIAMI_PIN_ARGS="${ichild} ${WITH_PIN_ARGS}"
+#cpplibs=
+#ldd ${PIN_ROOT}/ia32/bin/pinbin | grep "not found" > /dev/null
+#if [ $? -eq 0 ]; then
+#   cpplibs="${PIN_ROOT}/ia32/runtime/cpplibs"
+#fi
+#ldd ${PIN_ROOT}/intel64/bin/pinbin | grep "not found" > /dev/null
+#if [ $? -eq 0 ]; then
+#   cpplibs="${PIN_ROOT}/intel64/runtime/cpplibs:${cpplibs}"
+#fi
+#
+#export LD_LIBRARY_PATH=${MIAMI_LIBRARY_PATHS}:${cpplibs}:${LD_LIBRARY_PATH}
+## Check if we need to use child injection
+#ichild=""
+#if [ -f /proc/sys/kernel/yama/ptrace_scope ]
+#then
+#   pscope=`cat /proc/sys/kernel/yama/ptrace_scope`
+#   if [ "X${pscope}" == "X1" ]
+#   then
+#      echo "MIAMI defaults to child injection on this system."
+#      echo "To use parent injection, run the following command as root:"
+#      echo " echo 0 > /proc/sys/kernel/yama/ptrace_scope"
+#      echo "To make this change permanent, edit '/etc/sysctl.d/10-ptrace.conf' and set the value to 0."
+#      echo
+#      ichild="-injection child"
+#   fi
+#fi
+#
+## tallent: "-separate_memory" supported by PIN 2.13 but not 2.14
+##MIAMI_PIN_ARGS="${ichild} ${WITH_PIN_ARGS} -separate_memory"
+#
+#MIAMI_PIN_ARGS="${ichild} ${WITH_PIN_ARGS}"

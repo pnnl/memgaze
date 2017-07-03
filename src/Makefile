@@ -1,4 +1,4 @@
-SUBDIRS = CFGtool MemReuse CacheSim StreamSim Scheduler 
+SUBDIRS = Scheduler 
 
 all clean cleanall distclean info:
 	@for dir in $(SUBDIRS); \

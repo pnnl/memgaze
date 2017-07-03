@@ -10,12 +10,15 @@
 KIT = 1
 TARGET_OS = linux
 
-MIAMI_LIBRARY_PATHS = $(BINUTILS_ROOT)/lib:$(BINUTILS_ROOT)/lib64:$(DYNINST_LIB)
+MIAMI_LIBRARY_PATHS = $(BINUTILS_ROOT)/lib:$(BINUTILS_ROOT)/lib64:$(DYNINST_LIB):$(XED_LIB)
 
 BINUTILS_CFLAGS = -I$(BINUTILS_ROOT)/include
 BINUTILS_LDFLAGS = \
 	-L$(BINUTILS_ROOT)/lib -L$(BINUTILS_ROOT)/lib64 \
 	-lbfd -liberty 
+
+XED_CXXFLAGS = -I$(XED_INC) -I$(BOOST_INC)
+XED_LDFLAGS = -L$(XED_LIB)
 
 DYNINST_CXXFLAGS = -I$(DYNINST_INC) -I$(BOOST_INC)
 DYNINST_LDFLAGS = \
@@ -39,19 +42,23 @@ ifdef OS
 endif
 
 ifeq ($(TARGET_COMPILER),gnu)
-    include $(PIN_ROOT)/source/tools/Config/unix.vars
-    include $(PIN_ROOT)/source/tools/Config/makefile.unix.config
+#ozgurS Changing the includes form pin directory to modified version of those files in Miami home directory   
+#    include $(MIAMI_HOME)/src/unix.vars
+#    include $(MIAMI_HOME)/src/makefile.unix.config
+#ozgurE
     DBG ?= -g
     OPT ?= -O3
     WFLAGS = -Wall -Wno-error -Wno-unknown-pragmas -Wno-unused-function \
          -fno-strict-aliasing
     WXXFLAGS = -Woverloaded-virtual
-    CXXFLAGS ?= -fPIC $(DBG) $(OPT) $(WFLAGS) $(WXXFLAGS) $(DYNINST_CXXFLAGS) -I. -I../common -I..
+    CXXFLAGS ?= -fPIC $(DBG) $(OPT) $(WFLAGS) $(WXXFLAGS) $(DYNINST_CXXFLAGS) $(XED_CXXFLAGS) -I. -I../common -I..
     CFLAGS ?= -fPIC $(DBG) $(OPT) $(WFLAGS) -I. -I../common -I..
 endif
 
 ifeq ($(TARGET_COMPILER),ms)
-    include $(PIN_ROOT)/source/tools/Config/makefile.ms.config
+#ozgurS commenting out includes    
+    #include $(PIN_ROOT)/source/tools/Config/makefile.ms.config
+#ozgurE
     DBG?=
 endif
 
@@ -114,7 +121,6 @@ $(OBJDIR)tarjans/%.oo : %.C
 
 
 info:
-	@echo "PIN_ROOT=$(PIN_ROOT)"
 	@echo "DYNINST_ROOT=$(DYNINST_ROOT)"
 	@echo "MIAMI_HOME=$(MIAMI_HOME)"
 	@echo "MIAMI_TARGET=$(MIAMI_TARGET)"
@@ -124,7 +130,6 @@ info:
 
 all: tools
 	mkdir -p $(VARSDIR)
-	@echo "PIN_ROOT=$(PIN_ROOT)" > $(VARSFILE)
 	@echo "MIAMI_LIBRARY_PATHS=$(MIAMI_LIBRARY_PATHS)" >> $(VARSFILE)
 	@cp -p $(PINCONFIG) $(ETCDIR)
 

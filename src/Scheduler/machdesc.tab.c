@@ -1,24 +1,23 @@
-/* A Bison parser, made by GNU Bison 2.3.  */
+
+/* A Bison parser, made by GNU Bison 2.4.1.  */
 
 /* Skeleton implementation for Bison's Yacc-like parsers in C
-
-   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   
+      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
    Free Software Foundation, Inc.
-
-   This program is free software; you can redistribute it and/or modify
+   
+   This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
-
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+   
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-
+   
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -29,7 +28,7 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-
+   
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
@@ -47,7 +46,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "2.3"
+#define YYBISON_VERSION "2.4.1"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -55,121 +54,20 @@
 /* Pure parsers.  */
 #define YYPURE 0
 
+/* Push parsers.  */
+#define YYPUSH 0
+
+/* Pull parsers.  */
+#define YYPULL 1
+
 /* Using locations.  */
 #define YYLSP_NEEDED 0
 
 
 
-/* Tokens.  */
-#ifndef YYTOKENTYPE
-# define YYTOKENTYPE
-   /* Put the tokens into the symbol table, so that GDB and other debuggers
-      know about them.  */
-   enum yytokentype {
-     T_OR = 258,
-     T_TIMES = 259,
-     T_PLUS = 260,
-     T_PLUSPLUS = 261,
-     T_COLON = 262,
-     T_SEMICOLON = 263,
-     T_COMMA = 264,
-     T_MACHINE = 265,
-     T_VERSION = 266,
-     T_ASSIGN = 267,
-     T_REPLACE = 268,
-     T_INSTRUCTION = 269,
-     T_TEMPLATE = 270,
-     T_CPU_UNITS = 271,
-     T_WITH = 272,
-     T_NOTHING = 273,
-     T_ALL_UNITS = 274,
-     T_LBRACKET = 275,
-     T_RBRACKET = 276,
-     T_LPAREN = 277,
-     T_RPAREN = 278,
-     T_ARROW = 279,
-     T_MAXIMUM = 280,
-     T_FROM = 281,
-     T_LCPAREN = 282,
-     T_RCPAREN = 283,
-     T_ANY_INSTRUCTION = 284,
-     T_BYPASS = 285,
-     T_LATENCY = 286,
-     T_FOR = 287,
-     T_MEMORY = 288,
-     T_CONTROL = 289,
-     T_ADDR_REGISTER = 290,
-     T_GP_REGISTER = 291,
-     T_MEMORY_HIERARCHY = 292,
-     T_VECTOR_UNIT = 293,
-     T_RETIRE = 294,
-     T_WINDOW_SIZE = 295,
-     T_ASYNC_RESOURCES = 296,
-     T_INT_CONST = 297,
-     T_INST_TYPE = 298,
-     T_DEPENDENCY_TYPE = 299,
-     T_UNIT_TYPE = 300,
-     T_FLOAT_CONST = 301,
-     T_CHAR_CONST = 302,
-     T_IDENTIFIER = 303,
-     T_STR_CONST = 304,
-     T_GP_REG_NAME = 305
-   };
-#endif
-/* Tokens.  */
-#define T_OR 258
-#define T_TIMES 259
-#define T_PLUS 260
-#define T_PLUSPLUS 261
-#define T_COLON 262
-#define T_SEMICOLON 263
-#define T_COMMA 264
-#define T_MACHINE 265
-#define T_VERSION 266
-#define T_ASSIGN 267
-#define T_REPLACE 268
-#define T_INSTRUCTION 269
-#define T_TEMPLATE 270
-#define T_CPU_UNITS 271
-#define T_WITH 272
-#define T_NOTHING 273
-#define T_ALL_UNITS 274
-#define T_LBRACKET 275
-#define T_RBRACKET 276
-#define T_LPAREN 277
-#define T_RPAREN 278
-#define T_ARROW 279
-#define T_MAXIMUM 280
-#define T_FROM 281
-#define T_LCPAREN 282
-#define T_RCPAREN 283
-#define T_ANY_INSTRUCTION 284
-#define T_BYPASS 285
-#define T_LATENCY 286
-#define T_FOR 287
-#define T_MEMORY 288
-#define T_CONTROL 289
-#define T_ADDR_REGISTER 290
-#define T_GP_REGISTER 291
-#define T_MEMORY_HIERARCHY 292
-#define T_VECTOR_UNIT 293
-#define T_RETIRE 294
-#define T_WINDOW_SIZE 295
-#define T_ASYNC_RESOURCES 296
-#define T_INT_CONST 297
-#define T_INST_TYPE 298
-#define T_DEPENDENCY_TYPE 299
-#define T_UNIT_TYPE 300
-#define T_FLOAT_CONST 301
-#define T_CHAR_CONST 302
-#define T_IDENTIFIER 303
-#define T_STR_CONST 304
-#define T_GP_REG_NAME 305
-
-
-
-
 /* Copy the first part of user declarations.  */
+
+/* Line 189 of yacc.c  */
 #line 1 "machine_description.y"
 
 /*
@@ -264,6 +162,9 @@ extern "C" {
 
 
 
+/* Line 189 of yacc.c  */
+#line 167 "machdesc.tab.c"
+
 /* Enabling traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -282,10 +183,73 @@ extern "C" {
 # define YYTOKEN_TABLE 0
 #endif
 
+
+/* Tokens.  */
+#ifndef YYTOKENTYPE
+# define YYTOKENTYPE
+   /* Put the tokens into the symbol table, so that GDB and other debuggers
+      know about them.  */
+   enum yytokentype {
+     T_OR = 258,
+     T_TIMES = 259,
+     T_PLUS = 260,
+     T_PLUSPLUS = 261,
+     T_COLON = 262,
+     T_SEMICOLON = 263,
+     T_COMMA = 264,
+     T_MACHINE = 265,
+     T_VERSION = 266,
+     T_ASSIGN = 267,
+     T_REPLACE = 268,
+     T_INSTRUCTION = 269,
+     T_TEMPLATE = 270,
+     T_CPU_UNITS = 271,
+     T_WITH = 272,
+     T_NOTHING = 273,
+     T_ALL_UNITS = 274,
+     T_LBRACKET = 275,
+     T_RBRACKET = 276,
+     T_LPAREN = 277,
+     T_RPAREN = 278,
+     T_ARROW = 279,
+     T_MAXIMUM = 280,
+     T_FROM = 281,
+     T_LCPAREN = 282,
+     T_RCPAREN = 283,
+     T_ANY_INSTRUCTION = 284,
+     T_BYPASS = 285,
+     T_LATENCY = 286,
+     T_FOR = 287,
+     T_MEMORY = 288,
+     T_CONTROL = 289,
+     T_ADDR_REGISTER = 290,
+     T_GP_REGISTER = 291,
+     T_MEMORY_HIERARCHY = 292,
+     T_VECTOR_UNIT = 293,
+     T_RETIRE = 294,
+     T_WINDOW_SIZE = 295,
+     T_ASYNC_RESOURCES = 296,
+     T_INT_CONST = 297,
+     T_INST_TYPE = 298,
+     T_DEPENDENCY_TYPE = 299,
+     T_UNIT_TYPE = 300,
+     T_FLOAT_CONST = 301,
+     T_CHAR_CONST = 302,
+     T_IDENTIFIER = 303,
+     T_STR_CONST = 304,
+     T_GP_REG_NAME = 305
+   };
+#endif
+
+
+
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 95 "machine_description.y"
 {
+
+/* Line 214 of yacc.c  */
+#line 95 "machine_description.y"
+
   int int_value;
   float fl_value;
   char ch_value;
@@ -310,22 +274,23 @@ typedef union YYSTYPE
   MIAMI::GenInstList* p_geninstlist;
   MIAMI::UnitRestriction* p_restriction;
   MIAMI::RestrictionList* p_restrlist;
-}
-/* Line 193 of yacc.c.  */
-#line 316 "machdesc.tab.c"
-	YYSTYPE;
+
+
+
+/* Line 214 of yacc.c  */
+#line 282 "machdesc.tab.c"
+} YYSTYPE;
+# define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
-# define YYSTYPE_IS_TRIVIAL 1
 #endif
-
 
 
 /* Copy the second part of user declarations.  */
 
 
-/* Line 216 of yacc.c.  */
-#line 329 "machdesc.tab.c"
+/* Line 264 of yacc.c  */
+#line 294 "machdesc.tab.c"
 
 #ifdef short
 # undef short
@@ -400,14 +365,14 @@ typedef short int yytype_int16;
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static int
-YYID (int i)
+YYID (int yyi)
 #else
 static int
-YYID (i)
-    int i;
+YYID (yyi)
+    int yyi;
 #endif
 {
-  return i;
+  return yyi;
 }
 #endif
 
@@ -488,9 +453,9 @@ void free (void *); /* INFRINGES ON USER NAME SPACE */
 /* A type that is properly aligned for any stack member.  */
 union yyalloc
 {
-  yytype_int16 yyss;
-  YYSTYPE yyvs;
-  };
+  yytype_int16 yyss_alloc;
+  YYSTYPE yyvs_alloc;
+};
 
 /* The size of the maximum gap between one aligned stack and the next.  */
 # define YYSTACK_GAP_MAXIMUM (sizeof (union yyalloc) - 1)
@@ -524,12 +489,12 @@ union yyalloc
    elements in the stack, and YYPTR gives the new location of the
    stack.  Advance YYPTR to a properly aligned location for the next
    stack.  */
-# define YYSTACK_RELOCATE(Stack)					\
+# define YYSTACK_RELOCATE(Stack_alloc, Stack)				\
     do									\
       {									\
 	YYSIZE_T yynewbytes;						\
-	YYCOPY (&yyptr->Stack, Stack, yysize);				\
-	Stack = &yyptr->Stack;						\
+	YYCOPY (&yyptr->Stack_alloc, Stack, yysize);			\
+	Stack = &yyptr->Stack_alloc;					\
 	yynewbytes = yystacksize * sizeof (*Stack) + YYSTACK_GAP_MAXIMUM; \
 	yyptr += yynewbytes / sizeof (*yyptr);				\
       }									\
@@ -701,19 +666,19 @@ static const char *const yytname[] =
   "T_ASYNC_RESOURCES", "T_INT_CONST", "T_INST_TYPE", "T_DEPENDENCY_TYPE",
   "T_UNIT_TYPE", "T_FLOAT_CONST", "T_CHAR_CONST", "T_IDENTIFIER",
   "T_STR_CONST", "T_GP_REG_NAME", "$accept", "start", "MachineDescription",
-  "@1", "@2", "TargetName", "TargetVersion", "ExecUnits", "@3",
-  "AsyncResources", "@4", "CpuUnitList", "@5", "@6", "UnitInformation",
+  "@1", "$@2", "TargetName", "TargetVersion", "ExecUnits", "@3",
+  "AsyncResources", "@4", "CpuUnitList", "$@5", "$@6", "UnitInformation",
   "UnitsRestriction", "RetireRestriction", "WindowSize", "RuleName",
-  "UnitsList", "RestrictionUnit", "@7", "InstructionDescriptions",
-  "MachineRule", "MemoryHierarchyDef", "@8", "MemoryLevelsList", "@9",
-  "@10", "MemLevelInformation", "MemNumBlocks", "MemBlockSize",
+  "UnitsList", "RestrictionUnit", "$@7", "InstructionDescriptions",
+  "MachineRule", "MemoryHierarchyDef", "@8", "MemoryLevelsList", "$@9",
+  "$@10", "MemLevelInformation", "MemNumBlocks", "MemBlockSize",
   "MemEntrySize", "MemAssocLevel", "MemBandwidth", "MemNextLevel",
   "MemPenalty", "InstructionReplacement", "@11", "@12",
   "ListGenericInstructions", "GenericInstruction", "ListRegisters", "@13",
   "@14", "InstructionBypass", "@15", "ListInstructionTypes",
   "DependencyTypes", "ListDependencyTypes", "InstructionExecution", "@16",
   "@17", "InstType", "InstTemplates", "InstTemplate", "AsyncUsage",
-  "AsyncClass", "@18", "CycleTemplate", "UnitClass", "@19", "UnitRange",
+  "AsyncClass", "$@18", "CycleTemplate", "UnitClass", "$@19", "UnitRange",
   "RangeIntervals", "OneInterval", "IntervalLimit", "UnitCount", 0
 };
 #endif
@@ -1141,17 +1106,20 @@ yy_symbol_print (yyoutput, yytype, yyvaluep)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_stack_print (yytype_int16 *bottom, yytype_int16 *top)
+yy_stack_print (yytype_int16 *yybottom, yytype_int16 *yytop)
 #else
 static void
-yy_stack_print (bottom, top)
-    yytype_int16 *bottom;
-    yytype_int16 *top;
+yy_stack_print (yybottom, yytop)
+    yytype_int16 *yybottom;
+    yytype_int16 *yytop;
 #endif
 {
   YYFPRINTF (stderr, "Stack now");
-  for (; bottom <= top; ++bottom)
-    YYFPRINTF (stderr, " %d", *bottom);
+  for (; yybottom <= yytop; yybottom++)
+    {
+      int yybot = *yybottom;
+      YYFPRINTF (stderr, " %d", yybot);
+    }
   YYFPRINTF (stderr, "\n");
 }
 
@@ -1185,11 +1153,11 @@ yy_reduce_print (yyvsp, yyrule)
   /* The symbols being reduced.  */
   for (yyi = 0; yyi < yynrhs; yyi++)
     {
-      fprintf (stderr, "   $%d = ", yyi + 1);
+      YYFPRINTF (stderr, "   $%d = ", yyi + 1);
       yy_symbol_print (stderr, yyrhs[yyprhs[yyrule] + yyi],
 		       &(yyvsp[(yyi + 1) - (yynrhs)])
 		       		       );
-      fprintf (stderr, "\n");
+      YYFPRINTF (stderr, "\n");
     }
 }
 
@@ -1469,10 +1437,8 @@ yydestruct (yymsg, yytype, yyvaluep)
 	break;
     }
 }
-
 
 /* Prevent warnings from -Wmissing-prototypes.  */
-
 #ifdef YYPARSE_PARAM
 #if defined __STDC__ || defined __cplusplus
 int yyparse (void *YYPARSE_PARAM);
@@ -1488,11 +1454,10 @@ int yyparse ();
 #endif /* ! YYPARSE_PARAM */
 
 
-
-/* The look-ahead symbol.  */
+/* The lookahead symbol.  */
 int yychar;
 
-/* The semantic value of the look-ahead symbol.  */
+/* The semantic value of the lookahead symbol.  */
 YYSTYPE yylval;
 
 /* Number of syntax errors so far.  */
@@ -1500,9 +1465,9 @@ int yynerrs;
 
 
 
-/*----------.
-| yyparse.  |
-`----------*/
+/*-------------------------.
+| yyparse or yypush_parse.  |
+`-------------------------*/
 
 #ifdef YYPARSE_PARAM
 #if (defined __STDC__ || defined __C99__FUNC__ \
@@ -1526,14 +1491,39 @@ yyparse ()
 #endif
 #endif
 {
-  
-  int yystate;
+
+
+    int yystate;
+    /* Number of tokens to shift before error messages enabled.  */
+    int yyerrstatus;
+
+    /* The stacks and their tools:
+       `yyss': related to states.
+       `yyvs': related to semantic values.
+
+       Refer to the stacks thru separate pointers, to allow yyoverflow
+       to reallocate them elsewhere.  */
+
+    /* The state stack.  */
+    yytype_int16 yyssa[YYINITDEPTH];
+    yytype_int16 *yyss;
+    yytype_int16 *yyssp;
+
+    /* The semantic value stack.  */
+    YYSTYPE yyvsa[YYINITDEPTH];
+    YYSTYPE *yyvs;
+    YYSTYPE *yyvsp;
+
+    YYSIZE_T yystacksize;
+
   int yyn;
   int yyresult;
-  /* Number of tokens to shift before error messages enabled.  */
-  int yyerrstatus;
-  /* Look-ahead token as an internal (translated) token number.  */
-  int yytoken = 0;
+  /* Lookahead token as an internal (translated) token number.  */
+  int yytoken;
+  /* The variables used to return semantic value and location from the
+     action routines.  */
+  YYSTYPE yyval;
+
 #if YYERROR_VERBOSE
   /* Buffer for error messages, and its allocated size.  */
   char yymsgbuf[128];
@@ -1541,51 +1531,28 @@ yyparse ()
   YYSIZE_T yymsg_alloc = sizeof yymsgbuf;
 #endif
 
-  /* Three stacks and their tools:
-     `yyss': related to states,
-     `yyvs': related to semantic values,
-     `yyls': related to locations.
-
-     Refer to the stacks thru separate pointers, to allow yyoverflow
-     to reallocate them elsewhere.  */
-
-  /* The state stack.  */
-  yytype_int16 yyssa[YYINITDEPTH];
-  yytype_int16 *yyss = yyssa;
-  yytype_int16 *yyssp;
-
-  /* The semantic value stack.  */
-  YYSTYPE yyvsa[YYINITDEPTH];
-  YYSTYPE *yyvs = yyvsa;
-  YYSTYPE *yyvsp;
-
-
-
 #define YYPOPSTACK(N)   (yyvsp -= (N), yyssp -= (N))
-
-  YYSIZE_T yystacksize = YYINITDEPTH;
-
-  /* The variables used to return semantic value and location from the
-     action routines.  */
-  YYSTYPE yyval;
-
 
   /* The number of symbols on the RHS of the reduced rule.
      Keep to zero when no symbol should be popped.  */
   int yylen = 0;
+
+  yytoken = 0;
+  yyss = yyssa;
+  yyvs = yyvsa;
+  yystacksize = YYINITDEPTH;
 
   YYDPRINTF ((stderr, "Starting parse\n"));
 
   yystate = 0;
   yyerrstatus = 0;
   yynerrs = 0;
-  yychar = YYEMPTY;		/* Cause a token to be read.  */
+  yychar = YYEMPTY; /* Cause a token to be read.  */
 
   /* Initialize stack pointers.
      Waste one element of value and location stack
      so that they stay on the same level as the state stack.
      The wasted elements are never initialized.  */
-
   yyssp = yyss;
   yyvsp = yyvs;
 
@@ -1615,7 +1582,6 @@ yyparse ()
 	YYSTYPE *yyvs1 = yyvs;
 	yytype_int16 *yyss1 = yyss;
 
-
 	/* Each stack pointer address is followed by the size of the
 	   data in use in that stack, in bytes.  This used to be a
 	   conditional around just the two extra args, but that might
@@ -1623,7 +1589,6 @@ yyparse ()
 	yyoverflow (YY_("memory exhausted"),
 		    &yyss1, yysize * sizeof (*yyssp),
 		    &yyvs1, yysize * sizeof (*yyvsp),
-
 		    &yystacksize);
 
 	yyss = yyss1;
@@ -1646,9 +1611,8 @@ yyparse ()
 	  (union yyalloc *) YYSTACK_ALLOC (YYSTACK_BYTES (yystacksize));
 	if (! yyptr)
 	  goto yyexhaustedlab;
-	YYSTACK_RELOCATE (yyss);
-	YYSTACK_RELOCATE (yyvs);
-
+	YYSTACK_RELOCATE (yyss_alloc, yyss);
+	YYSTACK_RELOCATE (yyvs_alloc, yyvs);
 #  undef YYSTACK_RELOCATE
 	if (yyss1 != yyssa)
 	  YYSTACK_FREE (yyss1);
@@ -1659,7 +1623,6 @@ yyparse ()
       yyssp = yyss + yysize - 1;
       yyvsp = yyvs + yysize - 1;
 
-
       YYDPRINTF ((stderr, "Stack size increased to %lu\n",
 		  (unsigned long int) yystacksize));
 
@@ -1669,6 +1632,9 @@ yyparse ()
 
   YYDPRINTF ((stderr, "Entering state %d\n", yystate));
 
+  if (yystate == YYFINAL)
+    YYACCEPT;
+
   goto yybackup;
 
 /*-----------.
@@ -1677,16 +1643,16 @@ yyparse ()
 yybackup:
 
   /* Do appropriate processing given the current state.  Read a
-     look-ahead token if we need one and don't already have one.  */
+     lookahead token if we need one and don't already have one.  */
 
-  /* First try to decide what to do without reference to look-ahead token.  */
+  /* First try to decide what to do without reference to lookahead token.  */
   yyn = yypact[yystate];
   if (yyn == YYPACT_NINF)
     goto yydefault;
 
-  /* Not known => get a look-ahead token if don't already have one.  */
+  /* Not known => get a lookahead token if don't already have one.  */
 
-  /* YYCHAR is either YYEMPTY or YYEOF or a valid look-ahead symbol.  */
+  /* YYCHAR is either YYEMPTY or YYEOF or a valid lookahead symbol.  */
   if (yychar == YYEMPTY)
     {
       YYDPRINTF ((stderr, "Reading a token: "));
@@ -1718,20 +1684,16 @@ yybackup:
       goto yyreduce;
     }
 
-  if (yyn == YYFINAL)
-    YYACCEPT;
-
   /* Count tokens shifted since error; after three, turn off error
      status.  */
   if (yyerrstatus)
     yyerrstatus--;
 
-  /* Shift the look-ahead token.  */
+  /* Shift the lookahead token.  */
   YY_SYMBOL_PRINT ("Shifting", yytoken, &yylval, &yylloc);
 
-  /* Discard the shifted token unless it is eof.  */
-  if (yychar != YYEOF)
-    yychar = YYEMPTY;
+  /* Discard the shifted token.  */
+  yychar = YYEMPTY;
 
   yystate = yyn;
   *++yyvsp = yylval;
@@ -1771,6 +1733,8 @@ yyreduce:
   switch (yyn)
     {
         case 2:
+
+/* Line 1455 of yacc.c  */
 #line 170 "machine_description.y"
     {
 #if DEBUG_MACHINE_CONSTRUCTION
@@ -1785,6 +1749,8 @@ yyreduce:
     break;
 
   case 3:
+
+/* Line 1455 of yacc.c  */
 #line 184 "machine_description.y"
     {
             (yyval.p_machine) = new Machine ((yyvsp[(1) - (3)].p_char), (yyvsp[(2) - (3)].p_char));
@@ -1795,6 +1761,8 @@ yyreduce:
     break;
 
   case 4:
+
+/* Line 1455 of yacc.c  */
 #line 191 "machine_description.y"
     {
             if ((yyvsp[(5) - (5)].p_EUAT))
@@ -1809,6 +1777,8 @@ yyreduce:
     break;
 
   case 5:
+
+/* Line 1455 of yacc.c  */
 #line 202 "machine_description.y"
     {
 #if DEBUG_MACHINE_CONSTRUCTION
@@ -1835,21 +1805,29 @@ yyreduce:
     break;
 
   case 6:
+
+/* Line 1455 of yacc.c  */
 #line 227 "machine_description.y"
     { (yyval.p_char) = (yyvsp[(3) - (3)].p_char); ;}
     break;
 
   case 7:
+
+/* Line 1455 of yacc.c  */
 #line 230 "machine_description.y"
     { (yyval.p_char) = (yyvsp[(4) - (5)].p_char); ;}
     break;
 
   case 8:
+
+/* Line 1455 of yacc.c  */
 #line 231 "machine_description.y"
     { (yyval.p_char) = NULL; ;}
     break;
 
   case 9:
+
+/* Line 1455 of yacc.c  */
 #line 236 "machine_description.y"
     {
             (yyval.position) = currentPosition - yyleng;
@@ -1857,6 +1835,8 @@ yyreduce:
     break;
 
   case 10:
+
+/* Line 1455 of yacc.c  */
 #line 240 "machine_description.y"
     { 
             (yyvsp[(4) - (5)].p_EUAT)->setStartPosition ((yyvsp[(2) - (5)].position));
@@ -1865,6 +1845,8 @@ yyreduce:
     break;
 
   case 11:
+
+/* Line 1455 of yacc.c  */
 #line 247 "machine_description.y"
     {
             (yyval.p_EUAT) = 0;
@@ -1872,6 +1854,8 @@ yyreduce:
     break;
 
   case 12:
+
+/* Line 1455 of yacc.c  */
 #line 251 "machine_description.y"
     {
             (yyval.position) = currentPosition - yyleng;
@@ -1879,6 +1863,8 @@ yyreduce:
     break;
 
   case 13:
+
+/* Line 1455 of yacc.c  */
 #line 255 "machine_description.y"
     { 
             (yyvsp[(4) - (5)].p_EUAT)->setStartPosition ((yyvsp[(2) - (5)].position));
@@ -1887,6 +1873,8 @@ yyreduce:
     break;
 
   case 14:
+
+/* Line 1455 of yacc.c  */
 #line 262 "machine_description.y"
     { 
             startPosition = currentPosition - yyleng;
@@ -1894,6 +1882,8 @@ yyreduce:
     break;
 
   case 15:
+
+/* Line 1455 of yacc.c  */
 #line 265 "machine_description.y"
     { 
             (yyval.p_EUAT) = new MIAMI::ExecUnitAssocTable();
@@ -1902,6 +1892,8 @@ yyreduce:
     break;
 
   case 16:
+
+/* Line 1455 of yacc.c  */
 #line 270 "machine_description.y"
     { 
             startPosition = currentPosition - yyleng;
@@ -1909,6 +1901,8 @@ yyreduce:
     break;
 
   case 17:
+
+/* Line 1455 of yacc.c  */
 #line 273 "machine_description.y"
     {
             (yyvsp[(1) - (5)].p_EUAT)->addElement ((yyvsp[(3) - (5)].p_char), (yyvsp[(5) - (5)].p_MEU), startPosition); 
@@ -1917,6 +1911,8 @@ yyreduce:
     break;
 
   case 18:
+
+/* Line 1455 of yacc.c  */
 #line 280 "machine_description.y"
     {
             /* default constructor sets count to 1 */
@@ -1925,6 +1921,8 @@ yyreduce:
     break;
 
   case 19:
+
+/* Line 1455 of yacc.c  */
 #line 285 "machine_description.y"
     {
             (yyval.p_MEU) = new MachineExecutionUnit ((yyvsp[(2) - (2)].int_value), NULL, currentPosition); 
@@ -1932,6 +1930,8 @@ yyreduce:
     break;
 
   case 20:
+
+/* Line 1455 of yacc.c  */
 #line 289 "machine_description.y"
     {
             (yyval.p_MEU) = new MachineExecutionUnit (1, (yyvsp[(2) - (3)].p_char), currentPosition); 
@@ -1939,6 +1939,8 @@ yyreduce:
     break;
 
   case 21:
+
+/* Line 1455 of yacc.c  */
 #line 293 "machine_description.y"
     {
             (yyval.p_MEU) = new MachineExecutionUnit ((yyvsp[(2) - (5)].int_value), (yyvsp[(4) - (5)].p_char), currentPosition); 
@@ -1946,6 +1948,8 @@ yyreduce:
     break;
 
   case 22:
+
+/* Line 1455 of yacc.c  */
 #line 297 "machine_description.y"
     {
             (yyval.p_MEU) = new MachineExecutionUnit ((yyvsp[(5) - (5)].int_value), (yyvsp[(2) - (5)].p_char), currentPosition); 
@@ -1953,6 +1957,8 @@ yyreduce:
     break;
 
   case 23:
+
+/* Line 1455 of yacc.c  */
 #line 304 "machine_description.y"
     {
             restrictRules->push_back (new UnitRestriction((yyvsp[(4) - (6)].p_TEUList), (yyvsp[(2) - (6)].int_value), (yyvsp[(5) - (6)].p_char)));
@@ -1961,6 +1967,8 @@ yyreduce:
     break;
 
   case 24:
+
+/* Line 1455 of yacc.c  */
 #line 312 "machine_description.y"
     {
             restrictRules->push_back (new UnitRestriction(NULL, (yyvsp[(3) - (5)].int_value), (yyvsp[(4) - (5)].p_char)));
@@ -1969,6 +1977,8 @@ yyreduce:
     break;
 
   case 25:
+
+/* Line 1455 of yacc.c  */
 #line 320 "machine_description.y"
     {
             window_size = (yyvsp[(3) - (4)].int_value);
@@ -1977,6 +1987,8 @@ yyreduce:
     break;
 
   case 26:
+
+/* Line 1455 of yacc.c  */
 #line 327 "machine_description.y"
     {
             (yyval.p_char) = NULL;
@@ -1984,6 +1996,8 @@ yyreduce:
     break;
 
   case 27:
+
+/* Line 1455 of yacc.c  */
 #line 331 "machine_description.y"
     {
             (yyval.p_char) = (yyvsp[(2) - (3)].p_char);
@@ -1991,6 +2005,8 @@ yyreduce:
     break;
 
   case 28:
+
+/* Line 1455 of yacc.c  */
 #line 338 "machine_description.y"
     {
             startPosition = currentPosition - yyleng;
@@ -2005,6 +2021,8 @@ yyreduce:
     break;
 
   case 29:
+
+/* Line 1455 of yacc.c  */
 #line 349 "machine_description.y"
     {
             (yyval.p_TEUList) = new TEUList ();
@@ -2013,6 +2031,8 @@ yyreduce:
     break;
 
   case 30:
+
+/* Line 1455 of yacc.c  */
 #line 354 "machine_description.y"
     {
             (yyvsp[(1) - (3)].p_TEUList)->push_back ((yyvsp[(3) - (3)].p_TEU));
@@ -2021,6 +2041,8 @@ yyreduce:
     break;
 
   case 31:
+
+/* Line 1455 of yacc.c  */
 #line 362 "machine_description.y"
     {
             startPosition = currentPosition - yyleng;
@@ -2036,6 +2058,8 @@ yyreduce:
     break;
 
   case 32:
+
+/* Line 1455 of yacc.c  */
 #line 374 "machine_description.y"
     {
             int t_range = (yyvsp[(3) - (3)].int_value);
@@ -2050,6 +2074,8 @@ yyreduce:
     break;
 
   case 33:
+
+/* Line 1455 of yacc.c  */
 #line 388 "machine_description.y"
     {
             (yyval.int_value) = 1;
@@ -2057,6 +2083,8 @@ yyreduce:
     break;
 
   case 34:
+
+/* Line 1455 of yacc.c  */
 #line 392 "machine_description.y"
     {
             (yyval.int_value) = (yyvsp[(1) - (2)].int_value) + 1;
@@ -2064,6 +2092,8 @@ yyreduce:
     break;
 
   case 35:
+
+/* Line 1455 of yacc.c  */
 #line 399 "machine_description.y"
     {
             (yyval.int_value) = 1;
@@ -2071,6 +2101,8 @@ yyreduce:
     break;
 
   case 36:
+
+/* Line 1455 of yacc.c  */
 #line 403 "machine_description.y"
     {
             (yyval.int_value) = 1;
@@ -2078,6 +2110,8 @@ yyreduce:
     break;
 
   case 37:
+
+/* Line 1455 of yacc.c  */
 #line 407 "machine_description.y"
     {
             (yyval.int_value) = 1;
@@ -2085,6 +2119,8 @@ yyreduce:
     break;
 
   case 38:
+
+/* Line 1455 of yacc.c  */
 #line 411 "machine_description.y"
     {
             (yyval.int_value) = 1;
@@ -2092,6 +2128,8 @@ yyreduce:
     break;
 
   case 39:
+
+/* Line 1455 of yacc.c  */
 #line 415 "machine_description.y"
     {
             (yyval.int_value) = 1;
@@ -2099,6 +2137,8 @@ yyreduce:
     break;
 
   case 40:
+
+/* Line 1455 of yacc.c  */
 #line 419 "machine_description.y"
     {
             (yyval.int_value) = 1;
@@ -2106,6 +2146,8 @@ yyreduce:
     break;
 
   case 41:
+
+/* Line 1455 of yacc.c  */
 #line 423 "machine_description.y"
     {
             (yyval.int_value) = 1;
@@ -2113,6 +2155,8 @@ yyreduce:
     break;
 
   case 42:
+
+/* Line 1455 of yacc.c  */
 #line 430 "machine_description.y"
     {
             startPosition = currentPosition - yyleng;
@@ -2134,6 +2178,8 @@ yyreduce:
     break;
 
   case 43:
+
+/* Line 1455 of yacc.c  */
 #line 448 "machine_description.y"
     {
             memLevels = (yyvsp[(4) - (5)].p_MLAT);
@@ -2143,6 +2189,8 @@ yyreduce:
     break;
 
   case 44:
+
+/* Line 1455 of yacc.c  */
 #line 457 "machine_description.y"
     { 
             startPosition = currentPosition - yyleng;
@@ -2150,6 +2198,8 @@ yyreduce:
     break;
 
   case 45:
+
+/* Line 1455 of yacc.c  */
 #line 460 "machine_description.y"
     { 
             (yyval.p_MLAT) = new MemLevelAssocTable();
@@ -2158,6 +2208,8 @@ yyreduce:
     break;
 
   case 46:
+
+/* Line 1455 of yacc.c  */
 #line 465 "machine_description.y"
     { 
             startPosition = currentPosition - yyleng;
@@ -2165,6 +2217,8 @@ yyreduce:
     break;
 
   case 47:
+
+/* Line 1455 of yacc.c  */
 #line 468 "machine_description.y"
     {
             (yyvsp[(1) - (5)].p_MLAT)->addElement ((yyvsp[(3) - (5)].p_char), (yyvsp[(5) - (5)].p_MHL), startPosition); 
@@ -2173,6 +2227,8 @@ yyreduce:
     break;
 
   case 48:
+
+/* Line 1455 of yacc.c  */
 #line 478 "machine_description.y"
     {
             (yyval.p_MHL) = new MemoryHierarchyLevel ((yyvsp[(2) - (15)].int_value), (yyvsp[(4) - (15)].int_value), (yyvsp[(6) - (15)].int_value), (yyvsp[(8) - (15)].int_value), (yyvsp[(10) - (15)].fl_value), NULL, (yyvsp[(12) - (15)].p_char), (yyvsp[(14) - (15)].int_value));
@@ -2180,81 +2236,113 @@ yyreduce:
     break;
 
   case 49:
+
+/* Line 1455 of yacc.c  */
 #line 483 "machine_description.y"
     { (yyval.int_value) = (yyvsp[(1) - (1)].int_value); ;}
     break;
 
   case 50:
+
+/* Line 1455 of yacc.c  */
 #line 484 "machine_description.y"
     { (yyval.int_value) = MHL_UNLIMITED; ;}
     break;
 
   case 51:
+
+/* Line 1455 of yacc.c  */
 #line 488 "machine_description.y"
     { (yyval.int_value) = (yyvsp[(1) - (1)].int_value); ;}
     break;
 
   case 52:
+
+/* Line 1455 of yacc.c  */
 #line 489 "machine_description.y"
     { (yyval.int_value) = MHL_UNLIMITED; ;}
     break;
 
   case 53:
+
+/* Line 1455 of yacc.c  */
 #line 492 "machine_description.y"
     { (yyval.int_value) = (yyvsp[(1) - (1)].int_value); ;}
     break;
 
   case 54:
+
+/* Line 1455 of yacc.c  */
 #line 493 "machine_description.y"
     { (yyval.int_value) = MHL_UNDEFINED; ;}
     break;
 
   case 55:
+
+/* Line 1455 of yacc.c  */
 #line 496 "machine_description.y"
     { (yyval.int_value) = (yyvsp[(1) - (1)].int_value); ;}
     break;
 
   case 56:
+
+/* Line 1455 of yacc.c  */
 #line 497 "machine_description.y"
     { (yyval.int_value) = MHL_FULLY_ASSOCIATIVE; ;}
     break;
 
   case 57:
+
+/* Line 1455 of yacc.c  */
 #line 500 "machine_description.y"
     { (yyval.fl_value) = (yyvsp[(1) - (1)].fl_value); ;}
     break;
 
   case 58:
+
+/* Line 1455 of yacc.c  */
 #line 501 "machine_description.y"
     { (yyval.fl_value) = (float)(yyvsp[(1) - (1)].int_value); ;}
     break;
 
   case 59:
+
+/* Line 1455 of yacc.c  */
 #line 502 "machine_description.y"
     { (yyval.fl_value) = MHL_UNDEFINED; ;}
     break;
 
   case 60:
+
+/* Line 1455 of yacc.c  */
 #line 505 "machine_description.y"
     { (yyval.p_char) = (yyvsp[(1) - (1)].p_char); ;}
     break;
 
   case 61:
+
+/* Line 1455 of yacc.c  */
 #line 506 "machine_description.y"
     { (yyval.p_char) = NULL; ;}
     break;
 
   case 62:
+
+/* Line 1455 of yacc.c  */
 #line 509 "machine_description.y"
     { (yyval.int_value) = (yyvsp[(1) - (1)].int_value); ;}
     break;
 
   case 63:
+
+/* Line 1455 of yacc.c  */
 #line 510 "machine_description.y"
     { (yyval.int_value) = 0; ;}
     break;
 
   case 64:
+
+/* Line 1455 of yacc.c  */
 #line 515 "machine_description.y"
     {
             (yyval.position) = currentPosition;
@@ -2262,6 +2350,8 @@ yyreduce:
     break;
 
   case 65:
+
+/* Line 1455 of yacc.c  */
 #line 519 "machine_description.y"
     {
             (yyval.position) = currentPosition;
@@ -2269,6 +2359,8 @@ yyreduce:
     break;
 
   case 66:
+
+/* Line 1455 of yacc.c  */
 #line 524 "machine_description.y"
     {  
             replacementRules->push_back(new ReplacementRule((yyvsp[(3) - (8)].p_geninstlist), (yyvsp[(2) - (8)].position), (yyvsp[(6) - (8)].p_geninstlist), (yyvsp[(5) - (8)].position), (yyvsp[(7) - (8)].p_char)));
@@ -2277,6 +2369,8 @@ yyreduce:
     break;
 
   case 67:
+
+/* Line 1455 of yacc.c  */
 #line 531 "machine_description.y"
     {
             (yyval.p_geninstlist) = new GenInstList();
@@ -2285,6 +2379,8 @@ yyreduce:
     break;
 
   case 68:
+
+/* Line 1455 of yacc.c  */
 #line 536 "machine_description.y"
     {
             (yyvsp[(1) - (3)].p_geninstlist)->push_back((yyvsp[(3) - (3)].p_geninst));
@@ -2293,6 +2389,8 @@ yyreduce:
     break;
 
   case 69:
+
+/* Line 1455 of yacc.c  */
 #line 545 "machine_description.y"
     {
             (yyvsp[(1) - (3)].p_geninstlist)->back()->setExclusiveOutputMatch();
@@ -2302,6 +2400,8 @@ yyreduce:
     break;
 
   case 70:
+
+/* Line 1455 of yacc.c  */
 #line 553 "machine_description.y"
     {
             (yyval.p_geninst) = new GenericInstruction((yyvsp[(1) - (4)].iclass), (yyvsp[(2) - (4)].p_reglist), (yyvsp[(4) - (4)].p_reglist));
@@ -2309,6 +2409,8 @@ yyreduce:
     break;
 
   case 71:
+
+/* Line 1455 of yacc.c  */
 #line 557 "machine_description.y"
     {
             (yyval.p_geninst) = new GenericInstruction((yyvsp[(1) - (3)].iclass), (yyvsp[(2) - (3)].p_reglist), NULL);
@@ -2316,6 +2418,8 @@ yyreduce:
     break;
 
   case 72:
+
+/* Line 1455 of yacc.c  */
 #line 561 "machine_description.y"
     {
             (yyval.p_geninst) = new GenericInstruction((yyvsp[(1) - (3)].iclass), NULL, (yyvsp[(3) - (3)].p_reglist));
@@ -2323,6 +2427,8 @@ yyreduce:
     break;
 
   case 73:
+
+/* Line 1455 of yacc.c  */
 #line 565 "machine_description.y"
     {
             (yyval.p_geninst) = new GenericInstruction((yyvsp[(1) - (2)].iclass), NULL, NULL);
@@ -2330,6 +2436,8 @@ yyreduce:
     break;
 
   case 74:
+
+/* Line 1455 of yacc.c  */
 #line 571 "machine_description.y"
     {
             startPosition = currentPosition - yyleng;
@@ -2340,6 +2448,8 @@ yyreduce:
     break;
 
   case 75:
+
+/* Line 1455 of yacc.c  */
 #line 578 "machine_description.y"
     {
             startPosition = currentPosition - yyleng;
@@ -2350,11 +2460,15 @@ yyreduce:
     break;
 
   case 76:
+
+/* Line 1455 of yacc.c  */
 #line 584 "machine_description.y"
     { (yyval.position) = currentPosition - yyleng;;}
     break;
 
   case 77:
+
+/* Line 1455 of yacc.c  */
 #line 586 "machine_description.y"
     {
             (yyval.p_reglist) = new GenRegList();
@@ -2363,11 +2477,15 @@ yyreduce:
     break;
 
   case 78:
+
+/* Line 1455 of yacc.c  */
 #line 591 "machine_description.y"
     { (yyval.position) = currentPosition - yyleng; ;}
     break;
 
   case 79:
+
+/* Line 1455 of yacc.c  */
 #line 592 "machine_description.y"
     {
             (yyvsp[(1) - (6)].p_reglist)->push_back(new GenericRegister((yyvsp[(4) - (6)].p_char), MEMORY_TYPE, (yyvsp[(5) - (6)].position)));
@@ -2376,11 +2494,15 @@ yyreduce:
     break;
 
   case 80:
+
+/* Line 1455 of yacc.c  */
 #line 599 "machine_description.y"
     { (yyval.position) = currentPosition-yyleng; ;}
     break;
 
   case 81:
+
+/* Line 1455 of yacc.c  */
 #line 602 "machine_description.y"
     {
             assert ((yyvsp[(4) - (9)].int_value) >= 0);
@@ -2391,6 +2513,8 @@ yyreduce:
     break;
 
   case 82:
+
+/* Line 1455 of yacc.c  */
 #line 612 "machine_description.y"
     {
             (yyval.p_icset) = new ICSet();
@@ -2399,6 +2523,8 @@ yyreduce:
     break;
 
   case 83:
+
+/* Line 1455 of yacc.c  */
 #line 617 "machine_description.y"
     {
             (yyval.p_icset) = (yyvsp[(1) - (3)].p_icset);
@@ -2407,6 +2533,8 @@ yyreduce:
     break;
 
   case 84:
+
+/* Line 1455 of yacc.c  */
 #line 622 "machine_description.y"
     {
             (yyval.p_icset) = new ICSet();
@@ -2415,16 +2543,22 @@ yyreduce:
     break;
 
   case 85:
+
+/* Line 1455 of yacc.c  */
 #line 629 "machine_description.y"
     { (yyval.p_bitset) = new BitSet(~BitSet(DTYPE_TOP_MARKER)); ;}
     break;
 
   case 86:
+
+/* Line 1455 of yacc.c  */
 #line 630 "machine_description.y"
     { (yyval.p_bitset) = (yyvsp[(3) - (4)].p_bitset); ;}
     break;
 
   case 87:
+
+/* Line 1455 of yacc.c  */
 #line 635 "machine_description.y"
     {
             assert ((yyvsp[(1) - (1)].int_value) < DTYPE_TOP_MARKER);
@@ -2434,6 +2568,8 @@ yyreduce:
     break;
 
   case 88:
+
+/* Line 1455 of yacc.c  */
 #line 641 "machine_description.y"
     {
             assert ((yyvsp[(3) - (3)].int_value) < DTYPE_TOP_MARKER);
@@ -2443,11 +2579,15 @@ yyreduce:
     break;
 
   case 89:
+
+/* Line 1455 of yacc.c  */
 #line 649 "machine_description.y"
     { (yyval.position) = currentPosition-yyleng; ;}
     break;
 
   case 90:
+
+/* Line 1455 of yacc.c  */
 #line 651 "machine_description.y"
     {
             (yyval.p_instruction) = instTemplates->addDescription((yyvsp[(2) - (7)].iclass), (yyvsp[(3) - (7)].position), templateList);
@@ -2455,11 +2595,15 @@ yyreduce:
     break;
 
   case 91:
+
+/* Line 1455 of yacc.c  */
 #line 654 "machine_description.y"
     { (yyval.position) = currentPosition-yyleng; ;}
     break;
 
   case 92:
+
+/* Line 1455 of yacc.c  */
 #line 656 "machine_description.y"
     {
             (yyval.p_instruction) = instTemplates->addDescription((yyvsp[(2) - (10)].iclass), (yyvsp[(3) - (10)].position), templateList, (yyvsp[(5) - (10)].p_ucList));
@@ -2467,6 +2611,8 @@ yyreduce:
     break;
 
   case 93:
+
+/* Line 1455 of yacc.c  */
 #line 670 "machine_description.y"
     {
             assert((yyvsp[(1) - (1)].int_value) < IB_TOP_MARKER);
@@ -2475,6 +2621,8 @@ yyreduce:
     break;
 
   case 94:
+
+/* Line 1455 of yacc.c  */
 #line 675 "machine_description.y"
     {
             assert((yyvsp[(1) - (3)].int_value) < IB_TOP_MARKER);
@@ -2483,6 +2631,8 @@ yyreduce:
     break;
 
   case 95:
+
+/* Line 1455 of yacc.c  */
 #line 680 "machine_description.y"
     {
             assert((yyvsp[(1) - (8)].int_value) < IB_TOP_MARKER);
@@ -2491,6 +2641,8 @@ yyreduce:
     break;
 
   case 96:
+
+/* Line 1455 of yacc.c  */
 #line 685 "machine_description.y"
     {
             assert((yyvsp[(1) - (8)].int_value) < IB_TOP_MARKER);
@@ -2499,6 +2651,8 @@ yyreduce:
     break;
 
   case 97:
+
+/* Line 1455 of yacc.c  */
 #line 690 "machine_description.y"
     {
             assert((yyvsp[(1) - (6)].int_value) < IB_TOP_MARKER);
@@ -2507,6 +2661,8 @@ yyreduce:
     break;
 
   case 98:
+
+/* Line 1455 of yacc.c  */
 #line 695 "machine_description.y"
     {
             assert((yyvsp[(1) - (4)].int_value) < IB_TOP_MARKER);
@@ -2515,6 +2671,8 @@ yyreduce:
     break;
 
   case 99:
+
+/* Line 1455 of yacc.c  */
 #line 700 "machine_description.y"
     {
             assert((yyvsp[(1) - (6)].int_value) < IB_TOP_MARKER);
@@ -2523,6 +2681,8 @@ yyreduce:
     break;
 
   case 100:
+
+/* Line 1455 of yacc.c  */
 #line 705 "machine_description.y"
     {
             assert((yyvsp[(1) - (11)].int_value) < IB_TOP_MARKER);
@@ -2531,6 +2691,8 @@ yyreduce:
     break;
 
   case 101:
+
+/* Line 1455 of yacc.c  */
 #line 710 "machine_description.y"
     {
             assert((yyvsp[(1) - (11)].int_value) < IB_TOP_MARKER);
@@ -2539,6 +2701,8 @@ yyreduce:
     break;
 
   case 102:
+
+/* Line 1455 of yacc.c  */
 #line 715 "machine_description.y"
     {
             assert((yyvsp[(1) - (9)].int_value) < IB_TOP_MARKER);
@@ -2547,6 +2711,8 @@ yyreduce:
     break;
 
   case 103:
+
+/* Line 1455 of yacc.c  */
 #line 723 "machine_description.y"
     {
             /* start a new template list */
@@ -2557,6 +2723,8 @@ yyreduce:
     break;
 
   case 104:
+
+/* Line 1455 of yacc.c  */
 #line 730 "machine_description.y"
     {
             templateList.push_back((yyvsp[(3) - (3)].p_itemplate));
@@ -2565,6 +2733,8 @@ yyreduce:
     break;
 
   case 105:
+
+/* Line 1455 of yacc.c  */
 #line 738 "machine_description.y"
     {
             (yyval.p_itemplate) = new InstTemplate();
@@ -2573,6 +2743,8 @@ yyreduce:
     break;
 
   case 106:
+
+/* Line 1455 of yacc.c  */
 #line 743 "machine_description.y"
     {
             (yyvsp[(1) - (3)].p_itemplate)->addCycles((yyvsp[(3) - (3)].p_TEUList));
@@ -2581,6 +2753,8 @@ yyreduce:
     break;
 
   case 107:
+
+/* Line 1455 of yacc.c  */
 #line 748 "machine_description.y"
     {
             (yyval.p_itemplate) = new InstTemplate();
@@ -2589,6 +2763,8 @@ yyreduce:
     break;
 
   case 108:
+
+/* Line 1455 of yacc.c  */
 #line 753 "machine_description.y"
     {
             (yyvsp[(1) - (5)].p_itemplate)->addCycles((yyvsp[(3) - (5)].p_TEUList), (yyvsp[(5) - (5)].int_value));
@@ -2597,6 +2773,8 @@ yyreduce:
     break;
 
   case 109:
+
+/* Line 1455 of yacc.c  */
 #line 761 "machine_description.y"
     {
             (yyval.p_ucList) = new UnitCountList();
@@ -2605,6 +2783,8 @@ yyreduce:
     break;
 
   case 110:
+
+/* Line 1455 of yacc.c  */
 #line 766 "machine_description.y"
     {
             (yyvsp[(1) - (3)].p_ucList)->push_back((yyvsp[(3) - (3)].ucPair));
@@ -2613,6 +2793,8 @@ yyreduce:
     break;
 
   case 111:
+
+/* Line 1455 of yacc.c  */
 #line 774 "machine_description.y"
     {
             startPosition = currentPosition - yyleng;
@@ -2628,6 +2810,8 @@ yyreduce:
     break;
 
   case 112:
+
+/* Line 1455 of yacc.c  */
 #line 786 "machine_description.y"
     {
             int t_count = (yyvsp[(3) - (3)].int_value);
@@ -2640,6 +2824,8 @@ yyreduce:
     break;
 
   case 113:
+
+/* Line 1455 of yacc.c  */
 #line 798 "machine_description.y"
     {
             /* use a NULL set when Nothing is specified */
@@ -2648,6 +2834,8 @@ yyreduce:
     break;
 
   case 114:
+
+/* Line 1455 of yacc.c  */
 #line 803 "machine_description.y"
     {
             startPosition = currentPosition - yyleng;
@@ -2662,6 +2850,8 @@ yyreduce:
     break;
 
   case 115:
+
+/* Line 1455 of yacc.c  */
 #line 814 "machine_description.y"
     {
             (yyval.p_TEUList) = new TEUList ();
@@ -2670,6 +2860,8 @@ yyreduce:
     break;
 
   case 116:
+
+/* Line 1455 of yacc.c  */
 #line 819 "machine_description.y"
     {
             if ((yyvsp[(1) - (3)].p_TEUList) == NULL)
@@ -2684,6 +2876,8 @@ yyreduce:
     break;
 
   case 117:
+
+/* Line 1455 of yacc.c  */
 #line 833 "machine_description.y"
     {
             startPosition = currentPosition - yyleng;
@@ -2699,6 +2893,8 @@ yyreduce:
     break;
 
   case 118:
+
+/* Line 1455 of yacc.c  */
 #line 845 "machine_description.y"
     {
             int t_range = (yyvsp[(3) - (4)].int_value);
@@ -2742,6 +2938,8 @@ yyreduce:
     break;
 
   case 119:
+
+/* Line 1455 of yacc.c  */
 #line 887 "machine_description.y"
     {
             (yyval.int_value) = 0;
@@ -2749,6 +2947,8 @@ yyreduce:
     break;
 
   case 120:
+
+/* Line 1455 of yacc.c  */
 #line 891 "machine_description.y"
     {
             (yyval.int_value) = (yyvsp[(2) - (3)].int_value);
@@ -2756,6 +2956,8 @@ yyreduce:
     break;
 
   case 121:
+
+/* Line 1455 of yacc.c  */
 #line 898 "machine_description.y"
     {
             (yyval.int_value) = 1;
@@ -2763,6 +2965,8 @@ yyreduce:
     break;
 
   case 122:
+
+/* Line 1455 of yacc.c  */
 #line 902 "machine_description.y"
     {
             (yyval.int_value) = (yyvsp[(1) - (3)].int_value) + 1;
@@ -2770,6 +2974,8 @@ yyreduce:
     break;
 
   case 123:
+
+/* Line 1455 of yacc.c  */
 #line 909 "machine_description.y"
     {
             *templateMask += (yyvsp[(1) - (1)].int_value);
@@ -2778,6 +2984,8 @@ yyreduce:
     break;
 
   case 124:
+
+/* Line 1455 of yacc.c  */
 #line 914 "machine_description.y"
     {
             int lLimit = (yyvsp[(1) - (3)].int_value);
@@ -2791,6 +2999,8 @@ yyreduce:
     break;
 
   case 125:
+
+/* Line 1455 of yacc.c  */
 #line 924 "machine_description.y"
     {  /* strided interval */
             int lLimit = (yyvsp[(1) - (5)].int_value);
@@ -2806,6 +3016,8 @@ yyreduce:
     break;
 
   case 126:
+
+/* Line 1455 of yacc.c  */
 #line 938 "machine_description.y"
     {
             (yyval.int_value) = -1;
@@ -2813,6 +3025,8 @@ yyreduce:
     break;
 
   case 127:
+
+/* Line 1455 of yacc.c  */
 #line 942 "machine_description.y"
     {
             (yyval.int_value) = (yyvsp[(1) - (1)].int_value);
@@ -2820,6 +3034,8 @@ yyreduce:
     break;
 
   case 128:
+
+/* Line 1455 of yacc.c  */
 #line 948 "machine_description.y"
     {
             (yyval.int_value) = 0;
@@ -2827,6 +3043,8 @@ yyreduce:
     break;
 
   case 129:
+
+/* Line 1455 of yacc.c  */
 #line 952 "machine_description.y"
     {
             (yyval.int_value) = (yyvsp[(2) - (3)].int_value);
@@ -2834,8 +3052,9 @@ yyreduce:
     break;
 
 
-/* Line 1267 of yacc.c.  */
-#line 2839 "machdesc.tab.c"
+
+/* Line 1455 of yacc.c  */
+#line 3058 "machdesc.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2845,7 +3064,6 @@ yyreduce:
   YY_STACK_PRINT (yyss, yyssp);
 
   *++yyvsp = yyval;
-
 
   /* Now `shift' the result of the reduction.  Determine what state
      that goes to, based on the state we popped back to and the rule
@@ -2911,7 +3129,7 @@ yyerrlab:
 
   if (yyerrstatus == 3)
     {
-      /* If just tried and failed to reuse look-ahead token after an
+      /* If just tried and failed to reuse lookahead token after an
 	 error, discard it.  */
 
       if (yychar <= YYEOF)
@@ -2928,7 +3146,7 @@ yyerrlab:
 	}
     }
 
-  /* Else will try to reuse look-ahead token after shifting the error
+  /* Else will try to reuse lookahead token after shifting the error
      token.  */
   goto yyerrlab1;
 
@@ -2985,9 +3203,6 @@ yyerrlab1:
       YY_STACK_PRINT (yyss, yyssp);
     }
 
-  if (yyn == YYFINAL)
-    YYACCEPT;
-
   *++yyvsp = yylval;
 
 
@@ -3012,7 +3227,7 @@ yyabortlab:
   yyresult = 1;
   goto yyreturn;
 
-#ifndef yyoverflow
+#if !defined(yyoverflow) || YYERROR_VERBOSE
 /*-------------------------------------------------.
 | yyexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
@@ -3023,7 +3238,7 @@ yyexhaustedlab:
 #endif
 
 yyreturn:
-  if (yychar != YYEOF && yychar != YYEMPTY)
+  if (yychar != YYEMPTY)
      yydestruct ("Cleanup: discarding lookahead",
 		 yytoken, &yylval);
   /* Do not reclaim the symbols of the rule which action triggered
@@ -3049,6 +3264,8 @@ yyreturn:
 }
 
 
+
+/* Line 1675 of yacc.c  */
 #line 957 "machine_description.y"
 
 

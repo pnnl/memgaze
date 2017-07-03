@@ -1,24 +1,23 @@
-/* A Bison parser, made by GNU Bison 2.3.  */
+
+/* A Bison parser, made by GNU Bison 2.4.1.  */
 
 /* Skeleton interface for Bison's Yacc-like parsers in C
-
-   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   
+      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
    Free Software Foundation, Inc.
-
-   This program is free software; you can redistribute it and/or modify
+   
+   This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
-
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+   
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-
+   
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -29,9 +28,10 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-
+   
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
+
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -89,63 +89,16 @@
      T_GP_REG_NAME = 305
    };
 #endif
-/* Tokens.  */
-#define T_OR 258
-#define T_TIMES 259
-#define T_PLUS 260
-#define T_PLUSPLUS 261
-#define T_COLON 262
-#define T_SEMICOLON 263
-#define T_COMMA 264
-#define T_MACHINE 265
-#define T_VERSION 266
-#define T_ASSIGN 267
-#define T_REPLACE 268
-#define T_INSTRUCTION 269
-#define T_TEMPLATE 270
-#define T_CPU_UNITS 271
-#define T_WITH 272
-#define T_NOTHING 273
-#define T_ALL_UNITS 274
-#define T_LBRACKET 275
-#define T_RBRACKET 276
-#define T_LPAREN 277
-#define T_RPAREN 278
-#define T_ARROW 279
-#define T_MAXIMUM 280
-#define T_FROM 281
-#define T_LCPAREN 282
-#define T_RCPAREN 283
-#define T_ANY_INSTRUCTION 284
-#define T_BYPASS 285
-#define T_LATENCY 286
-#define T_FOR 287
-#define T_MEMORY 288
-#define T_CONTROL 289
-#define T_ADDR_REGISTER 290
-#define T_GP_REGISTER 291
-#define T_MEMORY_HIERARCHY 292
-#define T_VECTOR_UNIT 293
-#define T_RETIRE 294
-#define T_WINDOW_SIZE 295
-#define T_ASYNC_RESOURCES 296
-#define T_INT_CONST 297
-#define T_INST_TYPE 298
-#define T_DEPENDENCY_TYPE 299
-#define T_UNIT_TYPE 300
-#define T_FLOAT_CONST 301
-#define T_CHAR_CONST 302
-#define T_IDENTIFIER 303
-#define T_STR_CONST 304
-#define T_GP_REG_NAME 305
-
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 95 "machine_description.y"
 {
+
+/* Line 1676 of yacc.c  */
+#line 95 "machine_description.y"
+
   int int_value;
   float fl_value;
   char ch_value;
@@ -170,14 +123,17 @@ typedef union YYSTYPE
   MIAMI::GenInstList* p_geninstlist;
   MIAMI::UnitRestriction* p_restriction;
   MIAMI::RestrictionList* p_restrlist;
-}
-/* Line 1529 of yacc.c.  */
-#line 176 "machdesc.tab.h"
-	YYSTYPE;
+
+
+
+/* Line 1676 of yacc.c  */
+#line 131 "machdesc.tab.h"
+} YYSTYPE;
+# define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
-# define YYSTYPE_IS_TRIVIAL 1
 #endif
 
 extern YYSTYPE yylval;
+
 
