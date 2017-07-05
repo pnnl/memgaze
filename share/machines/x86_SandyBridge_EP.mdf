@@ -1,66 +1,48 @@
+/* -*-Mode: C;-*- */
+
+
+/* SandyBridge EP: Xeon E5-26xx, 8-core, 20 MB L3; 4xDDR3-1600 */
 
 Machine: "Intel_Sandy_Bridge_EP", Version: "0.1";
 
-/* Declare all the execution units here 
- * Include also the issue ports. Will create templates that take
- * issue ports into account.
- * List also writeback bus ports. These are used to write back the 
- * results and must match the issue port and the data type of the result.
- */
-CpuUnits = U_ALU * 3, U_Load * 2, U_StAddr * 2, U_STD,
-           U_VMul, U_VAdd, U_JMP, U_VShuffle * 2, 
-           U_FDiv, U_FpAdd, U_FpMul, U_FpShuf, U_FpBool, 
-           U_FpBlend * 2, U_Carry, I_Port * 6;
+/****************************************************************************/
+
+CpuUnits =
+  U_ALU * 3,
+  U_Load * 2,
+  U_StAddr * 2,
+  U_STD,
+  U_VMul,
+  U_VAdd,
+  U_JMP,
+  U_VShuffle * 2,
+  U_FDiv,
+  U_FpAdd,
+  U_FpMul,
+  U_FpShuf,
+  U_FpBool,
+  U_FpBlend * 2,
+  U_Carry,
+  I_Port * 6;
 
 AsyncResources = L1_RdTrans*2, L1_WrTrans;
 
-
-/* I should specify the window size for this machine. This information
- * is used to compute memory overlap & stalls using the mechanistic model.
- */
 WindowSize = 50;
-
-/* Write other rules that limit the number of instructions that can be
- * executed in parallel 
- */
-/* This example is from an Itanium machine model. Keep it as reference.
-Maximum 6 from I_M, I_I, I_F, I_B {"at most 6 instructions issued per cycle"};
-*/
 
 RetireRate = 4 {"retire rate 4"};
 
-/* I need rules regarding the memory hierarchy. They should be flexible
- * enough to specify that some type of access bypasses certain memory level
- * For each level, parameters are: [numBlocks, blockSize, entry size, assoc, 
- * bdwth from a lower cache level on a miss at this level (bytes/cyc), 
- * level to go for miss at this level, penalty in cycles for going to that level ]
- * block size - represents the logical size in bytes of an entry into this
- *              memory level. For example, for TLB is the size of a memory page.
- * entry size - represents the physical size in bytes of an entry into this level.
- *              For example, a TLB entry is only 8-16 bytes (I do not know the 
- *              actual value, to store the physical page index and the page flags.
- * The entry size is what is used to compute bandwidth demands for a memory level.
- * An asterisk (*) in this position or in the bandwidth from next level, indicates 
- * not to compute bandwidth demands for this level.
- * A bandiwdth value of 0, means the requests are serialized and the 
- * latency penalty applies in all cases (no overlap of requests).
- * The block size is used to understand spatial reuses to the same entry, and it 
- * is the block size used for measuring the memory reuse distance for that level.
- */
-MemoryHierarchy = L1D [512, 64, 64, 8, 32, L2D, 8], 
-                  L2D [4096, 64, 64, 8, 32, L3D, 17], 
-                  L3D [327680, 64, 64, 20, 8, DRAM, 110], 
-                  DRAM [*, 4096, 4096, *, 0.04, DISK, 10000], 
-                  TLB [64, 4096, 12, 4, 0, TLB2, 7],
-                  TLB2 [512, 4096, 12, 4, 0, L2D, 25];
+/****************************************************************************/
 
-/* Write the issue rules for each instruction class 
- */
-/* Inner Loop is a special instruction type. It is not an instruction that
- * is found in any instruction set. A node of this type is created when an
- * entrance into an inner loop is detected and it is used purely for
- * constraining reordering of instructions.
- */
+MemoryHierarchy =
+  L1D  [   512,   64,   64,  8,      32,  L2D,     8], /*  32K */
+  L2D  [  4096,   64,   64,  8,      32,  L3D,    17], /* 256K */
+  L3D  [327680,   64,   64, 20,       8, DRAM,   110], /* 20 MB */
+  DRAM [     *, 4096, 4096,  *,    0.04, DISK, 10000], /* DDR3-1600 */
+  TLB  [    64, 4096,   12,  4,       0, TLB2,     7],
+  TLB2 [   512, 4096,   12,  4,       0,  L2D,    25];
+
+/****************************************************************************/
+
 Instruction InnerLoop template = NOTHING;
 
 /* Are intrinsics executed in micro-code? Is this like a subroutine call
