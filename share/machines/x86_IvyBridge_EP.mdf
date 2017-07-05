@@ -1,0 +1,474 @@
+/* -*-Mode: C;-*- */
+
+
+/* IvyBridge EP: Xeon E5-26xx, 10-core, 25 MB L3; 4xDDR3-1833 */
+
+Machine: "Intel_Ivy_Bridge_EP", Version: "0.1";
+
+/****************************************************************************/
+
+CpuUnits =
+  U_ALU * 3,
+  U_Load * 2,
+  U_StAddr * 2,
+  U_STD,
+  U_VMul,
+  U_VAdd,
+  U_JMP,
+  U_VShuffle * 2,
+  U_FDiv,
+  U_FpAdd,
+  U_FpMul,
+  U_FpShuf,
+  U_FpBool,
+  U_FpBlend * 2,
+  U_Carry,
+  I_Port * 6;
+
+AsyncResources = L1_RdTrans*2, L1_WrTrans;
+
+WindowSize = 50;
+
+RetireRate = 4 {"retire rate 4"};
+
+/****************************************************************************/
+
+MemoryHierarchy =
+  L1D  [   512,   64,   64,  8,      32,  L2D,     8], /*  32K */
+  L2D  [  4096,   64,   64,  8,      32,  L3D,    17], /* 256K */
+  L3D  [327680,   64,   64, 20,       8, DRAM,   110], /* 25 MB */
+  DRAM [     *, 4096, 4096,  *,    0.04, DISK, 10000], /* DDR3-1833 */
+  TLB  [    64, 4096,   12,  4,       0, TLB2,     7],
+  TLB2 [   512, 4096,   12,  4,       0,  L2D,    25];
+
+/****************************************************************************/
+
+Instruction InnerLoop template = NOTHING;
+
+/* Are intrinsics executed in micro-code? Is this like a subroutine call
+ * that blocks execution of normal flow for a number of cycles, or can
+ * they overlap other instructions?
+ */
+Instruction IntrinsicCall template = I_Port[0:5] * 10;
+
+Instruction Load{64}:fp template = 
+                   I_Port[2] + U_StAddr[0], U_Load, NOTHING*3 |
+                   I_Port[3] + U_StAddr[1], U_Load, NOTHING*3;
+Instruction Load{80}:fp template = 
+                   I_Port[2] + U_StAddr[0], U_Load, NOTHING*4 |
+                   I_Port[3] + U_StAddr[1], U_Load, NOTHING*4;
+Instruction Load{64}:fp,vec{128} template = 
+                   I_Port[2] + U_StAddr[0], U_Load, NOTHING*3 |
+                   I_Port[3] + U_StAddr[1], U_Load, NOTHING*3;
+Instruction Load{64}:fp,vec{256} template = 
+                   I_Port[2] + U_StAddr[0], U_Load, U_Load, NOTHING*4 |
+                   I_Port[3] + U_StAddr[1], U_Load, U_Load, NOTHING*4;
+
+/* Define latency of 1 cycle for store operations because they do not
+ * produce any value and a load or another store can be issued on the 
+ * next cycle. Update these templates if it turns out that there is some
+ * stall time incurred. They can stall if we have store bursts as store
+ * buffers / line fill buffers get filled.
+ */
+Instruction Store:fp [L1_WrTrans] template = 
+                   I_Port[2] + U_StAddr[0], I_Port[4] + U_STD |
+                   I_Port[3] + U_StAddr[1], I_Port[4] + U_STD;
+Instruction Store{64}:fp,vec{128} [L1_WrTrans] template = 
+                   I_Port[2] + U_StAddr[0], I_Port[4] + U_STD |
+                   I_Port[3] + U_StAddr[1], I_Port[4] + U_STD;
+Instruction Store{64}:fp,vec{256} [L1_WrTrans(2)] template = 
+                   I_Port[2] + U_StAddr[0], I_Port[4] + U_STD |
+                   I_Port[3] + U_StAddr[1], I_Port[4] + U_STD;
+
+Instruction Load:int template = 
+                   I_Port[2] + U_StAddr[0], U_Load, NOTHING*2 |
+                   I_Port[3] + U_StAddr[1], U_Load, NOTHING*2;
+Instruction Load:int,vec{128} template = 
+                   I_Port[2] + U_StAddr[0], U_Load, NOTHING*3 |
+                   I_Port[3] + U_StAddr[1], U_Load, NOTHING*3;
+Instruction Load:int,vec{256} template = 
+                   I_Port[2] + U_StAddr[0], U_Load, U_Load, NOTHING*4 |
+                   I_Port[3] + U_StAddr[1], U_Load, U_Load, NOTHING*4;
+
+Instruction Store:int [L1_WrTrans] template = 
+                   I_Port[2] + U_StAddr[0], I_Port[4] + U_STD |
+                   I_Port[3] + U_StAddr[1], I_Port[4] + U_STD;
+Instruction Store:int,vec{128} [L1_WrTrans] template = 
+                   I_Port[2] + U_StAddr[0], I_Port[4] + U_STD |
+                   I_Port[3] + U_StAddr[1], I_Port[4] + U_STD;
+/* do not know if there are 256-bit int stores. Uncomment if we find one *
+Instruction Store:int,vec{256} [L1_WrTrans(2)] template = 
+                   I_Port[2] + U_StAddr[0], I_Port[4] + U_STD |
+                   I_Port[3] + U_StAddr[1], I_Port[4] + U_STD;
+ */
+
+/* Define "special" latency for memory dependencies. That is, a store can
+ * follow the next cycle after a load from the same address, if there is no
+ * other register dependency involved. I need flexibility to specify that it 
+ * applies only to memory dependencies. This is store forwarding
+ */
+/*
+Bypass latency 1 for Load:int | Load:int,vec{256} | Load:fp | Load:fp,vec{256}  -> [memory] 
+        Store:int | Store:int,vec{256} | Store:fp | Store:fp,vec{256};
+*/
+
+/* Only memory instructions can have memory dependencies. I think I can provide a more 
+ * general bypass rule that applies to memory instructions of all widths by using keyword 
+ * ANY_INSTRUCTION. I think I can also issue Loads one cycle after Stores too. 
+ */
+Bypass latency 1 for ANY_INSTRUCTION  -> [memory] ANY_INSTRUCTION;
+
+/* I will define a latency of 0 for all control dependencies.
+ */
+Bypass latency 0 for ANY_INSTRUCTION -> [control] ANY_INSTRUCTION;
+
+/* Define also latency 0 for control dependencies from any instruction to a
+ * branch or jump. This forces the branch to be the last instruction issued
+ * in a bundle, even if it is issued in the same cycle with other
+ * instructions.
+Bypass latency 1 for Jump | InnerLoop -> [control] ANY_INSTRUCTION;
+ */
+
+/* I think some machines can issue multiple branches in the same cycle.
+ * Use a latency of 0 here. If the machine has multiple BR units, we can
+ * issue multiple branches. It is covered by a more general rule below.
+** Bypass latency 1 for CondBranch | UncondBranch -> [control] CondBranch 
+         | UncondBranch | Jump | Return;
+ */
+
+/* Some cases are coverd by both the previous and the next rule. 
+ * The rule that is used in such cases, is the first rule that matches.
+ * Therefore, one should write the exception rules first, and the more
+ * general rules last.
+Bypass latency 1 for ANY_INSTRUCTION -> [control] InnerLoop;
+
+Bypass latency 0 for ANY_INSTRUCTION -> [control] CondBranch | UncondBranch 
+         | Jump | Return;
+ */
+
+/* Nop should have 0 latency. Sometimes I have to use Nop to mark a removed
+ * instruction that is not replaced with anything. However, the Nop defines
+ * a register as I try to break some dependence chains. Mark Nop has having
+ * zero latency so it does not lengthen the schedule length.
+ */
+Bypass latency 0 for NOP:int | NOP:int,vec{256} | NOP:fp | NOP:fp,vec{256}  -> 
+        ANY_INSTRUCTION;
+
+/* Load and Store Configuration. These instructions store a bunch of
+ * registers. Not sure how to describe them. Give the loads some 50 cycles
+ * latencies; Stores should be less?
+ */
+Instruction LoadConf:fp template = I_Port[2,3](1) + U_Load, NOTHING*49;
+Instruction LoadConf:fp,vec{128} template = I_Port[2,3](1) + U_Load, NOTHING*49;
+Instruction LoadConf:int template = I_Port[2,3](1) + U_Load, NOTHING*8;
+Instruction LoadConf:int,vec{32} template = I_Port[2,3](1) + U_Load, NOTHING*11;
+Instruction LoadConf:int,vec{128} template = I_Port[2,3](1) + U_Load, NOTHING*49;
+
+Instruction StoreConf:fp template = I_Port[4] + U_STD, NOTHING*39;
+Instruction StoreConf:fp,vec{128} template = I_Port[4] + U_STD, NOTHING*39;
+Instruction StoreConf:int template = I_Port[4] + U_STD, NOTHING*7;
+Instruction StoreConf:int,vec{32} template = I_Port[4] + U_STD, NOTHING*4;
+Instruction StoreConf:int,vec{128} template = I_Port[4] + U_STD, NOTHING*39;
+
+/* I am not sure about the next two templates, especially about the
+ * next one.
+ */
+Instruction LoadStore:int template = I_Port[2,3](1)+I_Port[4]+U_Load+U_STD, NOTHING*5;
+Instruction LoadStore:int,vec{128} template = I_Port[2,3](1)+I_Port[4]+U_Load+U_STD, NOTHING*5;
+Instruction LoadStore:fp template = I_Port[2,3](1)+I_Port[4]+U_Load+U_STD, NOTHING*5;
+Instruction LoadStore:fp,vec{128} template = I_Port[2,3](1)+I_Port[4]+U_Load+U_STD, NOTHING*5;
+
+/* For the memory fence, block all memory units / issue ports
+ */
+Instruction MemoryFence template = I_Port[2:4]+U_Load[:]+U_STD*3;
+Instruction MemoryFence:vec{0} template = I_Port[2:4]+U_Load[:]+U_STD*3;
+
+/* Prefetch should not create a dependence. Just takes issue bandwidth to
+ * execute it.
+ */
+Instruction Prefetch template = I_Port[2:3](1) + U_Load;
+Instruction Prefetch:vec{512} template = I_Port[2:3](1) + U_Load;
+
+Instruction PrivilegedOp template = ALL_UNITS*10;
+
+Instruction Trap template = ALL_UNITS*50;
+
+Instruction UncondBranch template = I_Port[5] + U_JMP;
+
+Instruction CondBranch template = I_Port[5] + U_JMP;
+
+Instruction Shift:int template = I_Port[0,5](1) + U_ALU[0,2](1);
+Instruction Shift:int,vec{128} template = I_Port[0,5](1) + U_ALU[0,2](1);
+
+/* What is Shift for FP? FIXME if needed.
+Instruction Shift:fp template = I_Port[0,5](1) + U_ALU[0,2](1);
+Instruction Shift:fp,vec{128} template = I_Port[0,5](1) + U_ALU[0,2](1);
+*/
+
+/* Rotate operations have different latency and throughput depending if 
+ * shifting is done by 1 bit, or more. Right now I cannot differentiate 
+ * between such instances in the machine description, so I write some
+ * rules that are in between.
+ */
+Instruction Rotate:int template = I_Port[5] + U_ALU[2], U_ALU[2];
+Instruction RotateCC:int template = I_Port[5] + U_ALU[2], U_ALU[2]*3;
+
+Instruction Jump template = I_Port[5] + U_JMP;
+
+Instruction Return template = I_Port[5] + U_JMP;
+
+/* I am looking at the Intel manual and I cannot tell which units can
+ * execute MOVs for int/fp and scalar/vec.
+ */
+Instruction Move:int template = I_Port[5]+U_ALU[2] | I_Port[1]+U_ALU[1] | I_Port[0]+U_ALU[0];
+Instruction Move:int,vec{128} template = I_Port[5]+U_ALU[2] | 
+                                         I_Port[1]+U_ALU[1] | 
+                                         I_Port[0]+U_ALU[0];
+/* XED classifies the first register operand of VMASKMOVPD as having 32-bit integer values
+ * even though it clearly is a vector of double-precision floating-point values.
+ * Use the FP template, because I do not think that there are any instructions operating on
+ * AVX vectors of 32-bit integers.
+ */
+Instruction Move:int,vec{256} template = I_Port[5]+U_FpBlend[1] | I_Port[0]+U_FpBlend[0];
+
+Instruction Move{64}:fp,vec{256} template = I_Port[5]+U_FpBlend[1] | I_Port[0]+U_FpBlend[0];
+Instruction Move:fp template = I_Port[5]+U_FpBlend[1] | I_Port[0]+U_FpBlend[0];
+
+Instruction Copy:int template = I_Port[5]+U_ALU[2] | I_Port[1]+U_ALU[1] | I_Port[0]+U_ALU[0];
+Instruction Copy:int,vec{128} template = I_Port[5]+U_ALU[2] | 
+                                         I_Port[1]+U_ALU[1] | 
+                                         I_Port[0]+U_ALU[0];
+/* See the comment for Move:int,vec{256} */
+Instruction Copy:int,vec{256} template = I_Port[5]+U_FpBlend[1] | I_Port[0]+U_FpBlend[0];
+
+Instruction Copy{64}:fp,vec{256} template = I_Port[5]+U_FpBlend[1] | I_Port[0]+U_FpBlend[0];
+Instruction Copy:fp template = I_Port[5]+U_FpBlend[1] | I_Port[0]+U_FpBlend[0];
+
+Instruction MoveCC:int template = I_Port[5]+U_ALU[2], U_ALU[2] | I_Port[1]+U_ALU[1], U_ALU[1] | 
+                          I_Port[0]+U_ALU[0], U_ALU[0];
+
+Instruction Shuffle:int,vec{128} template = I_Port[0]+U_VShuffle[0] | I_Port[1]+U_VShuffle[1];
+Instruction Shuffle{64}:fp,vec{256} template = I_Port[5] + U_FpShuf;
+Instruction Shuffle:fp template = I_Port[5] + U_FpShuf;
+
+Instruction Blend:int,vec{128} template = I_Port[0]+U_VShuffle[0] | I_Port[1]+U_VShuffle[1];
+Instruction Blend{64}:fp,vec{256} template = I_Port[5]+U_FpBlend[1] | I_Port[0]+U_FpBlend[0];
+Instruction Blend:fp template = I_Port[5]+U_FpBlend[1] | I_Port[0]+U_FpBlend[0];
+
+Instruction Misc:int template = I_Port[0,5](1), NOTHING*9;
+
+Instruction PortRead:int template = I_Port[2,3](1) + U_StAddr, I_Port[4] + U_STD;
+Instruction PortWrite:int template = I_Port[2] + U_StAddr[0], U_Load[0], NOTHING*2 |
+                   I_Port[3] + U_StAddr[1], U_Load[1], NOTHING*2;
+
+Instruction Reciprocal{32}:fp template = I_Port[0]+U_FpMul, NOTHING*6;
+Instruction Reciprocal{32}:fp,vec{256} template = I_Port[0]+U_FpMul, NOTHING*6;
+
+Instruction Xchg:int template = I_Port[1]+U_ALU[1], NOTHING;
+Instruction CmpXchg:int template = I_Port[1]+U_ALU[1], NOTHING*4;
+
+/* LEA has variable latency on Sandy Bridge, depending on its
+ * operands. Since I cannot specify rules based on instruction operands,
+ * I will use some average latency/throughput for LEAs.
+ */
+Instruction LEA:int template = I_Port[1]+U_ALU[1], NOTHING;
+
+Instruction Add:int template = I_Port[5]+U_ALU[2] | I_Port[1]+U_ALU[1] | I_Port[0]+U_ALU[0];
+Instruction Add:int,vec{128} template = I_Port[1]+U_VAdd | I_Port[5]+U_ALU[2];
+Instruction Add:fp template = I_Port[1]+U_FpAdd, NOTHING*2;
+Instruction Add{64}:fp,vec{256} template = I_Port[1]+U_FpAdd, NOTHING*2;
+
+Instruction Sub:int template = I_Port[5]+U_ALU[2] | I_Port[1]+U_ALU[1] | I_Port[0]+U_ALU[0];
+Instruction Sub:int,vec{128} template = I_Port[1]+U_VAdd | I_Port[5]+U_ALU[2];
+Instruction Sub:fp template = I_Port[1]+U_FpAdd, NOTHING*2;
+Instruction Sub{64}:fp,vec{256} template = I_Port[1]+U_FpAdd, NOTHING*2;
+
+/* AddCC has a latency of 2 and throughput of 1. However, I do not know
+ * which resource is limiting the issue of such instructions to 1 per cycle.
+ * Perhaps is just the EFLAGS register? I added a fake U_Carry unit to use
+ * as a bottleneck in the second cycle.
+ */
+Instruction AddCC:int template = I_Port[0]+U_ALU[0], U_Carry | 
+                                 I_Port[1]+U_ALU[1], U_Carry | 
+                                 I_Port[5]+U_ALU[2], U_Carry;
+
+Instruction Xor:int template = I_Port[0]+U_ALU[0] | I_Port[1]+U_ALU[1] | I_Port[5]+U_ALU[2];
+Instruction Xor:int,vec{128} template = I_Port[1]+U_ALU[1] | I_Port[5]+U_ALU[2];
+/* XED classifies VXORPD as having integer operands, even though it clearly
+ * operates on packed double-precision floating-point values
+ */
+Instruction Xor:int,vec{256} template = I_Port[5]+U_FpBool;
+
+Instruction LogicalOp:int template = I_Port[0]+U_ALU[0] | I_Port[1]+U_ALU[1] | I_Port[5]+U_ALU[2];
+Instruction LogicalOp:int,vec{128} template = I_Port[1]+U_ALU[1] | I_Port[5]+U_ALU[2];
+/* XED classifies VANDPD as having integer operands, even though it clearly
+ * operates on packed double-precision floating-point values
+ */
+Instruction LogicalOp:int,vec{256} template = I_Port[5]+U_FpBool;
+
+/* I do not think that I can have a Floating Point logical op. Yes, we do, at least SIMD ones.*/
+Instruction Xor{64}:fp,vec{256} template = I_Port[5]+U_FpBool;
+Instruction LogicalOp{64}:fp,vec{256} template = I_Port[5]+U_FpBool;
+
+/* Should I assume CMP is the same as an Add (Sub)?
+ * I cannot see an explicit mapping in the Intel manual.
+ */
+Instruction Cmp:int template = I_Port[0]+U_ALU[0] | I_Port[1]+U_ALU[1] | I_Port[5]+U_ALU[2];
+Instruction Cmp:int,vec{128} template = I_Port[1]+U_VAdd | I_Port[5]+U_ALU[2];
+Instruction Cmp:fp template = I_Port[1]+U_FpAdd, NOTHING*2;
+Instruction Cmp{64}:fp,vec{256} template = I_Port[1]+U_FpAdd, NOTHING*2;
+
+Instruction NOP:int template = NOTHING;
+Instruction NOP:int,vec{256} template = NOTHING;
+Instruction NOP:fp template = NOTHING;
+Instruction NOP{64}:fp,vec{256} template = NOTHING;
+
+
+/* What units are used for Insert / Extract? Throughput is 1 though. */
+Instruction Extract:int template = I_Port[1]+U_VShuffle[1], NOTHING*2;
+Instruction Extract:int,vec{128} template = I_Port[1]+U_VShuffle[1], NOTHING*2;
+Instruction Extract:fp,vec{128} template = I_Port[5] + U_FpShuf;
+Instruction Extract:fp template = I_Port[5] + U_FpShuf, NOTHING*2;
+
+/*
+Instruction Insert:int template = U_ALU[0]+O_Port[0] | U_ALU[1]+O_Port[1] | U_ALU[2]+O_Port[2];
+*/
+Instruction Insert:int,vec{128} template = I_Port[1]+U_VShuffle[1], NOTHING;
+Instruction Insert:fp,vec{256} template = I_Port[5] + U_FpShuf;
+Instruction Insert:fp template = I_Port[5] + U_FpShuf;
+
+/* f2iConvert32 */
+Instruction Convert{32}:int template = I_Port[1]+U_FpAdd, NOTHING*2;
+Instruction Convert{32}:int,vec{256} template = I_Port[1]+U_FpAdd, NOTHING*2;
+
+/* f2iConvert64 */
+Instruction Convert{64}:int template = I_Port[1]+U_FpAdd, NOTHING*3;
+Instruction Convert{64}:int,vec{256} template = I_Port[1]+U_FpAdd, NOTHING*3;
+
+/* f2fConvert32 */
+Instruction ConvertPrec{32}:fp template = I_Port[1]+U_FpAdd, NOTHING*3;
+Instruction ConvertPrec{32}:fp,vec{256} template = I_Port[1]+U_FpAdd, NOTHING*3;
+
+/* f2fConvert64 */
+Instruction ConvertPrec{64}:fp template = I_Port[1]+U_FpAdd;
+Instruction ConvertPrec{64}:fp,vec{256} template = I_Port[1]+U_FpAdd, NOTHING;
+
+/* i2fConvert32 */
+Instruction Convert{32}:fp template = I_Port[1]+U_FpAdd, NOTHING*2;
+Instruction Convert{32}:fp,vec{256} template = I_Port[1]+U_FpAdd, NOTHING*2;
+
+/* i2fConvert64 */
+Instruction Convert{64}:fp template = I_Port[1]+U_FpAdd, NOTHING*3;
+Instruction Convert{64}:fp,vec{256} template = I_Port[1]+U_FpAdd, NOTHING*3;
+
+/* i2fConvert80 - old x87 instruction, only scalar */
+Instruction Convert{80}:fp template = I_Port[1]+U_FpAdd, NOTHING*3;
+
+Instruction ConvertPrec:int template = I_Port[5] + U_ALU[2];
+/* Is there an integer SIMD convert precision instruction? FIXME
+Instruction ConvertPrec:int,vec template = I_Port[1]+U_FpAdd, NOTHING*3;
+*/
+
+/* What is Misc? FIXME
+Instruction Misc:fp template = U_FMisc+I_F, NOTHING*3;
+*/
+
+Instruction PopCnt template = I_Port[1]+U_ALU[1], NOTHING*2;
+
+Instruction Mult:int template = I_Port[1]+U_ALU[1], NOTHING*3;
+Instruction Mult:int,vec{128} template = I_Port[0]+U_VMul, NOTHING*2;
+Instruction Mult:fp template = I_Port[0]+U_FpMul, NOTHING*4;
+Instruction Mult{64}:fp,vec{256} template = I_Port[0]+U_FpMul, NOTHING*4;
+
+/* Is there a MultAdd on x86? Apparently there are plans for MADD but only
+ * for the SSE fp style. There are two proposals, FMA3 and FMA4 (difference
+ * is if the destination register is distinct or clobbers one of the source
+ * registers (3 or 4 operands, get it?) SandyBridge does not support FMA yet.
+ * I think AMD Buldozer supports FMA4 though. */
+/*
+Instruction MultAdd{64}:fp,vec{256} template = U_FMAC+I_F, NOTHING*3;
+*/
+/* There is a packed multiply-add for integers though */
+Instruction MultAdd:int,vec{128} template = I_Port[0]+U_VMul, NOTHING*2;
+
+Instruction Div{32}:int template = I_Port[0]+U_FDiv, U_FDiv*10, NOTHING*11;
+Instruction Div{64}:int template = I_Port[0]+U_FDiv, U_FDiv*27, NOTHING*28;
+/* FIXME */
+Instruction Div{32}:fp template = I_Port[0]+U_FDiv, U_FDiv*13;
+Instruction Div{32}:fp,vec{128} template = I_Port[0]+U_FDiv, U_FDiv*13;
+Instruction Div{64}:fp template = I_Port[0]+U_FDiv, U_FDiv*21;
+/* I do not know what latency to use for x87 DIVs */
+Instruction Div{80}:fp template = I_Port[0]+U_FDiv, U_FDiv*21;
+Instruction Div{64}:fp,vec{128} template = I_Port[0]+U_FDiv, U_FDiv*21;
+Instruction Div{32}:fp,vec{256} template = I_Port[0]+U_FDiv, U_FDiv*27, NOTHING;
+Instruction Div{64}:fp,vec{256} template = I_Port[0]+U_FDiv, U_FDiv*43, NOTHING;
+
+/* How should I execute the Sqrt instructions? FIXME */
+/* I've added an iterative SQRT unit. All SQRT templates use this unit.
+ * The templates provide the published throughput for the Sqrt operations
+ * and allow parallel execution of other SIMD operations overlapped with
+ * these long latency instructions.
+ */
+Instruction Sqrt{32}:fp template = I_Port[0]+U_FDiv,  U_FDiv*13;
+Instruction Sqrt{64}:fp template = I_Port[0]+U_FDiv,  U_FDiv*21;
+/* I do not know what latency to use for x87 SQRTs */
+Instruction Sqrt{80}:fp template = I_Port[0]+U_FDiv, U_FDiv*21;
+Instruction Sqrt{32}:fp,vec{128} template = I_Port[0]+U_FDiv,  U_FDiv*13;
+Instruction Sqrt{64}:fp,vec{128} template = I_Port[0]+U_FDiv,  U_FDiv*21;
+Instruction Sqrt{32}:fp,vec{256} template = I_Port[0]+U_FDiv,  U_FDiv*27, NOTHING;
+Instruction Sqrt{64}:fp,vec{256} template = I_Port[0]+U_FDiv,  U_FDiv*43, NOTHING;
+
+/* MOV of int vector from mem to reg have the latency of a load.
+   I should combine the two micro-ops that our decoder generates
+   into a single load. Use the ++ operator to restrict this rule
+   only to cases where the result of the first micro-op is used
+   exclusively by the second micro-op.
+ */
+/*
+Replace Load:int,vec{0} [$rA] -> $rT ++ Copy:int,vec{0} $rT -> $rX
+      with Load:int,vec{0} [$rA] -> $rX;
+
+Replace Load:fp,vec{0} [$rA] -> $rT ++ Copy:fp,vec{0} $rT -> $rX
+      with Load:fp,vec{0} [$rA] -> $rX;
+
+Replace Load:fp [$rA] -> $rT ++ Copy:fp $rT -> $rX
+      with Load:fp [$rA] -> $rX;
+*/
+
+
+/* Define some dependence breaking idioms */
+/* Note: Listing a register name multiple times as a
+ * source register for the same instruction, explicitly 
+ * requires the matched instruction to have a general
+ * purpose register used multiple times as a source register
+ * operand. This drastically restricts the number of
+ * matches and sometimes this is what we want. If you do not 
+ * want this behavior, use different register names each time.
+ */
+Replace Sub:int $rX, $rX -> $rY with NOP:int -> $rY;
+Replace Sub:int,vec{0} $rX, $rX -> $rY with NOP:int,vec{0} -> $rY;
+/* Not for FP
+Replace Sub:fp $rX, $rX -> $rY with NOP:fp -> $rY;
+Replace Sub:fp,vec{0} $rX, $rX -> $rY with NOP:fp,vec{0} -> $rY;
+*/
+
+/* Similarly for Xor */
+Replace Xor:int $rX, $rX -> $rY with NOP:int -> $rY;
+Replace Xor:int,vec{0} $rX, $rX -> $rY with NOP:int,vec{0} -> $rY;
+/* Not for FP
+Replace Xor:fp $rX, $rX -> $rY with NOP:fp -> $rY;
+Replace Xor:fp,vec{0} $rX, $rX -> $rY with NOP:fp,vec{0} -> $rY;
+*/
+
+/* Another idiom that breaks dependencies, though it still executes */
+Replace Cmp:int,vec{0} $rX, $rX -> $rY with Cmp:int,vec{0} -> $rY;
+ 
+
+/* Next template is not part of the machine description. I use it just to
+ * test the replacement algorithm. Uncomment it for testing, comment it for
+ * actual predictions.
+ */
+/*
+Replace IntAdd $rX, $rY -> $rZ + Shift $rZ, $rT -> $rD with
+   LogicalOp $rX, $rY, $rT -> $rD {"Testing rule"} ;
+*/
