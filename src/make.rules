@@ -43,8 +43,8 @@ endif
 
 ifeq ($(TARGET_COMPILER),gnu)
 #ozgurS Changing the includes form pin directory to modified version of those files in Miami home directory   
-#    include $(MIAMI_HOME)/src/unix.vars
-#    include $(MIAMI_HOME)/src/makefile.unix.config
+#    include $(PALM_MIAMI_ROOT)/src/unix.vars
+#    include $(PALM_MIAMI_ROOT)/src/makefile.unix.config
 #ozgurE
     DBG ?= -g
     OPT ?= -O3
@@ -62,10 +62,10 @@ ifeq ($(TARGET_COMPILER),ms)
     DBG?=
 endif
 
-MIAMI_TARGET ?= $(MIAMI_HOME)/install
+MIAMI_TARGET ?= $(PALM_MIAMI_ROOT)/install
 BINDIR = $(MIAMI_TARGET)/bin/
 EXEDIR = $(BINDIR)libexec/
-OBJDIR = $(MIAMI_HOME)/objs/
+OBJDIR = $(PALM_MIAMI_ROOT)/objs/
 ETCDIR = $(MIAMI_TARGET)/etc
 VARSDIR = $(ETCDIR)/vars
 ifeq ($(MIAMI_KIT),1)
@@ -74,8 +74,8 @@ else
    VARSFILE = $(ETCDIR)/vars/$(TOOL_VAR)
 endif
 
-BINSCRIPT ?= $(MIAMI_HOME)/src/tools/run_tool.in
-PINCONFIG = $(MIAMI_HOME)/src/tools/pin_config
+BINSCRIPT ?= $(PALM_MIAMI_ROOT)/src/tools/run_tool.in
+PINCONFIG = $(PALM_MIAMI_ROOT)/src/tools/pin_config
 
 $(OBJDIR)pinobj/%.o : %.cpp
 	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ)$@ $<
@@ -122,7 +122,7 @@ $(OBJDIR)tarjans/%.oo : %.C
 
 info:
 	@echo "DYNINST_ROOT=$(DYNINST_ROOT)"
-	@echo "MIAMI_HOME=$(MIAMI_HOME)"
+	@echo "PALM_MIAMI_ROOT=$(PALM_MIAMI_ROOT)"
 	@echo "MIAMI_TARGET=$(MIAMI_TARGET)"
 	@echo "TOOL_OBJ_DIR=$(TOOL_OBJ_DIR)"
 	@echo "TOOL_CXXFLAGS=$(TOOL_CXXFLAGS)"

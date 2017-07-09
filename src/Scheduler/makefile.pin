@@ -21,7 +21,7 @@ include ../../miami.config
 TOOL_ROOTS = miami
 TOOL_VAR = vars_sched
 TOOL_OBJ_DIR = scheduler
-BINSCRIPT = $(MIAMI_HOME)/src/tools/run_static.in
+BINSCRIPT = $(PALM_MIAMI_ROOT)/src/tools/run_static.in
 
 PIN_SCHEDULER_OBJS = schedtool.o 
 
@@ -78,12 +78,12 @@ ifeq ($(COMPILE_MIAMI_SO),"yes")
 endif
 
 # finds files for the compiling rules
-vpath %.C $(MIAMI_HOME)/src/Scheduler
-vpath %.cpp $(MIAMI_HOME)/src/Scheduler
-vpath %.C $(MIAMI_HOME)/src/common
-vpath %.cpp $(MIAMI_HOME)/src/common
-vpath %.C $(MIAMI_HOME)/src/OAUtils
-vpath %.C $(MIAMI_HOME)/src/tarjans
+vpath %.C $(PALM_MIAMI_ROOT)/src/Scheduler
+vpath %.cpp $(PALM_MIAMI_ROOT)/src/Scheduler
+vpath %.C $(PALM_MIAMI_ROOT)/src/common
+vpath %.cpp $(PALM_MIAMI_ROOT)/src/common
+vpath %.C $(PALM_MIAMI_ROOT)/src/OAUtils
+vpath %.C $(PALM_MIAMI_ROOT)/src/tarjans
 
 ##############################################################
 #
