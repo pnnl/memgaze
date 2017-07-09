@@ -18,6 +18,6 @@ else
    echo "ERROR: Found neither global nor tool specific settings. Aborting."
    exit
 fi
-source ${DIR}/../etc/pin_config
+#source ${DIR}/../etc/pin_config
 
 ${PIN_ROOT}/pin ${MIAMI_PIN_ARGS} -t ${DIR}/libexec/XTOOLLIBX $@

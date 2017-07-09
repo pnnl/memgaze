@@ -35,17 +35,8 @@ DYNINST_LDFLAGS = \
 	-lcommon
 
 TARGET_COMPILER?=gnu
-ifdef OS
-    ifeq (${OS},Windows_NT)
-        TARGET_COMPILER=ms
-    endif
-endif
 
 ifeq ($(TARGET_COMPILER),gnu)
-#ozgurS Changing the includes form pin directory to modified version of those files in Miami home directory   
-#    include $(PALM_MIAMI_ROOT)/src/unix.vars
-#    include $(PALM_MIAMI_ROOT)/src/makefile.unix.config
-#ozgurE
     DBG ?= -g
     OPT ?= -O3
     WFLAGS = -Wall -Wno-error -Wno-unknown-pragmas -Wno-unused-function \
@@ -53,13 +44,6 @@ ifeq ($(TARGET_COMPILER),gnu)
     WXXFLAGS = -Woverloaded-virtual
     CXXFLAGS ?= -fPIC $(DBG) $(OPT) $(WFLAGS) $(WXXFLAGS) $(DYNINST_CXXFLAGS) $(XED_CXXFLAGS) -I. -I../common -I..
     CFLAGS ?= -fPIC $(DBG) $(OPT) $(WFLAGS) -I. -I../common -I..
-endif
-
-ifeq ($(TARGET_COMPILER),ms)
-#ozgurS commenting out includes    
-    #include $(PIN_ROOT)/source/tools/Config/makefile.ms.config
-#ozgurE
-    DBG?=
 endif
 
 MIAMI_TARGET ?= $(PALM_MIAMI_ROOT)/install
@@ -75,7 +59,6 @@ else
 endif
 
 BINSCRIPT ?= $(PALM_MIAMI_ROOT)/src/tools/run_tool.in
-PINCONFIG = $(PALM_MIAMI_ROOT)/src/tools/pin_config
 
 $(OBJDIR)pinobj/%.o : %.cpp
 	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ)$@ $<
@@ -131,7 +114,6 @@ info:
 all: tools
 	mkdir -p $(VARSDIR)
 	@echo "MIAMI_LIBRARY_PATHS=$(MIAMI_LIBRARY_PATHS)" >> $(VARSFILE)
-	@cp -p $(PINCONFIG) $(ETCDIR)
 
 tools: $(OBJDIR) $(EXEDIR) $(TOOLS)
 
