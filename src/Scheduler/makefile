@@ -128,9 +128,10 @@ machdesc.lex.c: machine_description.l
 $(TOOLS): $(OBJS) $(MAIN_PIN_OBJS)
 
 $(SO_TOOLS): $(OBJS) $(SOMAIN_OBJS)
-	$(LINKER) -v $(TOOL_LDFLAGS) $(LINK_DEBUG) $(LINK_EXE)$@ $(OBJS) $(SOMAIN_OBJS) \
-	-Wl,-Bstatic $(DYNINST_LDFLAGS) \
-	$(TOOL_LPATHS) $(TOOL_LIBS) $(DBG) \
+	$(LINKER) -v $(LINK_DEBUG) $(LINK_EXE)$@ $(OBJS) $(SOMAIN_OBJS) \
+	-Wl,-Bstatic \
+	$(DBG) \
+	$(DYNINST_LDFLAGS) \
 	$(XED_LDFLAGS) \
 	-lstdc++ \
 	-Wl,--as-needed $(BINUTILS_LDFLAGS) \
@@ -148,7 +149,7 @@ $(SO_TOOLS): $(OBJS) $(SOMAIN_OBJS)
 $(SA_TOOLS) : $(OBJS) $(SAMAIN_OBJS)
 	$(LINKER) -v $(SATOOL_LDFLAGS) $(LINK_DEBUG) $(LINK_EXE)$@ $(OBJS) $(SAMAIN_OBJS) \
 	-Wl,$(DYNINST_LDFLAGS)  \
-	$(TOOL_LPATHS) $(DBG) \
+	$(DBG) \
 	$(XED_LDFLAGS) \
 	-lstdc++ \
 	-Wl,-Bstatic $(BINUTILS_LDFLAGS) \
@@ -161,8 +162,8 @@ $(SA_WRAPPER) : $(SA_TOOLS)
 
 $(OPT_TOOLS): %$(PINTOOL_SUFFIX) : $(OPT_OBJS)
 	$(LINKER) -v $(TOOL_LDFLAGS) $(LINK_DEBUG) $(LINK_EXE)$@ $(OPT_OBJS) \
-	-Wl,$(DYNINST_LDFLAGS) \
-	$(TOOL_LPATHS) $(TOOL_LIBS) $(DBG) \
+	$(DBG) \
+	$(DYNINST_LDFLAGS) \
 	$(XED_LDFLAGS) \
 	-lstdc++ \
 	$(BINUTILS_LDFLAGS)
