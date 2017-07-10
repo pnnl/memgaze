@@ -129,7 +129,7 @@ $(TOOLS): $(OBJS) $(MAIN_PIN_OBJS)
 
 $(SO_TOOLS): $(OBJS) $(SOMAIN_OBJS)
 	$(LINKER) -v $(TOOL_LDFLAGS) $(LINK_DEBUG) $(LINK_EXE)$@ $(OBJS) $(SOMAIN_OBJS) \
-    -Wl,-Bstatic $(DYNINST_LDFLAGS) \
+	-Wl,-Bstatic $(DYNINST_LDFLAGS) \
 	$(TOOL_LPATHS) $(TOOL_LIBS) $(DBG) -lxed -lstdc++ \
 	-Wl,--as-needed $(BINUTILS_LDFLAGS) \
 

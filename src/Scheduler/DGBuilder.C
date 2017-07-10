@@ -496,24 +496,25 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
    dInst = new MIAMI::DecodedInstruction();
    
    int res = InstructionXlate::xlate_dbg(pc+reloc_offset, b->getEndAddress()-pc, dInst, "DGBuilder::build_node_for_instruction");
-// enable for dyninst decoding
-#if 0 
-   BPatch_function* dyn_func = routine->getDynFunction();
-   if (dyn_func != 0){
-      BPatch_basicBlock* dyn_blk = routine->getBlockFromAddr(b->getStartAddress());
-      MIAMI::DecodedInstruction dInst2;
-      if (dyn_blk != 0){
-         int res1 = InstructionXlate::xlate_dyninst(pc+reloc_offset, b->getEndAddress()-pc,&dInst2,dyn_func,dyn_blk);
-      }
-      else{
-         fprintf(stderr,"Dyninst: no block found starting at addr: 0x%lx\n",b->getStartAddress());
-      }
-   }
-#  endif
 
+   // DynInst-based decoding
 #if 0
-   res = isaXlate_insn(pc+reloc_offset, dInst);
+   BPatch_function* dyn_func = routine->getDynFunction();
+   BPatch_basicBlock* dyn_blk = routine->getBlockFromAddr(b->getStartAddress(), b->getEndAddress());
+   if (!dyn_blk) {
+     fprintf(stderr,"Dyninst: no block found at addr: 0x%lx\n",b->getStartAddress());
+   }
+   
+   MIAMI::DecodedInstruction dInst2;
+   res = InstructionXlate::xlate_dyninst(pc+reloc_offset, b->getEndAddress()-pc, &dInst2, dyn_func, dyn_blk);
+
+   //res = isaXlate_insn_old(pc+reloc_offset, dInst); //FIXME: deprecated
 #endif
+   
+   if (res < 0) { // error while decoding
+      return (res);
+   }
+
    
 #if DECODE_INSTRUCTIONS_IN_PATH
    if (!targetPath || targetPath==pathId)
@@ -523,8 +524,6 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
       DumpInstrList(dInst);
    }
 #endif
-   if (res < 0)  // error while decoding
-      return (res);
       
    // one native instruction can be decoded into multiple micro-ops
    // iterate over them

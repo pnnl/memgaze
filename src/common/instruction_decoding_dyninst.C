@@ -1,9 +1,31 @@
+// -*-Mode: C++;-*-
+
+//*BeginPNNLCopyright********************************************************
+//
+// $HeadURL$
+// $Id$
+//
+//**********************************************************EndPNNLCopyright*
+
+//***************************************************************************
+//
+// Translate ISA Instructions to MIAMI's "internal representation" via
+// DynInst's "internal representation".
+//
+//***************************************************************************
+
+
+//***************************************************************************
+// 
+//***************************************************************************
+
 #include <iostream>
-//----------------MIAMI includes-----------------
 
-//-----------------------------------------------
 
-//---------------DYNINST includes----------------
+//***************************************************************************
+// DynInst
+//***************************************************************************
+
 #include "CFG.h" //parseAPI function,block
 #include "BPatch_basicBlock.h"
 #include "BPatch_function.h"
@@ -11,11 +33,19 @@
 #include "InstructionDecoder.h"
 #include "slicing.h"
 #include "SymEval.h"
-//-----------------------------------------------
+
+
+//***************************************************************************
+// MIAMI
+//***************************************************************************
 
 #include "instruction_decoding_dyninst.h"
 
-int dyninst_decode_instruction_at_pc(void* pc, int len, MIAMI::DecodedInstruction *dInst,  BPatch_function *f, BPatch_basicBlock* blk){
+//***************************************************************************
+
+
+int dyninst_decode_instruction_at_pc(void* pc, int len, MIAMI::DecodedInstruction *dInst,  BPatch_function *f, BPatch_basicBlock* blk)
+{
   instruction_data insn_data;
   insn_data.pc = (Dyninst::Address)pc;
   insn_data.dInst = dInst;

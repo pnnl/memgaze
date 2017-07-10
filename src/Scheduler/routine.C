@@ -71,18 +71,12 @@ Routine::Routine(LoadModule *_img, addrtype _start, usize_t _size,
 
 Routine::~Routine()
 {
-   if (g)
-      delete g;
-   if (rFormulas)
-      delete (rFormulas);
-   if (dyn_addrToBlock)
-      delete dyn_addrToBlock;
-   if (dyn_func)
-      delete dyn_func;
-   // if (dyn_blkNoToAddr)
-   //    delete dyn_blkNoToAddr;
-   if (dyn_addrToBlkNo)
-      delete dyn_addrToBlkNo;
+  delete g;
+  delete rFormulas;
+  delete dyn_addrToBlock;
+  delete dyn_func;
+  // delete dyn_blkNoToAddr;
+  delete dyn_addrToBlkNo;
 }
 
 LoadModule* 
@@ -1487,7 +1481,7 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
       AddrIntSet& memRefs, RefIClassMap& refsClass)
 {
    MIAMI::DecodedInstruction dInst;
-   MIAMI::DecodedInstruction dInst2;
+   MIAMI::DecodedInstruction dInst2;   
    LoadModule *lm = InLoadModule();
    addrtype reloc = lm->RelocationOffset();
    // iterate over variable length instructions. Define an architecture independent API
@@ -1499,31 +1493,29 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
    {
       addrtype pc = iit.Address();
       int res = InstructionXlate::xlate_dbg(pc+reloc, b->getEndAddress()-pc, &dInst, "Routine::decode_instructions_for_block");
-      if (res < 0) { // error while decoding
-         return;
+
+      // DynInst-based decoding
+#if 0
+      BPatch_basicBlock* dyn_blk = getBlockFromAddr(b->getStartAddress(), b->getEndAddress());
+      if (!dyn_blk) {
+	fprintf(stdout,"dyninst: blk not found\n");
       }
 
-// enable for dyninst decoding
-#if 0 
-      if(dyn_func != 0){
-         if(dyn_addrToBlock->count(b->getStartAddress()) != 0){
-            int res1 = InstructionXlate::xlate_dyninst(pc+reloc, b->getEndAddress()-pc,&dInst2,dyn_func,(*dyn_addrToBlock)[b->getStartAddress()]);
-         }
-         else{
-            fprintf(stdout,"dyninst: blk not found\n");
-         }
-         
-      }
+      MIAMI::DecodedInstruction dInst2;
+      res = InstructionXlate::xlate_dyninst(pc+reloc, b->getEndAddress()-pc, &dInst2, dyn_func, dyn_blk);
 #endif
 
-
-#if 0
+#if 0//FIXME: deprecated
       MIAMI::DecodedInstruction* dInst2 = new MIAMI::DecodedInstruction(); // FIXME:tallent memory leak
-      int res1 = isaXlate_insn(pc+reloc, dInst2);
+      int res1 = isaXlate_insn_old(pc+reloc, dInst2);
       if (res1 != 0 || dInst2->micro_ops.size() == 0) {
          std::cout << "Routine::decode_instructions_for_block:error!\n";
       }
 #endif
+
+      if (res < 0) { // error while decoding
+         return;
+      }
 
       // Now iterate over the micro-ops of the decoded instruction
       MIAMI::InstrList::iterator lit = dInst.micro_ops.begin();
@@ -3347,7 +3339,7 @@ void
 Routine::createDyninstFunction() // todo: better error checking
 {
    cout << "createDyninstFunction"<<endl;
-   dyn_func = 0;
+   dyn_func = NULL;
    BPatch_image* dyn_img = InLoadModule()->getDyninstImage();
    std::vector<BPatch_function*> funcs;
    bool found = dyn_img->findFunction(start_addr,funcs);
@@ -3376,7 +3368,7 @@ Routine::createDyninstFunction() // todo: better error checking
 
       dyn_func = funcs[0];
    }
-   if (dyn_func != 0){
+   if (dyn_func != NULL){
 
       Dyninst::ParseAPI::CodeSource* codeSrc = Dyninst::ParseAPI::convert(dyn_func)->obj()->cs();
       BPatch_flowGraph *fg = dyn_func->getCFG();
@@ -3418,7 +3410,7 @@ Routine::getBlockFromAddr(addrtype startAddr,addrtype endAddr){
       return (*dyn_addrToBlock)[addrs];
    }
    else{
-      return 0;
+      return NULL;
    }
 }
 

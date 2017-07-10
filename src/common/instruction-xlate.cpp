@@ -21,9 +21,11 @@
 #include "instruction-xlate.hpp"
 
 #include "instruction_decoding.h"
+
 #if 0
-#include "instruction_decoding_dyninst.h"
+#include "dyninst-insn-xlate.hpp"
 #endif
+
 //***************************************************************************
 // 
 //***************************************************************************
@@ -63,19 +65,6 @@ InstructionXlate::xlate_dbg(unsigned long pc, int len,
   return ret;
 }
 
-#if 0
-int 
-InstructionXlate::xlate_dyninst(unsigned long pc, int len, 
-          MIAMI::DecodedInstruction* dInst, 
-          BPatch_function* f,
-          BPatch_basicBlock* blk){
-
-  void* pc_ptr = (void*)pc;
-
-  int ret = dyninst_decode_instruction_at_pc(pc_ptr,len,dInst,f,blk);
-  DumpInstrList(dInst);
-}
-#endif
 
 int
 InstructionXlate::xlate_dbg(unsigned long pc, int len,
@@ -93,3 +82,24 @@ InstructionXlate::xlate_dbg(unsigned long pc, int len,
 
   return ret;
 }
+
+
+#if 0
+int
+InstructionXlate::xlate_dyninst(unsigned long pc, int len,
+				MIAMI::DecodedInstruction* dInst,
+				BPatch_function* dyn_func,
+				BPatch_basicBlock* dyn_blk)
+{
+  void* pc_ptr = (void*)pc;
+
+  int ret = isaXlate_insn(pc_ptr, len, dInst, dyn_func, dyn_blk);
+  if (ret < 0) { } // error while decoding
+  
+  DumpInstrList(dInst);
+  cerr << "\n";
+  
+  return ret;
+}
+#endif
+
