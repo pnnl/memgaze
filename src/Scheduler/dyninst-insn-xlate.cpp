@@ -370,11 +370,46 @@ void isaXlate_init(const char* progName)
 }
 
 
+int isaXlate_insn(void* pc, int len, MIAMI::DecodedInstruction* dInst,
+		  BPatch_function* dyn_func, BPatch_basicBlock* dyn_blk)
+{
+  Dyninst::ParseAPI::Block* dyn_blk1 = Dyninst::ParseAPI::convert(dyn_blk);
+  insn_myBlock = dyn_blk1; // FIXME
+  
+  if (insn_myBlock) {
+    Dyninst::InstructionAPI::Instruction::Ptr insn;
+    std::vector<Assignment::Ptr> assignments;
+    isaXlate_getDyninstInsn(pc, dyn_func, &assignments, &insn);
+
+    if (!insn) {
+      assert("Cannot find instruction.\n");
+      return 0;
+    }
+
+    insn_numAssignments = assignments.size();
+
+    dynXlate_dumpInsn(insn, assignments, pc);
+    std::cerr << "\n";
+
+    // testing
+    dynXlate_insn(insn, assignments, pc, dInst);
+
+    DumpInstrList(dInst);
+    std::cerr << "\n";
+  }
+  else {
+    return -1;
+  }
+
+  return 0;
+}
+
+
 // tallent: Requires 'Function' and 'Block' context.
 
 // It translate the an instruction's dyninst IR into MIAMI IR and 
 // return the length of the translated instruction to increment the pc.
-int isaXlate_insn(unsigned long pc, MIAMI::DecodedInstruction* dInst)
+int isaXlate_insn_old(unsigned long pc, MIAMI::DecodedInstruction* dInst)
 {
   int f = isaXlate_getFunction(pc); // FIXME: use (Routine*)->[blocks] map
   insn_myBlock = isaXlate_getBlock(f, pc);

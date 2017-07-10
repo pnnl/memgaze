@@ -109,7 +109,9 @@ void dyninst_note_routine(MIAMI::LoadModule* lm, int i);
 
 //void isaXlate_init(const char* prog_name);
 
-int isaXlate_insn(unsigned long  pc, MIAMI::DecodedInstruction* dInst);
+int isaXlate_insn_old(unsigned long  pc, MIAMI::DecodedInstruction* dInst);
+
+int isaXlate_insn(void* pc, MIAMI::DecodedInstruction* dInst);
 
 
 //***************************************************************************
