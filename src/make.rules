@@ -14,6 +14,14 @@ MIAMI_LIBRARY_PATHS = $(BINUTILS_ROOT)/lib:$(BINUTILS_ROOT)/lib64:$(DYNINST_LIB)
 
 #****************************************************************************
 
+#TOOL_LPATHS += -L$(XED_LIB)
+#TOOL_LIBS += -ldl
+SATOOL_LIBS += -Wl,-Bstatic -Wl,-Bdynamic -ldl
+
+COMP_OBJ += -c -o
+LINK_EXE += -o
+
+
 DYNINST_CXXFLAGS = -I$(DYNINST_INC) -I$(BOOST_INC)
 DYNINST_LDFLAGS = \
 	-L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) \
