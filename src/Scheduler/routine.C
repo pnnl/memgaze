@@ -1611,8 +1611,8 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
    CFG::NodeList ba;
    CFG::EdgeList ea;
    RSIListList rl;
-   BMSet& entries = pscope->InnerEntries();
-   BMSet& exits = pscope->InnerExits();
+   //unused BMSet& entries = pscope->InnerEntries();
+   //unused BMSet& exits = pscope->InnerExits();
    PairRSIMap &pathRegs = pscope->PathRegisters ();
    BPMap *bpmtemp = new BPMap();
    LatencyType thisLoopLatency = 0;
@@ -1627,12 +1627,12 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
    const Machine *tmach = 0;
    if (mo->has_mdl)
       tmach = mdriver.targets.front();
-   CFG *cfg = ControlFlowGraph();
+   //unused CFG *cfg = ControlFlowGraph();
 
    vector<int> path;
    split(spath,'>',path);
    MIAMIU::FloatArray fa;
-   for (int i =0; i < path.size(); i++){
+   for (unsigned int i = 0; i < path.size(); i++) {
       CFG::Node* blk = (CFG::Node*)(*dyn_blkNoToMiamiBlk)[path[i]];
       ba.push_back(blk);
       fa.push_back(1.0);
@@ -3354,11 +3354,11 @@ Routine::createDyninstFunction() // todo: better error checking
       }
       else {
          fprintf(stderr, "Multiple dyninst functions for %s 0x%lx found: \n",name.c_str(),start_addr);
-         for (int i=0;i<funcs.size();i++){
-            fprintf(stderr,"%s 0x%lx\n",funcs[i]->getMangledName().c_str(),funcs[i]->getBaseAddr());
+         for (unsigned int i = 0; i < funcs.size(); i++) {
+            fprintf(stderr,"%s 0x%p\n",funcs[i]->getMangledName().c_str(),funcs[i]->getBaseAddr());
             if(funcs[i]->getMangledName().compare(name) == 0 && funcs[i]->getBaseAddr() == (void*)start_addr){
                dyn_func = funcs[i];
-               fprintf(stderr,"%s matched with address 0x%lx\n",funcs[i]->getMangledName().c_str(),funcs[i]->getBaseAddr());
+               fprintf(stderr,"%s matched with address 0x%p\n",funcs[i]->getMangledName().c_str(),funcs[i]->getBaseAddr());
                break;
             }
          }
