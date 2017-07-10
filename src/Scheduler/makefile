@@ -130,7 +130,9 @@ $(TOOLS): $(OBJS) $(MAIN_PIN_OBJS)
 $(SO_TOOLS): $(OBJS) $(SOMAIN_OBJS)
 	$(LINKER) -v $(TOOL_LDFLAGS) $(LINK_DEBUG) $(LINK_EXE)$@ $(OBJS) $(SOMAIN_OBJS) \
 	-Wl,-Bstatic $(DYNINST_LDFLAGS) \
-	$(TOOL_LPATHS) $(TOOL_LIBS) $(DBG) -lxed -lstdc++ \
+	$(TOOL_LPATHS) $(TOOL_LIBS) $(DBG) \
+	$(XED_LDFLAGS) \
+	-lstdc++ \
 	-Wl,--as-needed $(BINUTILS_LDFLAGS) \
 
 
@@ -145,8 +147,10 @@ $(SO_TOOLS): $(OBJS) $(SOMAIN_OBJS)
 # find static versions of the libraries, even if dynamic ones are available. 
 $(SA_TOOLS) : $(OBJS) $(SAMAIN_OBJS)
 	$(LINKER) -v $(SATOOL_LDFLAGS) $(LINK_DEBUG) $(LINK_EXE)$@ $(OBJS) $(SAMAIN_OBJS) \
-    -Wl,$(DYNINST_LDFLAGS)  \
-	$(TOOL_LPATHS) $(DBG) -lxed -lstdc++ \
+	-Wl,$(DYNINST_LDFLAGS)  \
+	$(TOOL_LPATHS) $(DBG) \
+	$(XED_LDFLAGS) \
+	-lstdc++ \
 	-Wl,-Bstatic $(BINUTILS_LDFLAGS) \
 	-Wl,--as-needed -Wl,-Bdynamic -lm -lz $(SATOOL_LIBS)
 
@@ -157,7 +161,8 @@ $(SA_WRAPPER) : $(SA_TOOLS)
 
 $(OPT_TOOLS): %$(PINTOOL_SUFFIX) : $(OPT_OBJS)
 	$(LINKER) -v $(TOOL_LDFLAGS) $(LINK_DEBUG) $(LINK_EXE)$@ $(OPT_OBJS) \
-    -Wl,$(DYNINST_LDFLAGS) \
+	-Wl,$(DYNINST_LDFLAGS) \
 	$(TOOL_LPATHS) $(TOOL_LIBS) $(DBG) \
-	-lxed -lstdc++ \
+	$(XED_LDFLAGS) \
+	-lstdc++ \
 	$(BINUTILS_LDFLAGS)
