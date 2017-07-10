@@ -44,7 +44,11 @@ MemLevelData::addRGToSet (ReuseGroup* _rg, unsigned int _setIdx)
 
 PathInfo::PathInfo (uint64_t i1) : count(i1)
 {
-   latency = 0; 
+   latency = 0;
+//ozgurS 
+   cpulatency = 0; 
+   memlatency = 0; 
+//ozgurE
    timeStats.getData().clear();
    unitUsage.getData().clear();
 }
