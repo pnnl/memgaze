@@ -12,13 +12,7 @@ TARGET_OS = linux
 
 MIAMI_LIBRARY_PATHS = $(BINUTILS_ROOT)/lib:$(BINUTILS_ROOT)/lib64:$(DYNINST_LIB):$(XED_LIB)
 
-BINUTILS_CFLAGS = -I$(BINUTILS_ROOT)/include
-BINUTILS_LDFLAGS = \
-	-L$(BINUTILS_ROOT)/lib -L$(BINUTILS_ROOT)/lib64 \
-	-lbfd -liberty 
-
-XED_CXXFLAGS = -I$(XED_INC)
-XED_LDFLAGS = -L$(XED_LIB)
+#****************************************************************************
 
 DYNINST_CXXFLAGS = -I$(DYNINST_INC) -I$(BOOST_INC)
 DYNINST_LDFLAGS = \
@@ -33,6 +27,18 @@ DYNINST_LDFLAGS = \
 	-ldynElf \
 	-ldynDwarf \
 	-lcommon
+
+XED_CXXFLAGS = -I$(XED_INC)
+XED_LDFLAGS = \
+	-L$(XED_LIB) -Wl,-rpath $(XED_LIB) \
+	-lxed
+
+BINUTILS_CFLAGS = -I$(BINUTILS_ROOT)/include
+BINUTILS_LDFLAGS = \
+	-L$(BINUTILS_ROOT)/lib -L$(BINUTILS_ROOT)/lib64 \
+	-lbfd -liberty
+
+#****************************************************************************
 
 TARGET_COMPILER?=gnu
 
