@@ -736,7 +736,7 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
    cout<<"dyninstAnalyzeRoutine"<<endl;
    std::vector<BPatch_function*> tfunctions;
    dyn_image->findFunction(routName.c_str(), tfunctions,false,true,false);
-   for(int f = 0;f<tfunctions.size();f++){ //search for inlined functions (possibly do special analysis in inlined function found)
+   for(unsigned int f = 0; f < tfunctions.size(); f++) { //search for inlined functions (possibly do special analysis in inlined function found)
       cout<<tfunctions[f]->getName()<<" "<<tfunctions[f]->getMangledName()<<" inst: "<<tfunctions[f]->isInstrumentable()<<" "<<(unsigned int*)tfunctions[f]->getBaseAddr()<<std::endl;
       BPatch_flowGraph *fg =tfunctions[f]->getCFG();
       std::set<BPatch_basicBlock*> blks;
@@ -806,7 +806,7 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
    }
       
    delete (rout);
-
+   return 0;
 }
 
 double LoadModule::getMemLoadLatency(addrtype insn){
