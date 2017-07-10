@@ -61,7 +61,12 @@ public:
   void trimFat ();
   
 //  PathInfo& operator= (const PathInfo& uip);
-
+/*
+ * ozgurS adding memlatency and cpulatency
+ */
+  LatencyType memlatency;
+  LatencyType cpulatency;
+ //ozgurE 
   uint64_t count;
   LatencyType latency;
   PathID pathId;

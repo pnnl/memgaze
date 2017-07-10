@@ -1624,6 +1624,10 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
    PairRSIMap &pathRegs = pscope->PathRegisters ();
    BPMap *bpmtemp = new BPMap();
    LatencyType thisLoopLatency = 0;
+//ozgurS   
+   float thisLoopMemoryLatency = 0.0;
+   float thisLoopCPULatency = 0.0;
+//ozgurE
    uint64_t thisLoopUops = 0;
    double thisLoopMemLatency = 0;
 //   LatencyType thisLoopInef = 0;
@@ -1724,6 +1728,9 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
 #endif
 
          bpit->second->latency = 1;
+//ozgurS
+         bpit->second->cpulatency = 1;
+//ozgurE
          bpit->second->num_uops = 1;
          
          if (mo->do_scheduling)
@@ -1731,9 +1738,14 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
             sch->updateGraphForMachine (tmach);
             // compute the scheduling, return a pair containing the latency and the number
             // of micro-ops in the path; we can compute IPCs and CPIs from this;
-            MIAMI_DG::schedule_result_t res = sch->computeScheduleLatency(0 /* args.graph_level */,
-                     mo->DetailedMetrics());
-
+//ozgurS comment out old computeScheduleLatency and use myComputeScheduleLatency 
+//            MIAMI_DG::schedule_result_t res = sch->computeScheduleLatency(0 /* args.graph_level */,
+//                     mo->DetailedMetrics());
+//
+            MIAMI_DG::schedule_result_t res = sch->myComputeScheduleLatency(0,mo->DetailedMetrics(), thisLoopMemoryLatency,thisLoopCPULatency);
+            bpit->second->cpulatency = thisLoopCPULatency;
+            bpit->second->memlatency = thisLoopMemoryLatency;
+//ozgurE
             bpit->second->latency = res.first;
             bpit->second->num_uops = res.second;
 
@@ -1914,6 +1926,9 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
 
          std::cout<<"PALM: path lat: "<<bpit->second->latency<<" path uops: "<<bpit->second->num_uops<<" path count: "<<bpit->second->count<<" "<<bpit->second->serialMemLat<<" "<<bpit->second->exposedMemLat<<std::endl;
          thisLoopLatency += (bpit->second->count)*(bpit->second->latency);
+//ozgurS
+//TODO ask about bit->second->count
+//ozgurE
          thisLoopUops += (bpit->second->count)*(bpit->second->num_uops);
          thisLoopMemLatency += memLat;
       }  // if do_build_dg
@@ -1931,7 +1946,7 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
    }
 
    pscope->Paths() = bpmtemp;
-   std::cout <<"lat: "<< thisLoopLatency << " numuops: "<<thisLoopUops<<" memLat: "<<thisLoopMemLatency<<std::endl;
+   std::cout <<"lat: "<< thisLoopLatency << " numuops: "<<thisLoopUops<<" memLat: "<<thisLoopMemLatency<<" memoryLatency: "<<thisLoopMemoryLatency<<" cpuLatency: "<<thisLoopCPULatency<<std::endl;
    pscope->Latency() = thisLoopLatency;
    pscope->NumUops() = thisLoopUops;
 

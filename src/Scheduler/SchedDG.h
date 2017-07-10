@@ -119,6 +119,15 @@ namespace MIAMI_DG
 //#define DG_LOOP_ENTRY_TYPE  -3
 
 typedef std::pair<int, uint32_t> schedule_result_t;
+//ozgurS
+   struct retValues
+   {
+     int ret;
+     int memret;
+     int cpuret;
+   };
+//ozgurE
+
 
 class PatternFoundException
 {
@@ -498,6 +507,12 @@ public:
        pathFromRoot = 0;
        edgesFromRoot = 0;
        pathToLeaf = 0;
+//ozgurS
+       longestCycleMem = 0;
+       longestCycleCPU = 0;
+       pathToLeafCPU = 0;
+       pathToLeafMem = 0;
+//ozgurE
        edgesToLeaf = 0;
 #if USE_SCC_PATHS
        sccPathFromRoot = 0;
@@ -510,9 +525,13 @@ public:
        pathToCycle = 0;
        edgesToCycle = 0;
        pathFromEntry = 0;
+       pathFromEntryCPU = 0;//ozgurS
+       pathFromEntryMem = 0;//ozgurE
        edgesFromEntry = 0;
        distFromEntry = 0;
        pathToExit = 0;
+       pathToExitCPU = 0;//ozgurS
+       pathToExitMem = 0;//ozgurE
        edgesToExit = 0;
        distToExit = 0;
        edgesDownstream = 0;
@@ -540,6 +559,9 @@ public:
     int computeSccPathToLeaf (unsigned int marker, int sccId);
     int computeSccPathFromRoot (unsigned int marker, int sccId);
 #endif
+//ozgurS
+    retValues myComputePathToLeaf (unsigned int marker, bool manyBarriers, DisjointSet *dsi, float &memLatency, float &cpuLatency );
+//ozgurE
     int computePathToLeaf (unsigned int marker, bool manyBarriers, 
                   DisjointSet *ds);
     int computePathFromRoot (unsigned int marker, bool manyBarriers, 
@@ -554,7 +576,6 @@ public:
     SchedDG* _in_cfg;
     int _level;
     int hasCycles;
-
     unsigned int _visited;
     unsigned int tempVal;
     // track registers used by an instruction. We do not really differentiate
@@ -606,6 +627,12 @@ public:
     int pathFromRoot;
     int edgesFromRoot;
     int pathToLeaf;
+//ozgurS
+    int longestCycleMem;
+    int longestCycleCPU;
+    int pathToLeafCPU;
+    int pathToLeafMem;
+//ozgurE
     int edgesToLeaf;
 #if USE_SCC_PATHS
     int sccPathFromRoot;
@@ -619,9 +646,17 @@ public:
     int pathToCycle;
     int edgesToCycle;
     int pathFromEntry;
+//ozgurS
+    int pathFromEntryCPU;
+    int pathFromEntryMem;
+//ozgurE
     int edgesFromEntry;
     int distFromEntry;
     int pathToExit;
+//ozgurS
+    int pathToExitCPU;
+    int pathToExitMem;
+//ozgurE
     int edgesToExit;
     int distToExit;
     
@@ -753,6 +788,32 @@ public:
        else
           return (realLatency);
     }
+/*
+ * ozgurS
+ * adding getMemLatency, getCPULatency, getActualMemLatency and getActualCPULatency 
+ * function to return new variables
+ */ 
+    int getMemLatency() const  { return (minMemLatency); }
+    int getActualMemLatency() const
+    {
+       if (realMemLatency == NO_LATENCY)
+          return (minMemLatency);
+       else
+          return (realMemLatency);
+    }
+
+    int getCPULatency() const  { return (minCPULatency); }
+    int getActualCPULatency() const
+    {
+       if (realCPULatency == NO_LATENCY)
+          return (minCPULatency);
+       else
+          return (realCPULatency);
+    }
+/*
+ * ozgurE
+ */
+
     float getProbability() const   { return (_prob); }
     void computeLatency(const Machine* _mach, addrtype reloc,SchedDG* sdg);
     inline bool HasLatency() const { return (_flags & LATENCY_COMPUTED_EDGE); }
@@ -767,7 +828,13 @@ public:
        _flags = _flags & (~SCHEDULE_DONE_EDGE);
        usedSlack = 0; prioTimeStamp = 0;
        if ( !(_flags & HAS_BYPASS_RULE_EDGE) )
+       {
           realLatency = NO_LATENCY;
+//ozgurS
+          realMemLatency = NO_LATENCY;
+          realCPULatency = NO_LATENCY;
+//ozgurE
+       }
     }
     bool isScheduled () const { return (_flags & SCHEDULE_DONE_EDGE); }
     void markScheduled ()     { _flags = (_flags | SCHEDULE_DONE_EDGE); }
@@ -791,6 +858,19 @@ public:
     int _flags;
     int minLatency;
     int realLatency;
+/*
+ * ozgurS adding minMemLatency, minCPULatency , realMemLatency and realCPULatency
+ */
+    int minMemLatency;
+    int minCPULatency;
+    int realMemLatency;
+    int realCPULatency;
+    int longestCycleMem;
+    int longestCycleCPU;
+/*
+ * ozgurE
+ */
+
 
     float resourceScore;
     int longestCycle;
@@ -1133,6 +1213,13 @@ public:
       // is called. If latency info is constructed, it just returns it.
       int getLatency();     // returns latency per iteration
       int getRawLatency();  // returns total cycle length
+//ozgurS      
+      int getMemLatency();     // returns mem latency per iteration
+      int getRawMemLatency();  // returns mem total cycle length
+      int getCPULatency();     // returns cpu latency per iteration
+      int getRawCPULatency();  // returns cpu total cycle length
+
+//ozgurE
 
       int getNumEdges() const { return (numEdges); }
       
@@ -1215,8 +1302,6 @@ public:
    Edge* addUniqueDependency(Node* n1, Node* n2, int _ddirection, 
             int _dtype, int _ddistance, int _dlevel, int _overlapped,
             float _execProb=1.0 );
-
-
    const char* name() const { return routine_name; }
 
    // use arguments of type DGraph::Edge* and DGraph::Node*, to avoid the
@@ -1260,7 +1345,9 @@ public:
    Node* CfgBottom() { return (cfg_bottom); }
 
    schedule_result_t computeScheduleLatency (int graph_level, int detailed);
-
+//ozgurS   
+   schedule_result_t myComputeScheduleLatency (int graph_level, int detailed, float &memLatency, float &cpuLatency);
+//ozgurE
    void draw_min (ostream& os, const char* name, DependencyFilterType f);
    void draw_debug_min_graphics (const char* prefix);
    void draw_debug_graphics (const char* prefix, bool draw_reg_only = false,
@@ -1350,6 +1437,9 @@ private:
    int minSchedulingLengthDueToResources(int& bottleneckUnit, 
              unsigned int marker, Edge *superE, double& vecBound, int& vecUnit);
    int minSchedulingLengthDueToDependencies();
+//ozgurS
+   retValues  myMinSchedulingLengthDueToDependencies(float &memLatency, float &cpuLatency);
+//ozgurE
    void markLoopBoilerplateNodes();
    
    bool create_schedule_main(int& unit, Node* &fNode, Edge* &fEdge, 
@@ -1438,6 +1528,10 @@ private:
    NodeList barrierNodes;
    int maxPathRootToLeaf;
    int longestCycle;
+//ozgurS
+   int longestCycleMem;
+   int longestCycleCPU;
+//ozgurE    
    bool resourceLimited;
    bool heavyOnResources;
    float resourceLimitedScore;
@@ -1482,6 +1576,12 @@ protected:
    PathID pathId;
    addrtype reloc_offset;
    int schedule_length;
+//ozgurS
+   int carryCPULatency;
+   int carryMemLatency;
+   int schedule_lengthCPU;
+   int schedule_lengthMem;
+//ozgurE
    int num_instructions;  // count distinct instructions, not micro-ops; must be done at decode time
    unsigned int cfgFlags;
    uint64_t pathFreq;

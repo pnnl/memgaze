@@ -185,6 +185,10 @@ SchedDG::SchedDG (const char* func_name, PathID &_pathId,
   cfgFlags = 0;
   maxPathRootToLeaf = 0;
   longestCycle = 1;
+//ozgurS   
+  int longestCycleMem;
+  int longestCycleCPU;
+//ozgurE
   nextScheduleId = 1;
   maximumGraphLevel = 0;
   heavyOnResources = false;
@@ -596,6 +600,18 @@ SchedDG::Edge::Edge (SchedDG::Node* n1, SchedDG::Node* n2,
   id = n1->in_cfg()->nextEdgeId++;
   minLatency = 1;  // initialize all edges with a default latency
   realLatency = NO_LATENCY;
+  /*
+ * ozgurS
+ * initialization of new variables
+ */
+  minMemLatency = 1;  // initialize all edges with a default latency
+  realMemLatency = NO_LATENCY;
+  minCPULatency = 1;  // initialize all edges with a default latency
+  realCPULatency = NO_LATENCY;
+  longestCycleMem = 0;
+  longestCycleCPU = 0;
+
+//ozgurE
   _flags = 0;
   resourceScore = 0;
   longestCycle = 0;
@@ -2158,7 +2174,9 @@ SchedDG::recursive_buildSuperStructures (int crtIdx, Node **sEntry,
       int maxPathToExit = 0, maxEdgesToExit = 0, itersToExit = 0;
       int maxPathFromEntry = 0, maxEdgesFromEntry = 0, itersFromEntry = 0;
       bool add_edge = true;
-
+//ozgurS
+      int maxPathFromEntryCPU = 0, maxPathFromEntryMem = 0, maxPathToExitCPU = 0, maxPathToExitMem = 0;
+//ozgurE
 //      bool segmE_is_new = false;
       Edge *segmE = sEntry[i]->findOutgoingEdge (sExit[i], OUTPUT_DEPENDENCY,
              SUPER_EDGE_TYPE, ANY_DEPENDENCE_DISTANCE, ANY_DEPENDENCE_LEVEL);
@@ -2218,11 +2236,23 @@ SchedDG::recursive_buildSuperStructures (int crtIdx, Node **sEntry,
 //            ee->MarkInvisible (i);
             if (res >= 0)
             {
+/*
+ * ozgurS
+ * adding new vars and functions
+ */
+
+               int memlat = ee->getMemLatency();
+               int cpulat = ee->getCPULatency();
+//ozgurE
                int lat = ee->getLatency();
                int dist = ee->getDistance();
                int edges = 1;
                if (res > 0)
                {
+//ozgurS
+                  memlat += nsink->pathToExitMem;
+                  cpulat += nsink->pathToExitCPU;
+//ozgurE
                   lat += nsink->pathToExit;
                   dist += nsink->distToExit;
                   edges += nsink->edgesToExit;
@@ -2254,12 +2284,20 @@ SchedDG::recursive_buildSuperStructures (int crtIdx, Node **sEntry,
                if (maxEdgesToExit==0)
                {
                   itersToExit = dist;
+//ozgurS
+                  maxPathToExitCPU = cpulat;
+                  maxPathToExitMem = memlat;
+//ozgurE
                   maxPathToExit = lat;
                   maxEdgesToExit = edges;
                } else if (maxPathToExit<lat)
                {
-                  maxPathToExit = lat;
-                  maxEdgesToExit = edges;
+//ozgurS
+                 maxPathToExitCPU = cpulat;
+                 maxPathToExitMem = memlat;
+//ozgurE
+                 maxPathToExit = lat;
+                 maxEdgesToExit = edges;
                }
                finishedEdges.push_back (ee);
             }
@@ -2302,11 +2340,23 @@ SchedDG::recursive_buildSuperStructures (int crtIdx, Node **sEntry,
             ee->MarkInvisible (i);
             if (res >= 0)
             {
+/*
+ * ozgurS
+ * adding new vars and functions
+ */
+
+               int memlat = ee->getMemLatency();
+               int cpulat = ee->getCPULatency();
+//ozgurE
                int lat = ee->getLatency();
                int dist = ee->getDistance();
                int edges = 1;
                if (res > 0)
                {
+//ozgurS
+                  cpulat += nsrc->pathFromEntryCPU;
+                  memlat += nsrc->pathFromEntryMem;
+//ozgurE
                   lat += nsrc->pathFromEntry;
                   dist += nsrc->distFromEntry;
                   edges += nsrc->edgesFromEntry;
@@ -2328,12 +2378,20 @@ SchedDG::recursive_buildSuperStructures (int crtIdx, Node **sEntry,
                if (maxEdgesFromEntry==0)
                {
                   itersFromEntry = dist;
+//ozgurS
+                  maxPathFromEntryCPU = cpulat;
+                  maxPathFromEntryMem = memlat;
+//ozgurE
                   maxPathFromEntry = lat;
                   maxEdgesFromEntry = edges;
                } else if (maxPathFromEntry<lat)
                {
-                  maxPathFromEntry = lat;
-                  maxEdgesFromEntry = edges;
+//ozgurS
+                 maxPathFromEntryCPU = cpulat;
+                 maxPathFromEntryMem = memlat;
+//ozgurE
+                 maxPathFromEntry = lat;
+                 maxEdgesFromEntry = edges;
                }
             }
          }
@@ -2354,7 +2412,16 @@ SchedDG::recursive_buildSuperStructures (int crtIdx, Node **sEntry,
       // must update super-edge with the longest path info
       segmE->minLatency = maxPathToExit;
       segmE->realLatency = maxPathToExit;
-      
+     /*
+ * ozgurS
+ * adding new CPU latencies for maxPathtoExit
+ */
+      segmE->minCPULatency = maxPathToExitCPU;
+      segmE->realCPULatency = maxPathToExitCPU;
+      segmE->minMemLatency = maxPathToExitMem;
+      segmE->realMemLatency = maxPathToExitMem;
+     
+//ozgurE
       // must update super-edge with correct distance
       assert (itersToExit == itersFromEntry);
       if (itersFromEntry)
@@ -2667,6 +2734,9 @@ SchedDG::findLongestPathToExit (Node* node, unsigned int m, unsigned int m2,
    assert (node->structureId == sId);
    node->visit(m);
    int pathLatency = 0, numEdges = 0, numIters = 0;
+//ozgurS
+   int pathLatencyMem = 0, pathLatencyCPU = 0;
+//ozgurE
    EdgeList finishedEdges;  // keep a list of edges already traversed
                             // at this level, in case we need to lower dist
    
@@ -2698,11 +2768,19 @@ SchedDG::findLongestPathToExit (Node* node, unsigned int m, unsigned int m2,
    //         ee->MarkInvisible (sId);
             if (res >= 0)
             {
+//ozgurS
+               int cpulat = ee->getCPULatency();
+               int memlat = ee->getMemLatency();
+//ozgurE
                int lat = ee->getLatency();
                int dist = ee->getDistance();
                int edges = 1;
                if (res > 0)
                {
+//ozgurS
+                  cpulat += nsink->pathToExitCPU;
+                  memlat += nsink->pathToExitMem;
+//ozgurE
                   lat += nsink->pathToExit;
                   dist += nsink->distToExit;
                   edges += nsink->edgesToExit;
@@ -2747,11 +2825,19 @@ SchedDG::findLongestPathToExit (Node* node, unsigned int m, unsigned int m2,
                if (numEdges==0)
                {
                   numIters = dist;
+//ozgurS
+                  pathLatencyCPU = cpulat;
+                  pathLatencyMem = memlat;
+//ozgurE
                   pathLatency = lat;
                   numEdges = edges;
                } else if (pathLatency<lat)
                {
-                  pathLatency = lat;
+//ozgurS
+                 pathLatencyCPU = cpulat;
+                 pathLatencyMem = memlat;
+//ozgurE
+                 pathLatency = lat;
                   numEdges = edges;
                } else if (pathLatency==lat && numEdges<edges)
                {
@@ -2765,6 +2851,10 @@ SchedDG::findLongestPathToExit (Node* node, unsigned int m, unsigned int m2,
    }
    // unmark the node when returning from recurrence
    node->visit(m2);
+//ozgurS
+   node->pathToExitCPU = pathLatencyCPU;
+   node->pathToExitMem = pathLatencyMem;
+//ozgurE
    node->pathToExit = pathLatency;
    node->distToExit = numIters;
    node->edgesToExit = numEdges;
@@ -2819,7 +2909,9 @@ SchedDG::findLongestPathFromEntry (Node* node, unsigned int m, unsigned int m2,
    assert (node->structureId == sId);
    node->visit(m);
    int pathLatency = 0, numEdges = 0, numIters = 0;
-   
+   //ozgurS
+   int pathLatencyCPU = 0, pathLatencyMem = 0;
+   //ozgurE
    IncomingEdgesIterator ieit(node);
    while ((bool)ieit)
    {
@@ -2850,11 +2942,17 @@ SchedDG::findLongestPathFromEntry (Node* node, unsigned int m, unsigned int m2,
             ee->MarkInvisible (sId);
             if (res >= 0)
             {
+//ozgurS
+               int memlat = ee->getMemLatency();
+               int cpulat = ee->getCPULatency();
+//ozgurE
                int lat = ee->getLatency();
                int dist = ee->getDistance();
                int edges = 1;
                if (res > 0)
                {
+                  memlat += nsrc->pathFromEntryMem;//ozgurS
+                  cpulat += nsrc->pathFromEntryCPU;//ozgurE
                   lat += nsrc->pathFromEntry;
                   dist += nsrc->distFromEntry;
                   edges += nsrc->edgesFromEntry;
@@ -2876,10 +2974,18 @@ SchedDG::findLongestPathFromEntry (Node* node, unsigned int m, unsigned int m2,
                if (numEdges==0)
                {
                   numIters = dist;
+//ozgurS
+                  pathLatencyCPU = cpulat;
+                  pathLatencyMem = memlat;
+//ozgurE
                   pathLatency = lat;
                   numEdges = edges;
                } else if (pathLatency<lat)
                {
+//ozgurS
+                  pathLatencyCPU = cpulat;
+                  pathLatencyMem = memlat;
+//ozgurE
                   pathLatency = lat;
                   numEdges = edges;
                } else if (pathLatency==lat && numEdges<edges)
@@ -2893,6 +2999,10 @@ SchedDG::findLongestPathFromEntry (Node* node, unsigned int m, unsigned int m2,
    }
    // mark the node as complete when returning from recurrence
    node->visit(m2);
+//ozgurS
+   node->pathFromEntryCPU = pathLatencyCPU;
+   node->pathFromEntryMem = pathLatencyMem;
+//ozgurE
    node->pathFromEntry = pathLatency;
    node->distFromEntry = numIters;
    node->edgesFromEntry = numEdges;
@@ -3139,6 +3249,10 @@ SchedDG::updateLongestCycleOfSubEdges (Edge *supE, int cycLen)
       }
 #endif
       int thisCyc = cycLen - supE->getLatency() + ee->longestStructPath;
+      //ozgurS 
+      int thisCycMem = supE->getMemLatency();
+      int thisCycCPU = supE->getCPULatency();
+//ozgurE
 #if VERBOSE_DEBUG_SCHEDULER
       DEBUG_SCHED (6, 
          cerr << "updateLongestCycleOfSubEdges for edge " << *ee 
@@ -3858,23 +3972,37 @@ SchedDG::findDependencyCycles()
             // update cycle length info for each node
 
             int thisCyc = cycles[i]->getLatency();
+//ozgurS
+            int thisCycMem = cycles[i]->getMemLatency();
+            int thisCycCPU = cycles[i]->getCPULatency();
+//ozgurE
 #if VERBOSE_DEBUG_PALM
       DEBUG_PALM(1,
       cout << __func__ <<" "<<thisCyc<<" "<<i<<endl;
             )
 #endif
             if (longestCycle<thisCyc)
+            {
                longestCycle = thisCyc;
+               longestCycleMem = thisCycMem;//ozgurS
+               longestCycleCPU = thisCycCPU;//ozgurE
+            }
             EdgeList::iterator eit = cycles[i]->edges->begin();
             for( ; eit!=cycles[i]->edges->end() ; ++eit )
             {
                Node *nn = (*eit)->source();
                if (nn->longestCycle < thisCyc)
+               {
                   nn->longestCycle = thisCyc;
+                  nn->longestCycleMem = thisCycMem;//ozgurS
+                  nn->longestCycleCPU = thisCycCPU;//ozgurE
+               }
                nn->sumAllCycles += thisCyc;
                if ((*eit)->longestCycle < thisCyc)
                {
                   (*eit)->longestCycle = thisCyc;
+                  (*eit)->longestCycleMem = thisCycMem;//ozgurS
+                  (*eit)->longestCycleCPU = thisCycCPU;//ozgurE
                   if ((*eit)->isSuperEdge ())
                      updateLongestCycleOfSubEdges (*eit, thisCyc);
                }
@@ -4435,6 +4563,85 @@ SchedDG::Cycle::~Cycle()
    delete edges;
    _flags = 0;
 }
+//ozgurS
+//adding getmem/cpu latency for cycle
+//
+int
+SchedDG::Cycle::getRawMemLatency()
+{
+   if (_flags & LATENCY_COMPUTED_CYCLE)
+      return (cLength);
+   // otherwise attempt to compute the latency
+   cLength = 0;
+   bool hasLat = true;
+   EdgeList::iterator eit = edges->begin();
+   for( ; eit!=edges->end() ; ++eit )
+   {
+      cLength += (*eit)->getMemLatency();
+      if (! (*eit)->HasLatency())
+         hasLat = false;
+   }
+   if (hasLat)
+      _flags |= LATENCY_COMPUTED_CYCLE;
+   else
+   {
+#if VERBOSE_DEBUG_SCHEDULER
+      DEBUG_SCHED (1, 
+         fprintf (stderr, "WARNING: SchedDG::Cycle::getLatency: required to compute cycle latency, but not all edges have latency information.\n");
+      )
+#endif
+   }
+   return (cLength);
+}
+
+int
+SchedDG::Cycle::getMemLatency()
+{
+   if (_flags & LATENCY_COMPUTED_CYCLE)
+      return (iterLength);
+   float ilen = (float)getRawLatency() * revIters;
+   iterLength = (unsigned int)(ceil(ilen)+0.00001);
+   return (iterLength);
+}
+
+int
+SchedDG::Cycle::getRawCPULatency()
+{
+   if (_flags & LATENCY_COMPUTED_CYCLE)
+      return (cLength);
+   // otherwise attempt to compute the latency
+   cLength = 0;
+   bool hasLat = true;
+   EdgeList::iterator eit = edges->begin();
+   for( ; eit!=edges->end() ; ++eit )
+   {
+      cLength += (*eit)->getCPULatency();
+      if (! (*eit)->HasLatency())
+         hasLat = false;
+   }
+   if (hasLat)
+      _flags |= LATENCY_COMPUTED_CYCLE;
+   else
+   {
+#if VERBOSE_DEBUG_SCHEDULER
+      DEBUG_SCHED (1, 
+         fprintf (stderr, "WARNING: SchedDG::Cycle::getLatency: required to compute cycle latency, but not all edges have latency information.\n");
+      )
+#endif
+   }
+   return (cLength);
+}
+
+int
+SchedDG::Cycle::getCPULatency()
+{
+   if (_flags & LATENCY_COMPUTED_CYCLE)
+      return (iterLength);
+   float ilen = (float)getRawLatency() * revIters;
+   iterLength = (unsigned int)(ceil(ilen)+0.00001);
+   return (iterLength);
+}
+//ozgurE
 
 int
 SchedDG::Cycle::getRawLatency()
@@ -4850,6 +5057,9 @@ SchedDG::Edge::computeLatency(const Machine *_mach, addrtype reloc, SchedDG* sdg
       // has bypass latency defined
       _flags |= HAS_BYPASS_RULE_EDGE;
       minLatency = realLatency = rez;
+//ozgurS 
+      minCPULatency = realCPULatency = rez;
+//ozgurE
    } 
    else
    {
@@ -4868,10 +5078,19 @@ SchedDG::Edge::computeLatency(const Machine *_mach, addrtype reloc, SchedDG* sdg
             minLatency = 1;  // we want a minimum latency of 1 such that the
                              // inner loop does not overlap with any instruct.
       }
+//ozgurS
+      minCPULatency = minLatency;
+//ozgurE
    }
    if (source()->getAddress() != sink()->getAddress()){ //because a single instruction can be represented by multipl uops, only apply addition load latency when transitioning to a new instruction
     minLatency += sdg->img->getMemLoadLatency(source()->getAddress());
+//ozgurS
+    minMemLatency = sdg->img->getMemLoadLatency(source()->getAddress());  
+//ozgurE
    }
+//ozgurS
+    cout << "ozgur: MemLat: "<<minMemLatency<<" minLat: "<<minLatency<<endl;
+//ozgurE
 #if VERBOSE_DEBUG_PALM
       DEBUG_PALM(1,
       cout << __func__ << " "  <<"insn: "<<(unsigned int*)source()->getAddress()<<"->" <<(unsigned int*)sink()->getAddress() << " minlatency: "<<minLatency<<endl;
@@ -4892,7 +5111,9 @@ SchedDG::computeEdgeLatencies()
    // I need a method in the Instruction class to return the latency given
    // a consumer instruction. I can test there for special cases when an
    // instruction creates inequal length latencies depending on the consumer.
-
+ 
+//ozgurDELETETHIS
+   cout<<"Ozgur:  "<<__func__<<" this func called"<<endl; 
    EdgesIterator eit(*this);
    while ((bool)eit)
    {
@@ -8268,6 +8489,14 @@ SchedDG::processIncidentEdges (Node *newNode, int templIdx, int i, int unit)
                        srcIC,
                        tempE->sink()->makeIClass(), 
                        templIdx) + img->getMemLoadLatency(newNode->getAddress());
+//ozgurS
+            tempE->realCPULatency = mach->computeLatency (
+                       newNode->getAddress(), 
+                       reloc_offset,
+                       srcIC,
+                       tempE->sink()->makeIClass(), 
+                       templIdx) + img->getMemLoadLatency(newNode->getAddress());
+//ozgurE
 #if VERBOSE_DEBUG_PALM
       DEBUG_PALM(1,
       cout <<__func__<<" "<<(unsigned int*)newNode->getAddress()<<" lat: "<<tempE->realLatency<<endl;
@@ -8277,11 +8506,21 @@ SchedDG::processIncidentEdges (Node *newNode, int templIdx, int i, int unit)
                      || tempE->dtype==ADDR_REGISTER_TYPE))
             {
                if (tempE->realLatency > tempE->overlapped)
+               {
                   tempE->realLatency -= tempE->overlapped;
+//ozgurS
+                  tempE->realCPULatency -= tempE->overlapped;
+//ozgurE
+               } 
                else
+               {
                   // we want a minimum latency of 1 such that the
                   // inner loop does not overlap with any instruct.
-                  tempE->realLatency = 1;               
+                  tempE->realLatency = 1; 
+//ozgurS              
+                  tempE->realCPULatency = 1;               
+//ozgurE
+               }
             }
          }
          newEdges.push_back (tempE);
@@ -10020,6 +10259,455 @@ SchedDG::computeScheduleLatency(int graph_level, int detailed)
    return (schedule_result_t(schedule_length, nextScheduleId-1));
 }
 //--------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------
+//ozgurS
+//creating my own computeScheduleLatency function to return cpuLatency and memLatency
+//
+schedule_result_t
+SchedDG::myComputeScheduleLatency(int graph_level, int detailed,float &memLatency, float &cpuLatency)
+{
+   int i;
+   if (HasAllFlags(DG_SCHEDULE_COMPUTED))
+   {
+      // we've computed the scheduling before, just return the computed value
+      return (schedule_result_t(schedule_length, nextScheduleId-1));
+   }
+   
+   if (HasNoFlags(DG_MACHINE_DEFINED))
+   {
+      // machine was not defined yet, print an error
+      fprintf (stderr, "Error in SchedDG::compute_latency, you have to define the target machine before computing the scheduling.\n");
+      return (schedule_result_t(-1, 0));
+   }
+   
+   if (HasNoFlags(DG_CYCLES_COMPUTED))  // we did not perform the 
+                                         // cycle analysis yet
+   {
+      findDependencyCycles();
+   }
+#if DRAW_DEBUG_GRAPH
+ if (!targetPath || targetPath==pathId)
+ {
+   char bbuf1[64];
+   sprintf (bbuf1, "t-%s", pathId.Filename());
+   draw_debug_graphics (bbuf1); //"x6_T");
+ }
+#endif
+   
+   int restrictiveUnit, vecUnit;
+   unsigned int totalResources = 0;
+   unsigned int min_length = 0;
+
+   unsigned int globalLbCycles = 0;
+
+   unsigned int mm;
+   
+   int numberOfInnerLoops = 0;
+   double vecBound = 0.0;
+   
+   // mark nodes that are part of address calculations, and those that 
+   // compute the loop exit condition
+   markLoopBoilerplateNodes();
+   retValues ret =  myMinSchedulingLengthDueToDependencies(memLatency, cpuLatency); 
+   globalLbCycles = ret.ret; 
+   memLatency = ret.memret;
+   cpuLatency = ret.cpuret;
+
+   mm = new_marker();
+   totalResources = minSchedulingLengthDueToResources(restrictiveUnit, 
+                mm, NULL, vecBound, vecUnit);
+   
+   // we can have any number of barrier nodes. Check how many of these
+   // are inner loops. Inner loops do not utilize any resources, but they
+   // occupy a clock cycle by themselves (they cannot be overlapped with
+   // other instructions from current scope). I must reserve a cycle for
+   // each inner loop to account for fragmentation of code.
+   if (!barrierNodes.empty())
+   {
+      NodeList::iterator nlit = barrierNodes.begin();
+      for ( ; nlit!=barrierNodes.end() ; ++nlit)
+      if ((*nlit)->type == IB_inner_loop)
+         numberOfInnerLoops += 1;
+   }
+
+#if VERBOSE_DEBUG_SCHEDULER
+   const char* resName = 0;
+   int unitIdx = 0;
+   if (restrictiveUnit>=MACHINE_ASYNC_UNIT_BASE)
+      resName = mach->getNameForAsyncResource(restrictiveUnit-MACHINE_ASYNC_UNIT_BASE);
+   else if (restrictiveUnit>=0)
+      resName = mach->getNameForUnit (restrictiveUnit, unitIdx);
+   else
+      resName = mach->getNameForRestrictionWithId (- restrictiveUnit);
+   DEBUG_SCHED (2, 
+      fprintf (stderr, "PathId %s, GLOBAL: Dependency lower bound is %d; resources lower bound is %d, due to unit %d (%s[%d])\n",
+          pathId.Name(), globalLbCycles, totalResources, restrictiveUnit, resName, unitIdx);
+   )
+#endif
+
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout <<__func__<<" "<<globalLbCycles<<" "<<totalResources<<" "<<numberOfInnerLoops<<endl;
+            )
+#endif
+   if (globalLbCycles >= totalResources + numberOfInnerLoops)
+   {
+      min_length = globalLbCycles;
+      timeStats.addDependencyTime (globalLbCycles);
+   } else
+   {
+      min_length = totalResources + numberOfInnerLoops;
+      timeStats.addResourcesTime (restrictiveUnit, totalResources);
+      if (numberOfInnerLoops)
+         timeStats.addDependencyTime (numberOfInnerLoops);
+   }
+   timeStats.addResourcesMinimumTime (totalResources);
+   timeStats.addApplicationMinimumTime (globalLbCycles);
+   timeStats.addIdealVectorizationTime (vecUnit, vecBound);
+
+#if DRAW_DEBUG_GRAPH
+ if (!targetPath || targetPath==pathId)
+ {
+   char bbuf1[64];
+   sprintf (bbuf1, "dag-%s", pathId.Filename());
+   cycleDag->draw_debug_graphics (bbuf1); //"x6");
+ }
+#endif
+
+   // For each non-structure edge, set the resource score as the sum of the
+   // resource scores of the two ends; set also the number of neighbors as 
+   // the sum of the neighbors of the two end.
+   EdgesIterator edit(*this);
+   while ((bool)edit)
+   {
+      if (! edit->IsRemoved() && edit->isSchedulingEdge())
+//        (edit->getType()!=STRUCTURE_TYPE))
+      {
+         Node *_srcN = edit->source();
+         Node *_sinkN = edit->sink();
+         float edgescore = 0;
+         assert (_srcN->isInstructionNode());
+         edgescore = _srcN->resourceScore;
+         assert (_sinkN->isInstructionNode());
+         if (_srcN != _sinkN)
+            edgescore += _sinkN->resourceScore;
+         edit->resourceScore = edgescore;
+         unsigned int numNeighb = _srcN->num_incoming() +
+                                  _srcN->num_outgoing();
+         if (_srcN != _sinkN)
+            numNeighb += _sinkN->num_incoming() +
+                         _sinkN->num_outgoing();
+         edit->neighbors = numNeighb;
+      }
+      ++ edit;
+   }
+
+   resourceLimited = false;
+   schedule_length = min_length;
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout<<__func__<<" sl: "<<schedule_length<<endl;
+            )
+#endif
+   resourceLimitedScore = (float)totalResources / (float)globalLbCycles;
+   // 02/15/2012, gmarin: Disable heavyOnResources edge sorting. It leads to DEADLOCK.
+   heavyOnResources = false; // (resourceLimitedScore > 2.0);
+#if VERBOSE_DEBUG_SCHEDULER
+      DEBUG_SCHED (2, 
+         fprintf (stderr, "PathId %s, Final: Dependency lower bound is %d; resources lower bound is %d)\n",
+             pathId.Name(), globalLbCycles, totalResources);
+         fprintf (stderr, "Resource limited score = %f\n",
+             resourceLimitedScore);
+         fprintf (stderr, "Longest cycle = %d; longest path root to leaf = %d\n",
+             longestCycle, maxPathRootToLeaf);
+      )
+#endif
+
+   // each instruction has its templates sorted by latency (since we computed
+   // the latency of each edge - an edge may have a different latency if
+   // a different template is used). Anyway, I wanted to make another point
+   // which is that probably it would be better if we sorted the templates
+   // again based on the global info we have: sorted by latency, or sorted
+   // by resource usage (using the global usage to compute a score). 
+   // On the other hand it looks like a hassle, so maybe do this optimization
+   // later if it looks necessary. Currently, each instruction has its 
+   // templates ordered based on their length.
+
+   int numUnits = mach->TotalNumberOfUnits();
+   // allocate an array of numUnits size BitSets, with schedule_length entries
+   // I need to map the templates of all instructions in the path onto this
+   // array.
+   bool success = false;
+   int lastUnit = -12345;
+   Node *lastFNode = NULL;
+   Edge *lastFEdge = NULL;
+   int lastSegmentId = NO_CYCLE_ID;
+   int lastNumTries = 0;
+   int *lastUnitUse = new int[numUnits];
+   int *unitUse = 0;
+   int streak = 0;
+   // save the scheduling length attempted before we went on the
+   // 3 attempts streak that lead to a deadlock;
+   int preDeadlockLength = schedule_length;
+   TimeAccount savedTimeStats;
+   unsigned int savedTotalResources = totalResources;
+   
+   for (i=0 ; i<numUnits ; ++i)
+      lastUnitUse[i] = 0;
+
+   char file_name[64];
+   char file_name_ps[64];
+   char title_draw[64];
+   
+   // Uncomment next two lines to test the fallback scheduling algorithm.
+   // Set the targetPath appropriately.
+//   if (pathId == targetPath)
+//      limpModeScheduling = true;
+   
+   while (! success)
+   {
+      int unit = 0;
+      Node *fNode = NULL;
+      Edge *fEdge = NULL;
+      int extraLength;
+      int numTries;
+      int segmentId;
+      schedule_template = new BitSet*[schedule_length];
+      for (i=0 ; i<schedule_length ; ++i)
+         schedule_template[i] = new BitSet(numUnits);
+      success = create_schedule_main (unit, fNode, fEdge, extraLength, 
+                    numTries, segmentId);
+      if (success)  // schedule succeeded, determine unit usage for this path
+         computeUnitUsage(numUnits);
+      else   // failure; compute a count of how many times each unit was used
+      {
+         if (!unitUse)
+            unitUse = new int[numUnits];
+         for (i=0 ; i<numUnits ; ++i)
+            unitUse[i] = 0;
+         for (i=0 ; i<schedule_length ; ++i)
+         {
+            // I must iterate over all the bits that are set and compute sums 
+            // accross all template cycles
+            BitSet::BitSetIterator bitit(*schedule_template[i]);
+            while((bool)bitit)
+            {
+               unsigned int elem = (unsigned)bitit;
+               unitUse[elem] += 1;
+               ++ bitit;
+            }
+         }
+      }
+         
+      for (i=0 ; i<schedule_length ; ++i)
+         delete schedule_template[i];
+      delete[] schedule_template;
+
+      // in case of succes draw the graph with the complete schedule
+      // otherwise, generate a debugging graph with the partial schedule
+      // FIXME: Add a flag to decide when to draw these graphs, and for 
+      // which paths
+      bool make_draw = false;
+      if ( (success && (DRAW_GRAPH_ON_SUCCESS & graph_level)) ||
+           (!success && (DRAW_GRAPH_ON_FAILURE & graph_level)) )
+         make_draw = true;
+//      if (pathId==targetPath) make_draw = true;
+      if (make_draw)
+      {
+         char* temp_name = (char*) malloc (64);
+         if (! success)
+            sprintf (temp_name, "fail_%s", pathId.Filename());
+         else
+         {
+            sprintf (temp_name, "sched_%s", pathId.Filename());
+            
+            // if successful, adjust also the schedule times such that the 
+            // last branch instruction is on the last cycle.
+            if (lastBranch != NULL)
+            {
+               const ScheduleTime& stlb = lastBranch->getScheduleTime ();
+               ScheduleTime lastCycle (schedule_length);
+               lastCycle.setTime (0,schedule_length-1);
+               int deltaTime = lastCycle - stlb;
+               if (deltaTime != 0)  // need to adjust times for all nodes
+               {
+                  NodesIterator allnit(*this);
+                  while ((bool)allnit)
+                  {
+                     Node *a_node = allnit;
+                     if (a_node->isInstructionNode ())
+                     {
+                        assert (a_node->scheduled > 0);
+                        a_node->schedTime += deltaTime;
+                     }
+                     ++ allnit;
+                  }
+               }
+            }
+         }
+         sprintf(title_draw, "%.10s_%.10s_%s_%03d_%d", routine_name, 
+               mach->MachineName(), temp_name, schedule_length, streak);
+         sprintf(file_name, "%s.dot", title_draw);
+         sprintf(file_name_ps, "%s.ps", title_draw);
+         free(temp_name);
+         
+         ofstream fout(file_name, ios::out);
+         assert(fout && fout.good());
+         if (fNode)
+            fNode->setNodeOfFailure();
+         if (fEdge)
+            fEdge->setEdgeOfFailure();
+         draw_scheduling (fout, title_draw);
+         if (fNode)
+            fNode->resetNodeOfFailure();
+         if (fEdge)
+            fEdge->resetEdgeOfFailure();
+         fout.close();
+         assert(fout.good());
+      }
+      
+      if (! success)
+      {
+         if (unit<0 || unit>1000)
+         {
+#if VERBOSE_DEBUG_SCHEDULER
+            DEBUG_SCHED (2,
+               fprintf(stderr, "PROBLEM?: Found negative bottleneck unit %d / %x\n", unit, unit);
+            )
+#endif
+         }
+         // check if extraLength is positive, if not set it to 1
+         if (extraLength < 1)
+            extraLength = 1;
+         // check if segmentId is set, and increase the length of the 
+         // corresponding segment (if applicable)
+         assert (fNode);
+         // I should also check the usage count of all units. I found a case 
+         // not inducing of deadlocks, where the same node failed due to the same units
+         // more than once, after increasing the schedule length. The problem lies
+         // with instructions scheduled before this node. They can use a template that
+         // uses the same port as this instruction, or an alternate port. When the schedule
+         // was short, they successeded using the alternate port. After the schedule increased,
+         // they were scheduled using this instruction's port, negating the effect of the
+         // schedule length increase on the port availability.
+         // Keep track of how many times we've used each unit during a scheduling attempt.
+         if (lastUnit==unit && lastFNode==fNode && lastFEdge==fEdge && 
+               lastNumTries==numTries && lastSegmentId==segmentId && 
+               !memcmp(lastUnitUse, unitUse, numUnits*sizeof(int))
+            )
+         {
+            ++ streak;
+            if (streak>2)   // >= 3
+            {
+               fflush(stdout);
+               fflush(stderr);
+               // always print the deadlock message. This is a critical error.
+               fprintf (stderr, "Scheduling DEADLOCK for PathId %s: Scheduling failed %d times consecutively due to unit %d, node %p, edge %p, extra length %d, numTries %d, and same unit usage\n",
+                      pathId.Name(), streak, unit, fNode, fEdge, extraLength, numTries);
+               if (fNode)
+                  cerr << "Node of failure: " << (*fNode) << endl;
+               if (fEdge)
+                  cerr << "Edge of failure: " << (*fEdge) << endl;
+               fprintf (stderr, "** Going into limp mode scheduling (list scheduling) for path %s. Pre-deadlock schedule length=%d\n",
+                       pathId.Name(), preDeadlockLength);
+               limpModeScheduling = true;
+               streak = 0;
+               schedule_length = preDeadlockLength;
+               timeStats = savedTimeStats;
+               totalResources = savedTotalResources;
+               /**** FIXME TODO *****/
+               continue; // ???
+//               exit (-5);
+            }
+         } else
+         {
+            streak = 0;
+            lastUnit = unit;
+            lastFNode = fNode;
+            lastFEdge = fEdge;
+            lastNumTries = numTries;
+            lastSegmentId = segmentId;
+            memcpy(lastUnitUse, unitUse, numUnits*sizeof(int));
+            // save also the old schedule length
+            preDeadlockLength = schedule_length;
+            savedTimeStats = timeStats;
+            savedTotalResources = totalResources;
+         }
+         if (unit!=DEFAULT_UNIT)
+            totalResources += extraLength;
+         resourceLimitedScore = (float)totalResources / (float)globalLbCycles;
+         // 02/15/2012, gmarin: Disable heavyOnResources edge sorting. It leads to DEADLOCK.
+         heavyOnResources = false; // (resourceLimitedScore > 2.0);
+#if VERBOSE_DEBUG_SCHEDULER
+      DEBUG_SCHED (2,
+         fprintf (stderr, "PathId %s, numScheduledNodes=%d, After increase: Dependency lower bound is %d; resources lower bound is %d)\n",
+             pathId.Name(), nextScheduleId-1, globalLbCycles, totalResources);
+         fprintf (stderr, "Resource limited score = %f\n",
+             resourceLimitedScore);
+         fprintf (stderr, "Longest cycle = %d; longest path root to leaf = %d\n",
+             longestCycle, maxPathRootToLeaf);
+      )
+#endif
+        //FIXME chech if it need to be increased ozgur 
+//         Edge *superE = NULL;
+         bool increased = false;
+         int old_schedule_length = schedule_length;
+
+         if (!increased)
+         {
+            // Make sure that we increase the length by at least
+            // 3% of the old value. This makes convergence faster for
+            // complex paths with large schedule lengths
+            int alternate_extra = ALTERNATE_EXTRA_LENGTH (schedule_length);
+            if (alternate_extra > extraLength)
+               extraLength = alternate_extra;
+            schedule_length += extraLength;
+         }
+         timeStats.addSchedulingTime (unit, 
+                   schedule_length - old_schedule_length, detailed);
+
+#if VERBOSE_DEBUG_SCHEDULER
+         DEBUG_SCHED (1, 
+            char uname[128];
+            if (unit == DEFAULT_UNIT)
+               strcpy(uname, "DefaultUnit");
+            else if (unit>=MACHINE_ASYNC_UNIT_BASE)
+               snprintf(uname, sizeof(uname), "%s", 
+                        mach->getNameForAsyncResource(unit-MACHINE_ASYNC_UNIT_BASE));
+            else if (unit>=0)
+            {
+               const char *tname = 0;
+               int unitIdx = -1;
+               tname = mach->getNameForUnit(unit, unitIdx);
+               snprintf(uname, sizeof(uname), "%s[%d]", tname, unitIdx);
+            } else 
+               snprintf(uname, sizeof(uname), "%s", 
+                        mach->getNameForRestrictionWithId(-unit));
+            fprintf (stderr, "Scheduling for path %s: need to increase target length by %d cyles to %d due to unit %d (%s). Longest cycle=%d\n",
+                  pathId.Name(), schedule_length - old_schedule_length, 
+                  schedule_length, unit, uname, longestCycle);
+         )
+#endif
+      }
+   }
+   if (unitUse)
+      delete[] unitUse;
+   if (lastUnitUse)
+      delete[] lastUnitUse;
+   
+   setCfgFlags (DG_SCHEDULE_COMPUTED);
+   assert ((double)schedule_length >= vecBound);
+   
+   // Finally, iterate over all instructions and compute uops types
+   countRetiredUops();
+   
+   return (schedule_result_t(schedule_length, nextScheduleId-1));
+}
+
+
+//---------------------------------------------------------------------------------------------------------------------
+
+
 
 void
 SchedDG::countRetiredUops()
@@ -10678,7 +11366,7 @@ SchedDG::minSchedulingLengthDueToDependencies()
    // class. usedSlack is reset to 0 at the start of each scheduling attempt.
 #if VERBOSE_DEBUG_PALM
       DEBUG_PALM(1,
-      cout<<__func__<<" "<<maxPathRootToLeaf<<" "<<longestCycle<<endl;
+      cout<<__func__<<" "<<maxPathRootToLeaf<<"ozgur: longestCyle "<<longestCycle<<endl;
             )
 #endif
    if (avgNumIters>ONE_ITERATION_EPSILON || longestCycle>1)
@@ -10690,6 +11378,220 @@ SchedDG::minSchedulingLengthDueToDependencies()
       return (maxPathRootToLeaf);
    }
 }
+//ozgurS
+//creating my minschedulinglengthduetodependencies function
+
+retValues
+SchedDG::myMinSchedulingLengthDueToDependencies(float &memLatency, float &cpuLatency)
+{
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout<<__func__<<" here"<<endl;
+            )
+#endif
+   // compute several metrics for each node
+   // 1. longest cycle (=1 if no cycle, or avgNumIters<=1)
+   // 2. sum of the lengths of all cycles this node is part of (=1 if no cycle)
+   // 3. longest distance from a root node
+   // 4. longest distance to a leaf node
+   // for each edge, compute the length of the longest path root to leaf that
+   // it is part of
+   assert (HasAllFlags (DG_CYCLES_COMPUTED));
+   assert (HasNoFlags (DG_GRAPH_IS_MODIFIED));
+   
+   bool manyBarriers = false;
+   if (!barrierNodes.empty() && barrierNodes.front()!=barrierNodes.back())
+      manyBarriers = true;
+   // to compute pathToLeaf, do a DFS traversal from all top nodes
+   OutgoingEdgesIterator teit(cfg_top);
+   unsigned int mm = new_marker();
+   unsigned int maxPathToLeaf = 0;
+   while ((bool)teit)
+   {
+      retValues ret = 
+            teit->sink()->myComputePathToLeaf(mm, manyBarriers, ds, memLatency, cpuLatency);
+      unsigned int pathLen = ret.ret;
+      int memLatencyTemp = ret.memret;
+      int cpuLatencyTemp = ret.cpuret;
+
+      if (maxPathToLeaf < pathLen)
+      {
+         memLatency = memLatencyTemp;
+         cpuLatency = cpuLatencyTemp;
+         maxPathToLeaf = pathLen;
+      }
+      ++ teit;
+   }
+   
+   // to compute pathFromRoot, do a DFS traversal from all bottom nodes
+   IncomingEdgesIterator beit(cfg_bottom);
+   mm = new_marker();
+   unsigned int maxPathFromRoot = 0;
+   while ((bool)beit)
+   {
+      unsigned int pathLen = 
+            beit->source()->computePathFromRoot (mm, manyBarriers, ds);
+      if (maxPathFromRoot < pathLen)
+         maxPathFromRoot = pathLen;
+      ++ beit;
+   }
+
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout<<__func__<<" "<<maxPathFromRoot<<" "<<maxPathToLeaf<<endl;
+            )
+#endif
+   
+   // a leaf instruction is at distance one from scheduling end, because it
+   // takes one cycle to issue it; however, a root instruction is at distance
+   // 0 from scheduling start because it can be scheduled immediately (on the
+   // first cycle).
+   if (maxPathToLeaf != maxPathFromRoot + 1)
+   {
+      fprintf(stderr, "Path %s: maxPathToLeaf %d, maxPathFromRoot %d\n",
+            pathId.Name(), maxPathToLeaf, maxPathFromRoot);
+      assert (maxPathToLeaf == maxPathFromRoot + 1);
+   }
+   maxPathRootToLeaf = maxPathToLeaf; 
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout<<__func__<<" "<<maxPathRootToLeaf<<" "<<maxPathToLeaf<<endl;
+            )
+#endif
+   // For each forward loop-independent edge, set the length of the longest
+   // path from root to leaf that includes it
+   // Check also if it is part of a path between two cycles.
+   UIPairSet cycleSetEdges;
+   EdgesIterator edit(*this);
+   while ((bool)edit)
+   {
+      if (! edit->IsRemoved() && edit->isSchedulingEdge() )
+      {
+         Node *srcNode = edit->source ();
+         Node *sinkNode = edit->sink ();
+         if (edit->getLevel()==0)
+         {
+            
+            int leng = edit->getLatency();
+            if (srcNode->isInstructionNode())
+               leng += srcNode->pathFromRoot;
+            if (sinkNode->isInstructionNode())
+               leng += sinkNode->pathToLeaf;
+            assert (leng <= maxPathRootToLeaf);
+            edit->longestPath = leng;
+            
+            if ( edit->hasCycles==0 &&
+                 (srcNode->hasCycles==3 || srcNode->edgesFromCycle>0) &&
+                 (sinkNode->hasCycles==3 || sinkNode->edgesToCycle>0) )
+            {
+               edit->hasCycles = 2;
+               if (srcNode->hasCycles==0)
+                  srcNode->hasCycles = 2;
+               if (sinkNode->hasCycles==0)
+                  sinkNode->hasCycles = 2;
+               // insert all pairs of (inCycleSets, outCycleSets) into a map
+               // and then create the respective edges into the DAG
+               UISet inputSet;
+               UISet outputSet;
+               if (srcNode->hasCycles == 3)
+               {
+                  unsigned int cycId = srcNode->getSccId(); // ds->Find (srcNode->id);
+                  inputSet.insert (cycId);
+               } else
+                  inputSet = srcNode->inCycleSets;
+               if (sinkNode->hasCycles == 3)
+               {
+                  unsigned int cycId = sinkNode->getSccId(); // ds->Find (sinkNode->id);
+                  outputSet.insert (cycId);
+               } else
+                  outputSet = sinkNode->outCycleSets;
+               UISet::iterator init = inputSet.begin ();
+               UISet::iterator outit;
+               for ( ; init!=inputSet.end() ; ++init)
+                  for (outit=outputSet.begin() ; outit!=outputSet.end() ; ++outit)
+                     cycleSetEdges.insert (UIPair (*init, *outit));
+            }
+         }
+//         edit->longestCycle = 0;
+//         edit->sumAllCycles = 0;
+         
+         // for each scheduling edge, set also an additional priority field,
+         // which gives higher priority to edges entering load instructions, 
+         // and a lower priority to edges leaving loads. In this way I want to
+         // ensure a maximum overlap between cache misses and computation.
+         edit->extraPriority = 5;
+         if (sinkNode->is_load_instruction())
+            edit->extraPriority += 5;
+         if (srcNode->is_load_instruction())
+            edit->extraPriority -= 5;
+         // if an edge has load instructions at both its ends, then it will
+         // have the "normal" priority.
+      }
+      ++ edit;
+   }
+   // traverse cycleSetEdges and insert the corresponding edges into the DAG
+   UIPairSet::iterator upit = cycleSetEdges.begin ();
+   for ( ; upit!=cycleSetEdges.end() ; ++upit)
+      // because we use a set of pairs, we do not have duplicates, so we
+      // can use the cheaper addEdge instead of addUniqueEdge
+      cycleDag->addEdge (upit->first, upit->second);
+   
+   NodesIterator nit(*this);
+   while ((bool)nit)
+   {
+      Node *nn = nit;
+      // 03/30/2007 mgabi: Try having maxRemaining for nodes from one
+      // direction only. We use it only to select the starting node anyway.
+      // But in general it makes more sense to schedule just from one end
+      // when we do not have cycles. If we start from both sides, we may end
+      // up with problems.
+      if (nn->isInstructionNode ())
+      {
+         nn->maxRemaining = nn->pathFromRoot;
+         nn->remainingEdges = nn->edgesFromRoot;
+#if 0
+         if (nn->pathFromRoot > nn->pathToLeaf)
+         {
+            nn->maxRemaining = nn->pathFromRoot;
+            nn->remainingEdges = nn->edgesFromRoot;
+         }
+         else
+         {
+            nn->maxRemaining = nn->pathToLeaf;
+            nn->remainingEdges = nn->edgesToLeaf;
+         }
+#endif
+      }
+      ++ nit;
+   }
+
+   // create also the path slack structures
+   // FOR starters we'll have slack info only for cycles, included in Cycle
+   // class. usedSlack is reset to 0 at the start of each scheduling attempt.
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout<<__func__<<" "<<maxPathRootToLeaf<<"ozgur: longestCyle "<<longestCycle<<endl;
+            )
+#endif
+   bool isLongCycle = false;
+   retValues returnThis;
+   returnThis.memret=memLatency;
+   returnThis.cpuret=cpuLatency;
+   if (avgNumIters>ONE_ITERATION_EPSILON || longestCycle>1)
+   {
+      isLongCycle = true;
+      returnThis.ret=(longestCycle);
+//FIXME I am not sure is this the way of calculating it      returnThis.cpuret=longestCycle - memLatency;
+   }
+   else
+   {
+      returnThis.ret= (maxPathRootToLeaf);
+   }
+
+
+   return returnThis;
+}
+//ozgurE
 //--------------------------------------------------------------------------------------------------------------------
 
 int
@@ -10769,6 +11671,110 @@ SchedDG::Node::computePathToLeaf (unsigned int marker, bool manyBarriers,
    }
    return (pathToLeaf);
 }
+//ozgurS
+//adding my computePathToLeaf
+//
+
+retValues
+SchedDG::Node::myComputePathToLeaf (unsigned int marker, bool manyBarriers, 
+             DisjointSet *ds, float &memLatency, float &cpuLatency)
+{
+   // because I follow only loop independent edges, I cannot have cycles
+   if (marker == _visited)  // I saw this node before
+   {
+//      memLatency = pathToLeafMem;
+//      cpuLatency = pathToLeafCPU;
+
+      retValues ret;
+      ret.ret = pathToLeaf;
+      ret.memret = pathToLeafMem;
+      ret.cpuret = pathToLeafCPU;
+      return (ret);
+   }
+   
+   // I see this node for the first time
+   _visited = marker;
+   pathToLeaf = 1;
+   edgesToLeaf = 0;   // num edges associated with the longest path
+   edgesToCycle = 0;
+   pathToCycle = 0;
+   pathToLeafCPU = 0;
+   pathToLeafMem = 0;
+   outCycleSets.clear ();
+   
+   OutgoingEdgesIterator oeit(this);
+   while ((bool) oeit)
+   {
+      // follow only loop independent dependencies; also, follow all
+      // memory dependencies, but only true dependencies of other types.
+      // For example anti- and output- register dependencies are removed
+      // by register renaming; control dependencies are only true-
+      if (! oeit->IsRemoved() && oeit->getLevel()==0 && 
+              oeit->isSchedulingEdge() )
+      {
+         Node *sinkNode = oeit->sink ();
+         int edgeLat = oeit->getLatency ();
+         int edgeCPULat = oeit->getCPULatency ();
+         int edgeMemLat = oeit->getMemLatency ();
+#if VERBOSE_DEBUG_PALM
+      DEBUG_PALM(1,
+      cout <<__func__<<" "<<(unsigned int*)oeit->source()->getAddress()<<" "<<(unsigned int*)oeit->sink()->getAddress()<< edgeLat<<endl;
+            )
+#endif
+         retValues rez = sinkNode->myComputePathToLeaf (marker, 
+                      manyBarriers, ds, memLatency, cpuLatency );
+         int rezEdges = sinkNode->edgesToLeaf;
+         if ((edgeLat+rez.ret > pathToLeaf) || edgesToLeaf==0)
+         {
+    //        memLatency = edgeMemLat+rez.memret;
+    //        cpuLatency = edgeCPULat+rez.cpuret;
+    //        pathToLeafCPU = cpuLatency;
+    //        pathToLeafMem = memLatency;
+            pathToLeafCPU = edgeCPULat+rez.cpuret;
+            pathToLeafMem = edgeMemLat+rez.memret; 
+            pathToLeaf = edgeLat+rez.ret;
+//            edgesToLeaf = sinkNode->edgesToLeaf + 1;
+         }
+         if (edgesToLeaf==0 || edgesToLeaf<=rezEdges)
+            edgesToLeaf = rezEdges + 1;
+         
+         // when computing segments that connect two different cycles, I 
+         // should avoid cycles formed by super edges (when there are at least
+         // two barrier nodes). I also do not care for paths connecting cycles
+         // that are in different segments (barrier intervals).
+         if (hasCycles==0 && (sinkNode->edgesToCycle>0 || 
+                  (sinkNode->hasCycles==3 && 
+                        (!sinkNode->isBarrierNode() || !manyBarriers))) )
+         {
+            // if the sink node is a member of a cycle, add only the
+            // id of that cycle and do not test the outCycleSet of the sink.
+            if (sinkNode->hasCycles == 3)
+            {
+               unsigned int sinkCycId = sinkNode->getSccId(); // ds->Find (sinkNode->id);
+               outCycleSets.insert (sinkCycId);
+            } else
+            {
+               UISet &sinkSet = sinkNode->outCycleSets;
+               outCycleSets.insert (sinkSet.begin(), sinkSet.end());
+            }
+            if ((edgeLat+sinkNode->pathToCycle>pathToCycle) || 
+                       edgesToCycle==0)
+            {
+               pathToCycle = edgeLat + sinkNode->pathToCycle;
+               edgesToCycle = sinkNode->edgesToCycle + 1;
+            }
+         }
+      }
+      ++ oeit;
+   }
+   retValues ret;
+   ret.ret=pathToLeaf;
+   ret.cpuret=pathToLeafCPU;
+   ret.memret=pathToLeafMem;
+
+   return (ret);
+}
+
 //--------------------------------------------------------------------------------------------------------------------
 
 int
