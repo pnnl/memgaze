@@ -126,14 +126,15 @@ DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
    builtNodes.map(deleteInstsInMap, NULL);
 }
 
-
-DGBuilder::DGBuilder(Routine* _routine, PathID _pathId, 
+// TODO: Palm version!
+DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
 		     int _opt_mem_dep, RFormulasMap& _refAddr,
 		     LoadModule *_img,
 		     int numBlocks, CFG::Node** ba, float* fa,
 		     RSIList* innerRegs,
 		     uint64_t _pathFreq, float _avgNumIters)
-  : SchedDG(_routine->Name().c_str(), _pathId, _pathFreq, _avgNumIters, _refAddr, _img),
+  : SchedDG(_routine->Name().c_str(), _pathId, _pathFreq, _avgNumIters,
+	    _refAddr, _img),
     optimistic_memory_dep(_opt_mem_dep)
 {
    assert( (numBlocks>=1) || 
@@ -223,270 +224,273 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
 
 DGBuilder::~DGBuilder()
 {
-   if (crt_stack_tops) delete[] crt_stack_tops;
-   if (prev_stack_tops) delete[] prev_stack_tops;
-   // I need to delete all the decoded instructions stored in builtNodes
-   // Perhaps I can delete them even earlier, after the graph is build. 
-   // I am not going to use the buildNodes hashMap after that.
-   // builtNodes is emptied at the end of the constructor now.
+  if (crt_stack_tops) delete[] crt_stack_tops;
+  if (prev_stack_tops) delete[] prev_stack_tops;
+  // I need to delete all the decoded instructions stored in builtNodes
+  // Perhaps I can delete them even earlier, after the graph is build. 
+  // I am not going to use the buildNodes hashMap after that.
+  // builtNodes is emptied at the end of the constructor now.
 }
 
 
 void
-DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerRegs)
+DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
+		       RSIList* innerRegs)
 {
-   std::cerr << "[INFO]DGBuilder::build_graph: '" << name() << "'\n";
+  std::cerr << "[INFO]DGBuilder::build_graph: '" << name() << "'\n";
   
-   int i, numLoops = 0;
-   bool lastInsnNOP = false;
+  int i, numLoops = 0;
+  bool lastInsnNOP = false;
 
-   // Find a block with a non NULL CFG pointer. Inner loop nodes are
-   // special nodes that are not part of the CFG and they have an
-   // uninitialized pointer.
-   CFG *g = ba[0]->inCfg();   
-   for (i = 1; i < numBlocks && g == NULL; ++i)
-      g = ba[i]->inCfg();
+  // Find a block with a non NULL CFG pointer. Inner loop nodes are
+  // special nodes that are not part of the CFG and they have an
+  // uninitialized pointer.
+  CFG *g = ba[0]->inCfg();   
+  for (i = 1; i < numBlocks && g == NULL; ++i) {
+    g = ba[i]->inCfg();
+  }
 
-   std::cout<<"hmm 0"<<std::endl;
+  std::cout<<"hmm 0"<<std::endl;
    
-   for(i = 0; i < numBlocks; ++i) {
+  for(i = 0; i < numBlocks; ++i) {
+
 #if DEBUG_GRAPH_CONSTRUCTION
-      DEBUG_GRAPH (3,
-         fprintf(stderr, "Processing block %d with prob %f, from address [%" PRIxaddr ",%" PRIxaddr "]\n",
-               i, fa[i], ba[i]->getStartAddress(), ba[i]->getEndAddress());
-      )
-#endif
-      addrtype pc;
-      if (!ba[i]->is_inner_loop()) {
-         if (!ba[i]->isCfgEntry()) {
-            CFG::ForwardInstructionIterator iit(ba[i]);
-            while ((bool)iit)
-            {
-               pc = iit.Address();
-               inMapper.clear();  // internal registers are valid only across 
-                                  // micro-ops part of one native instruction
-               build_node_for_instruction(pc, ba[i], fabs(fa[i]));
-               MIAMI::DecodedInstruction* &dInst = builtNodes[pc];
-               MIAMI::instruction_info &primary_uop = dInst->micro_ops.back();
-               if (primary_uop.type == MIAMI::InstrBin::IB_nop){
-                  lastInsnNOP = true;
-               }
-               else{
-                  lastInsnNOP = false;
-               }
-         std::cout <<"here "<< primary_uop.type <<" " << MIAMI::InstrBin::IB_nop<<std::endl;
-               num_instructions += 1;
-               if (ba[i]->is_delay_block())
-               {
-                  prev_inst_may_have_delay_slot = false;
-                  gpRegs = &gpMapper;
-                  stack_tops = crt_stack_tops;
-//                  fpRegs = &fpMapper;
-                  break;
-               }
-               ++ iit;
-            }
-         }
-      } 
-      else
-      {
-         // this is an inner loop entry. I need to create a special type of 
-         // node that will act as a barrier.
-         int type = IB_inner_loop;  // CFG_LOOP_ENTRY_TYPE;
-         pc = numLoops + 1;
-#if DEBUG_GRAPH_CONSTRUCTION
-         DEBUG_GRAPH (1,
-            fprintf(stderr, " => Found entry into inner loop. Create a loop entry node at %" PRIaddr ".\n",
-                    pc);
-         )
+    DEBUG_GRAPH (3,
+		 fprintf(stderr, "Processing block %d with prob %f, from address [%" PRIxaddr ",%" PRIxaddr "]\n",
+			 i, fa[i], ba[i]->getStartAddress(), ba[i]->getEndAddress());
+		 )
 #endif
 
-         MIAMI::DecodedInstruction* &dInst = builtNodes[pc];
-         assert(dInst == NULL); 
-         dInst = new MIAMI::DecodedInstruction();
-         dInst->micro_ops.push_back(MIAMI::instruction_info());
-         MIAMI::instruction_info &primary_uop = dInst->micro_ops.back();
-
-         primary_uop.type = (MIAMI::InstrBin)type;         
-         primary_uop.width = 0;
-         primary_uop.vec_len = 1;
-         primary_uop.exec_unit = ExecUnit_SCALAR;
-         primary_uop.exec_unit_type = ExecUnitType_INT;
-         primary_uop.num_src_operands = 0;
-         primary_uop.num_dest_operands = 0;
-
-         SchedDG::Node* node = new Node(this, pc, 0, primary_uop);
-         node->setInOrderIndex(nextUopIndex++);
-         add(node);
-         markBarrierNode (node);
-         
-         primary_uop.data = node;
-         
-         // I could also clear the register renaming maps. This will ensure
-         // there are no dependencies between instructions before and after
-         // the inner loop (dependencies would be covered by the execution 
-         // time of the loop anyway). But I choose to keep them for now, to 
-         // account for the missing dependencies between instructions in
-         // loops at different levels.
-         //
-         // gmarin: Unfortunately, these dependecies across 
-         // inner loops and routine calls, create a lot of problems for the
-         // scheduler. I will clear the renaming maps now inside the method
-         // "handle_control_dependencies" :(
-         // gmarin: Now we set register dependencies into and from
-         // an inner loop. We still do not allow register dependencies between
-         // instructions before and after an inner loop.
-         handle_inner_loop_register_dependencies (node, innerRegs[numLoops], 1);
-         handle_control_dependencies (node, type, ba[i], -fa[i]);
-         numLoops += 1;
+    addrtype pc;
+    if (! ba[i]->is_inner_loop()) {
+      if (! ba[i]->isCfgEntry()) {
+	CFG::ForwardInstructionIterator iit(ba[i]);
+	while ((bool)iit)
+	  {
+	    pc = iit.Address();
+	    inMapper.clear();  // internal registers are valid only across 
+	    // micro-ops part of one native instruction
+	    build_node_for_instruction(pc, ba[i], fabs(fa[i]));
+	    MIAMI::DecodedInstruction* &dInst = builtNodes[pc];
+	    MIAMI::instruction_info &primary_uop = dInst->micro_ops.back();
+	    if (primary_uop.type == MIAMI::InstrBin::IB_nop){
+	      lastInsnNOP = true;
+	    }
+	    else{
+	      lastInsnNOP = false;
+	    }
+	    std::cout <<"here "<< primary_uop.type <<" " << MIAMI::InstrBin::IB_nop<<std::endl;
+	    num_instructions += 1;
+	    if (ba[i]->is_delay_block())
+	      {
+		prev_inst_may_have_delay_slot = false;
+		gpRegs = &gpMapper;
+		stack_tops = crt_stack_tops;
+		//                  fpRegs = &fpMapper;
+		break;
+	      }
+	    ++ iit;
+	  }
       }
-   }
-   std::cout<<"hmm 1"<<std::endl;
+    }
+    else {
+      // An inner loop entry. Create a special 'barrier' node.
+      int type = IB_inner_loop;  // CFG_LOOP_ENTRY_TYPE;
+      pc = numLoops + 1;
 
-   // compute the top nodes here. Register carried dependencies are not 
-   // taken into account anyway
-   // add also control dependencies from the lastBranch to the top nodes
-   if (lastBranch!=NULL)
-   {
+#if DEBUG_GRAPH_CONSTRUCTION
+      DEBUG_GRAPH (1,
+		   fprintf(stderr, " => Found entry into inner loop. Create a loop entry node at %" PRIaddr ".\n",
+			   pc);
+		   )
+#endif
+
+      MIAMI::DecodedInstruction* &dInst = builtNodes[pc];
+      assert(dInst == NULL); 
+      dInst = new MIAMI::DecodedInstruction();
+      dInst->micro_ops.push_back(MIAMI::instruction_info());
+      MIAMI::instruction_info &primary_uop = dInst->micro_ops.back();
+
+      primary_uop.type = (MIAMI::InstrBin)type;         
+      primary_uop.width = 0;
+      primary_uop.vec_len = 1;
+      primary_uop.exec_unit = ExecUnit_SCALAR;
+      primary_uop.exec_unit_type = ExecUnitType_INT;
+      primary_uop.num_src_operands = 0;
+      primary_uop.num_dest_operands = 0;
+
+      SchedDG::Node* node = new Node(this, pc, 0, primary_uop);
+      node->setInOrderIndex(nextUopIndex++);
+      add(node);
+      markBarrierNode (node);
+         
+      primary_uop.data = node;
+         
+      // I could also clear the register renaming maps. This will ensure
+      // there are no dependencies between instructions before and after
+      // the inner loop (dependencies would be covered by the execution 
+      // time of the loop anyway). But I choose to keep them for now, to 
+      // account for the missing dependencies between instructions in
+      // loops at different levels.
+      //
+      // gmarin: Unfortunately, these dependecies across 
+      // inner loops and routine calls, create a lot of problems for the
+      // scheduler. I will clear the renaming maps now inside the method
+      // "handle_control_dependencies" :(
+      // gmarin: Now we set register dependencies into and from
+      // an inner loop. We still do not allow register dependencies between
+      // instructions before and after an inner loop.
+      handle_inner_loop_register_dependencies(node, innerRegs[numLoops], 1);
+      handle_control_dependencies(node, type, ba[i], -fa[i]);
+      numLoops += 1;
+    }
+  }
+  std::cout<<"hmm 1"<<std::endl;
+
+  // compute the top nodes here. Register carried dependencies are not 
+  // taken into account anyway
+  // add also control dependencies from the lastBranch to the top nodes
+  if (lastBranch!=NULL)
+    {
       NodesIterator nit(*this);
       while ((bool)nit) 
-      {
-         Node *nn = nit;
-         if (nn->isInstructionNode())
-         {
-            bool is_top = true;
-            IncomingEdgesIterator ieit(nn);
-            while ((bool)ieit)
-            {
-               // check if this is a loop independent scheduling edge
-               // for control edges, verify that this is not one that can
-               // be removed by branch predictor.
-               if ( ieit->getLevel()==0 && !ieit->IsRemoved() && 
-                    ieit->isSchedulingEdge() && 
+	{
+	  Node *nn = nit;
+	  if (nn->isInstructionNode())
+	    {
+	      bool is_top = true;
+	      IncomingEdgesIterator ieit(nn);
+	      while ((bool)ieit)
+		{
+		  // check if this is a loop independent scheduling edge
+		  // for control edges, verify that this is not one that can
+		  // be removed by branch predictor.
+		  if ( ieit->getLevel()==0 && !ieit->IsRemoved() && 
+		       ieit->isSchedulingEdge() && 
                        (ieit->getType()!=CONTROL_TYPE || 
                         ieit->getProbability()<BR_HIGH_PROBABILITY ||
                         nn->isBarrierNode() || 
                         ieit->source()->isBarrierNode()) )
-               {
-                  is_top = false;
-                  break;
-               }
-               ++ ieit;
-            }
-            if (is_top)
-            {
-               addUniqueDependency(lastBranch, nn, TRUE_DEPENDENCY,
-                   CONTROL_TYPE, 1, 1, 0, lastBranchProb);
-            }
-         }
-         ++ nit;
-      }
-   }
+		    {
+		      is_top = false;
+		      break;
+		    }
+		  ++ ieit;
+		}
+	      if (is_top)
+		{
+		  addUniqueDependency(lastBranch, nn, TRUE_DEPENDENCY,
+				      CONTROL_TYPE, 1, 1, 0, lastBranchProb);
+		}
+	    }
+	  ++ nit;
+	}
+    }
 
-   // If there are any inner loops or function calls in this path, then
-   // I should disable SWP. This is what most compilers do.
-   // if (hasBarrierNodes())
-   //    avgNumIters = 1.0;
-   std::cout <<"lastInsnNOP "<<lastInsnNOP<<std::endl;
-   if (avgNumIters <= ONE_ITERATION_EPSILON)  // no SWP for this path
-   {
+  // If there are any inner loops or function calls in this path, then
+  // I should disable SWP. This is what most compilers do.
+  // if (hasBarrierNodes())
+  //    avgNumIters = 1.0;
+  std::cout <<"lastInsnNOP "<<lastInsnNOP<<std::endl;
+  if (avgNumIters <= ONE_ITERATION_EPSILON)  // no SWP for this path
+    {
       if (lastBranch && !lastBranch->isBarrierNode()) // it was not added before
-      {
-         markBarrierNode (lastBranch);
-         // add also control dependencies from all recent branches to this 
-         // barrier
-         NodeSet::iterator nsit = recentBranches.begin();
-         for ( ; nsit!=recentBranches.end() ; ++nsit )
-         {
-            // lastBranch should be in recentBranches, but do not process
-            // it like a regular branch since it is a barrier node now.
-            if (*nsit == lastBranch)
-               continue;
-            // if the node does not have any outgoing dependency, create one;
-            // create one even if it has an outgoing control dependency with 
-            // high probability
-            int has_dep = 0;
-            OutgoingEdgesIterator oeit(*nsit);
-            while ((bool)oeit)
-            {       
-               if ( oeit->getLevel()==0 && 
-                    (oeit->getType()!=CONTROL_TYPE || 
-                     oeit->getProbability()<BR_HIGH_PROBABILITY ||
-                     oeit->sink()->isBarrierNode()) )
-               {    
-                  has_dep = 1;
-                  break;
-               }
-               ++ oeit;
-            }
-            if (!has_dep)
-               addUniqueDependency(*nsit, lastBranch, TRUE_DEPENDENCY,
-                   CONTROL_TYPE, 0, 0, 0, 0.0);
-         }
-         recentBranches.clear();
-      }
+	{
+	  markBarrierNode (lastBranch);
+	  // add also control dependencies from all recent branches to this 
+	  // barrier
+	  NodeSet::iterator nsit = recentBranches.begin();
+	  for ( ; nsit!=recentBranches.end() ; ++nsit )
+	    {
+	      // lastBranch should be in recentBranches, but do not process
+	      // it like a regular branch since it is a barrier node now.
+	      if (*nsit == lastBranch)
+		continue;
+	      // if the node does not have any outgoing dependency, create one;
+	      // create one even if it has an outgoing control dependency with 
+	      // high probability
+	      int has_dep = 0;
+	      OutgoingEdgesIterator oeit(*nsit);
+	      while ((bool)oeit)
+		{       
+		  if ( oeit->getLevel()==0 && 
+		       (oeit->getType()!=CONTROL_TYPE || 
+			oeit->getProbability()<BR_HIGH_PROBABILITY ||
+			oeit->sink()->isBarrierNode()) )
+		    {    
+		      has_dep = 1;
+		      break;
+		    }
+		  ++ oeit;
+		}
+	      if (!has_dep)
+		addUniqueDependency(*nsit, lastBranch, TRUE_DEPENDENCY,
+				    CONTROL_TYPE, 0, 0, 0, 0.0);
+	    }
+	  recentBranches.clear();
+	}
       else if (!lastBranch && !lastInsnNOP)
-         assert (!"Can we have a path without a lastBranch? Look at this path pal.");
-         // if the assert above ever fails, understand when it can happen and
-         // place a inner_loop_entry node there, just to restrict the 
-         // scheduling from wrapping around.
-   }
+	assert (!"Can we have a path without a lastBranch? Look at this path pal.");
+      // if the assert above ever fails, understand when it can happen and
+      // place a inner_loop_entry node there, just to restrict the 
+      // scheduling from wrapping around.
+    }
    
-   // add the loop carried register dependencies; go through all the blocks
-   // again. Only if this path was executed multiple times.
-   if (avgNumIters > ONE_ITERATION_EPSILON)
-   {
+  // add the loop carried register dependencies; go through all the blocks
+  // again. Only if this path was executed multiple times.
+  if (avgNumIters > ONE_ITERATION_EPSILON)
+    {
       numLoops = 0;
       for( i=0 ; i<numBlocks ; ++i )
-      {
-         addrtype pc;
-         if (ba[i]->is_inner_loop ())
-         {
-            MIAMI::DecodedInstruction* &dInst = builtNodes[numLoops + 1];
-            assert(dInst != NULL && dInst->micro_ops.size()==1);
+	{
+	  addrtype pc;
+	  if (ba[i]->is_inner_loop ())
+	    {
+	      MIAMI::DecodedInstruction* &dInst = builtNodes[numLoops + 1];
+	      assert(dInst != NULL && dInst->micro_ops.size()==1);
 
-            SchedDG::Node* node = static_cast<SchedDG::Node*>(dInst->micro_ops.front().data);
-            assert(node != NULL);
-            handle_inner_loop_register_dependencies (node, innerRegs[numLoops], 0);
-            ++ numLoops;
-         }
-         else
+	      SchedDG::Node* node = static_cast<SchedDG::Node*>(dInst->micro_ops.front().data);
+	      assert(node != NULL);
+	      handle_inner_loop_register_dependencies (node, innerRegs[numLoops], 0);
+	      ++ numLoops;
+	    }
+	  else
             if (!ba[i]->isCfgEntry())
-            {
-               CFG::ForwardInstructionIterator iit(ba[i]);
-               while ((bool)iit)
-               {
-                  pc = iit.Address();
+	      {
+		CFG::ForwardInstructionIterator iit(ba[i]);
+		while ((bool)iit)
+		  {
+		    pc = iit.Address();
                   
-                  MIAMI::DecodedInstruction* &dInst = builtNodes[pc];
-                  assert(dInst != NULL && !dInst->micro_ops.empty());
+		    MIAMI::DecodedInstruction* &dInst = builtNodes[pc];
+		    assert(dInst != NULL && !dInst->micro_ops.empty());
                   
-                  // One native instruction can be decoded into multiple micro-ops
-                  // Iterate over all micro-ops
-                  MIAMI::InstrList::iterator lit = dInst->micro_ops.begin();
-                  for ( ; lit!=dInst->micro_ops.end() ; ++lit)
-                  {
-                     SchedDG::Node* node = static_cast<SchedDG::Node*>(lit->data);
-                     assert(node != NULL);
-                     if (node->is_intrinsic_type ())
-                        handle_intrinsic_register_dependencies (node, 0);
-                     else
-                        handle_register_dependencies (dInst, *lit, node, ba[i], 0);
-                  }
+		    // One native instruction can be decoded into multiple micro-ops
+		    // Iterate over all micro-ops
+		    MIAMI::InstrList::iterator lit = dInst->micro_ops.begin();
+		    for ( ; lit!=dInst->micro_ops.end() ; ++lit)
+		      {
+			SchedDG::Node* node = static_cast<SchedDG::Node*>(lit->data);
+			assert(node != NULL);
+			if (node->is_intrinsic_type ())
+			  handle_intrinsic_register_dependencies (node, 0);
+			else
+			  handle_register_dependencies (dInst, *lit, node, ba[i], 0);
+		      }
 
-                  if (ba[i]->is_delay_block())
-                  {
-                     prev_inst_may_have_delay_slot = false;
-                     gpRegs = &gpMapper;
-                     stack_tops = crt_stack_tops;
-//                     fpRegs = &fpMapper;
-                     break;
-                  }
-                  ++ iit;
-               }
-            }
-      }
-   }
+		    if (ba[i]->is_delay_block())
+		      {
+			prev_inst_may_have_delay_slot = false;
+			gpRegs = &gpMapper;
+			stack_tops = crt_stack_tops;
+			//                     fpRegs = &fpMapper;
+			break;
+		      }
+		    ++ iit;
+		  }
+	      }
+	}
+    }
 }
 
 

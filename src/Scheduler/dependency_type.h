@@ -14,16 +14,24 @@
 #define _DEPENDENCY_TYPE_H
 
 
-enum DependencyDirection { ANTI_DEPENDENCY = -1, OUTPUT_DEPENDENCY, 
-                TRUE_DEPENDENCY, CHANGING_DEPENDENCY };
+enum DependencyDirection {
+  ANTI_DEPENDENCY = -1,
+  OUTPUT_DEPENDENCY, 
+  TRUE_DEPENDENCY,
+  CHANGING_DEPENDENCY };
 
 /* DTYPE_TOP_MARKER is a special name that must appear always as the last
  * dependency type in the enumeration. It is necessary to enable special
  * processing based on the dependency type.
  */
-enum DependencyType { GP_REGISTER_TYPE = 0, ADDR_REGISTER_TYPE,
-       MEMORY_TYPE, CONTROL_TYPE, STRUCTURE_TYPE, SUPER_EDGE_TYPE,
-       DTYPE_TOP_MARKER };
+enum DependencyType {
+  GP_REGISTER_TYPE = 0,
+  ADDR_REGISTER_TYPE,
+  MEMORY_TYPE,
+  CONTROL_TYPE,
+  STRUCTURE_TYPE,
+  SUPER_EDGE_TYPE,
+  DTYPE_TOP_MARKER };
 
 enum DependencyDistance { ONE_ITERATION = -2, VARYING_DISTANCE, 
        LOOP_INDEPENDENT }; // values > 0 represent the depend distance
