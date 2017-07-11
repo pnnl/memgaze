@@ -59,7 +59,6 @@ OBJS = \
 	$(OA_OBJS:%=$(OBJDIR)oautils/%) \
 	$(TARJ_OBJS:%=$(OBJDIR)tarjans/%)
 
-#SOMAIN_OBJS = $(PIN_SCHEDULER_OBJS:%=$(OBJDIR)pinobj/%)
 SAMAIN_OBJS = $(PIN_SCHEDULER_OBJS:%=$(OBJDIR)pinstatic/%)
 
 YACC = bison
@@ -114,17 +113,12 @@ machdesc.lex.c: machine_description.l
 
 $(TOOLS): $(OBJS) $(MAIN_PIN_OBJS)
 
-SATOOL_LIBS += -Wl,-Bstatic -Wl,-Bdynamic -ldl
-
-$(SA_TOOLS) : $(OBJS) $(SAMAIN_OBJS)
-	$(LINKER) $(SATOOL_LDFLAGS) $(LINK_DEBUG) $(LINK_EXE)$@ $(OBJS) $(SAMAIN_OBJS) \
-	-Wl,$(DYNINST_LDFLAGS)  \
-	$(DBG) \
+$(SA_TOOLS): $(OBJS) $(SAMAIN_OBJS)
+	$(LINKER) $(LINK_EXE) $@ $(OBJS) $(SAMAIN_OBJS) $(DBG) \
+	$(DYNINST_LDFLAGS) \
 	$(XED_LDFLAGS) \
-	-lstdc++ \
-	-Wl,-Bstatic $(BINUTILS_LDFLAGS) \
-	-Wl,--as-needed -Wl,-Bdynamic -lm -lz $(SATOOL_LIBS)
-
+	$(BINUTILS_LDFLAGS) \
+	-Wl,--as-needed -ldl
 
 $(SA_WRAPPER) : $(SA_TOOLS)
 	@sed -e 's/XTOOLVARX/$(TOOL_VAR)/g' -e 's/XTOOLLIBX/$(TOOL_ROOTS)$(SATOOL_SUFFIX)/g' $(BINSCRIPT) > $(BINDIR)$(TOOL_ROOTS)

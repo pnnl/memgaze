@@ -41,7 +41,7 @@ XED_LDFLAGS = \
 BINUTILS_CFLAGS = -I$(BINUTILS_ROOT)/include
 BINUTILS_LDFLAGS = \
 	-L$(BINUTILS_ROOT)/lib -L$(BINUTILS_ROOT)/lib64 \
-	-lbfd -liberty
+	-lbfd -liberty -lz
 
 #****************************************************************************
 
