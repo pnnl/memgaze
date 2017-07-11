@@ -4599,8 +4599,9 @@ SchedDG::Cycle::getMemLatency()
 {
    if (_flags & LATENCY_COMPUTED_CYCLE)
       return (iterLength);
-   float ilen = (float)getRawLatency() * revIters;
+   float ilen = (float)getRawMemLatency() * revIters;
    iterLength = (unsigned int)(ceil(ilen)+0.00001);
+cout<<__func__<<" ozgur: memLat: "<<iterLength<<endl;
    return (iterLength);
 }
 
@@ -4637,8 +4638,9 @@ SchedDG::Cycle::getCPULatency()
 {
    if (_flags & LATENCY_COMPUTED_CYCLE)
       return (iterLength);
-   float ilen = (float)getRawLatency() * revIters;
+   float ilen = (float)getRawCPULatency() * revIters;
    iterLength = (unsigned int)(ceil(ilen)+0.00001);
+cout<<__func__<<" ozgur: cpuLat: "<<iterLength<<endl;
    return (iterLength);
 }
 //ozgurE
@@ -5089,7 +5091,7 @@ SchedDG::Edge::computeLatency(const Machine *_mach, addrtype reloc, SchedDG* sdg
 //ozgurE
    }
 //ozgurS
-    cout << "ozgur: MemLat: "<<minMemLatency<<" minLat: "<<minLatency<<endl;
+//    cout << "ozgur: MemLat: "<<minMemLatency<<" minLat: "<<minLatency<<endl;
 //ozgurE
 #if VERBOSE_DEBUG_PALM
       DEBUG_PALM(1,
@@ -10449,6 +10451,9 @@ SchedDG::myComputeScheduleLatency(int graph_level, int detailed,float &memLatenc
    // save the scheduling length attempted before we went on the
    // 3 attempts streak that lead to a deadlock;
    int preDeadlockLength = schedule_length;
+//ozgurS adding return variable for cpu latency
+   int preDeadlockLengthCPU = cpuLatency;
+//ozgurE
    TimeAccount savedTimeStats;
    unsigned int savedTotalResources = totalResources;
    
@@ -10613,6 +10618,9 @@ SchedDG::myComputeScheduleLatency(int graph_level, int detailed,float &memLatenc
                limpModeScheduling = true;
                streak = 0;
                schedule_length = preDeadlockLength;
+//ozgurS setting back cpu latency to original
+               cpuLatency = preDeadlockLengthCPU;
+//ozgurE
                timeStats = savedTimeStats;
                totalResources = savedTotalResources;
                /**** FIXME TODO *****/
@@ -10658,10 +10666,13 @@ SchedDG::myComputeScheduleLatency(int graph_level, int detailed,float &memLatenc
             // Make sure that we increase the length by at least
             // 3% of the old value. This makes convergence faster for
             // complex paths with large schedule lengths
-            int alternate_extra = ALTERNATE_EXTRA_LENGTH (schedule_length);
+            int alternate_extra = ALTERNATE_EXTRA_LENGTH (cpuLatency); //ozgur original was this(schedule_length);
             if (alternate_extra > extraLength)
                extraLength = alternate_extra;
             schedule_length += extraLength;
+//ozgurS calculating CPU Latency
+            cpuLatency += extraLength;
+//ozgurE
          }
          timeStats.addSchedulingTime (unit, 
                    schedule_length - old_schedule_length, detailed);
@@ -11580,8 +11591,9 @@ SchedDG::myMinSchedulingLengthDueToDependencies(float &memLatency, float &cpuLat
    if (avgNumIters>ONE_ITERATION_EPSILON || longestCycle>1)
    {
       isLongCycle = true;
-      returnThis.ret=(longestCycle);
-//FIXME I am not sure is this the way of calculating it      returnThis.cpuret=longestCycle - memLatency;
+      returnThis.ret = (longestCycle);
+      returnThis.cpuret = longestCycle - memLatency;
+//      returnThis.memret = longestCycleMem;
    }
    else
    {
