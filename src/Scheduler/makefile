@@ -1,81 +1,74 @@
 # -*-Mode: makefile;-*-
 
-##
-## PIN tools
-##
-
-##############################################################
-#
-# Here are some things you might want to configure
-#
-##############################################################
-
 include ../../miami.config
 
-##############################################################
-#
-# Tools - you may wish to add your tool name to TOOL_ROOTS
-#
-##############################################################
+#****************************************************************************
 
 TOOL_ROOTS = miami
 TOOL_VAR = vars_sched
 TOOL_OBJ_DIR = scheduler
 BINSCRIPT = $(PALM_MIAMI_ROOT)/src/tools/run_static.in
 
+#****************************************************************************
+
 PIN_SCHEDULER_OBJS = schedtool.o 
 
 SCHEDULER_OBJS = \
-  CFG.o routine.o load_module.o debug_scheduler.o \
-  block_path.o PathInfo.o TimeAccount.o Clique.o FindCliques.o \
-  reuse_group.o Instruction.o Machine.o MemoryHierarchyLevel.o PatternGraph.o \
-  InstTemplate.o dependency_type.o schedule_time.o StringAssocTable.o \
-  imix_histograms.o imix_clustering.o imix_width_clustering.o \
-  TemplateExecutionUnit.o UnitRestriction.o BitSet.o BypassRule.o prog_scope.o \
-  machdesc.tab.o machdesc.lex.o MiamiDriver.o memory_latency_histograms.o \
-  path_id.o CycleSetDAG.o SchedDG.o DGBuilder.o stream_reuse_histograms.o \
-  XML_output.o memory_reuse_histograms.o TemplateInstantiate.o
+	CFG.o routine.o load_module.o debug_scheduler.o \
+	block_path.o PathInfo.o TimeAccount.o Clique.o FindCliques.o \
+	reuse_group.o Instruction.o Machine.o MemoryHierarchyLevel.o \
+	PatternGraph.o \
+	InstTemplate.o dependency_type.o schedule_time.o StringAssocTable.o \
+	imix_histograms.o imix_clustering.o imix_width_clustering.o \
+	TemplateExecutionUnit.o UnitRestriction.o BitSet.o BypassRule.o \
+	prog_scope.o \
+	machdesc.tab.o machdesc.lex.o MiamiDriver.o \
+	memory_latency_histograms.o \
+	path_id.o CycleSetDAG.o SchedDG.o DGBuilder.o \
+	stream_reuse_histograms.o \
+	XML_output.o memory_reuse_histograms.o TemplateInstantiate.o
 
 PIN_COMMON_OBJS = instruction_decoding_pin.o 
 #instruction_decoding_dyninst.o
 
 COMMON_OBJS = \
-  PrivateCFG.o printable_class.o private_routine.o Assertion.o BaseDominator.o \
-  default_values.o xml.o code_scope.o report_time.o source_file_mapping_binutils.o \
-  file_utilities.o debug_miami.o loadable_class.o miami_globals.o miami_utils.o  \
-  private_load_module.o slice_references.o Dominator.o mark_back_edges.o uop_code_cache.o \
-  base_slice.o static_memory_analysis.o \
-  instruction-xlate.o register_class.o instr_info.o instr_bins.o \
-  static_branch_analysis.o instruction_class.o canonical_ops.o \
-  math_routines.o 
+	PrivateCFG.o printable_class.o private_routine.o Assertion.o \
+	BaseDominator.o \
+	default_values.o xml.o code_scope.o report_time.o \
+	source_file_mapping_binutils.o \
+	file_utilities.o debug_miami.o loadable_class.o miami_globals.o \
+	miami_utils.o \
+	private_load_module.o slice_references.o Dominator.o \
+	mark_back_edges.o uop_code_cache.o \
+	base_slice.o static_memory_analysis.o \
+	instruction-xlate.o register_class.o instr_info.o instr_bins.o \
+	static_branch_analysis.o instruction_class.o canonical_ops.o \
+	math_routines.o
 
 OA_OBJS = BaseGraph.o DGraph.o
 
 TARJ_OBJS = TarjanIntervals.o MiamiRIFG.o UnionFindUniverse.o
 
-SO_TOOLS = $(TOOL_ROOTS:%=$(EXEDIR)%$(PINTOOL_SUFFIX)) 
-SA_TOOLS = $(TOOL_ROOTS:%=$(EXEDIR)%$(SATOOL_SUFFIX)) 
-SA_WRAPPER = $(TOOL_ROOTS:%=$(BINDIR)%) 
+SA_TOOLS = $(TOOL_ROOTS:%=$(EXEDIR)%$(SATOOL_SUFFIX))
+SA_WRAPPER = $(TOOL_ROOTS:%=$(BINDIR)%)
 
-OBJS = $(SCHEDULER_OBJS:%=$(OBJDIR)$(TOOL_OBJ_DIR)/%) \
- $(COMMON_OBJS:%=$(OBJDIR)common/%) $(PIN_COMMON_OBJS:%=$(OBJDIR)pinobj/%) \
- $(OA_OBJS:%=$(OBJDIR)oautils/%) $(TARJ_OBJS:%=$(OBJDIR)tarjans/%)
+OBJS = \
+	$(SCHEDULER_OBJS:%=$(OBJDIR)$(TOOL_OBJ_DIR)/%) \
+	$(COMMON_OBJS:%=$(OBJDIR)common/%) \
+	$(PIN_COMMON_OBJS:%=$(OBJDIR)pinobj/%) \
+	$(OA_OBJS:%=$(OBJDIR)oautils/%) \
+	$(TARJ_OBJS:%=$(OBJDIR)tarjans/%)
 
-SOMAIN_OBJS = $(PIN_SCHEDULER_OBJS:%=$(OBJDIR)pinobj/%)
+#SOMAIN_OBJS = $(PIN_SCHEDULER_OBJS:%=$(OBJDIR)pinobj/%)
 SAMAIN_OBJS = $(PIN_SCHEDULER_OBJS:%=$(OBJDIR)pinstatic/%)
-
-OPT_TOOLS = $(TOOL_ROOTS:%=$(OBJDIR)%_opt$(PINTOOL_SUFFIX)) 
-OPT_OBJS = $(OBJS:.o=.oo)
 
 YACC = bison
 FLEX = flex
 
 TOOLS = $(SA_TOOLS) $(SA_WRAPPER)
 MAIN_PIN_OBJS = $(SAMAIN_OBJS)
-ifeq ($(COMPILE_MIAMI_SO),"yes")
-   TOOLS += $(SO_TOOLS)
-   MAIN_PIN_OBJS += $(SOMAIN_OBJS)
-endif
+
+#****************************************************************************
 
 # finds files for the compiling rules
 vpath %.C $(PALM_MIAMI_ROOT)/src/Scheduler
@@ -90,7 +83,7 @@ vpath %.C $(PALM_MIAMI_ROOT)/src/tarjans
 # build rules
 #
 ##############################################################
-#OPT = -O0
+
 include ../make.rules
 
 .force:
@@ -107,14 +100,8 @@ $(OBJDIR): .force
 $(OBJDIR)$(TOOL_OBJ_DIR)/machdesc.tab.o : machdesc.tab.c machdesc.tab.h
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-$(OBJDIR)$(TOOL_OBJ_DIR)/machdesc.tab.oo : machdesc.tab.c machdesc.tab.h
-	$(CXX) $(OPT_CXXFLAGS) -c -o $@ $<
-
 $(OBJDIR)$(TOOL_OBJ_DIR)/machdesc.lex.o : machdesc.lex.c machdesc.tab.h
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
-$(OBJDIR)$(TOOL_OBJ_DIR)/machdesc.lex.oo : machdesc.lex.c machdesc.tab.h
-	$(CXX) $(OPT_CXXFLAGS) -c -o $@ $<
 
 machdesc.tab.c: machine_description.y
 	$(YACC) -d -b machdesc machine_description.y
@@ -127,27 +114,10 @@ machdesc.lex.c: machine_description.l
 
 $(TOOLS): $(OBJS) $(MAIN_PIN_OBJS)
 
-$(SO_TOOLS): $(OBJS) $(SOMAIN_OBJS)
-	$(LINKER) -v $(LINK_DEBUG) $(LINK_EXE)$@ $(OBJS) $(SOMAIN_OBJS) \
-	-Wl,-Bstatic \
-	$(DBG) \
-	$(DYNINST_LDFLAGS) \
-	$(XED_LDFLAGS) \
-	-lstdc++ \
-	-Wl,--as-needed $(BINUTILS_LDFLAGS) \
+SATOOL_LIBS += -Wl,-Bstatic -Wl,-Bdynamic -ldl
 
-
-# I would like for the linker to select the static binutils libraries if they 
-# are available, but pick up the dynamic ones if there are no static libraries.
-# This is exactly the opposite of what gcc does by default, which is to prefer
-# dynamic libraries when both versions are present. 
-# I cannot find a way to make the linker do what I want, short of using 
-# configure to check for the presence of static libraries, and generating 
-# appropriate link flags. 
-# If I just use the switch -Wl,-Bstatic, the linker will complain if it cannot
-# find static versions of the libraries, even if dynamic ones are available. 
 $(SA_TOOLS) : $(OBJS) $(SAMAIN_OBJS)
-	$(LINKER) -v $(SATOOL_LDFLAGS) $(LINK_DEBUG) $(LINK_EXE)$@ $(OBJS) $(SAMAIN_OBJS) \
+	$(LINKER) $(SATOOL_LDFLAGS) $(LINK_DEBUG) $(LINK_EXE)$@ $(OBJS) $(SAMAIN_OBJS) \
 	-Wl,$(DYNINST_LDFLAGS)  \
 	$(DBG) \
 	$(XED_LDFLAGS) \
@@ -159,11 +129,3 @@ $(SA_TOOLS) : $(OBJS) $(SAMAIN_OBJS)
 $(SA_WRAPPER) : $(SA_TOOLS)
 	@sed -e 's/XTOOLVARX/$(TOOL_VAR)/g' -e 's/XTOOLLIBX/$(TOOL_ROOTS)$(SATOOL_SUFFIX)/g' $(BINSCRIPT) > $(BINDIR)$(TOOL_ROOTS)
 	@chmod +x $(BINDIR)$(TOOL_ROOTS)
-
-$(OPT_TOOLS): %$(PINTOOL_SUFFIX) : $(OPT_OBJS)
-	$(LINKER) -v $(TOOL_LDFLAGS) $(LINK_DEBUG) $(LINK_EXE)$@ $(OPT_OBJS) \
-	$(DBG) \
-	$(DYNINST_LDFLAGS) \
-	$(XED_LDFLAGS) \
-	-lstdc++ \
-	$(BINUTILS_LDFLAGS)
