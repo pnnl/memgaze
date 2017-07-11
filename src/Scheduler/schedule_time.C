@@ -140,7 +140,7 @@ ScheduleTime::operator-- ()   // pre-decrement
    clk_cycle-=1;
    if (clk_cycle<0)
    {
-      clk_cycle=scheduleLength-1; iteration-=1;
+      clk_cycle = scheduleLength-1; iteration -= 1;
    }
    return (*this); 
 }

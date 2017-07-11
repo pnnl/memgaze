@@ -34,6 +34,7 @@
 
 // OpenAnalysis headers
 #include "OAUtils/DGraph.h"
+
 // MIAMI headers
 #include "uipair.h"
 #include "dependency_type.h"
@@ -246,9 +247,9 @@ public:
   
   typedef bool (*DependencyFilterType)(Edge*);
 
-  SchedDG (const char* exec_name, PathID &_pathId, uint64_t _pathFreq, 
-        float _avgNumIters, RFormulasMap& _refAddr, LoadModule *_img);
-  virtual ~SchedDG ();
+  SchedDG(const char* exec_name, PathID &_pathId, uint64_t _pathFreq, 
+	  float _avgNumIters, RFormulasMap& _refAddr, LoadModule *_img);
+  virtual ~SchedDG();
   
   unsigned int new_marker() { return (topMarker++); }
   

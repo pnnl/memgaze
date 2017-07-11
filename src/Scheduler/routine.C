@@ -2416,7 +2416,7 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
          //     bpit->first->size, bpit->first->blocks, 
          //     bpit->first->probabs, bpit->first->innerRegs,
          //     bpit->second->count, avgCount);
-         sch = new MIAMI_DG::DGBuilder(this, pathId, 
+         sch = new MIAMI_DG::DGBuilder(this, pathId,
               1 /*args.optimistic_memory_dep*/, refFormulas,
               InLoadModule(),
       /*        mdriver.RefNames(), mdriver.RefsTable(), */

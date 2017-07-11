@@ -150,10 +150,11 @@ const char* regTypeToString(int tt)
 }
 
 //--------------------------------------------------------------------------------------------------------------------
-SchedDG::SchedDG (const char* func_name, PathID &_pathId, 
-          uint64_t _pathFreq, float _avgNumIters, RFormulasMap& _refAddr, 
-           LoadModule *_img) :
-       refFormulas(_refAddr), img(_img)
+SchedDG::SchedDG(const char* func_name, PathID &_pathId, 
+		 uint64_t _pathFreq, float _avgNumIters,
+		 RFormulasMap& _refAddr, 
+		 LoadModule *_img)
+  : refFormulas(_refAddr), img(_img)
 {
    pathId = _pathId;
    routine_name = func_name;
@@ -12574,23 +12575,30 @@ SchedDG::Node::draw_scheduling (std::ostream& os)
 {
 //   os << "<TR><TD>";
    os << "IS" << scheduled << " [label=< \n";
+
    os << "<TABLE BORDER=\"1\" CELLSPACING=\"0\">\n";
-// PORT=\"s" << scheduled 
-//      << "\">\n";
+   // PORT=\"s" << scheduled << "\">\n";
+
+   // first row
    os << "<TR><TD>";
    if (CreatedByReplace())     // this is a node created by a replacement
       os << "* ";              // mark them with a star;
    if (NodeIsReplicated())     // this is a node replicated during a replacement
       os << "+ ";              // mark them with a cross;
-   
-   os << scheduled << "</TD><TD>" << schedTime.Iteration()
-      << "</TD><TD>" << templIdx << "</TD></TR>\n";
+   os << scheduled << "</TD><TD>"
+      << schedTime.Iteration() << "</TD><TD>"
+      << templIdx << "</TD></TR>\n";
+
+   // node label
    os << "<TR><TD COLSPAN=\"3\">";
    write_label(os, 0, true);
    os << "</TD></TR>\n";
+
+   // machine units
    os << "<TR><TD COLSPAN=\"3\">";
-   _in_cfg->write_machine_units (os, allocatedUnits, 0);
+   _in_cfg->write_machine_units(os, allocatedUnits, 0);
    os << "</TD></TR>\n";
+   
    os << "</TABLE>";
 
    os << ">";
@@ -12600,8 +12608,8 @@ SchedDG::Node::draw_scheduling (std::ostream& os)
 }
 
 void
-SchedDG::write_machine_units (std::ostream& os, PairList& selectedUnits, 
-            int offset)
+SchedDG::write_machine_units(std::ostream& os, PairList& selectedUnits, 
+			     int offset)
 {
    PairList::iterator plit = selectedUnits.begin();
    while (plit!=selectedUnits.end() && (int)plit->second<offset)
@@ -12610,7 +12618,7 @@ SchedDG::write_machine_units (std::ostream& os, PairList& selectedUnits,
    while (plit!=selectedUnits.end() && (int)plit->second==offset)
    {
       int unitIdx = 0;
-      const char* uName = mach->getNameForUnit (plit->first, unitIdx);
+      const char* uName = mach->getNameForUnit(plit->first, unitIdx);
       if (first)
       {
          os << uName << "[" << unitIdx << "]";
@@ -13002,7 +13010,8 @@ SchedDG::Node::write_label(ostream& os, int info, bool html_escape)
    if (info)
       os << "(" << info << ")";
    os << "::" << Convert_InstrBin_to_string((InstrBin)type)
-      << "{" << bit_width << "}" << ":" << ExecUnitTypeToString(exec_unit_type);
+      << "{" << bit_width << "}" << ":"
+      << ExecUnitTypeToString(exec_unit_type);
    if (exec_unit==ExecUnit_VECTOR)
       os << ",vec{" << vec_width << "} ";
    else
@@ -13135,21 +13144,20 @@ SchedDG::Edge::draw_scheduling(ostream& os, DependencyFilterType f,
 void
 SchedDG::Edge::write_label (ostream& os)
 {
-   if (dtype!=CONTROL_TYPE)
-   {
-      os << "label=\"D(" << ddirection << "," << ddistance << ")";
-   } else  // print probability for control dependencies
-   {
+   if (dtype!=CONTROL_TYPE) {
+      os << "label=\"dep(" << ddirection << "," << ddistance << ")";
+   }
+   else { // print probability for control dependencies
       char tempbuf[16];
       sprintf(tempbuf, "%5.3f", _prob);
-      os << "label=\"P=" << tempbuf;
+      os << "label=\"prob=" << tempbuf;
    }
    if (source()->isScheduled())
-      os << ",L=" << realLatency;
+      os << ",lat=" << realLatency;
    else
       if (_flags & LATENCY_COMPUTED_EDGE)
-         os << ",L=" << minLatency;
-   os << "\\nE" << id << "\",";
+         os << ",minlat=" << minLatency;
+   os << "\\nedg" << id << "\",";
 }
 
 void
