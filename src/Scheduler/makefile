@@ -9,6 +9,9 @@ TOOL_VAR = vars_sched
 TOOL_OBJ_DIR = scheduler
 BINSCRIPT = $(PALM_MIAMI_ROOT)/src/tools/run_static.in
 
+YACC = bison
+LEX  = flex
+
 #****************************************************************************
 
 SCHEDULER_OBJS = \
@@ -38,7 +41,9 @@ COMMON_OBJS = \
 	private_load_module.o slice_references.o Dominator.o \
 	mark_back_edges.o uop_code_cache.o \
 	base_slice.o static_memory_analysis.o \
-	instruction-xlate.o register_class.o instr_info.o instr_bins.o \
+	\
+	instruction-xlate.o instr_info.o instr_bins.o register_class.o  \
+	\
 	static_branch_analysis.o instruction_class.o canonical_ops.o \
 	math_routines.o
 
@@ -49,9 +54,6 @@ OA_OBJS = BaseGraph.o DGraph.o
 
 TARJ_OBJS = TarjanIntervals.o MiamiRIFG.o UnionFindUniverse.o
 
-SA_TOOLS   = $(TOOL_ROOTS:%=$(EXEDIR)%)
-SA_WRAPPER = $(TOOL_ROOTS:%=$(BINDIR)%)
-
 OBJS = \
 	$(SCHEDULER_OBJS:%=$(OBJDIR)$(TOOL_OBJ_DIR)/%) \
 	$(COMMON_OBJS:%=$(OBJDIR)common/%) \
@@ -59,26 +61,14 @@ OBJS = \
 	$(OA_OBJS:%=$(OBJDIR)oautils/%) \
 	$(TARJ_OBJS:%=$(OBJDIR)tarjans/%)
 
-YACC = bison
-FLEX = flex
+#****************************************************************************
+
+SA_TOOLS   = $(TOOL_ROOTS:%=$(EXEDIR)%)
+SA_WRAPPER = $(TOOL_ROOTS:%=$(BINDIR)%)
 
 TOOLS = $(SA_TOOLS) $(SA_WRAPPER)
 
 #****************************************************************************
-
-# finds files for the compiling rules
-vpath %.C $(PALM_MIAMI_ROOT)/src/Scheduler
-vpath %.cpp $(PALM_MIAMI_ROOT)/src/Scheduler
-vpath %.C $(PALM_MIAMI_ROOT)/src/common
-vpath %.cpp $(PALM_MIAMI_ROOT)/src/common
-vpath %.C $(PALM_MIAMI_ROOT)/src/OAUtils
-vpath %.C $(PALM_MIAMI_ROOT)/src/tarjans
-
-##############################################################
-#
-# build rules
-#
-##############################################################
 
 include ../make.rules
 
@@ -92,11 +82,25 @@ $(OBJDIR): .force
 	mkdir -p $(OBJDIR)oautils
 	mkdir -p $(OBJDIR)tarjans
 
+#----------------------------------------------------------------------------
+
+# finds files for the compiling rules
+vpath %.C $(PALM_MIAMI_ROOT)/src/Scheduler
+vpath %.cpp $(PALM_MIAMI_ROOT)/src/Scheduler
+vpath %.C $(PALM_MIAMI_ROOT)/src/common
+vpath %.cpp $(PALM_MIAMI_ROOT)/src/common
+vpath %.C $(PALM_MIAMI_ROOT)/src/OAUtils
+vpath %.C $(PALM_MIAMI_ROOT)/src/tarjans
+
+#----------------------------------------------------------------------------
+
 $(OBJDIR)$(TOOL_OBJ_DIR)/machdesc.tab.o : machdesc.tab.c machdesc.tab.h
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(OBJDIR)$(TOOL_OBJ_DIR)/machdesc.lex.o : machdesc.lex.c machdesc.tab.h
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+#----------------------------------------------------------------------------
 
 machdesc.tab.c: machine_description.y
 	$(YACC) -d -b machdesc machine_description.y
@@ -105,7 +109,9 @@ machdesc.tab.h: machine_description.y
 	$(YACC) -d -b machdesc machine_description.y
 
 machdesc.lex.c: machine_description.l
-	$(FLEX) -t machine_description.l > machdesc.lex.c
+	$(LEX) -t machine_description.l > machdesc.lex.c
+
+#----------------------------------------------------------------------------
 
 $(TOOLS): $(OBJS) $(SAMAIN_OBJS)
 
