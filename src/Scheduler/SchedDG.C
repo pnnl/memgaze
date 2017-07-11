@@ -3965,51 +3965,48 @@ SchedDG::findDependencyCycles()
    // compute also latency of cycles
    longestCycle = 0;
    // even for non SWP cases I should have an artificial cycle
-   if (avgNumIters>0)  // ONE_ITERATION_EPSILON)
-      for (int i=1 ; i<nextCycleId ; ++i)
-         if (cycles[i] != NULL && cycles[i]->isCycle())
-         {
-            // determine the longest cycle
-            // update cycle length info for each node
+   if (avgNumIters > ONE_ITERATION_EPSILON) {
+     for (int i=1 ; i<nextCycleId ; ++i) {
+       if (cycles[i] != NULL && cycles[i]->isCycle()) {
+	 // determine the longest cycle
+	 // update cycle length info for each node
 
-            int thisCyc = cycles[i]->getLatency();
-//ozgurS
-            int thisCycMem = cycles[i]->getMemLatency();
-            int thisCycCPU = cycles[i]->getCPULatency();
-//ozgurE
+	 int thisCyc = cycles[i]->getLatency();
+	 //ozgurS
+	 int thisCycMem = cycles[i]->getMemLatency();
+	 int thisCycCPU = cycles[i]->getCPULatency();
+	 //ozgurE
 #if VERBOSE_DEBUG_PALM
-      DEBUG_PALM(1,
-      cout << __func__ <<" "<<thisCyc<<" "<<i<<endl;
-            )
+	 DEBUG_PALM(1,
+		    cout << __func__ <<" "<<thisCyc<<" "<<i<<endl;
+		    )
 #endif
-            if (longestCycle<thisCyc)
-            {
-               longestCycle = thisCyc;
-               longestCycleMem = thisCycMem;//ozgurS
-               longestCycleCPU = thisCycCPU;//ozgurE
-            }
-            EdgeList::iterator eit = cycles[i]->edges->begin();
-            for( ; eit!=cycles[i]->edges->end() ; ++eit )
-            {
-               Node *nn = (*eit)->source();
-               if (nn->longestCycle < thisCyc)
-               {
-                  nn->longestCycle = thisCyc;
-                  nn->longestCycleMem = thisCycMem;//ozgurS
-                  nn->longestCycleCPU = thisCycCPU;//ozgurE
-               }
-               nn->sumAllCycles += thisCyc;
-               if ((*eit)->longestCycle < thisCyc)
-               {
-                  (*eit)->longestCycle = thisCyc;
-                  (*eit)->longestCycleMem = thisCycMem;//ozgurS
-                  (*eit)->longestCycleCPU = thisCycCPU;//ozgurE
-                  if ((*eit)->isSuperEdge ())
-                     updateLongestCycleOfSubEdges (*eit, thisCyc);
-               }
-               (*eit)->sumAllCycles += thisCyc;
-            }
-         }
+	   if (longestCycle<thisCyc) {
+	     longestCycle = thisCyc;
+	     longestCycleMem = thisCycMem;//ozgurS
+	     longestCycleCPU = thisCycCPU;//ozgurE
+	   }
+	 EdgeList::iterator eit = cycles[i]->edges->begin();
+	 for( ; eit!=cycles[i]->edges->end() ; ++eit ) {
+	   Node *nn = (*eit)->source();
+	   if (nn->longestCycle < thisCyc) {
+	     nn->longestCycle = thisCyc;
+	     nn->longestCycleMem = thisCycMem;//ozgurS
+	     nn->longestCycleCPU = thisCycCPU;//ozgurE
+	   }
+	   nn->sumAllCycles += thisCyc;
+	   if ((*eit)->longestCycle < thisCyc) {
+	     (*eit)->longestCycle = thisCyc;
+	     (*eit)->longestCycleMem = thisCycMem;//ozgurS
+	     (*eit)->longestCycleCPU = thisCycCPU;//ozgurE
+	     if ((*eit)->isSuperEdge ())
+	       updateLongestCycleOfSubEdges (*eit, thisCyc);
+	   }
+	   (*eit)->sumAllCycles += thisCyc;
+	 }
+       }
+     }
+   }
 
    // when cycles are computed I determine which nodes are connected by cycle
    // edges. I use a union-find data structure to mark nodes that are 
