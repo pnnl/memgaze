@@ -404,7 +404,6 @@ main (int argc, char *argv[])
  
    MIAMI::mdriver.ParseIncludeExcludeFiles(KnobIncludeFile, KnobExcludeFile);
     
-#ifdef STATIC_COMPILATION
     int nImgs = MIAMI::mdriver.NumberOfImages();
     const std::string* iNames = MIAMI::mdriver.getImageNames();
     for (int i=0 ; i<nImgs ; ++i)
@@ -431,9 +430,7 @@ main (int argc, char *argv[])
     }
 
     MIAMI::mdriver.Finalize(KnobOutputFile);
-#else
 
-#endif
     return 0;
 }
 

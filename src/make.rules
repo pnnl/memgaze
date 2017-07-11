@@ -7,15 +7,33 @@
 #
 ##############################################################
 
-KIT = 1
-TARGET_OS = linux
-
 MIAMI_LIBRARY_PATHS = $(BINUTILS_ROOT)/lib:$(BINUTILS_ROOT)/lib64:$(DYNINST_LIB):$(XED_LIB)
 
 #****************************************************************************
 
-COMP_OBJ += -c -o
-LINK_EXE += -o
+# GNU compiler
+DBG ?= -g
+OPT ?= -O3
+
+WFLAGS = \
+	-Wall \
+	-Wno-error \
+	-Wno-unknown-pragmas \
+	-Wno-unused-function \
+	-fno-strict-aliasing
+
+WXXFLAGS = -Woverloaded-virtual
+
+CXXFLAGS += \
+	-fPIC $(DBG) $(OPT) $(WFLAGS) $(WXXFLAGS) \
+	-I. -I../common -I..
+
+CFLAGS += \
+	-fPIC $(DBG) $(OPT) $(WFLAGS) \
+	-I. -I../common -I..
+
+COMP_OBJ = -c -o
+LINK_EXE = -o
 
 #****************************************************************************
 
@@ -43,19 +61,13 @@ BINUTILS_LDFLAGS = \
 	-L$(BINUTILS_ROOT)/lib -L$(BINUTILS_ROOT)/lib64 \
 	-lbfd -liberty -lz
 
+TOOL_CXXFLAGS = \
+	$(DYNINST_CXXFLAGS) \
+	$(XED_CXXFLAGS)
+
+TOOL_CFLAGS =
+
 #****************************************************************************
-
-TARGET_COMPILER?=gnu
-
-ifeq ($(TARGET_COMPILER),gnu)
-    DBG ?= -g
-    OPT ?= -O3
-    WFLAGS = -Wall -Wno-error -Wno-unknown-pragmas -Wno-unused-function \
-         -fno-strict-aliasing
-    WXXFLAGS = -Woverloaded-virtual
-    CXXFLAGS ?= -fPIC $(DBG) $(OPT) $(WFLAGS) $(WXXFLAGS) $(DYNINST_CXXFLAGS) $(XED_CXXFLAGS) -I. -I../common -I..
-    CFLAGS ?= -fPIC $(DBG) $(OPT) $(WFLAGS) -I. -I../common -I..
-endif
 
 MIAMI_TARGET ?= $(PALM_MIAMI_ROOT)/install
 BINDIR = $(MIAMI_TARGET)/bin/
@@ -71,56 +83,58 @@ endif
 
 BINSCRIPT ?= $(PALM_MIAMI_ROOT)/src/tools/run_tool.in
 
-$(OBJDIR)pinobj/%.o : %.cpp
-	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ)$@ $<
+#----------------------------------------------------------------------------
 
+$(OBJDIR)pinobj/%.o : %.cpp
+	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ) $@ $<
 $(OBJDIR)pinobj/%.o : %.C
-	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ)$@ $<
+	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ) $@ $<
 
 $(OBJDIR)pinobj/%.o : %.c
-	$(CC) $(TOOL_CFLAGS) $(CFLAGS) $(COMP_OBJ)$@ $<
+	$(CC) $(TOOL_CFLAGS) $(CFLAGS) $(COMP_OBJ) $@ $<
 
-$(OBJDIR)pinstatic/%.o : %.C
-	$(CXX) $(TOOL_CXXFLAGS) -DSTATIC_COMPILATION $(CXXFLAGS) $(COMP_OBJ)$@ $<
+#----------------------------------------------------------------------------
 
 $(OBJDIR)$(TOOL_OBJ_DIR)/%.o : %.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
+	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ) $@ $<
 $(OBJDIR)$(TOOL_OBJ_DIR)/%.o : %.C
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ) $@ $<
 
 $(OBJDIR)$(TOOL_OBJ_DIR)/%.o : %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(TOOL_CFLAGS) $(CFLAGS) $(COMP_OBJ) $@ $<
+
+#----------------------------------------------------------------------------
 
 $(OBJDIR)common/source_file_mapping_binutils.o : source_file_mapping_binutils.C
-	$(CXX) $(CXXFLAGS) $(BINUTILS_CFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(BINUTILS_CFLAGS) $(COMP_OBJ) $@ $<
 
 $(OBJDIR)common/%.o : %.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
+	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ) $@ $<
 $(OBJDIR)common/%.o : %.C
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ) $@ $<
 
 $(OBJDIR)common/%.o : %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(TOOL_CFLAGS) $(CFLAGS) $(COMP_OBJ) $@ $<
+
+#----------------------------------------------------------------------------
 
 $(OBJDIR)oautils/%.o : %.C
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(COMP_OBJ) $@ $<
+
+#----------------------------------------------------------------------------
 
 $(OBJDIR)tarjans/%.o : %.C
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(COMP_OBJ) $@ $<
 
-$(OBJDIR)tarjans/%.oo : %.C
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
+#----------------------------------------------------------------------------
 
 info:
-	@echo "DYNINST_ROOT=$(DYNINST_ROOT)"
 	@echo "PALM_MIAMI_ROOT=$(PALM_MIAMI_ROOT)"
 	@echo "MIAMI_TARGET=$(MIAMI_TARGET)"
 	@echo "TOOL_OBJ_DIR=$(TOOL_OBJ_DIR)"
 	@echo "TOOL_CXXFLAGS=$(TOOL_CXXFLAGS)"
 	@echo "COMP_OBJ=$(COMP_OBJ)"
+	@echo "DYNINST_ROOT=$(DYNINST_ROOT)"
 
 all: tools
 	mkdir -p $(VARSDIR)
