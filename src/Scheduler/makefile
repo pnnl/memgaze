@@ -11,7 +11,7 @@ BINSCRIPT = $(PALM_MIAMI_ROOT)/src/tools/run_static.in
 
 #****************************************************************************
 
-PIN_SCHEDULER_OBJS = schedtool.o 
+PIN_SCHEDULER_OBJS = schedtool.o
 
 SCHEDULER_OBJS = \
 	CFG.o routine.o load_module.o debug_scheduler.o \
@@ -28,7 +28,7 @@ SCHEDULER_OBJS = \
 	stream_reuse_histograms.o \
 	XML_output.o memory_reuse_histograms.o TemplateInstantiate.o
 
-PIN_COMMON_OBJS = instruction_decoding_pin.o 
+PIN_COMMON_OBJS = instruction_decoding_pin.o
 #instruction_decoding_dyninst.o
 
 COMMON_OBJS = \
