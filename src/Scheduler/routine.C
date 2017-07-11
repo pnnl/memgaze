@@ -1908,7 +1908,11 @@ Routine::myConstructPaths(ScopeImplementation *pscope, int no_fpga_acc, const st
             cout<<endl;
             scopeMemRefs.insert(pathRefs.begin(), pathRefs.end());
             //sch->dump(cout);
-            //sch->draw_scheduling(cout,"schedule");
+            if(dump_flag_set){ //FIXME!!!
+                  std::ofstream sched_file;
+                  sched_file.open(output_file_name);//FIXME
+                  sch->draw_scheduling(sched_file,output_file_name);//FIXME
+            }
             sch->printTimeAccount();
             delete sch;
 #if PROFILE_SCHEDULER
