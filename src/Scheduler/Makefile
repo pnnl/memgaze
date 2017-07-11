@@ -219,12 +219,6 @@ machdesc.lex.c: machine_description.l
 
 #----------------------------------------------------------------------------
 
-$(OBJDIR)$(TOOL_OBJ_DIR)/machdesc.tab.o : machdesc.tab.c machdesc.tab.h
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
-$(OBJDIR)$(TOOL_OBJ_DIR)/machdesc.lex.o : machdesc.lex.c machdesc.tab.h
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
 $(OBJDIR)$(TOOL_OBJ_DIR)/%.o : %.cpp
 	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ) $@ $<
 $(OBJDIR)$(TOOL_OBJ_DIR)/%.o : %.C
@@ -233,10 +227,13 @@ $(OBJDIR)$(TOOL_OBJ_DIR)/%.o : %.C
 $(OBJDIR)$(TOOL_OBJ_DIR)/%.o : %.c
 	$(CC) $(TOOL_CFLAGS) $(CFLAGS) $(COMP_OBJ) $@ $<
 
-#----------------------------------------------------------------------------
+$(OBJDIR)$(TOOL_OBJ_DIR)/machdesc.tab.o : machdesc.tab.c machdesc.tab.h
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-$(OBJDIR)common/source_file_mapping_binutils.o : source_file_mapping_binutils.C
-	$(CXX) $(CXXFLAGS) $(BINUTILS_CFLAGS) $(COMP_OBJ) $@ $<
+$(OBJDIR)$(TOOL_OBJ_DIR)/machdesc.lex.o : machdesc.lex.c machdesc.tab.h
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+#----------------------------------------------------------------------------
 
 $(OBJDIR)common/%.o : %.cpp
 	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ) $@ $<
@@ -245,6 +242,9 @@ $(OBJDIR)common/%.o : %.C
 
 $(OBJDIR)common/%.o : %.c
 	$(CC) $(TOOL_CFLAGS) $(CFLAGS) $(COMP_OBJ) $@ $<
+
+$(OBJDIR)common/source_file_mapping_binutils.o : source_file_mapping_binutils.C
+	$(CXX) $(CXXFLAGS) $(BINUTILS_CFLAGS) $(COMP_OBJ) $@ $<
 
 #----------------------------------------------------------------------------
 
