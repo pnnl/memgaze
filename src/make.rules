@@ -14,10 +14,13 @@ MIAMI_LIBRARY_PATHS = $(BINUTILS_ROOT)/lib:$(BINUTILS_ROOT)/lib64:$(DYNINST_LIB)
 
 #****************************************************************************
 
+#TOOL_LPATHS += -L$(XED_LIB)
+#TOOL_LIBS += -ldl
+SATOOL_LIBS += -Wl,-Bstatic -Wl,-Bdynamic -ldl
+
 COMP_OBJ += -c -o
 LINK_EXE += -o
 
-#****************************************************************************
 
 DYNINST_CXXFLAGS = -I$(DYNINST_INC) -I$(BOOST_INC)
 DYNINST_LDFLAGS = \
@@ -41,7 +44,7 @@ XED_LDFLAGS = \
 BINUTILS_CFLAGS = -I$(BINUTILS_ROOT)/include
 BINUTILS_LDFLAGS = \
 	-L$(BINUTILS_ROOT)/lib -L$(BINUTILS_ROOT)/lib64 \
-	-lbfd -liberty -lz
+	-lbfd -liberty
 
 #****************************************************************************
 
@@ -132,6 +135,7 @@ $(EXEDIR): .force
 	mkdir -p $(BINDIR)
 	mkdir -p $(EXEDIR)
 
+## cleaning
 clean:
 	-rm -rf $(OBJS) $(MAIN_PIN_OBJS) *.out *.tested *.failed makefile.copy *~
 
