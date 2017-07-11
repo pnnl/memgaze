@@ -11,9 +11,9 @@ BINSCRIPT = $(PALM_MIAMI_ROOT)/src/tools/run_static.in
 
 #****************************************************************************
 
-PIN_SCHEDULER_OBJS = schedtool.o
-
 SCHEDULER_OBJS = \
+	schedtool.o \
+	\
 	CFG.o routine.o load_module.o debug_scheduler.o \
 	block_path.o PathInfo.o TimeAccount.o Clique.o FindCliques.o \
 	reuse_group.o Instruction.o Machine.o MemoryHierarchyLevel.o \
@@ -27,9 +27,6 @@ SCHEDULER_OBJS = \
 	path_id.o CycleSetDAG.o SchedDG.o DGBuilder.o \
 	stream_reuse_histograms.o \
 	XML_output.o memory_reuse_histograms.o TemplateInstantiate.o
-
-PIN_COMMON_OBJS = instruction_decoding_pin.o
-#instruction_decoding_dyninst.o
 
 COMMON_OBJS = \
 	PrivateCFG.o printable_class.o private_routine.o Assertion.o \
@@ -45,11 +42,14 @@ COMMON_OBJS = \
 	static_branch_analysis.o instruction_class.o canonical_ops.o \
 	math_routines.o
 
+PIN_COMMON_OBJS = instruction_decoding_pin.o
+#instruction_decoding_dyninst.o
+
 OA_OBJS = BaseGraph.o DGraph.o
 
 TARJ_OBJS = TarjanIntervals.o MiamiRIFG.o UnionFindUniverse.o
 
-SA_TOOLS = $(TOOL_ROOTS:%=$(EXEDIR)%$(SATOOL_SUFFIX))
+SA_TOOLS   = $(TOOL_ROOTS:%=$(EXEDIR)%)
 SA_WRAPPER = $(TOOL_ROOTS:%=$(BINDIR)%)
 
 OBJS = \
@@ -59,13 +59,10 @@ OBJS = \
 	$(OA_OBJS:%=$(OBJDIR)oautils/%) \
 	$(TARJ_OBJS:%=$(OBJDIR)tarjans/%)
 
-SAMAIN_OBJS = $(PIN_SCHEDULER_OBJS:%=$(OBJDIR)pinstatic/%)
-
 YACC = bison
 FLEX = flex
 
 TOOLS = $(SA_TOOLS) $(SA_WRAPPER)
-MAIN_PIN_OBJS = $(SAMAIN_OBJS)
 
 #****************************************************************************
 
@@ -89,10 +86,9 @@ include ../make.rules
 
 $(OBJDIR): .force
 	mkdir -p $(OBJDIR)
-	mkdir -p $(OBJDIR)pinobj
-	mkdir -p $(OBJDIR)pinstatic
 	mkdir -p $(OBJDIR)$(TOOL_OBJ_DIR)
 	mkdir -p $(OBJDIR)common
+	mkdir -p $(OBJDIR)pinobj
 	mkdir -p $(OBJDIR)oautils
 	mkdir -p $(OBJDIR)tarjans
 
@@ -111,7 +107,7 @@ machdesc.tab.h: machine_description.y
 machdesc.lex.c: machine_description.l
 	$(FLEX) -t machine_description.l > machdesc.lex.c
 
-$(TOOLS): $(OBJS) $(MAIN_PIN_OBJS)
+$(TOOLS): $(OBJS) $(SAMAIN_OBJS)
 
 $(SA_TOOLS): $(OBJS) $(SAMAIN_OBJS)
 	$(LINKER) $(LINK_EXE) $@ $(OBJS) $(SAMAIN_OBJS) $(DBG) \
@@ -121,5 +117,5 @@ $(SA_TOOLS): $(OBJS) $(SAMAIN_OBJS)
 	-Wl,--as-needed -ldl
 
 $(SA_WRAPPER) : $(SA_TOOLS)
-	@sed -e 's/XTOOLVARX/$(TOOL_VAR)/g' -e 's/XTOOLLIBX/$(TOOL_ROOTS)$(SATOOL_SUFFIX)/g' $(BINSCRIPT) > $(BINDIR)$(TOOL_ROOTS)
+	@sed -e 's/XTOOLVARX/$(TOOL_VAR)/g' -e 's/XTOOLLIBX/$(TOOL_ROOTS)/g' $(BINSCRIPT) > $(BINDIR)$(TOOL_ROOTS)
 	@chmod +x $(BINDIR)$(TOOL_ROOTS)
