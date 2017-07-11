@@ -45,12 +45,14 @@ static int deleteInstsInMap(void *arg0, addrtype pc, void *value)
 #define DECODE_INSTRUCTIONS_IN_PATH 0
 static PathID targetPath(0xe7367c, 37, 2);
 
-DGBuilder::DGBuilder(const char* func_name, PathID _pathId, 
-           int _opt_mem_dep, RFormulasMap& _refAddr, LoadModule *_img,
-           int numBlocks, CFG::Node** ba, float* fa, RSIList* innerRegs,
-           uint64_t _pathFreq, float _avgNumIters)
-     : SchedDG(func_name, _pathId, _pathFreq, _avgNumIters, _refAddr, _img),
-     optimistic_memory_dep(_opt_mem_dep)
+DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
+		     int _opt_mem_dep, RFormulasMap& _refAddr,
+		     LoadModule *_img,
+		     int numBlocks, CFG::Node** ba, float* fa,
+		     RSIList* innerRegs,
+		     uint64_t _pathFreq, float _avgNumIters)
+  : SchedDG(func_name, _pathId, _pathFreq, _avgNumIters, _refAddr, _img),
+    optimistic_memory_dep(_opt_mem_dep)
 {
    assert( (numBlocks>=1) || 
            !"Number of blocks to schedule is < 1. What's up?");
@@ -126,11 +128,13 @@ DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
 
 
 DGBuilder::DGBuilder(Routine* _routine, PathID _pathId, 
-           int _opt_mem_dep, RFormulasMap& _refAddr, LoadModule *_img,
-           int numBlocks, CFG::Node** ba, float* fa, RSIList* innerRegs,
-           uint64_t _pathFreq, float _avgNumIters)
-     : SchedDG(_routine->Name().c_str(), _pathId, _pathFreq, _avgNumIters, _refAddr, _img),
-     optimistic_memory_dep(_opt_mem_dep)
+		     int _opt_mem_dep, RFormulasMap& _refAddr,
+		     LoadModule *_img,
+		     int numBlocks, CFG::Node** ba, float* fa,
+		     RSIList* innerRegs,
+		     uint64_t _pathFreq, float _avgNumIters)
+  : SchedDG(_routine->Name().c_str(), _pathId, _pathFreq, _avgNumIters, _refAddr, _img),
+    optimistic_memory_dep(_opt_mem_dep)
 {
    assert( (numBlocks>=1) || 
            !"Number of blocks to schedule is < 1. What's up?");
@@ -231,21 +235,21 @@ DGBuilder::~DGBuilder()
 void
 DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerRegs)
 {
-   int i, numLoops = 0;
-   CFG *g = ba[0]->inCfg();
    std::cerr << "[INFO]DGBuilder::build_graph: '" << name() << "'\n";
-
+  
+   int i, numLoops = 0;
    bool lastInsnNOP = false;
 
-   // try to find a block with a non NULL CFG pointer. Inner loop nodes are special 
-   // nodes that are not part of the CFG and they have an uninitialized pointer.
-   for (i=1 ; i<numBlocks && g==NULL ; ++i)
+   // Find a block with a non NULL CFG pointer. Inner loop nodes are
+   // special nodes that are not part of the CFG and they have an
+   // uninitialized pointer.
+   CFG *g = ba[0]->inCfg();   
+   for (i = 1; i < numBlocks && g == NULL; ++i)
       g = ba[i]->inCfg();
 
    std::cout<<"hmm 0"<<std::endl;
    
-   for( i=0 ; i<numBlocks ; ++i )
-   {
+   for(i = 0; i < numBlocks; ++i) {
 #if DEBUG_GRAPH_CONSTRUCTION
       DEBUG_GRAPH (3,
          fprintf(stderr, "Processing block %d with prob %f, from address [%" PRIxaddr ",%" PRIxaddr "]\n",
@@ -253,10 +257,8 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa, RSIList* innerR
       )
 #endif
       addrtype pc;
-      if (!ba[i]->is_inner_loop ())
-      {
-         if (!ba[i]->isCfgEntry())
-         {
+      if (!ba[i]->is_inner_loop()) {
+         if (!ba[i]->isCfgEntry()) {
             CFG::ForwardInstructionIterator iit(ba[i]);
             while ((bool)iit)
             {

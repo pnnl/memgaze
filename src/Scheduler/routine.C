@@ -1443,8 +1443,8 @@ Routine::build_paths_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
       }
       
       if (mo->do_cfgpaths){
-         constructPaths (pscope, root_b, marker, no_fpga_acc, entryEdges, 
-                   callEntryEdges);
+         constructPaths(pscope, root_b, marker, no_fpga_acc, entryEdges,
+			callEntryEdges);
       }
       if(mo->do_mycfgpaths){
          myConstructPaths(pscope,no_fpga_acc,mo->block_path);
@@ -1457,8 +1457,8 @@ Routine::build_paths_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
       fprintf (stderr, "DELETING SCOPE\n");
 #endif
       if (mo->do_cfgpaths){
-         constructPaths (pscope, root_b, marker, no_fpga_acc, entryEdges, 
-                      callEntryEdges);
+         constructPaths(pscope, root_b, marker, no_fpga_acc, entryEdges,
+			callEntryEdges);
       }
       if(mo->do_mycfgpaths){
          myConstructPaths(pscope,no_fpga_acc,mo->block_path);
@@ -1605,7 +1605,7 @@ void split(const std::string &s, char delim, std::vector<int> &elems) {
 }
 
 void
-Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const string& spath)
+Routine::myConstructPaths(ScopeImplementation *pscope, int no_fpga_acc, const string& spath)
 {
    std::cerr << "[INFO]Routine::constructPaths(): '" << name << "'\n";
    CFG::NodeList ba;
@@ -1613,7 +1613,7 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
    RSIListList rl;
    //unused BMSet& entries = pscope->InnerEntries();
    //unused BMSet& exits = pscope->InnerExits();
-   PairRSIMap &pathRegs = pscope->PathRegisters ();
+   PairRSIMap &pathRegs = pscope->PathRegisters();
    BPMap *bpmtemp = new BPMap();
    LatencyType thisLoopLatency = 0;
 //ozgurS   
@@ -1642,7 +1642,7 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
    BlockPath *bp = new BlockPath(ba, (CFG::Node*)(*dyn_blkNoToMiamiBlk)[path[path.size()-1]], fa, rl, false);
    bpmtemp->insert(BPMap::value_type(bp, new PathInfo(1)));
    
-    /* Temporary method to account for memory stalls and such.
+   /* Temporary method to account for memory stalls and such.
     * Keep track of all memory references in this scope. After all paths
     * are scheduled, I will compute an average IPC for the scope.
     * Next, use the mechanistic model to compute memory stalls and
@@ -1651,16 +1651,16 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
    AddrSet scopeMemRefs;
    int loopIdx = 1;
    for (BPMap::iterator bpit=bpmtemp->begin() ; bpit!=bpmtemp->end() ; 
-                ++bpit, ++loopIdx)
+	++bpit, ++loopIdx)
    {
       // pathId is 64 bits; Use 32 bits for head block address,
       // 16 bits for loop index, 16 bits for path index in loop
       PathID pathId(bpit->first->blocks[0]->getStartAddress());
-      if (pscope->getScopeType()==LOOP_SCOPE)
+      if (pscope->getScopeType() == LOOP_SCOPE)
          pathId.scopeIdx = dynamic_cast<LoopScope*>(pscope)->Index();
       else
       {
-         assert (pscope->getScopeType()==ROUTINE_SCOPE);
+         assert(pscope->getScopeType()==ROUTINE_SCOPE);
          pathId.scopeIdx = 1;  // routines have index 1 I think
       }
       pathId.pathIdx = loopIdx;
@@ -1951,9 +1951,9 @@ Routine::myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const s
 
 
 void
-Routine::constructPaths (ScopeImplementation *pscope, CFG::Node *b, int marker,
-            int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, 
-            CFG::AddrEdgeMMap *callEntryEdges)
+Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
+			int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, 
+			CFG::AddrEdgeMMap *callEntryEdges)
 {
    std::cerr << "[INFO]Routine::constructPaths(): '" << name << "'\n";
    CFG::NodeList ba;
@@ -2618,7 +2618,7 @@ Routine::constructPaths (ScopeImplementation *pscope, CFG::Node *b, int marker,
 #endif
 #if PROFILE_SCHEDULER
       MIAMIP::report_time (stderr, "Decode instructions for scope %s", 
-               pscope->ToString().c_str());
+			   pscope->ToString().c_str());
 #endif
    }
 
