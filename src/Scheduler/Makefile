@@ -105,20 +105,30 @@ vpath %.C   $(PALM_MIAMI_ROOT)/src/tarjans
 
 SCHEDULER_OBJS = \
 	schedtool.o \
+	MiamiDriver.o \
+	debug_scheduler.o \
 	\
-	CFG.o routine.o load_module.o debug_scheduler.o \
+	load_module.o routine.o \
+	CFG.o \
+	\
 	block_path.o PathInfo.o TimeAccount.o Clique.o FindCliques.o \
 	reuse_group.o Instruction.o Machine.o MemoryHierarchyLevel.o \
 	PatternGraph.o \
 	InstTemplate.o dependency_type.o schedule_time.o StringAssocTable.o \
+	\
 	imix_histograms.o imix_clustering.o imix_width_clustering.o \
+	\
 	TemplateExecutionUnit.o UnitRestriction.o BitSet.o BypassRule.o \
 	prog_scope.o \
-	machdesc.tab.o machdesc.lex.o MiamiDriver.o \
+	\
+	machdesc.tab.o machdesc.lex.o \
 	memory_latency_histograms.o \
-	path_id.o CycleSetDAG.o SchedDG.o DGBuilder.o \
+	memory_reuse_histograms.o \
 	stream_reuse_histograms.o \
-	XML_output.o memory_reuse_histograms.o TemplateInstantiate.o
+	\
+	path_id.o CycleSetDAG.o DGBuilder.o SchedDG.o \
+	\
+	XML_output.o TemplateInstantiate.o
 
 COMMON_OBJS = \
 	PrivateCFG.o printable_class.o private_routine.o Assertion.o \
@@ -131,7 +141,7 @@ COMMON_OBJS = \
 	mark_back_edges.o uop_code_cache.o \
 	base_slice.o static_memory_analysis.o \
 	\
-	instruction-xlate.o instr_info.o instr_bins.o register_class.o  \
+	InstructionDecoder.o instr_info.o instr_bins.o register_class.o \
 	\
 	static_branch_analysis.o instruction_class.o canonical_ops.o \
 	math_routines.o
