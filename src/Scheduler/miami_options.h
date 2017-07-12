@@ -52,9 +52,13 @@ namespace MIAMI
 
       bool do_mycfgpaths;
       
+    
       double threshold;   // a scope must contribute more than this fraction of any performance metric 
                           // to be included in the output database.
-
+    //ozgurS
+      bool palm_dump_flag_set;
+      std::string palm_dump_file;
+    //ozgurE
 
       
       string machine_file;
@@ -74,7 +78,6 @@ namespace MIAMI
       string block_path;
       string func_name;
       string lat_path;
-
       
       MiamiOptions() {
          do_scheduling = false;
@@ -100,7 +103,7 @@ namespace MIAMI
          do_ref_scope_index = false;
          detailed_metrics = false;
          debug_parts = 1;
-         
+         palm_dump_flag_set = false;
          threshold = 0.0;
          
          // make default exec name and path in case we cannot open the first image??
@@ -362,7 +365,20 @@ namespace MIAMI
          if (lpath.length())
             lat_path = lpath;
       }
-
+    
+     void addDumpFile(const string& dfile)
+     {
+        if (dfile.length()){
+            palm_dump_file = dfile;
+            palm_dump_flag_set = true; 
+        } else {
+            palm_dump_flag_set = false;
+        }
+    
+     }
+    
+     std::string getDumpFile() {return palm_dump_file;}
+     bool isDumpFlagSet() {return palm_dump_flag_set;}
       void addBlockPath(const string& blkPath){
          if (blkPath.length()){
             block_path = blkPath;

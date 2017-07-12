@@ -3971,11 +3971,14 @@ SchedDG::findDependencyCycles()
 	 // determine the longest cycle
 	 // update cycle length info for each node
 
-	 int thisCyc = cycles[i]->getLatency();
-	 //ozgurS
-	 int thisCycMem = cycles[i]->getMemLatency();
-	 int thisCycCPU = cycles[i]->getCPULatency();
-	 //ozgurE
+            int thisCyc = cycles[i]->getLatency();
+//ozgurS
+ 
+            int thisCycMem = cycles[i]->getMemLatency();
+            int thisCycCPU = cycles[i]->getCPULatency();
+cout<<__func__<<"ozgur: MemLat: "<<thisCycMem<<endl;
+cout<<__func__<<"ozgur: CPULat: "<<thisCycCPU<<endl;
+//ozgurE
 #if VERBOSE_DEBUG_PALM
 	 DEBUG_PALM(1,
 		    cout << __func__ <<" "<<thisCyc<<" "<<i<<endl;
@@ -4567,10 +4570,10 @@ SchedDG::Cycle::~Cycle()
 int
 SchedDG::Cycle::getRawMemLatency()
 {
-   if (_flags & LATENCY_COMPUTED_CYCLE)
-      return (cLength);
+//   if (_flags & LATENCY_COMPUTED_CYCLE)
+//      return (cLength);
    // otherwise attempt to compute the latency
-   cLength = 0;
+   int cLength = 0;
    bool hasLat = true;
    EdgeList::iterator eit = edges->begin();
    for( ; eit!=edges->end() ; ++eit )
@@ -4589,27 +4592,28 @@ SchedDG::Cycle::getRawMemLatency()
       )
 #endif
    }
+cout<<__func__<<" ozgur: RawMemLat: "<<cLength<<endl;
    return (cLength);
 }
 
 int
 SchedDG::Cycle::getMemLatency()
 {
-   if (_flags & LATENCY_COMPUTED_CYCLE)
-      return (iterLength);
+//   if (_flags & LATENCY_COMPUTED_CYCLE)
+//      return (iterLength);
    float ilen = (float)getRawMemLatency() * revIters;
-   iterLength = (unsigned int)(ceil(ilen)+0.00001);
-cout<<__func__<<" ozgur: memLat: "<<iterLength<<endl;
-   return (iterLength);
+   int memLength = (unsigned int)(ceil(ilen)+0.00001);
+cout<<__func__<<"ozgur: memLat: "<<memLength<<endl;
+   return (memLength);
 }
 
 int
 SchedDG::Cycle::getRawCPULatency()
 {
-   if (_flags & LATENCY_COMPUTED_CYCLE)
-      return (cLength);
+//   if (_flags & LATENCY_COMPUTED_CYCLE)
+//      return (cLength);
    // otherwise attempt to compute the latency
-   cLength = 0;
+   int cLength = 0;
    bool hasLat = true;
    EdgeList::iterator eit = edges->begin();
    for( ; eit!=edges->end() ; ++eit )
@@ -4628,18 +4632,19 @@ SchedDG::Cycle::getRawCPULatency()
       )
 #endif
    }
+    cout<<__func__<<" ozgur: RawCPULat: "<<cLength<<endl;
    return (cLength);
 }
 
 int
 SchedDG::Cycle::getCPULatency()
 {
-   if (_flags & LATENCY_COMPUTED_CYCLE)
-      return (iterLength);
+//   if (_flags & LATENCY_COMPUTED_CYCLE)
+//      return (iterLength);
    float ilen = (float)getRawCPULatency() * revIters;
-   iterLength = (unsigned int)(ceil(ilen)+0.00001);
-cout<<__func__<<" ozgur: cpuLat: "<<iterLength<<endl;
-   return (iterLength);
+   int cpuLength = (unsigned int)(ceil(ilen)+0.00001);
+cout<<__func__<<" ozgur: cpuLat: "<<cpuLength<<endl;
+   return (cpuLength);
 }
 //ozgurE
 
@@ -11590,8 +11595,9 @@ SchedDG::myMinSchedulingLengthDueToDependencies(float &memLatency, float &cpuLat
    {
       isLongCycle = true;
       returnThis.ret = (longestCycle);
-      returnThis.cpuret = longestCycle - memLatency;
-//      returnThis.memret = longestCycleMem;
+//      returnThis.cpuret = longestCycle - memLatency;
+      returnThis.memret = longestCycleMem;
+      returnThis.cpuret = longestCycleCPU;
    }
    else
    {

@@ -31,6 +31,7 @@
 #include "Assertion.h"
 
 //#include "dyninst-insn-xlate.hpp"
+//#include "miami_options.h"
 
 #include <BPatch_flowGraph.h>
 #include <Function.h>
@@ -1908,10 +1909,10 @@ Routine::myConstructPaths(ScopeImplementation *pscope, int no_fpga_acc, const st
             cout<<endl;
             scopeMemRefs.insert(pathRefs.begin(), pathRefs.end());
             //sch->dump(cout);
-            if (0 /*dump_flag_set*/){ //FIXME!!!
-	      std::ofstream sched_file;
-	      sched_file.open("sched_file_name.dot");//FIXME
-	      sch->draw_scheduling(sched_file, "path/routine_name");//FIXME
+            if(mo->palm_dump_flag_set){ 
+                  std::ofstream sched_file;
+                  sched_file.open(mo->palm_dump_file);
+                  sch->draw_scheduling(sched_file, mo->palm_dump_file.c_str());
             }
             sch->printTimeAccount();
             delete sch;
