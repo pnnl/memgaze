@@ -29,53 +29,55 @@ class Matmult_seqbaij_1_0_0
 
 " petsc code for reference:
 
-PetscErrorCode MatMult_SeqBAIJ_2(Mat A,Vec xx,Vec zz)
+PetscErrorCode MatMult_SeqBAIJ_1(Mat A,Vec xx,Vec zz)
 {
   Mat_SeqBAIJ       *a = (Mat_SeqBAIJ*)A->data;
-  PetscScalar       *z = 0,sum1,sum2,*zarray;
-  const PetscScalar *x,*xb;
-  PetscScalar       x1,x2;
+  PetscScalar       *z,sum;
+  const PetscScalar *x;
   const MatScalar   *v;
   PetscErrorCode    ierr;
-  PetscInt          mbs,i,*idx,*ii,j,n,*ridx=NULL;
+  PetscInt          mbs,i,n;
+  const PetscInt    *idx,*ii,*ridx=NULL;
   PetscBool         usecprow=a->compressedrow.use;
 
   PetscFunctionBegin;
   ierr = VecGetArrayRead(xx,&x);CHKERRQ(ierr);
-  ierr = VecGetArray(zz,&zarray);CHKERRQ(ierr);
+  ierr = VecGetArray(zz,&z);CHKERRQ(ierr);
 
-  idx = a->j;
-  v   = a->a;
   if (usecprow) {
     mbs  = a->compressedrow.nrows;
     ii   = a->compressedrow.i;
     ridx = a->compressedrow.rindex;
+    ierr = PetscMemzero(z,mbs*sizeof(PetscScalar));CHKERRQ(ierr);
   } else {
     mbs = a->mbs;
     ii  = a->i;
-    z   = zarray;
   }
 
   for (i=0; i<mbs; i++) {
-    n           = ii[1] - ii[0]; ii++;
-    sum1        = 0.0; sum2 = 0.0;
+    n   = ii[1] - ii[0];
+    v   = a->a + ii[0];
+    idx = a->j + ii[0];
+    ii++;
     PetscPrefetchBlock(idx+n,n,0,PETSC_PREFETCH_HINT_NTA);   /* Indices for the next row (assumes same size as this one) */
-    PetscPrefetchBlock(v+4*n,4*n,0,PETSC_PREFETCH_HINT_NTA); /* Entries for the next row */
-    for (j=0; j<n; j++) {
-      xb    = x + 2*(*idx++); x1 = xb[0]; x2 = xb[1];
-      sum1 += v[0]*x1 + v[2]*x2;
-      sum2 += v[1]*x1 + v[3]*x2;
-      v    += 4;
+    PetscPrefetchBlock(v+1*n,1*n,0,PETSC_PREFETCH_HINT_NTA); /* Entries for the next row */
+    sum = 0.0;
+    PetscSparseDensePlusDot(sum,x,v,idx,n);
+    if (usecprow) {
+      z[ridx[i]] = sum;
+    } else {
+      z[i]        = sum;
     }
-    if (usecprow) z = zarray + 2*ridx[i];
-    z[0] = sum1; z[1] = sum2;
-    if (!usecprow) z += 2;
   }
   ierr = VecRestoreArrayRead(xx,&x);CHKERRQ(ierr);
-  ierr = VecRestoreArray(zz,&zarray);CHKERRQ(ierr);
-  ierr = PetscLogFlops(8.0*a->nz - 2.0*a->nonzerorowcnt);CHKERRQ(ierr);
+  ierr = VecRestoreArray(zz,&z);CHKERRQ(ierr);
+
+  //palm_task_model((uint32_t)(2.0*a->nz - a->nonzerorowcnt), 0, 0, 0);
+
+  ierr = PetscLogFlops(2.0*a->nz - a->nonzerorowcnt);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
 
 #define PetscSparseDensePlusDot(sum,r,xv,xi,nnz) { \
     PetscInt __i; \
