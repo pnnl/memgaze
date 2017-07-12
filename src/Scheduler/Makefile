@@ -102,57 +102,163 @@ vpath %.cpp $(PALM_MIAMI_ROOT)/src/common
 vpath %.C   $(PALM_MIAMI_ROOT)/src/OAUtils
 vpath %.C   $(PALM_MIAMI_ROOT)/src/tarjans
 
+#----------------------------------------------------------------------------
+
 SCHEDULER_OBJS = \
 	schedtool.o \
 	MiamiDriver.o \
-	debug_scheduler.o \
 	\
-	load_module.o routine.o \
+	load_module.o \
+	routine.o \
+	Instruction.o \
+	\
+	block_path.o \
+	path_id.o \
+	\
+	PathInfo.o \
+	TimeAccount.o \
+	schedule_time.o \
+	reuse_group.o \
+	\
+	DGBuilder.o \
+	SchedDG.o \
+	CycleSetDAG.o \
+	dependency_type.o \
 	CFG.o \
+	Clique.o \
+	FindCliques.o \
 	\
-	block_path.o PathInfo.o TimeAccount.o Clique.o FindCliques.o \
-	reuse_group.o Instruction.o Machine.o MemoryHierarchyLevel.o \
-	PatternGraph.o \
-	InstTemplate.o dependency_type.o schedule_time.o StringAssocTable.o \
-	\
-	imix_histograms.o imix_clustering.o imix_width_clustering.o \
-	\
-	TemplateExecutionUnit.o UnitRestriction.o BitSet.o BypassRule.o \
-	prog_scope.o \
-	\
-	machdesc.tab.o machdesc.lex.o \
 	memory_latency_histograms.o \
 	memory_reuse_histograms.o \
 	stream_reuse_histograms.o \
 	\
-	path_id.o CycleSetDAG.o DGBuilder.o SchedDG.o \
+	imix_clustering.o \
+	imix_width_clustering.o \
+	imix_histograms.o \
 	\
-	XML_output.o TemplateInstantiate.o
+	Machine.o \
+	MemoryHierarchyLevel.o \
+	TemplateExecutionUnit.o \
+	UnitRestriction.o \
+	InstTemplate.o \
+	PatternGraph.o \
+	BypassRule.o \
+	BitSet.o \
+	StringAssocTable.o \
+	machdesc.tab.o \
+	machdesc.lex.o \
+	\
+	XML_output.o \
+	debug_scheduler.o \
+	\
+	TemplateInstantiate.o
+
+#   Used headers:
+#     GenericInstruction.h
+#     MachineExecutionUnit.h
+#     CFGDominator.h, DGDominator.h
+#     ReplacementRule.h
+#     miami_options.h
+#     mrd_file_info.h
+#     position.h
+#     reg_sched_info.h
+#     scope_implementation.h
+#     scope_reuse_data.h
+
+#   Unused:
+#     memory_coverage.[Ch]
+
+#----------------------------------------------------------------------------
 
 COMMON_OBJS = \
-	PrivateCFG.o printable_class.o private_routine.o Assertion.o \
+	private_load_module.o \
+	private_routine.o \
+	\
+	instruction_class.o \
+	instr_bins.o \
+	instr_info.o \
+	register_class.o \
+	canonical_ops.o \
+	math_routines.o \
+	\
+	Dominator.o \
 	BaseDominator.o \
-	default_values.o xml.o code_scope.o report_time.o \
-	source_file_mapping_binutils.o \
-	file_utilities.o debug_miami.o loadable_class.o miami_globals.o \
-	miami_utils.o \
-	private_load_module.o slice_references.o Dominator.o \
-	mark_back_edges.o uop_code_cache.o \
-	base_slice.o static_memory_analysis.o \
+	PrivateCFG.o \
+	mark_back_edges.o \
+	static_branch_analysis.o \
+	\
+	slice_references.o \
+	base_slice.o \
+	static_memory_analysis.o \
 	\
 	InstructionDecoder.o \
-	instr_info.o instr_bins.o register_class.o \
+	uop_code_cache.o \
 	\
-	static_branch_analysis.o instruction_class.o canonical_ops.o \
-	math_routines.o
+	prog_scope.o \
+	code_scope.o \
+	source_file_mapping_binutils.o \
+	file_utilities.o \
+	xml.o \
+	\
+	printable_class.o \
+	loadable_class.o \
+	\
+	miami_utils.o \
+	report_time.o \
+	miami_globals.o \
+	default_values.o \
+	Assertion.o \
+	debug_miami.o
 
-# if XED is available
-COMMON_OBJS += InstructionDecoder-xed.o
-#instruction_decoding_dyninst.o
+# InstructionDecoder-dyninst.cpp
 
-OA_OBJS = BaseGraph.o DGraph.o
+ifeq (1,1) # if XED is available...
+  COMMON_OBJS += InstructionDecoder-xed.o
+endif
 
-TARJ_OBJS = TarjanIntervals.o MiamiRIFG.o UnionFindUniverse.o
+#   Used headers:
+#     gnu_demangle.h, config.h
+#     charless.h
+#     hashmaps.h, bucket_hashmap.h, fast_hashmap.h
+#     generic_pair.h, generic_trio.h
+#     dense_container.h
+#     general_formula.h, generic_math_expression.h
+#     instruction_decoding.h
+#     InstructionDecoder-xed-iclass.h
+#     miami_allocator.h
+#     miami_containers.h
+#     miami_data_sections.h
+#     miami_types.h
+#     self_sorted_list.h
+#     uipair.h
+#     unionfind.h
+#     CRCHash.h [nearly unused]
+
+#   Unused files:
+#     on_demand_pin.[Ch]
+#     use_mpi_rank.[Ch]
+#     loadable_class.[Ch]
+#     cache_sim.[Ch], block_mapper.h
+#     mrd_splay_tree.h
+#     miami_stack.h
+#     compute_CRC.[Ch]
+#     miami_growvector.h
+#     ranged_set.H
+
+#----------------------------------------------------------------------------
+
+OA_OBJS = \
+	BaseGraph.o \
+	DGraph.o
+
+#----------------------------------------------------------------------------
+
+TARJ_OBJS = \
+	TarjanIntervals.o \
+	MiamiRIFG.o \
+	UnionFindUniverse.o
+
+#----------------------------------------------------------------------------
 
 OBJS = \
 	$(SCHEDULER_OBJS:%=$(OBJDIR)$(TOOL_OBJ_DIR)/%) \
