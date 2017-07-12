@@ -23,7 +23,7 @@
 #include "debug_scheduler.h"
 
 #include "instr_info.H"
-#include "instruction-xlate.hpp"
+#include "InstructionDecoder.hpp"
 
 //#include "dyninst-insn-xlate.hpp"
 

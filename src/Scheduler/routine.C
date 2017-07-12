@@ -20,7 +20,7 @@
 #include "load_module.h"
 #include "CRCHash.h"
 #include "source_file_mapping.h"
-#include "instruction-xlate.hpp"
+#include "InstructionDecoder.hpp"
 #include "debug_scheduler.h"
 #include "DGBuilder.h"
 #include "report_time.h"

@@ -18,7 +18,7 @@
 // 
 //***************************************************************************
 
-#include "instruction-xlate.hpp"
+#include "InstructionDecoder.hpp"
 
 #include "instruction_decoding.h"
 
