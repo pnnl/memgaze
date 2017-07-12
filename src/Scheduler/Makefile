@@ -147,7 +147,7 @@ COMMON_OBJS = \
 	math_routines.o
 
 # if XED is available
-COMMON_OBJS += instruction_decoding_pin.o
+COMMON_OBJS += InstructionDecoder-xed.o
 #instruction_decoding_dyninst.o
 
 OA_OBJS = BaseGraph.o DGraph.o
@@ -255,7 +255,7 @@ $(OBJDIR)common/%.o : %.c
 $(OBJDIR)common/source_file_mapping_binutils.o : source_file_mapping_binutils.C
 	$(CXX) $(CXXFLAGS) $(BINUTILS_CFLAGS) $(COMP_OBJ) $@ $<
 
-$(OBJDIR)common/instruction_decoding_pin.o : instruction_decoding_pin.C
+$(OBJDIR)common/InstructionDecoder-xed.o : InstructionDecoder-xed.cpp
 	$(CXX) $(CXXFLAGS) $(XED_CFLAGS) $(COMP_OBJ) $@ $<
 
 #----------------------------------------------------------------------------

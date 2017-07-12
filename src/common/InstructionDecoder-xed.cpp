@@ -361,7 +361,7 @@ static InstrBin
 GetInstrBin(xed_decoded_inst_t* inst)
 {
     switch (xed_decoded_inst_get_iclass(inst)) 
-#include "SystemSpecific/IB_x86_xed.C"
+#include "InstructionDecoder-xed-iclass.h"
 }
 
 
