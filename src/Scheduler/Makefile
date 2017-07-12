@@ -33,7 +33,7 @@ LEX  = flex
 
 #****************************************************************************
 
-DYNINST_CXXFLAGS = -I$(DYNINST_INC) -I$(BOOST_INC)
+DYNINST_CXXFLAGS = -I$(DYNINST_INC) #-I$(BOOST_INC)
 DYNINST_LDFLAGS = \
 	-L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) \
 	-ldyninstAPI \
