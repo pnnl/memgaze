@@ -232,16 +232,13 @@ endif
 #     self_sorted_list.h
 #     uipair.h
 #     unionfind.h
-#     CRCHash.h [nearly unused]
+#     CRCHash.h
 
 #   Unused files:
-#     on_demand_pin.[Ch]
-#     use_mpi_rank.[Ch]
-#     loadable_class.[Ch]
-#     cache_sim.[Ch], block_mapper.h
+#     cache_sim.[Ch]
+#     block_mapper.h (cache block mapping)
 #     mrd_splay_tree.h
 #     miami_stack.h
-#     compute_CRC.[Ch]
 #     miami_growvector.h
 #     ranged_set.H
 
