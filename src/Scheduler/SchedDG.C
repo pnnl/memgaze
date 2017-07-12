@@ -5090,7 +5090,7 @@ SchedDG::Edge::computeLatency(const Machine *_mach, addrtype reloc, SchedDG* sdg
    if (source()->getAddress() != sink()->getAddress()){ //because a single instruction can be represented by multipl uops, only apply addition load latency when transitioning to a new instruction
     minLatency += sdg->img->getMemLoadLatency(source()->getAddress());
 //ozgurS
-    minMemLatency = sdg->img->getMemLoadLatency(source()->getAddress());  
+    minMemLatency= realMemLatency = sdg->img->getMemLoadLatency(source()->getAddress());  
 //ozgurE
    }
 //ozgurS
@@ -8500,7 +8500,8 @@ SchedDG::processIncidentEdges (Node *newNode, int templIdx, int i, int unit)
                        reloc_offset,
                        srcIC,
                        tempE->sink()->makeIClass(), 
-                       templIdx) + img->getMemLoadLatency(newNode->getAddress());
+                       templIdx); 
+            tempE->realMemLatency =  img->getMemLoadLatency(newNode->getAddress());
 //ozgurE
 #if VERBOSE_DEBUG_PALM
       DEBUG_PALM(1,
@@ -8517,7 +8518,7 @@ SchedDG::processIncidentEdges (Node *newNode, int templIdx, int i, int unit)
                   tempE->realCPULatency -= tempE->overlapped;
 //ozgurE
                } 
-               else
+               else//TODO Check if I need to do anything with mem
                {
                   // we want a minimum latency of 1 such that the
                   // inner loop does not overlap with any instruct.
@@ -13155,11 +13156,22 @@ SchedDG::Edge::write_label (ostream& os)
       sprintf(tempbuf, "%5.3f", _prob);
       os << "label=\"prob=" << tempbuf;
    }
-   if (source()->isScheduled())
+   if (source()->isScheduled()){
       os << ",lat=" << realLatency;
-   else
-      if (_flags & LATENCY_COMPUTED_EDGE)
+//ozgurS
+      os << ",realMemlat=" << realMemLatency;
+      os << ",realCPUlat=" << realCPULatency;
+//ozgurE
+   }
+   else{
+      if (_flags & LATENCY_COMPUTED_EDGE){
          os << ",minlat=" << minLatency;
+//ozgurS
+         os << ",memlat=" << minMemLatency;
+         os << ",CPUlat=" << minCPULatency;
+//ozgurE
+      }
+   }
    os << "\\nedg" << id << "\",";
 }
 
