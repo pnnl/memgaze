@@ -47,7 +47,7 @@ DYNINST_LDFLAGS = \
 	-ldynDwarf \
 	-lcommon
 
-XED_CXXFLAGS = -I$(XED_INC)
+XED_CFLAGS = -I$(XED_INC)
 XED_LDFLAGS = \
 	-L$(XED_LIB) -Wl,-rpath $(XED_LIB) \
 	-lxed
@@ -58,8 +58,7 @@ BINUTILS_LDFLAGS = \
 	-lbfd -liberty -lz
 
 TOOL_CXXFLAGS = \
-	$(DYNINST_CXXFLAGS) \
-	$(XED_CXXFLAGS)
+	$(DYNINST_CXXFLAGS)
 
 TOOL_CFLAGS =
 
@@ -141,12 +140,14 @@ COMMON_OBJS = \
 	mark_back_edges.o uop_code_cache.o \
 	base_slice.o static_memory_analysis.o \
 	\
-	InstructionDecoder.o instr_info.o instr_bins.o register_class.o \
+	InstructionDecoder.o \
+	instr_info.o instr_bins.o register_class.o \
 	\
 	static_branch_analysis.o instruction_class.o canonical_ops.o \
 	math_routines.o
 
-PIN_COMMON_OBJS = instruction_decoding_pin.o
+# if XED is available
+COMMON_OBJS += instruction_decoding_pin.o
 #instruction_decoding_dyninst.o
 
 OA_OBJS = BaseGraph.o DGraph.o
@@ -156,7 +157,6 @@ TARJ_OBJS = TarjanIntervals.o MiamiRIFG.o UnionFindUniverse.o
 OBJS = \
 	$(SCHEDULER_OBJS:%=$(OBJDIR)$(TOOL_OBJ_DIR)/%) \
 	$(COMMON_OBJS:%=$(OBJDIR)common/%) \
-	$(PIN_COMMON_OBJS:%=$(OBJDIR)pinobj/%) \
 	$(OA_OBJS:%=$(OBJDIR)oautils/%) \
 	$(TARJ_OBJS:%=$(OBJDIR)tarjans/%)
 
@@ -212,7 +212,6 @@ $(OBJDIR): .force
 	mkdir -p $(OBJDIR)
 	mkdir -p $(OBJDIR)$(TOOL_OBJ_DIR)
 	mkdir -p $(OBJDIR)common
-	mkdir -p $(OBJDIR)pinobj
 	mkdir -p $(OBJDIR)oautils
 	mkdir -p $(OBJDIR)tarjans
 
@@ -256,15 +255,8 @@ $(OBJDIR)common/%.o : %.c
 $(OBJDIR)common/source_file_mapping_binutils.o : source_file_mapping_binutils.C
 	$(CXX) $(CXXFLAGS) $(BINUTILS_CFLAGS) $(COMP_OBJ) $@ $<
 
-#----------------------------------------------------------------------------
-
-$(OBJDIR)pinobj/%.o : %.cpp
-	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ) $@ $<
-$(OBJDIR)pinobj/%.o : %.C
-	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ) $@ $<
-
-$(OBJDIR)pinobj/%.o : %.c
-	$(CC) $(TOOL_CFLAGS) $(CFLAGS) $(COMP_OBJ) $@ $<
+$(OBJDIR)common/instruction_decoding_pin.o : instruction_decoding_pin.C
+	$(CXX) $(CXXFLAGS) $(XED_CFLAGS) $(COMP_OBJ) $@ $<
 
 #----------------------------------------------------------------------------
 
