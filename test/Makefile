@@ -6,7 +6,10 @@ include ../miami.config
 
 TEST_STEMS = \
 	test1 \
-	test2
+	test2 \
+	test3 \
+	test3-inner-loop \
+	test3-inner-loop-2its
 
 TEST_SCHED = $(addsuffix -schedule.dot, $(TEST_STEMS))
 
@@ -57,6 +60,39 @@ test2-schedule.dot : %-schedule.dot :
 	  --lat_path ./$*.memprof \
 	  -m $(MACHINE_MODEL) \
 	  --blk_path "0" \
+	  --dump_file $@
+
+
+
+#----examples from pflotran -- MatMult_SeqBAIJ_1 (actually located in the petsc library)
+#examine entry block
+test3-schedule.dot : %-schedule.dot :
+	$(PALM_MIAMI) \
+	  --func  MatMult_SeqBAIJ_1 \
+	  --bin_path ./$*.x86_64-linux.x \
+	  --lat_path ./$*.memprof \
+	  -m $(MACHINE_MODEL) \
+	  --blk_path "0" \
+	  --dump_file $@
+
+#examine the block in the innermost loop
+test3-inner-loop-schedule.dot : %-schedule.dot :
+	$(PALM_MIAMI) \
+	  --func  MatMult_SeqBAIJ_1 \
+	  --bin_path ./test3.x86_64-linux.x \
+	  --lat_path ./test3.memprof \
+	  -m $(MACHINE_MODEL) \
+	  --blk_path "21" \
+	  --dump_file $@
+
+#"unroll" innermost loop twice
+test3-inner-loop-2its-schedule.dot : %-schedule.dot :
+	$(PALM_MIAMI) \
+	  --func  MatMult_SeqBAIJ_1 \
+	  --bin_path ./test3.x86_64-linux.x \
+	  --lat_path ./test3.memprof \
+	  -m $(MACHINE_MODEL) \
+	  --blk_path "21->21" \
 	  --dump_file $@
 
 clean :
