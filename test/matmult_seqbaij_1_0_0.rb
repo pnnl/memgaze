@@ -25,3 +25,61 @@ class Matmult_seqbaij_1_0_0
 		base_out_0=(base_entry_0 + loop1 + base_exit_0)*1.0
 		return base_out_0
 	end
+
+
+" petsc code for reference:
+
+PetscErrorCode MatMult_SeqBAIJ_2(Mat A,Vec xx,Vec zz)
+{
+  Mat_SeqBAIJ       *a = (Mat_SeqBAIJ*)A->data;
+  PetscScalar       *z = 0,sum1,sum2,*zarray;
+  const PetscScalar *x,*xb;
+  PetscScalar       x1,x2;
+  const MatScalar   *v;
+  PetscErrorCode    ierr;
+  PetscInt          mbs,i,*idx,*ii,j,n,*ridx=NULL;
+  PetscBool         usecprow=a->compressedrow.use;
+
+  PetscFunctionBegin;
+  ierr = VecGetArrayRead(xx,&x);CHKERRQ(ierr);
+  ierr = VecGetArray(zz,&zarray);CHKERRQ(ierr);
+
+  idx = a->j;
+  v   = a->a;
+  if (usecprow) {
+    mbs  = a->compressedrow.nrows;
+    ii   = a->compressedrow.i;
+    ridx = a->compressedrow.rindex;
+  } else {
+    mbs = a->mbs;
+    ii  = a->i;
+    z   = zarray;
+  }
+
+  for (i=0; i<mbs; i++) {
+    n           = ii[1] - ii[0]; ii++;
+    sum1        = 0.0; sum2 = 0.0;
+    PetscPrefetchBlock(idx+n,n,0,PETSC_PREFETCH_HINT_NTA);   /* Indices for the next row (assumes same size as this one) */
+    PetscPrefetchBlock(v+4*n,4*n,0,PETSC_PREFETCH_HINT_NTA); /* Entries for the next row */
+    for (j=0; j<n; j++) {
+      xb    = x + 2*(*idx++); x1 = xb[0]; x2 = xb[1];
+      sum1 += v[0]*x1 + v[2]*x2;
+      sum2 += v[1]*x1 + v[3]*x2;
+      v    += 4;
+    }
+    if (usecprow) z = zarray + 2*ridx[i];
+    z[0] = sum1; z[1] = sum2;
+    if (!usecprow) z += 2;
+  }
+  ierr = VecRestoreArrayRead(xx,&x);CHKERRQ(ierr);
+  ierr = VecRestoreArray(zz,&zarray);CHKERRQ(ierr);
+  ierr = PetscLogFlops(8.0*a->nz - 2.0*a->nonzerorowcnt);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#define PetscSparseDensePlusDot(sum,r,xv,xi,nnz) { \
+    PetscInt __i; \
+    for (__i=0; __i<nnz; __i++) sum += xv[__i] * r[xi[__i]];}
+#endif
+
+"
