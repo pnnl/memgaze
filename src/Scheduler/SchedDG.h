@@ -102,7 +102,6 @@ namespace MIAMI_DG
 // define bit flags for cycles
 #define LATENCY_COMPUTED_CYCLE  2
 
-
 #define REPLACE_NODE_MASK       0x80000000
 #define MAKE_REPLACE_NODE_ID(a) (REPLACE_NODE_MASK + (a))
 #define IS_REPLACE_NODE(a)      ((a) & REPLACE_NODE_MASK)
