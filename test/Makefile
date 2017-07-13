@@ -17,8 +17,7 @@ TEST_SCHED_PDF = $(addsuffix -schedule.pdf, $(TEST_STEMS))
 
 TEST_SCHED_SVG = $(addsuffix -schedule.svg, $(TEST_STEMS))
 
-
-#****************************************************************************
+#----------------------------------------------------------------------------
 
 PALM_MIAMI = \
 	$(PALM_MIAMI_ROOT)/install/bin/miami
@@ -28,7 +27,8 @@ MACHINE_MODEL = \
 
 GRAPHVIZ_DOT = /home/frie869/pkg/graphviz-2.40.1/bin/dot
 
-#----------------------------------------------------------------------------
+
+#****************************************************************************
 
 all : $(TEST_SCHED_PDF) $(TEST_SCHED_SVG)
 
