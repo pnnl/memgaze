@@ -22,7 +22,10 @@
 #include "instr_bins.H"
 #include "miami_types.h"
 #include "instruction_class.h"
+
+#ifdef DYNINST_DECODE
 #include "register_class.h"
+#endif
 
 namespace MIAMI
 {
@@ -35,7 +38,9 @@ enum OperandType {
     OperandType_LAST
 };
 
-typedef std::list<register_info> RInfoList;
+#ifdef DYNINST_DECODE
+  typedef std::list<register_info> RInfoList;
+#endif
 
 const int max_num_src_operands = 6;
 const int max_num_dest_operands = 4; 
@@ -57,7 +62,9 @@ struct instruction_info
       num_dest_operands = 0;
       num_imm_values = 0;
       data = 0;
+#ifdef DYNINST_DECODE
       flag = false;
+#endif
    }
    
    int num_src_operands_of_type(OperandType type, int pos = 0) const
@@ -132,7 +139,9 @@ struct instruction_info
    uint8_t  num_src_operands;  // number of source operands
    uint8_t  num_dest_operands; // number of destination operands
    uint8_t  num_imm_values;
+#ifdef DYNINST_DECODE
    bool flag;   
+#endif
 
    // source operands. Use make_operand to pack operand info
    uint8_t  src_opd[max_num_src_operands]; 
@@ -142,8 +151,10 @@ struct instruction_info
    
    // keep the decoded immediate values
    imm_value_t imm_values[max_num_imm_values];
+#ifdef DYNINST_DECODE
    RInfoList src_reg_list;
    RInfoList dest_reg_list;
+#endif
 
 };
 

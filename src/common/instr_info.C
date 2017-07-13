@@ -64,9 +64,11 @@ DumpInstrList(const DecodedInstruction *dInst)
 	   << "/" << extract_op_index(it->src_opd[i]) << ")";
     }
 
+#ifdef DYNINST_DECODE    
     for (auto it2 = it->src_reg_list.begin(); it2 != it->src_reg_list.end(); ++it2) {
       cerr << " [nm,ty: " << it2->name << ", " << RegisterClassToString(it2->type) << "]";
     }
+#endif
     cerr << endl;
     
     cerr << "   DstOps(" << (int)it->num_dest_operands << ")/Reg:";
@@ -76,9 +78,11 @@ DumpInstrList(const DecodedInstruction *dInst)
 	   << "/" << extract_op_index(it->dest_opd[i]) << ") ";
     }
 
+#ifdef DYNINST_DECODE
     for (auto it2 = it->dest_reg_list.begin(); it2 != it->dest_reg_list.end(); ++it2) {
       cerr << " [nm,ty: " << it2->name << ", " << RegisterClassToString(it2->type) << "]";
     }
+#endif
     cerr << endl;
     
     cerr << "   Imm(" << (int)it->num_imm_values << ")";
