@@ -7,15 +7,21 @@ include ../miami.config
 TEST_STEMS = \
 	test1 \
 	test2 \
-	test3 \
-	test3-inner-loop \
-	test3-inner-loop-2its
+	\
+	petsc-matmult \
+	petsc-matmult-inner-loop \
+	petsc-matmult-inner-loop-2its
 
-TEST_SCHED = $(addsuffix -schedule.dot, $(TEST_STEMS))
+TEST_SCHED_DOT = $(addsuffix $(SCHED_STEM).dot, $(TEST_STEMS))
 
-TEST_SCHED_PDF = $(addsuffix -schedule.pdf, $(TEST_STEMS))
+TEST_SCHED_PDF = $(addsuffix $(SCHED_STEM).pdf, $(TEST_STEMS))
 
-TEST_SCHED_SVG = $(addsuffix -schedule.svg, $(TEST_STEMS))
+TEST_SCHED_SVG = $(addsuffix $(SCHED_STEM).svg, $(TEST_STEMS))
+
+
+#----------------------------------------------------------------------------
+
+SCHED_STEM = .schedule
 
 #----------------------------------------------------------------------------
 
@@ -30,21 +36,28 @@ GRAPHVIZ_DOT = /home/frie869/pkg/graphviz-2.40.1/bin/dot
 
 #****************************************************************************
 
-all : $(TEST_SCHED_PDF) $(TEST_SCHED_SVG)
+all : $(TEST_SCHED_PDF) # $(TEST_SCHED_SVG)
+
+clean :
+	$(RM) $(TEST_SCHED_DOT)
+	$(RM) $(TEST_SCHED_PDF)
+#	$(RM) $(TEST_SCHED_SVG)
+	$(RM) *[0-9]-units.xml
+	$(RM) *[0-9].xml
 
 #----------------------------------------------------------------------------
 
-%-schedule.svg : %-schedule.dot
-	$(GRAPHVIZ_DOT) -Tsvg $< -o $@
-
-%-schedule.pdf : %-schedule.dot
+%$(SCHED_STEM).pdf : %$(SCHED_STEM).dot
 	$(GRAPHVIZ_DOT) -Tpdf $< -o $@
+
+%$(SCHED_STEM).svg : %$(SCHED_STEM).dot
+	$(GRAPHVIZ_DOT) -Tsvg $< -o $@
 
 #----------------------------------------------------------------------------
 
 # TODO: variants with and without memory lat file
 
-test1-schedule.dot : %-schedule.dot :
+test1$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
 	$(PALM_MIAMI) \
 	  --func _Z5test1ii \
 	  --bin_path ./$*.x86_64-linux.x \
@@ -53,7 +66,7 @@ test1-schedule.dot : %-schedule.dot :
 	  --blk_path "1" \
 	  --dump_file $@
 
-test2-schedule.dot : %-schedule.dot :
+test2$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
 	$(PALM_MIAMI) \
 	  --func _Z13randomAccess3P4nodeii \
 	  --bin_path ./$*.x86_64-linux.x \
@@ -63,40 +76,37 @@ test2-schedule.dot : %-schedule.dot :
 	  --dump_file $@
 
 
+#----------------------------------------------------------------------------
+# PFLOTRAN / PetSc / MatMult_SeqBAIJ_1
+#----------------------------------------------------------------------------
 
-#----examples from pflotran -- MatMult_SeqBAIJ_1 (actually located in the petsc library)
-#examine entry block
-test3-schedule.dot : %-schedule.dot :
+# examine entry block
+petsc-matmult$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
 	$(PALM_MIAMI) \
-	  --func  MatMult_SeqBAIJ_1 \
-	  --bin_path ./$*.x86_64-linux.x \
-	  --lat_path ./$*.memprof \
+	  --func MatMult_SeqBAIJ_1 \
+	  --bin_path ./petsc.x86_64-linux.x \
+	  --lat_path ./petsc-matmult.memprof \
 	  -m $(MACHINE_MODEL) \
 	  --blk_path "0" \
 	  --dump_file $@
 
-#examine the block in the innermost loop
-test3-inner-loop-schedule.dot : %-schedule.dot :
+# examine the block in the innermost loop
+petsc-matmult-inner-loop$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
 	$(PALM_MIAMI) \
-	  --func  MatMult_SeqBAIJ_1 \
-	  --bin_path ./test3.x86_64-linux.x \
-	  --lat_path ./test3.memprof \
+	  --func MatMult_SeqBAIJ_1 \
+	  --bin_path ./petsc.x86_64-linux.x \
+	  --lat_path ./petsc-matmult.memprof \
 	  -m $(MACHINE_MODEL) \
 	  --blk_path "21" \
 	  --dump_file $@
 
-#"unroll" innermost loop twice
-test3-inner-loop-2its-schedule.dot : %-schedule.dot :
+# "unroll" innermost loop twice
+petsc-matmult-inner-loop-2its$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
 	$(PALM_MIAMI) \
-	  --func  MatMult_SeqBAIJ_1 \
-	  --bin_path ./test3.x86_64-linux.x \
-	  --lat_path ./test3.memprof \
+	  --func MatMult_SeqBAIJ_1 \
+	  --bin_path ./petsc.x86_64-linux.x \
+	  --lat_path ./petsc-matmult.memprof \
 	  -m $(MACHINE_MODEL) \
 	  --blk_path "21->21" \
 	  --dump_file $@
 
-clean :
-	$(RM) *[0-9]-units.xml
-	$(RM) *[0-9].xml
-	$(RM) *.dot
-	$(RM) *.pdf *.svg
