@@ -74,9 +74,6 @@ public:
    
    int getAncestorDistance (CodeScope *o_scope);
    const MIAMIU::Ui2SetMap& GetLineMappings() const   { return (lineMapping); }
-   void setLineMappings(MIAMIU::Ui2SetMap mapping){
-      lineMapping = mapping;
-   }
    
    inline CodeScopeKey getScopeKey() const { return (key); }
    
