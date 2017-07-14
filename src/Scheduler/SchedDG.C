@@ -186,10 +186,6 @@ SchedDG::SchedDG(const char* func_name, PathID &_pathId,
   cfgFlags = 0;
   maxPathRootToLeaf = 0;
   longestCycle = 1;
-//ozgurS   
-  int longestCycleMem;
-  int longestCycleCPU;
-//ozgurE
   nextScheduleId = 1;
   maximumGraphLevel = 0;
   heavyOnResources = false;
@@ -2176,7 +2172,7 @@ SchedDG::recursive_buildSuperStructures (int crtIdx, Node **sEntry,
       int maxPathFromEntry = 0, maxEdgesFromEntry = 0, itersFromEntry = 0;
       bool add_edge = true;
 //ozgurS
-      int maxPathFromEntryCPU = 0, maxPathFromEntryMem = 0, maxPathToExitCPU = 0, maxPathToExitMem = 0;
+      int maxPathToExitCPU = 0, maxPathToExitMem = 0;
 //ozgurE
 //      bool segmE_is_new = false;
       Edge *segmE = sEntry[i]->findOutgoingEdge (sExit[i], OUTPUT_DEPENDENCY,
@@ -2379,18 +2375,10 @@ SchedDG::recursive_buildSuperStructures (int crtIdx, Node **sEntry,
                if (maxEdgesFromEntry==0)
                {
                   itersFromEntry = dist;
-//ozgurS
-                  maxPathFromEntryCPU = cpulat;
-                  maxPathFromEntryMem = memlat;
-//ozgurE
                   maxPathFromEntry = lat;
                   maxEdgesFromEntry = edges;
                } else if (maxPathFromEntry<lat)
                {
-//ozgurS
-                 maxPathFromEntryCPU = cpulat;
-                 maxPathFromEntryMem = memlat;
-//ozgurE
                  maxPathFromEntry = lat;
                  maxEdgesFromEntry = edges;
                }
@@ -3250,10 +3238,6 @@ SchedDG::updateLongestCycleOfSubEdges (Edge *supE, int cycLen)
       }
 #endif
       int thisCyc = cycLen - supE->getLatency() + ee->longestStructPath;
-      //ozgurS 
-      int thisCycMem = supE->getMemLatency();
-      int thisCycCPU = supE->getCPULatency();
-//ozgurE
 #if VERBOSE_DEBUG_SCHEDULER
       DEBUG_SCHED (6, 
          cerr << "updateLongestCycleOfSubEdges for edge " << *ee 
@@ -11588,15 +11572,12 @@ SchedDG::myMinSchedulingLengthDueToDependencies(float &memLatency, float &cpuLat
       cout<<__func__<<" "<<maxPathRootToLeaf<<"ozgur: longestCyle "<<longestCycle<<endl;
             )
 #endif
-   bool isLongCycle = false;
    retValues returnThis;
    returnThis.memret=memLatency;
    returnThis.cpuret=cpuLatency;
    if (avgNumIters>ONE_ITERATION_EPSILON || longestCycle>1)
    {
-      isLongCycle = true;
       returnThis.ret = (longestCycle);
-//      returnThis.cpuret = longestCycle - memLatency;
       returnThis.memret = longestCycleMem;
       returnThis.cpuret = longestCycleCPU;
    }

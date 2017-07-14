@@ -15,11 +15,7 @@
  * performance bottlenecks and identify opportunities for tuning.
  */
 
-//ozgurS commenting out include pin adding include xed
-//#include <pin.H>
-// including argparse 
 #include <argp.h>
-//ozgurE
 
 #include <stdio.h>
 #include <dlfcn.h>
@@ -45,8 +41,6 @@
 /* ===================================================================== */
 /*
 */
-/* ozgurS removing all KNOB
- */
 
 // crating constant variables for argument parser 
 const int outputFile = 'o';
@@ -121,7 +115,7 @@ namespace MIAMI
 
 /* ===================================================================== */
 /*
- * ozgurS parse_arg which will replace KNOB
+ * parse_arg which will replace KNOB
  * argc = number of argumenets
  * argv argument list 
  * return 0 if works errno if there is an error
@@ -344,9 +338,6 @@ main (int argc, char *argv[])
 
       unsetenv("MIAMI_DEBUG_WAIT");
     }
-/*
- * ozgurS adding a function to parce arguments
- */
     parse_args(argc , argv);  
 
 
@@ -357,7 +348,6 @@ main (int argc, char *argv[])
     // so we do not enable an entire set of analyses when adding the machine
     // file
     //
-    // ozgurS removing .Value  since we get rid of pin KNOB
     mo->setNoScheduling(KnobNoScheduling);
     // check and set XML option before adding the machine file because
     // the machine file will enable XML output automatically, and I do not want
@@ -384,7 +374,7 @@ main (int argc, char *argv[])
     mo->addBlockPath(KnobBlkPath);
     mo->addLatPath(KnobLatPath);
     mo->addDumpFile(KnobDumpFile);
-   // TO DO ozgur chech this is it a array ? and fix it  
+   // TODO ozgur chech this is it a array ? and fix it  
 /*    int numMrdFiles = KnobMrdFiles.NumberOfValues();
     if (numMrdFiles > 0)
     {
@@ -397,15 +387,12 @@ main (int argc, char *argv[])
 
   
     if (! mo->CheckDependencies())
-       return 0; // (Usage()); ozgurS get rid of usage for now
+       return 0;
 
    
     // This tool is compiled both as a standalone tool
     // and as a dynamic object pintool. getpid is safe in the standalone
     // case, but it may return a wrong pid when running under PIN.
-/*
- * ozgurS commenting out PIN_GetPid
- */
    if (MIAMI::mdriver.Initialize(mo, 0) < 0)
        return 0 ; //(Usage());
  
@@ -428,12 +415,8 @@ main (int argc, char *argv[])
           fprintf(stderr, "Attempting to open file %d: %s\n",  i, iNames[i].c_str());
        )
 #endif
-/*
- * ozgurS creating iname
- */
        std::string iname = iNames[i];
-      
-       MIAMI::mdriver.LoadImage(i+1, iname, NULL, NULL); //IMG_StartAddress(img)-low_offset, low_offset);
+       MIAMI::mdriver.LoadImage(i+1, iname, 0, 0); //IMG_StartAddress(img)-low_offset, low_offset);
     }
 
     MIAMI::mdriver.Finalize(KnobOutputFile);
