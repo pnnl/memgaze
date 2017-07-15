@@ -501,7 +501,7 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
    //assert(dInst == NULL); // rfriese: probably need to make this an if to use with dyninst
    dInst = new MIAMI::DecodedInstruction();
    
-   int res = InstructionXlate::xlate_dbg(pc+reloc_offset, b->getEndAddress()-pc, dInst, "DGBuilder::build_node_for_instruction");
+   int res = InstructionDecoder::xlate_dbg(pc+reloc_offset, b->getEndAddress()-pc, dInst, "DGBuilder::build_node_for_instruction");
 
    // DynInst-based decoding
 #if 0
@@ -512,7 +512,7 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
    }
    
    MIAMI::DecodedInstruction dInst2;
-   res = InstructionXlate::xlate_dyninst(pc+reloc_offset, b->getEndAddress()-pc, &dInst2, dyn_func, dyn_blk);
+   res = InstructionDecoder::xlate_dyninst(pc+reloc_offset, b->getEndAddress()-pc, &dInst2, dyn_func, dyn_blk);
 
    //res = isaXlate_insn_old(pc+reloc_offset, dInst); //FIXME: deprecated
 #endif

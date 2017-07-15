@@ -34,7 +34,7 @@
 // 
 //***************************************************************************
 
-class InstructionXlate {
+class InstructionDecoder {
 public:
 
   // TODO: subsume instruction-decoding...
