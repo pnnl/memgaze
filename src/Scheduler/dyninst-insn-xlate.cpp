@@ -42,7 +42,7 @@ static std::map<int, std::set<BPatch_basicBlock*>> lm_func2blockMap;
 static std::vector<BPatch_basicBlock*> func_blockVec;
 
 
-// incorporate isaXlate_insn() into InstructionXlate::xlate_dbg()
+// incorporate isaXlate_insn() into InstructionDecoder::xlate_dbg()
 
 //***************************************************************************
 
