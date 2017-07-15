@@ -1493,7 +1493,7 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
    while ((bool)iit)
    {
       addrtype pc = iit.Address();
-      int res = InstructionDecoder::xlate_dbg(pc+reloc, b->getEndAddress()-pc, &dInst, "Routine::decode_instructions_for_block");
+      int res = InstructionDecoder::decode_dbg(pc+reloc, b->getEndAddress()-pc, &dInst, "Routine::decode_instructions_for_block");
 
       // DynInst-based decoding
 #if 0
@@ -1503,7 +1503,7 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
       }
 
       MIAMI::DecodedInstruction dInst2;
-      res = InstructionDecoder::xlate_dyninst(pc+reloc, b->getEndAddress()-pc, &dInst2, dyn_func, dyn_blk);
+      res = InstructionDecoder::decode_dyninst(pc+reloc, b->getEndAddress()-pc, &dInst2, dyn_func, dyn_blk);
 #endif
 
 #if 0//FIXME: deprecated

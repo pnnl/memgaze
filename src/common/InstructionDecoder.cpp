@@ -31,8 +31,8 @@
 //***************************************************************************
 
 int
-InstructionDecoder::xlate(unsigned long pc, int len,
-			  MIAMI::DecodedInstruction* dInst)
+InstructionDecoder::decode(unsigned long pc, int len,
+			   MIAMI::DecodedInstruction* dInst)
 {
   void* pc_ptr = (void*)pc;
   return MIAMI::decode_instruction_at_pc(pc_ptr, len, dInst);
@@ -40,9 +40,9 @@ InstructionDecoder::xlate(unsigned long pc, int len,
 
 
 int
-InstructionDecoder::xlate_dbg(unsigned long pc, int len,
-			      MIAMI::DecodedInstruction* dInst,
-			      const char* ctxt)
+InstructionDecoder::decode_dbg(unsigned long pc, int len,
+			       MIAMI::DecodedInstruction* dInst,
+			       const char* ctxt)
 {
   using std::cerr;
 
@@ -51,7 +51,7 @@ InstructionDecoder::xlate_dbg(unsigned long pc, int len,
   void* pc_ptr = (void*)pc;
 
   cerr << "**********************************************************\n"
-       << ctxt_str << "InstructionDecoder::xlate(" << pc_ptr << ")\n\n";
+       << ctxt_str << "InstructionDecoder::decode(" << pc_ptr << ")\n\n";
 
   MIAMI::dump_instruction_at_pc(pc_ptr, len);
   std::cout << "\n";
@@ -67,10 +67,10 @@ InstructionDecoder::xlate_dbg(unsigned long pc, int len,
 
 
 int
-InstructionDecoder::xlate_dbg(unsigned long pc, int len,
-			      MIAMI::DecodedInstruction* dInst,
-			      MIAMI::DecodedInstruction* dInst1,
-			      const char* ctxt)
+InstructionDecoder::decode_dbg(unsigned long pc, int len,
+			       MIAMI::DecodedInstruction* dInst,
+			       MIAMI::DecodedInstruction* dInst1,
+			       const char* ctxt)
 {
   int ret = 0;
 
@@ -86,10 +86,10 @@ InstructionDecoder::xlate_dbg(unsigned long pc, int len,
 
 #if 0
 int
-InstructionDecoder::xlate_dyninst(unsigned long pc, int len,
-				  MIAMI::DecodedInstruction* dInst,
-				  BPatch_function* dyn_func,
-				  BPatch_basicBlock* dyn_blk)
+InstructionDecoder::decode_dyninst(unsigned long pc, int len,
+				   MIAMI::DecodedInstruction* dInst,
+				   BPatch_function* dyn_func,
+				   BPatch_basicBlock* dyn_blk)
 {
   void* pc_ptr = (void*)pc;
 
