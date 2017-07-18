@@ -72,44 +72,9 @@ using namespace PatchAPI;
 using namespace MIAMI;
 
 //***************************************************************************
-
-// Copied directly from DyninstHelper.h
-struct graph{
-        std::map<std::string, std::string> declarations;
-        std::map<std::string, std::string> lineNos;
-        std::set<std::string> links;
-        std::map<std::string,int> elements;
-        std::map<int,BPatch_basicBlock*> blks;
-        std::map<std::string,std::string> loops;
-        std::map<std::string,std::string> loopEntries;
-        std::string libPath;
-        std::map<int,int> basicBlockNoMap; // dyninst provide blk numbers arent gauranteed to be the same between runs, so use our own numbers
-        std::map<std::string,std::vector<std::pair<std::string, BPatch_variableExpr*> > >varMap;
-        std::map<std::string,long long> counts;
-        std::map<int,std::string> calledFunctionMap;
-        int entry;
-        int exit;
-        int cnt;
-};
-
-
-//***************************************************************************
 // 
 //***************************************************************************
 
-//MIAMI::LoadModule* dyninst_note_loadModule(int count, std::string file_name, uint32_t hashKey);
-
-void dyninst_note_loadModule(uint32_t id, std::string& file_name, addrtype start_addr, addrtype low_offset);
-
-//***************************************************************************
-
-void dyninst_note_routine(MIAMI::LoadModule* lm, int i);
-
-//***************************************************************************
-
-//void isaXlate_init(const char* prog_name);
-
-int isaXlate_insn_old(unsigned long  pc, MIAMI::DecodedInstruction* dInst);
 
 int isaXlate_insn(void* pc, MIAMI::DecodedInstruction* dInst);
 

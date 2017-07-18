@@ -43,6 +43,5 @@
 
 //***************************************************************************
 
-
-int dyninst_decode_instruction_at_pc(void* pc, int len, MIAMI::DecodedInstruction *dInst, BPatch_function *f, BPatch_basicBlock* blk);
+int dyninst_decode(void* pc, int len, MIAMI::DecodedInstruction *dInst, BPatch_function *f, BPatch_basicBlock* blk);
 
