@@ -26,9 +26,6 @@
 
 //***************************************************************************
 
-// FIXME: tallent: static data. Should be part of translation context
-static Dyninst::ParseAPI::Block* insn_myBlock;
-
 static int insn_numAssignments = 0;
 static std::vector<Absloc> insn_locVec;
 static std::vector<RoseAST::Ptr> insn_opVec;
@@ -36,132 +33,14 @@ static int insn_jump_tgt = 0;
 
 //***************************************************************************
 
-unsigned long get_start_address(std::vector<BPatch_object*> * objs, std::string file_name);
 
-int isaXlate_getFunction(unsigned long pc);
-Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc);
-void isaXlate_getDyninstInsn(addrtype pc, BPatch_function *f, std::vector<Assignment::Ptr> * assignments, Dyninst::InstructionAPI::Instruction::Ptr* insp);
-void dynXlate_insn(Dyninst::InstructionAPI::Instruction::Ptr insp, std::vector<Assignment::Ptr> assignments, addrtype pc, MIAMI::DecodedInstruction* dInst);
-
+void dyninst_decode1(Dyninst::InstructionAPI::Instruction::Ptr insp, std::vector<Assignment::Ptr> assignments, addrtype pc, MIAMI::DecodedInstruction* dInst);
 
 void dynXlate_dumpInsn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vector<Assignment::Ptr> assignments, addrtype pc);
 
+void dynXlate_getAssignments(addrtype pc, BPatch_function *f, std::vector<Assignment::Ptr> * assignments, Dyninst::InstructionAPI::Instruction::Ptr* insn);
 
-//***************************************************************************
-// 
-//***************************************************************************
-
-
-// Initialize all the blocks for all the functions for a given module.
-void isaXlate_init(const char* progName)
-{
-#if 0 // FIXME:tallent
-  std::cerr << "binary: " << progName << endl;
-
-  lm_codeSource = new Dyninst::ParseAPI::SymtabCodeSource((char*)progName);
-
-  BPatch bpatch;
-  BPatch_addressSpace* app = bpatch.openBinary(progName,false);
-  
-  BPatch_image *lm_image = app->getImage();
-  lm_functions = *(lm_image->getProcedures(true));
-#endif
-
-#if 0 // FIXME:tallent: for one routine this computes the CFG for *all* routines
-  for (unsigned int i = 0; i < lm_functions->size(); ++i) {
-    BPatch_flowGraph *fg = (*lm_functions)[i]->getCFG();
-    std::set<BPatch_basicBlock*> blks;
-    fg->getAllBasicBlocks(blks);
-    lm_func2blockMap[i] = blks;
-  }
-#endif
-}
-
-
-int isaXlate_insn(void* pc, int len, MIAMI::DecodedInstruction* dInst,
-		  BPatch_function* dyn_func, BPatch_basicBlock* dyn_blk)
-{
-  Dyninst::ParseAPI::Block* dyn_blk1 = Dyninst::ParseAPI::convert(dyn_blk);
-  insn_myBlock = dyn_blk1; // FIXME
-  
-  if (insn_myBlock) {
-    Dyninst::InstructionAPI::Instruction::Ptr insn;
-    std::vector<Assignment::Ptr> assignments;
-    isaXlate_getDyninstInsn(pc, dyn_func, &assignments, &insn);
-
-    if (!insn) {
-      assert("Cannot find instruction.\n");
-      return 0;
-    }
-
-    insn_numAssignments = assignments.size();
-
-    dynXlate_dumpInsn(insn, assignments, pc);
-    std::cerr << "\n";
-
-    // testing
-    dynXlate_insn(insn, assignments, pc, dInst);
-
-    DumpInstrList(dInst);
-    std::cerr << "\n";
-  }
-  else {
-    return -1;
-  }
-
-  return 0;
-}
-
-
-// tallent: Requires 'Function' and 'Block' context.
-
-// It translate the an instruction's dyninst IR into MIAMI IR and 
-// return the length of the translated instruction to increment the pc.
-int isaXlate_insn_old(unsigned long pc, MIAMI::DecodedInstruction* dInst)
-{
-  int f = isaXlate_getFunction(pc); // FIXME: use (Routine*)->[blocks] map
-  insn_myBlock = isaXlate_getBlock(f, pc);
-  
-  if (insn_myBlock) {
-    Dyninst::InstructionAPI::Instruction::Ptr insn;
-    std::vector<Assignment::Ptr> assignments;
-    isaXlate_getDyninstInsn(pc, (*lm_functions)[f], &assignments, &insn);
-
-    if (!insn) {
-      assert("Cannot find instruction.\n");
-      return 0;
-    }
-
-    insn_numAssignments = assignments.size();
-
-    dynXlate_dumpInsn(insn, assignments, pc);
-    std::cerr << "\n";
-
-    // testing
-    dynXlate_insn(insn, assignments, pc, dInst);
-
-    DumpInstrList(dInst);
-    std::cerr << "\n";
-  }
-  else {
-    return -1;
-  }
-
-  return 0;
-}
-
-
-//***************************************************************************
-// 
-//***************************************************************************
-
-void dynXlate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insn, MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments);
-void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, Dyninst::InstructionAPI::Instruction::Ptr insn);
-
-void dynXlate_insnectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
-			 instruction_info* uop, AST::Ptr ast,
-			 Dyninst::InstructionAPI::Instruction::Ptr insn);
-
+//---------------------------------------------------------------------------
 
 void dynXlate_leave(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn);
 void dynXlate_nop(MIAMI::DecodedInstruction* dInst, Dyninst::InstructionAPI::Instruction::Ptr insn);
@@ -174,13 +53,61 @@ void dynXlate_compare(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::
 void dynXlate_enter(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn);
 void dynXlate_sysCall(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn);
 void dynXlate_prefectch(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn);
+void dynXlate_test(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn);
 
-  
+//---------------------------------------------------------------------------
+
+void dynXlate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insn, MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments);
+void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, Dyninst::InstructionAPI::Instruction::Ptr insn);
+void dynXlate_assignmentAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
+			 instruction_info* uop, AST::Ptr ast,
+			 Dyninst::InstructionAPI::Instruction::Ptr insn);
+
+//---------------------------------------------------------------------------
+
+
+
+
+//***************************************************************************
+// 
 //***************************************************************************
 
+int dyninst_decode(void* pc, int len, MIAMI::DecodedInstruction* dInst,
+		   BPatch_function* dyn_func, BPatch_basicBlock* dyn_blk)
+{
+  Dyninst::ParseAPI::Block* dyn_blk1 = Dyninst::ParseAPI::convert(dyn_blk);
+  insn_myBlock = dyn_blk1; // FIXME
+  
+  if (insn_myBlock) {
+    Dyninst::InstructionAPI::Instruction::Ptr insn;
+    std::vector<Assignment::Ptr> assignments;
+    dynXlate_getAssignments(pc, dyn_func, &assignments, &insn);
 
-// Translate each instructions 
-void dynXlate_insn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vector<Assignment::Ptr> assignments, addrtype pc, MIAMI::DecodedInstruction* dInst)
+    if (!insn) {
+      assert("Cannot find instruction.\n");
+      return 0;
+    }
+
+    insn_numAssignments = assignments.size();
+
+    dynXlate_dumpInsn(insn, assignments, pc);
+    std::cerr << "\n";
+
+    // testing
+    dyninst_decode1(insn, assignments, pc, dInst);
+
+    DumpInstrList(dInst);
+    std::cerr << "\n";
+  }
+  else {
+    return -1;
+  }
+
+  return 0;
+}
+
+
+void dyninst_decode1(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vector<Assignment::Ptr> assignments, addrtype pc, MIAMI::DecodedInstruction* dInst)
 {
   dInst->len = (int) insn->size(); 
   dInst->pc = (addrtype) pc; 
@@ -245,27 +172,117 @@ void dynXlate_insn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vector<A
 }
 
 
-
-//**************************************************p*************************
-// 
 //***************************************************************************
 
+void dynXlate_dumpAssignmentAST(AST::Ptr ast, std::string index, int num);
 
-
-
-
-
-
-// Most reg has lsb 0. Don't know the special case yet.
-int get_src_reg_lsb(MachRegister mr) { 
-   return 0;
+void dynXlate_dumpInsn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vector<Assignment::Ptr> assignments, addrtype pc)
+{
+  using std::cerr;
+  cerr << "========== DynInst Instruction "
+       << "(" << std::hex << (void*)pc << std::dec << "): " << insn->format()
+       << " [" << insn->size() << " bytes] "
+       << " ==========\n";
+  
+  for (unsigned int i = 0; i < assignments.size(); i++) {
+    cerr << "assignment " << i << ":" << assignments.at(i)->format() << "\n";
+    std::pair<AST::Ptr, bool> assignPair = SymEval::expand(assignments.at(i), false);
+    if (assignPair.second && (NULL != assignPair.first)) {
+      dynXlate_dumpAssignmentAST(assignPair.first, "0", assignPair.first->numChildren());
+    }
+  }
 }
 
 
+void dynXlate_dumpAssignmentAST(AST::Ptr ast, std::string index, int num)
+{
+  using std::cerr;
+  cerr << index << ": ";
+  
+  if (ast->getID() == AST::V_RoseAST) {
+    RoseAST::Ptr self = RoseAST::convert(ast);
+    cerr << "RoseAST <op:size>: " << self->format() << "\n";
+    //cerr << "RoseOperation val is " << self->val().format() << "\n";
+    //cerr << "RoseOperation size is " << self->val().size << "\n";
+    //cerr << "RoseOperation op is " << self->val().op << "\n";
+  }
+  else if (ast->getID() == AST::V_ConstantAST) {
+    ConstantAST::Ptr self = ConstantAST::convert(ast);
+    cerr << "ConstantAST <val:size>: " << self->format() << "\n";
+    //cerr << "Constant val is " << self->val().val << "\n";
+    //cerr << "bit size of the val is " << self->val().size << "\n";
+
+  }
+  else if (ast->getID() == AST::V_VariableAST) {
+    VariableAST::Ptr self = VariableAST::convert(ast);
+    cerr << "VariableAST <region:addr>: " << self->format() << "\n";
+    //cerr << "Variable region is " << self->val().reg.format() << "\n";
+    //cerr << "variable address is " << self->val().addr << "\n";
+  }
+
+  int i = 0;
+  while (i < num) {
+    std::string index_str = std::to_string((long long)i+1);
+    if (index.compare("0") != 0) {
+      index_str = index + "." + index_str;
+    }
+    dynXlate_dumpAssignmentAST(ast->child(i), index_str, ast->child(i)->numChildren());
+    i++; 
+  }
+}
 
 
+//***************************************************************************
+
+// Get all the assignments 'logical instruction' of a given instruction.
+void dynXlate_getAssignments(addrtype pc, BPatch_function *f, std::vector<Assignment::Ptr> * assignments, Dyninst::InstructionAPI::Instruction::Ptr* insn)
+{
+  assert(NULL != insn_myBlock);
+
+  Architecture arch = insn_myBlock->obj()->cs()->getArch();
+
+  ParseAPI::Function* func = ParseAPI::convert(f);
+
+#if 0
+  // FIXME: tallent: This is O(|instructions in block|).
+  // FIXME: tallent: Furthermore, it does not actually decode 'pc'
+  
+  void* buf = lm_codeSource->getPtrToInstruction(insn_myBlock->start());
+  InstructionDecoder dec(buf, insn_myBlockEndAddr - insn_myBlockStartAddr, insn_myBlock->obj()->cs()->getArch());
+  (*insn) = dec.decode();
+  unsigned long insn_addr = insn_myBlockStartAddr;
+    
+  // Decode the given instruction. I might make a mistake here. 
+  // The loop might decode all the instructions in the given block.
+  int k = 0;
+  while (NULL != (*insn) && insn_addr < pc) {
+    insn_addr += (*insn)->size();
+    (*insn) = dec.decode();
+    k++;
+  }
+
+  AssignmentConverter ac(true);
+  
+  if (Dyninst::InstructionAPI::Instruction::Ptr() != (*insn))
+    ac.convert((*insn), (uint8_t) insn_addr, func, insn_myBlock, *assignments);
+  else 
+    assert("Where is the instruction??\n");
+  
+#else
+
+  const void* buf = (const void*)pc;
+  InstructionDecoder dec(buf, InstructionDecoder::maxInstructionLength, arch);
+  (*insn) = dec.decode();
+
+  AssignmentConverter ac(true);
+  ac.convert((*insn), pc, func, insn_myBlock, *assignments);
+  
+#endif
+}
 
 
+//**************************************************p*************************
+// 
 //***************************************************************************
 
 // Translate leave instruction.Usually contains 3 uops: Copy, Load, Add.
@@ -742,7 +759,7 @@ void dynXlate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insn, MIAMI:
      }
 
   /* Special case: processing push and pop.
-   * It seems that dynXlate_insnectAST cannot cannot get the CONSTANT values in 'add' uop, so we append it here.
+   * It seems that dynXlate_assignmentAST cannot cannot get the CONSTANT values in 'add' uop, so we append it here.
    * The reason it cannot get the constant value is because the traverse_options function do not traverse
    * all the children of 'add' ROSEOperations' in most of the cases (but only the first one).
    * We do it that way to stop the recursion sooner for the general uops. Many uops contains 'add' ROSEOperation.
@@ -801,7 +818,7 @@ void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
     //check whether there are any load assignments
     get_operator(uop, astPair.first, aptr, insn, dInst);
 
-    dynXlate_insnectAST(dInst, aptr, uop, astPair.first, insn);
+    dynXlate_assignmentAST(dInst, aptr, uop, astPair.first, insn);
 
     // These special cases are quite messy. Even "add [R14 + 8], 1" and "add [R15 + RAX * 4], 1" are translated 
     // differently, with the first one having 3 uops: load, add, store, and the second one having 2 uops (wrong)
@@ -828,7 +845,7 @@ void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
     for (unsigned int i = 1; i < aptr->inputs().size(); ++i) { 
       Absloc aloc = aptr->inputs().at(i).absloc();
       if (aloc.type() == Absloc::Stack || aloc.type() == Absloc::Heap || aloc.type() == Absloc::Unknown) {
-        if (uop->type != IB_load){ // the in case of add [...]. which dynXlate_insnectAST will return only an add uop,
+        if (uop->type != IB_load){ // the in case of add [...]. which dynXlate_assignmentAST will return only an add uop,
                                    // since AST does not contain information of memory field, but we need
                                    // to create another load uop. 
           create_load_micro(dInst, insn, aptr, 0);
@@ -869,7 +886,7 @@ void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
 }
 
 // Parse the AST of an assignment.
-void dynXlate_insnectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
+void dynXlate_assignmentAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
 			 instruction_info* uop, AST::Ptr ast,
 			 Dyninst::InstructionAPI::Instruction::Ptr insn)
 {
@@ -949,7 +966,7 @@ void dynXlate_insnectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
       if (uop->num_imm_values < 2) {
         uop->imm_values[uop->num_imm_values].is_signed = (uop->width == 64) ? true : false; //CHECK
         uop->imm_values[uop->num_imm_values].value.s = ast_c->val().val; 
-        // std::cerr << "inside dynXlate_insnectAST, constant value is " << ast_c->val().val;
+        // std::cerr << "inside dynXlate_assignmentAST, constant value is " << ast_c->val().val;
         uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_IMMED, uop->num_imm_values++); // no need to find dependency of immediates
         insn_locVec.push_back(Absloc());
       }
@@ -1059,17 +1076,17 @@ void dynXlate_insnectAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr,
       switch(option){
         case 2:
           for (unsigned int i = 0; i < ast->numChildren(); i++) {
-            dynXlate_insnectAST(dInst, aptr, uop, ast->child(i), insn);
+            dynXlate_assignmentAST(dInst, aptr, uop, ast->child(i), insn);
           }
           return;
         case 1:
-          dynXlate_insnectAST(dInst, aptr, uop, ast->child(0), insn);
+          dynXlate_assignmentAST(dInst, aptr, uop, ast->child(0), insn);
           return;
         case 0:
           // special case to deal with sub instruction
           if (ast_r->val().op == ROSEOperation::extractOp && ast->child(0)->getID() == AST::V_RoseAST && uop->type != IB_load) { 
               uop->type = IB_unknown;
-              dynXlate_insnectAST(dInst, aptr, uop, ast->child(0), insn);
+              dynXlate_assignmentAST(dInst, aptr, uop, ast->child(0), insn);
           }
             return;
         default:
@@ -1389,6 +1406,11 @@ unsigned int get_register_index(Absloc a)
   }
   insn_locVec.push_back(a);
   return insn_locVec.size() - 1;
+}
+
+// Most reg has lsb 0. Don't know the special case yet.
+int get_src_reg_lsb(MachRegister mr) { 
+   return 0;
 }
 
 // If x86 or x86_64, return the representation of all the flags.
@@ -2159,111 +2181,13 @@ void parse_assign(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, instru
 
 
 //***************************************************************************
-
-void dynXlate_dumpAssignmentAST(AST::Ptr ast, std::string index, int num);
-
-
-void dynXlate_dumpInsn(Dyninst::InstructionAPI::Instruction::Ptr insn, std::vector<Assignment::Ptr> assignments, addrtype pc)
-{
-  using std::cerr;
-  cerr << "========== DynInst Instruction "
-       << "(" << std::hex << (void*)pc << std::dec << "): " << insn->format()
-       << " [" << insn->size() << " bytes] "
-       << " ==========\n";
-  
-  for (unsigned int i = 0; i < assignments.size(); i++) {
-    cerr << "assignment " << i << ":" << assignments.at(i)->format() << "\n";
-    std::pair<AST::Ptr, bool> assignPair = SymEval::expand(assignments.at(i), false);
-    if (assignPair.second && (NULL != assignPair.first)) {
-      dynXlate_dumpAssignmentAST(assignPair.first, "0", assignPair.first->numChildren());
-    }
-  }
-}
-
-
-void dynXlate_dumpAssignmentAST(AST::Ptr ast, std::string index, int num)
-{
-  using std::cerr;
-  cerr << index << ": ";
-  
-  if (ast->getID() == AST::V_RoseAST) {
-    RoseAST::Ptr self = RoseAST::convert(ast);
-    cerr << "RoseAST <op:size>: " << self->format() << "\n";
-    //cerr << "RoseOperation val is " << self->val().format() << "\n";
-    //cerr << "RoseOperation size is " << self->val().size << "\n";
-    //cerr << "RoseOperation op is " << self->val().op << "\n";
-  }
-  else if (ast->getID() == AST::V_ConstantAST) {
-    ConstantAST::Ptr self = ConstantAST::convert(ast);
-    cerr << "ConstantAST <val:size>: " << self->format() << "\n";
-    //cerr << "Constant val is " << self->val().val << "\n";
-    //cerr << "bit size of the val is " << self->val().size << "\n";
-
-  }
-  else if (ast->getID() == AST::V_VariableAST) {
-    VariableAST::Ptr self = VariableAST::convert(ast);
-    cerr << "VariableAST <region:addr>: " << self->format() << "\n";
-    //cerr << "Variable region is " << self->val().reg.format() << "\n";
-    //cerr << "variable address is " << self->val().addr << "\n";
-  }
-
-  int i = 0;
-  while (i < num) {
-    std::string index_str = std::to_string((long long)i+1);
-    if (index.compare("0") != 0) {
-      index_str = index + "." + index_str;
-    }
-    dynXlate_dumpAssignmentAST(ast->child(i), index_str, ast->child(i)->numChildren());
-    i++; 
-  }
-}
-
-
-//***************************************************************************
-// 
-//***************************************************************************
-
-#if 0
-
-// cf. Routine::compute_lineinfo_for_block()
-void compute_lineinfo_for_block_dyninst(LoadModule *lm, ScopeImplementation *pscope, CFG::Node *b) {
-   std::vector<unsigned long> addressVec = get_instructions_address_from_block(b);
-   //std::cout << "routine: compute_lineinfo_for_block_dyninst: 8\n";
-   if (!addressVec.size())
-   {
-      assert("No instructions available");
-      return;
-   }
-   std::string func, file;
-   int32_t lineNumber1 = 0, lineNumber2 = 0;
-   
-#if DEBUG_COMPUTE_LINEINFO
-   std::cerr << "LineInfo for block [" << std::hex << b->getStartAddress() 
-             << "," << b->getEndAddress() << "]" << std::dec << " exec-count " 
-             << b->ExecCount() << std::endl;
-#endif
-   // iterate over variable length instructions. Define an architecture independent API
-   // for common instruction decoding tasks. That API can be implemented differently for
-   // each architecture type
-   //CFG::ForwardInstructionIterator iit(b);
-   for (unsigned int i = 0; i < addressVec.size(); ++i)
-   {
-      addrtype pc = addressVec.at(i);
-      lm->GetSourceFileInfo(pc, 0, file, func, lineNumber1, lineNumber2);
-      unsigned int findex = mdriver.GetFileIndex(file);
-      mdriver.AddSourceFileInfo(findex, lineNumber1, lineNumber2);
-      pscope->addSourceFileInfo(findex, func, lineNumber1, lineNumber2);
-     // std::cout << "routine: lineMappings size is " << pscope->GetLineMappings().size() << endl;
-   }
-}
-#endif
-
-
-//***************************************************************************
 // 
 //***************************************************************************
 
 #if 0 // FIXME:delete
+
+
+unsigned long get_start_address(std::vector<BPatch_object*> * objs, std::string file_name);
 
 
 // FIXME: tallent: static data. Should be part of LoadModule
@@ -2280,7 +2204,32 @@ static std::map<int, std::set<BPatch_basicBlock*>> lm_func2blockMap;
 static std::vector<BPatch_basicBlock*> func_blockVec;
 
 
-// incorporate isaXlate_insn() into InstructionDecoder::decode_dbg()
+// incorporate dyninst_decode() into InstructionDecoder::decode_dbg()
+
+// Initialize all the blocks for all the functions for a given module.
+void isaXlate_init(const char* progName)
+{
+#if 0 // FIXME:tallent
+  std::cerr << "binary: " << progName << endl;
+
+  lm_codeSource = new Dyninst::ParseAPI::SymtabCodeSource((char*)progName);
+
+  BPatch bpatch;
+  BPatch_addressSpace* app = bpatch.openBinary(progName,false);
+  
+  BPatch_image *lm_image = app->getImage();
+  lm_functions = *(lm_image->getProcedures(true));
+#endif
+
+#if 0 // FIXME:tallent: for one routine this computes the CFG for *all* routines
+  for (unsigned int i = 0; i < lm_functions->size(); ++i) {
+    BPatch_flowGraph *fg = (*lm_functions)[i]->getCFG();
+    std::set<BPatch_basicBlock*> blks;
+    fg->getAllBasicBlocks(blks);
+    lm_func2blockMap[i] = blks;
+  }
+#endif
+}
 
 
 void dyninst_note_loadModule(uint32_t id, std::string& file_name, addrtype start_addr, addrtype low_offset)
@@ -2312,6 +2261,29 @@ void dyninst_note_loadModule(uint32_t id, std::string& file_name, addrtype start
 }
 
 
+void dyninst_note_routine(MIAMI::LoadModule* lm, int i)
+{
+  BPatch_function* func = lm_functions->at(i);
+  std::string func_name = func->getName();
+
+  Dyninst::Address _start, _end;
+  if (!(func->getAddressRange(_start, _end))) {
+    assert("dyninst_note_routine: Address not available!");
+  }
+
+#if 0
+  Routine * rout = new Routine(lm, _start, _end - _start, func_name, _start/*offset*/, lm->RelocationOffset());
+
+  MIAMI::CFG* cfg = rout->ControlFlowGraph();
+  assert(cfg);
+#endif
+
+#if 0 // FIXME:tallent: something appears to be broken
+  dyninst_build_CFG(cfg, func_name);
+#endif
+}
+
+
 int get_routine_number()
 {
   return (int) lm_functions->size();
@@ -2339,19 +2311,63 @@ unsigned long get_low_offset(std::vector<BPatch_object*> * objs, std::string fil
   return 0;
 }
 
-#endif
-
+#endif // FIXME:delete
 
 
 //***************************************************************************
-// 
-//***************************************************************************
+
+#if 0 // FIXME:delete
 
 // FIXME: tallent: For one instruction, this is O(|functions| *
 // |blocks| * |insn-in-block|).  Should grab function and block only
 // as necessary.
 
+int isaXlate_getFunction(unsigned long pc);
+Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc);
+void dynXlate_getAssignments(addrtype pc, BPatch_function *f, std::vector<Assignment::Ptr> * assignments, Dyninst::InstructionAPI::Instruction::Ptr* insp);
+
+// FIXME: tallent: static data. Should be part of translation context
+static Dyninst::ParseAPI::Block* insn_myBlock;
+
 static int last_used_function = 0; // FIXME
+
+// tallent: Requires 'Function' and 'Block' context.
+
+// It translate the an instruction's dyninst IR into MIAMI IR and 
+// return the length of the translated instruction to increment the pc.
+int dyninst_decode_old(unsigned long pc, MIAMI::DecodedInstruction* dInst)
+{
+  int f = isaXlate_getFunction(pc); // FIXME: use (Routine*)->[blocks] map
+  insn_myBlock = isaXlate_getBlock(f, pc);
+  
+  if (insn_myBlock) {
+    Dyninst::InstructionAPI::Instruction::Ptr insn;
+    std::vector<Assignment::Ptr> assignments;
+    dynXlate_getAssignments(pc, (*lm_functions)[f], &assignments, &insn);
+
+    if (!insn) {
+      assert("Cannot find instruction.\n");
+      return 0;
+    }
+
+    insn_numAssignments = assignments.size();
+
+    dynXlate_dumpInsn(insn, assignments, pc);
+    std::cerr << "\n";
+
+    // testing
+    dyninst_decode1(insn, assignments, pc, dInst);
+
+    DumpInstrList(dInst);
+    std::cerr << "\n";
+  }
+  else {
+    return -1;
+  }
+
+  return 0;
+}
+
 
 // Get the corresponding function according to pc.
 int isaXlate_getFunction(unsigned long pc)
@@ -2407,259 +2423,6 @@ Dyninst::ParseAPI::Block* isaXlate_getBlock(int f, addrtype pc)
 }
 
 
-// Get all the assignments 'logical instruction' of a given instruction.
-void isaXlate_getDyninstInsn(addrtype pc, BPatch_function *f, std::vector<Assignment::Ptr> * assignments, Dyninst::InstructionAPI::Instruction::Ptr* insn)
-{
-  assert(NULL != insn_myBlock);
 
-  Architecture arch = insn_myBlock->obj()->cs()->getArch();
+#endif // FIXME:delete
 
-  ParseAPI::Function* func = ParseAPI::convert(f);
-
-#if 0
-  // FIXME: tallent: This is O(|instructions in block|).
-  // FIXME: tallent: Furthermore, it does not actually decode 'pc'
-  
-  void* buf = lm_codeSource->getPtrToInstruction(insn_myBlock->start());
-  InstructionDecoder dec(buf, insn_myBlockEndAddr - insn_myBlockStartAddr, insn_myBlock->obj()->cs()->getArch());
-  (*insn) = dec.decode();
-  unsigned long insn_addr = insn_myBlockStartAddr;
-    
-  // Decode the given instruction. I might make a mistake here. 
-  // The loop might decode all the instructions in the given block.
-  int k = 0;
-  while (NULL != (*insn) && insn_addr < pc) {
-    insn_addr += (*insn)->size();
-    (*insn) = dec.decode();
-    k++;
-  }
-
-  AssignmentConverter ac(true);
-  
-  if (Dyninst::InstructionAPI::Instruction::Ptr() != (*insn))
-    ac.convert((*insn), (uint8_t) insn_addr, func, insn_myBlock, *assignments);
-  else 
-    assert("Where is the instruction??\n");
-  
-#else
-
-  const void* buf = (const void*)pc;
-  InstructionDecoder dec(buf, InstructionDecoder::maxInstructionLength, arch);
-  (*insn) = dec.decode();
-
-  AssignmentConverter ac(true);
-  ac.convert((*insn), pc, func, insn_myBlock, *assignments);
-  
-#endif
-}
-
-
-//***************************************************************************
-// 
-//***************************************************************************
-
-int dyninst_build_CFG(MIAMI::CFG* cfg, std::string func_name);
-void traverse_cfg(MIAMI::CFG* cfg, BPatch_basicBlock* bb, CFG::Node* nn,
-		  std::map<int, BPatch_basicBlock*>& blockMap);
-
-
-void dyninst_note_routine(MIAMI::LoadModule* lm, int i)
-{
-  BPatch_function* func = lm_functions->at(i);
-  std::string func_name = func->getName();
-
-  Dyninst::Address _start, _end;
-  if (!(func->getAddressRange(_start, _end))) {
-    assert("dyninst_note_routine: Address not available!");
-  }
-
-#if 0
-  Routine * rout = new Routine(lm, _start, _end - _start, func_name, _start/*offset*/, lm->RelocationOffset());
-
-  MIAMI::CFG* cfg = rout->ControlFlowGraph();
-  assert(cfg);
-#endif
-
-#if 0 // FIXME:tallent: something appears to be broken
-  dyninst_build_CFG(cfg, func_name);
-#endif
-}
-
-
-int dyninst_build_CFG(MIAMI::CFG* cfg, std::string func_name)
-{
-  if (!lm_functions->size()) return 0;
-
-  // FIXME: tallent: this searches all routine
-  for (unsigned int i = 0; i < lm_functions->size(); ++i)
-  {
-    if (lm_functions->at(i)->getName().compare(func_name))
-    {
-      BPatch_flowGraph *fg = lm_functions->at(i)->getCFG();
-      fg->createSourceBlocks();
-      std::vector<BPatch_basicBlock*> entries;
-      fg->getEntryBasicBlock(entries);
-
-      if (entries.size())
-        cfg->setCfgFlags(CFG_HAS_ENTRY_POINTS);
-
-      std::map<int, BPatch_basicBlock*> blockMap;
-      func_blockVec.clear(); // FIXME:tallent
-      
-      for (unsigned int i = 0; i < entries.size(); ++i)
-      {
-        CFG::Node* nn = new CFG::Node(cfg, entries.at(i)->getStartAddress(), entries.at(i)->getEndAddress(), MIAMI::PrivateCFG::MIAMI_CODE_BLOCK);
-        traverse_cfg(cfg, entries.at(i), nn, blockMap);
-      }
-      cfg->computeTopNodes();
-      cfg->removeCfgFlags(CFG_GRAPH_IS_MODIFIED);
-      cfg->ComputeNodeRanks();
-    }
-  }
-  return 1;
-}
-
-
-// Should make special cases for repeatition block and call surrogate block like MIAMI
-// does, or should I directly translating Dyninst block into MIAMI block.
-
-void traverse_cfg(MIAMI::CFG* cfg, BPatch_basicBlock* bb, CFG::Node* nn,
-		  std::map<int, BPatch_basicBlock*>& blockMap)
-{
-  func_blockVec.push_back(bb);
-
-  if (NULL == blockMap[bb->getBlockNumber()])
-  {
-    blockMap[bb->getBlockNumber()] = bb;
-
-    if (NULL != bb->getCallTarget()) {
-      nn = new CFG::Node(cfg, bb->getStartAddress(), bb->getStartAddress(), MIAMI::PrivateCFG::MIAMI_CALL_SITE);
-      nn->setTarget(bb->getEndAddress()); // What does this mean?
-    }
-    cfg->add(nn);
-
-    if (bb->isEntryBlock())
-    {
-      nn->setRoutineEntry();
-      cfg->topNodes.push_back(nn);
-      CFG::Edge* edge = new CFG::Edge(static_cast<CFG::Node*>(cfg->cfg_entry), nn, MIAMI::PrivateCFG::MIAMI_CFG_EDGE);
-      cfg->add(edge);
-    } 
-
-    std::vector<BPatch_basicBlock*> targets;
-    bb->getTargets(targets);
-
-    for (unsigned int i = 0; i < targets.size(); ++i)
-    {
-      CFG::CFG::Node* newNode = new CFG::Node(cfg, targets.at(i)->getStartAddress(), targets.at(i)->getEndAddress(), MIAMI::PrivateCFG::MIAMI_CODE_BLOCK);
-      CFG::Edge* newEdge = new CFG::Edge(nn, newNode, MIAMI::PrivateCFG::MIAMI_CFG_EDGE);
-      cfg->add(newEdge);        
-      traverse_cfg(cfg, targets.at(i), newNode, blockMap);
-    }  
-    
-    if (!targets.size()) //sink
-    {
-      CFG::Edge* edge = new CFG::Edge(nn, static_cast<CFG::Node*>(cfg->cfg_exit), MIAMI::PrivateCFG::MIAMI_CFG_EDGE);
-      cfg->add(edge);
-    }
-  }
-  return;
-}
-
-
-// This function is not used.
-std::vector<unsigned long> get_instructions_address_from_block(MIAMI::CFG::Node *b)
-{
-  std::vector<unsigned long> addressVec;
-  unsigned long start, end, cur;
-  start = b->getStartAddress();
-  end = b->getEndAddress();
-  if (!func_blockVec.size())
-  {
-    assert("No blocks available.\n");
-  }
-  unsigned int i;
-  for (i = 0; i < func_blockVec.size(); ++i)
-  {
-    if (func_blockVec.at(i)->getStartAddress() <= start && func_blockVec.at(i)->getEndAddress() > start)
-    {
-      break;
-    }
-  }
-
-  BPatch_basicBlock* bb = func_blockVec.at(i);
-  std::vector<Dyninst::InstructionAPI::Instruction::Ptr> insns;
-  bb->getInstructions(insns);
-  cur = start;
-
-  for (unsigned int i = 0; i < insns.size(); ++i)
-  {
-    if (cur < end)
-    {
-      addressVec.push_back((unsigned int) cur);
-      cur += insns.at(i)->size();
-    } else { break; }
-  }
-  if (addressVec.size())
-  {
-    return addressVec;
-  } else {
-    assert("No block found given the address.\n");
-    return addressVec;
-  }
-}
-
-
-//***************************************************************************
-
-void traverseCFG(BPatch_basicBlock* blk, std::map<BPatch_basicBlock *,bool> seen, std::map<std::string,std::vector<BPatch_basicBlock*> >& paths, std::vector<BPatch_basicBlock*> path, string pathStr, graph& g);
-
-
-// Not used in the program
-void startCFG(BPatch_function* function,std::map<std::string,std::vector<BPatch_basicBlock*> >& paths, graph& g)
-{
-  if (function!= 0 ) {
-    std::map<BPatch_basicBlock *,bool> seen;
-    
-    BPatch_flowGraph *fg =function->getCFG();		
-    
-    std::vector<BPatch_basicBlock *> entryBlk;
-    std::vector<BPatch_basicBlock *> exitBlk;
-    fg->getExitBasicBlock(exitBlk);
-    fg->getEntryBasicBlock(entryBlk);
-    
-    std::string pathStr;
-    if (entryBlk.size() > 0 and exitBlk.size()>0){
-      g.entry=g.basicBlockNoMap[entryBlk[0]->blockNo()];
-      g.exit=g.basicBlockNoMap[exitBlk[0]->blockNo()];
-      std::vector<BPatch_basicBlock*> path;
-      for(unsigned int b=0;b<entryBlk.size();b++){
-        //std::cerr << "startCFG entryblk size is "<<  entryBlk.size() << endl;
-	traverseCFG(entryBlk[b],seen,paths,path,pathStr,g);
-      }
-    }
-  }
-}
-
-
-// Called by startCFG. Not used in this program.
-void traverseCFG(BPatch_basicBlock* blk, std::map<BPatch_basicBlock *,bool> seen, std::map<std::string,std::vector<BPatch_basicBlock*> >& paths, std::vector<BPatch_basicBlock*> path, string pathStr, graph& g)
-{
-  seen[blk]=true;
-	
-  std::string graphBlkNo = std::to_string((long long)g.basicBlockNoMap[blk->blockNo()]);
-  pathStr+=graphBlkNo+"->";
-	
-  path.push_back(blk);
-	
-  std::vector<BPatch_basicBlock*> targets;
-  blk->getTargets(targets);
-  for(unsigned int t=0;t<targets.size();t++) {
-    if (seen.count(targets[t])==0) {
-      traverseCFG(targets[t],seen,paths,path,pathStr,g);
-    }
-  }
-  if (g.exit==g.basicBlockNoMap[blk->blockNo()]) {
-    paths[pathStr]=path;
-  }
-}
