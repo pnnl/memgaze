@@ -7,6 +7,11 @@ include ../miami.config
 TEST_STEMS = \
 	test1 \
 	test2 \
+	test2-1 \
+	test2-2 \
+	test2-3 \
+	test2-4 \
+	test2-5 \
 	\
 	petsc-matmult \
 	petsc-matmult-inner-loop \
@@ -73,6 +78,51 @@ test2$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
 	  --lat_path ./$*.memprof \
 	  -m $(MACHINE_MODEL) \
 	  --blk_path "0" \
+	  --dump_file $@
+
+test2-1$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
+	$(PALM_MIAMI) \
+	  --func _Z13randomAccess3P4nodeii \
+	  --bin_path ./$*.x86_64-linux.x \
+	  --lat_path ./$*.memprof \
+	  -m $(MACHINE_MODEL) \
+	  --blk_path "1" \
+	  --dump_file $@
+
+test2-2$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
+	$(PALM_MIAMI) \
+	  --func _Z13randomAccess3P4nodeii \
+	  --bin_path ./$*.x86_64-linux.x \
+	  --lat_path ./$*.memprof \
+	  -m $(MACHINE_MODEL) \
+	  --blk_path "2" \
+	  --dump_file $@
+
+test2-3$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
+	$(PALM_MIAMI) \
+	  --func _Z13randomAccess3P4nodeii \
+	  --bin_path ./$*.x86_64-linux.x \
+	  --lat_path ./$*.memprof \
+	  -m $(MACHINE_MODEL) \
+	  --blk_path "0->1" \
+	  --dump_file $@
+
+test2-4$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
+	$(PALM_MIAMI) \
+	  --func _Z13randomAccess3P4nodeii \
+	  --bin_path ./$*.x86_64-linux.x \
+	  --lat_path ./$*.memprof \
+	  -m $(MACHINE_MODEL) \
+	  --blk_path "0->2" \
+	  --dump_file $@
+
+test2-5$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
+	$(PALM_MIAMI) \
+	  --func _Z13randomAccess3P4nodeii \
+	  --bin_path ./$*.x86_64-linux.x \
+	  --lat_path ./$*.memprof \
+	  -m $(MACHINE_MODEL) \
+	  --blk_path "3" \
 	  --dump_file $@
 
 

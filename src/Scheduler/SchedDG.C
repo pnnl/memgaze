@@ -601,7 +601,7 @@ SchedDG::Edge::Edge (SchedDG::Node* n1, SchedDG::Node* n2,
  * ozgurS
  * initialization of new variables
  */
-  minMemLatency = 1;  // initialize all edges with a default latency
+  minMemLatency = 0;  // initialize all edges with a default latency
   realMemLatency = NO_LATENCY;
   minCPULatency = 1;  // initialize all edges with a default latency
   realCPULatency = NO_LATENCY;
@@ -10302,7 +10302,6 @@ SchedDG::myComputeScheduleLatency(int graph_level, int detailed,float &memLatenc
    globalLbCycles = ret.ret; 
    memLatency = ret.memret;
    cpuLatency = ret.cpuret;
-
    mm = new_marker();
    totalResources = minSchedulingLengthDueToResources(restrictiveUnit, 
                 mm, NULL, vecBound, vecUnit);
@@ -11412,7 +11411,6 @@ SchedDG::myMinSchedulingLengthDueToDependencies(float &memLatency, float &cpuLat
       unsigned int pathLen = ret.ret;
       int memLatencyTemp = ret.memret;
       int cpuLatencyTemp = ret.cpuret;
-
       if (maxPathToLeaf < pathLen)
       {
          memLatency = memLatencyTemp;
@@ -11682,7 +11680,6 @@ SchedDG::Node::myComputePathToLeaf (unsigned int marker, bool manyBarriers,
    {
 //      memLatency = pathToLeafMem;
 //      cpuLatency = pathToLeafCPU;
-
       retValues ret;
       ret.ret = pathToLeaf;
       ret.memret = pathToLeafMem;
@@ -11696,7 +11693,7 @@ SchedDG::Node::myComputePathToLeaf (unsigned int marker, bool manyBarriers,
    edgesToLeaf = 0;   // num edges associated with the longest path
    edgesToCycle = 0;
    pathToCycle = 0;
-   pathToLeafCPU = 0;
+   pathToLeafCPU = 1;
    pathToLeafMem = 0;
    outCycleSets.clear ();
    
@@ -11714,6 +11711,7 @@ SchedDG::Node::myComputePathToLeaf (unsigned int marker, bool manyBarriers,
          int edgeLat = oeit->getLatency ();
          int edgeCPULat = oeit->getCPULatency ();
          int edgeMemLat = oeit->getMemLatency ();
+
 #if VERBOSE_DEBUG_PALM
       DEBUG_PALM(1,
       cout <<__func__<<" "<<(unsigned int*)oeit->source()->getAddress()<<" "<<(unsigned int*)oeit->sink()->getAddress()<< edgeLat<<endl;
