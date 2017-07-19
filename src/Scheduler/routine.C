@@ -1742,7 +1742,6 @@ Routine::myConstructPaths(ScopeImplementation *pscope, int no_fpga_acc, const st
             bpit->second->latency = res.first;
             bpit->second->num_uops = res.second;
 
-
 #if PROFILE_SCHEDULER
             MIAMIP::report_time (stderr, "Compute schedule for path %s", pathId.Name());
 #endif
@@ -1923,11 +1922,7 @@ Routine::myConstructPaths(ScopeImplementation *pscope, int no_fpga_acc, const st
 
          std::cout<<"PALM: path lat: "<<bpit->second->latency<<" path uops: "<<bpit->second->num_uops<<" path count: "<<bpit->second->count<<" "<<bpit->second->serialMemLat<<" "<<bpit->second->exposedMemLat<<std::endl;
          thisLoopLatency += (bpit->second->count)*(bpit->second->latency);
-//ozgurS
-//TODO ask about bit->second->count
-//ozgurE
          thisLoopUops += (bpit->second->count)*(bpit->second->num_uops);
-         thisLoopMemLatency += memLat;
       }  // if do_build_dg
    }
    
