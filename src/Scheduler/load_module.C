@@ -800,20 +800,20 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
                   in >> std::dec >> tempMemStruct.level >> std::dec >> tempMemStruct.hitCount >> tempMemStruct.latency;
                   lvlMap[tempMemStruct.level] = tempMemStruct;
                }
+               double miss = calculateMissRatio(lvlMap ,  0);
                in >> lat;
                instMemMap[low_addr_offset+insn] = lvlMap;
                instLats[low_addr_offset+insn]=lat;
-               std::cout<<" OZGURGDEBUG inst " << std::hex << insn << " lvl: "<< std::dec << instMemMap[low_addr_offset+insn][0].level <<" hit:" <<instMemMap[low_addr_offset+insn][0].hitCount << " lat: " << instMemMap[low_addr_offset+insn][0].latency << std::endl;
+//               std::cout<<" ZOZGURDEBUG inst " << std::hex << insn << " lvl: "<< std::dec << instMemMap[low_addr_offset+insn][0].level <<" hit:" <<instMemMap[low_addr_offset+insn][0].hitCount << " lat: " << instMemMap[low_addr_offset+insn][0].latency << " missRatio lvl0: " << std::scientific <<miss << std::endl;
             }
-      //      std::cout << " OZGURDEBUG " << "inst: " << std::hex << insn << " lvl: " << latArr.level << " count: " << latArr.hitCount << " lat " << latArr.latency <<" rest of them" <<q<<" "<<w<<" "<<e<<" "<<r<<" "<<a<<" "<<s<<" "<<d<<" "<<f<<" "<< std::endl;         
       }
 //ozgurE      
-      while (latFile >> std::hex >> insn >> std::dec >> lat >> latFuncNm >> latDso){
+/*      while (latFile >> std::hex >> insn >> std::dec >> lat >> latFuncNm >> latDso){
          if (routName.compare(latFuncNm) == 0){
             cout<< std::hex<<(unsigned int*)low_addr_offset<<" "<<(unsigned int*)insn <<" "<<(unsigned int*)(low_addr_offset+insn)<<std::dec<< " "<<lat<<" "<<latFuncNm<<" "<<latDso<<endl;
             instLats[low_addr_offset+insn]=lat;
          }
-      }
+      }*/
       latFile.close(); 
    }
    Routine* rout = new Routine(this, (addrtype)start, (usize_t) end-start, string(routName), (addrtype)start, reloc_offset);
@@ -838,6 +838,43 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
    delete (rout);
    return 0;
 }
+
+InstlvlMap LoadModule::getMemLoadData(addrtype insn){
+   InstlvlMap temp;
+   if (instMemMap.count(insn)==0){
+      return temp;
+   } else {
+      return instMemMap[insn];
+   }
+}
+
+double LoadModule::calculateMissRatio(InstlvlMap lvlMap, int lvl){
+   double hitRatio = 0.0;
+   double missRatio = 0.0;
+   int lvlList[]= {0,0,0,0,0,0,0,0,0,0,0};
+   for (int j = 0; j <11; j++){
+      if(lvlMap.count(j)){
+         lvlList[j]= 1;
+      }
+   }
+   if (!lvlList[lvl]){
+      return -1;
+   }
+   double totalHit = 0.0;
+   double totalMiss = 0.0;
+   totalHit = lvlMap[lvl].hitCount;
+   for (int index = 0 ; index < 11 ; index++){
+      if (index > lvl){      
+         if(lvlList[index]){
+            totalMiss += lvlMap[index].hitCount;
+         }
+      }
+   }
+   hitRatio = totalHit / (totalHit + totalMiss);
+   missRatio = 1 - hitRatio;
+   return missRatio;  
+}
+
 
 double LoadModule::getMemLoadLatency(addrtype insn){
    if (instLats.count(insn) == 0){
