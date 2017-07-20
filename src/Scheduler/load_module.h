@@ -140,7 +140,10 @@ public:
    {
       return dyn_image;
    }
-
+//ozgurS
+   double calculateMissRatio(InstlvlMap lvlMap, int lvl);
+   InstlvlMap getMemLoadData(addrtype insn);
+//ozgurE   
    double getMemLoadLatency(addrtype insn);
 private:   
    int32_t nextInstIndex, nextScopeIndex, nextSetIndex;
