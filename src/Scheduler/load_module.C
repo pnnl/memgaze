@@ -778,6 +778,36 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
       double lat;
       std::string latFuncNm;
       std::string latDso;
+//ozgurS
+      std::string funcName = "func:"+mo->func_name;
+      std::string line;
+      bool inFunction =false;
+      while (std::getline(latFile , line)) {
+            if (line == funcName){
+               inFunction = true;
+               continue;
+            } else if (line.length() < 2){
+               inFunction = false;
+            }
+            if (inFunction){
+               int numLevel = 0;
+               std::cout<<" OZGURXDEBUG " << line << std::endl;
+               std::istringstream in(line);
+               in  >> std::hex >> insn >> numLevel;
+               memStruct  tempMemStruct;
+               InstlvlMap  lvlMap;
+               for (int i=0; i <numLevel; i++){
+                  in >> std::dec >> tempMemStruct.level >> std::dec >> tempMemStruct.hitCount >> tempMemStruct.latency;
+                  lvlMap[tempMemStruct.level] = tempMemStruct;
+               }
+               in >> lat;
+               instMemMap[low_addr_offset+insn] = lvlMap;
+               instLats[low_addr_offset+insn]=lat;
+               std::cout<<" OZGURGDEBUG inst " << std::hex << insn << " lvl: "<< std::dec << instMemMap[low_addr_offset+insn][0].level <<" hit:" <<instMemMap[low_addr_offset+insn][0].hitCount << " lat: " << instMemMap[low_addr_offset+insn][0].latency << std::endl;
+            }
+      //      std::cout << " OZGURDEBUG " << "inst: " << std::hex << insn << " lvl: " << latArr.level << " count: " << latArr.hitCount << " lat " << latArr.latency <<" rest of them" <<q<<" "<<w<<" "<<e<<" "<<r<<" "<<a<<" "<<s<<" "<<d<<" "<<f<<" "<< std::endl;         
+      }
+//ozgurE      
       while (latFile >> std::hex >> insn >> std::dec >> lat >> latFuncNm >> latDso){
          if (routName.compare(latFuncNm) == 0){
             cout<< std::hex<<(unsigned int*)low_addr_offset<<" "<<(unsigned int*)insn <<" "<<(unsigned int*)(low_addr_offset+insn)<<std::dec<< " "<<lat<<" "<<latFuncNm<<" "<<latDso<<endl;

@@ -45,6 +45,18 @@ typedef MIAMIU::BucketHashMap <uint64_t, int32_t, &defInt32, 128> BucketMapInt;
 typedef MIAMIU::BucketHashMap <int32_t, int32_t, &defInt32, 128> HashIntMap;
 
 typedef std::map<addrtype,double> InstLatMap;
+//ozgurS
+
+
+struct memStruct {
+   int level;
+   int hitCount;
+   double latency;
+};
+
+typedef std::map<int,memStruct> InstlvlMap;
+typedef std::map< addrtype, std::map<int,memStruct> > InstMemMap;
+//ozgurE
 
 class LoadModule : public PrivateLoadModule
 {
@@ -172,6 +184,8 @@ private:
    
    BPatch_image* dyn_image;
    InstLatMap instLats;
+   
+   InstMemMap instMemMap;
 };
 
 }
