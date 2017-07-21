@@ -142,7 +142,7 @@ public:
    }
 //ozgurS
    double calculateMissRatio(InstlvlMap lvlMap, int lvl);
-   InstlvlMap getMemLoadData(addrtype insn);
+   InstlvlMap * getMemLoadData(addrtype insn);
 //ozgurE   
    double getMemLoadLatency(addrtype insn);
 private:   

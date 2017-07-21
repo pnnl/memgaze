@@ -794,17 +794,17 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
                std::cout<<" OZGURXDEBUG " << line << std::endl;
                std::istringstream in(line);
                in  >> std::hex >> insn >> numLevel;
-               memStruct  tempMemStruct;
-               InstlvlMap  lvlMap;
+               memStruct tempMemStruct;
+               InstlvlMap lvlMap; 
                for (int i=0; i <numLevel; i++){
-                  in >> std::dec >> tempMemStruct.level >> std::dec >> tempMemStruct.hitCount >> tempMemStruct.latency;
+                  in >> std::dec >> tempMemStruct.level >> tempMemStruct.hitCount >> tempMemStruct.latency;
                   lvlMap[tempMemStruct.level] = tempMemStruct;
                }
                double miss = calculateMissRatio(lvlMap ,  0);
                in >> lat;
                instMemMap[low_addr_offset+insn] = lvlMap;
                instLats[low_addr_offset+insn]=lat;
-//               std::cout<<" ZOZGURDEBUG inst " << std::hex << insn << " lvl: "<< std::dec << instMemMap[low_addr_offset+insn][0].level <<" hit:" <<instMemMap[low_addr_offset+insn][0].hitCount << " lat: " << instMemMap[low_addr_offset+insn][0].latency << " missRatio lvl0: " << std::scientific <<miss << std::endl;
+               std::cout<<" 1OZGURDEBUG inst " << std::hex << insn << " lvl: "<< std::dec << instMemMap[low_addr_offset+insn][0].level <<" hit:" <<instMemMap[low_addr_offset+insn][0].hitCount << " lat: " << instMemMap[low_addr_offset+insn][0].latency << " missRatio lvl0: " << miss << std::endl;
             }
       }
 //ozgurE      
@@ -839,35 +839,27 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
    return 0;
 }
 
-InstlvlMap LoadModule::getMemLoadData(addrtype insn){
-   InstlvlMap temp;
+InstlvlMap *LoadModule::getMemLoadData(addrtype insn){
+   //TODO create a static variable or return a pointer for this function new  and delete  
    if (instMemMap.count(insn)==0){
-      return temp;
+      return NULL;
    } else {
-      return instMemMap[insn];
+      return &instMemMap[insn];
    }
 }
 
 double LoadModule::calculateMissRatio(InstlvlMap lvlMap, int lvl){
    double hitRatio = 0.0;
    double missRatio = 0.0;
-   int lvlList[]= {0,0,0,0,0,0,0,0,0,0,0};
-   for (int j = 0; j <11; j++){
-      if(lvlMap.count(j)){
-         lvlList[j]= 1;
-      }
-   }
-   if (!lvlList[lvl]){
+   if (lvlMap.count(lvl) == 0){
       return -1;
    }
    double totalHit = 0.0;
    double totalMiss = 0.0;
    totalHit = lvlMap[lvl].hitCount;
-   for (int index = 0 ; index < 11 ; index++){
-      if (index > lvl){      
-         if(lvlList[index]){
-            totalMiss += lvlMap[index].hitCount;
-         }
+   for (auto const &iter : lvlMap){
+      if (iter.first > lvl){
+         totalMiss += iter.second.hitCount;
       }
    }
    hitRatio = totalHit / (totalHit + totalMiss);
