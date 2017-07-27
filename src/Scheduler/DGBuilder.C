@@ -321,6 +321,13 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
 
       SchedDG::Node* node = new Node(this, pc, 0, primary_uop);
       node->setInOrderIndex(nextUopIndex++);
+//ozgurS
+      if (node->is_load_instruction()){
+         //TODO findMe and FIXME
+         node->setLvlMap(img->getMemLoadData(node->getAddress()));
+         std::cerr<<__func__<<" ozgur test total hit at lvl 0 is "<<node->getLvlMap()->find(0)->second.hitCount<<std::endl; 
+      }
+//ozgurE
       add(node);
       markBarrierNode (node);
          
@@ -345,6 +352,7 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
       numLoops += 1;
     }
   }
+
   std::cout<<"hmm 1"<<std::endl;
 
   // compute the top nodes here. Register carried dependencies are not 
@@ -352,12 +360,22 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
   // add also control dependencies from the lastBranch to the top nodes
   if (lastBranch!=NULL)
     {
+      int counterozgursil = 0;
       NodesIterator nit(*this);
       while ((bool)nit) 
 	{
 	  Node *nn = nit;
+            std::cerr<<"inst address: "<<std::hex<<nn->getAddress()<<std::endl;
 	  if (nn->isInstructionNode())
 	    {
+//ozgurS
+            if(nn->is_load_instruction()){
+                  
+               std::cerr<<__func__<<" counter: "<<std::dec<<counterozgursil<<" ozgur test addr: "<<nn->getAddress()<<" hit at lvl 0 is "<<nn->getLvlMap()->find(0)->second.hitCount<<std::endl; 
+               counterozgursil++;
+            }
+//ozgurE
+            
 	      bool is_top = true;
 	      IncomingEdgesIterator ieit(nn);
 	      while ((bool)ieit)
@@ -451,7 +469,7 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
 
 	      SchedDG::Node* node = static_cast<SchedDG::Node*>(dInst->micro_ops.front().data);
 	      assert(node != NULL);
-	      handle_inner_loop_register_dependencies (node, innerRegs[numLoops], 0);
+              handle_inner_loop_register_dependencies (node, innerRegs[numLoops], 0);
 	      ++ numLoops;
 	    }
 	  else
@@ -577,7 +595,13 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
          markBarrierNode (node);
 
       iiobj.data = node;
-
+//ozgurS
+      if (node->is_load_instruction()){
+         //TODO findMe and FIXME
+         node->setLvlMap(img->getMemLoadData(node->getAddress()));
+         std::cerr<<__func__<<" ozgur testing img total hit at lvl 0 is "<<node->getLvlMap()->find(0)->second.hitCount<<std::endl; 
+      }
+//ozgurE
       if (node->is_memory_reference())
       {
          int stackAccess = 0;

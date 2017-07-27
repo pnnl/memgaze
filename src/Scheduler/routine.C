@@ -1638,7 +1638,10 @@ Routine::myConstructPaths(ScopeImplementation *pscope, int no_fpga_acc, const st
       ba.push_back(blk);
       fa.push_back(1.0);
    }
-
+//ozgurS Check if I can treverse trought all nodes in the block
+   for (std::list<CFG::Node*>::iterator mylit=ba.begin(); mylit != ba.end(); ++mylit){
+   } 
+//ozgurE
 
    BlockPath *bp = new BlockPath(ba, (CFG::Node*)(*dyn_blkNoToMiamiBlk)[path[path.size()-1]], fa, rl, false);
    bpmtemp->insert(BPMap::value_type(bp, new PathInfo(1)));
@@ -1826,10 +1829,12 @@ Routine::myConstructPaths(ScopeImplementation *pscope, int no_fpga_acc, const st
             
             // draw the dominator trees
 //            sch->draw_dominator_trees ("x6");
-
+//ozgurS
+               MIAMI_DG::schedule_result_t res = sch->myComputeScheduleLatency(0,mo->DetailedMetrics(), thisLoopMemoryLatency,thisLoopCPULatency);
+//ozgurE
                // compute the scheduling
-               MIAMI_DG::schedule_result_t res = sch->computeScheduleLatency(0 /* args.graph_level */,
-                        mo->DetailedMetrics());
+//               MIAMI_DG::schedule_result_t res = sch->computeScheduleLatency(0 /* args.graph_level */,
+//                        mo->DetailedMetrics());
                bpit->second->latency = res.first;
                bpit->second->num_uops = res.second;
 

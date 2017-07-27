@@ -48,13 +48,13 @@ typedef std::map<addrtype,double> InstLatMap;
 //ozgurS
 
 
-struct memStruct {
+/*struct memStruct {
    int level;
    int hitCount;
    double latency;
 };
 
-typedef std::map<int,memStruct> InstlvlMap;
+typedef std::map<int,memStruct> InstlvlMap;*/
 typedef std::map< addrtype, std::map<int,memStruct> > InstMemMap;
 //ozgurE
 
