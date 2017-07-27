@@ -5072,9 +5072,16 @@ SchedDG::Edge::computeLatency(const Machine *_mach, addrtype reloc, SchedDG* sdg
 //ozgurE
    }
    if (source()->getAddress() != sink()->getAddress()){ //because a single instruction can be represented by multipl uops, only apply addition load latency when transitioning to a new instruction
-    minLatency += sdg->img->getMemLoadLatency(source()->getAddress());
-//ozgurS
-    minMemLatency= realMemLatency = sdg->img->getMemLoadLatency(source()->getAddress());  
+      minLatency += sdg->img->getMemLoadLatency(source()->getAddress());
+//ozgurS 
+      if (source()->is_load_instruction()){
+         source()->lvlMap = sdg->img->getMemLoadData(source()->getAddress());
+         
+      } 
+      if (sink()->is_load_instruction()){
+         sink()->lvlMap = sdg->img->getMemLoadData(sink()->getAddress());
+      }
+      minMemLatency= realMemLatency = sdg->img->getMemLoadLatency(source()->getAddress());  
 //ozgurE
    }
 //ozgurS
@@ -5101,8 +5108,6 @@ SchedDG::computeEdgeLatencies()
    // a consumer instruction. I can test there for special cases when an
    // instruction creates inequal length latencies depending on the consumer.
  
-//ozgurDELETETHIS
-   cout<<"Ozgur:  "<<__func__<<" this func called"<<endl; 
    EdgesIterator eit(*this);
    while ((bool)eit)
    {
@@ -7109,7 +7114,6 @@ SchedDG::create_schedule ()
        throw (UnsuccessfulSchedulingException, SuccessfulSchedulingException)
 {
    int i;
-
    bool repeatNode = false;
    const int* unitsIndex = mach->getUnitsIndex();
    do
@@ -7128,8 +7132,9 @@ SchedDG::create_schedule ()
       )
 #endif
          
-      if (repeatNode)
+      if (repeatNode){
          repeatNode = false;
+      }
       else if (limpModeScheduling)
       {
          e = NULL;
@@ -7973,7 +7978,7 @@ SchedDG::create_schedule ()
          
       // I added already all edges with only one end scheduled
       // nothing more to do here
-      
+   
    } while (!nodesQ->empty() || repeatNode || (!limpModeScheduling && !edgesQ->empty()));
    // should not get here, right?
    // Hmm, I never got here with the Sparc version. However, with the new x86 version
@@ -10367,6 +10372,7 @@ SchedDG::myComputeScheduleLatency(int graph_level, int detailed,float &memLatenc
    // resource scores of the two ends; set also the number of neighbors as 
    // the sum of the neighbors of the two end.
    EdgesIterator edit(*this);
+   int totalHits = 0;
    while ((bool)edit)
    {
       if (! edit->IsRemoved() && edit->isSchedulingEdge())
@@ -10374,6 +10380,16 @@ SchedDG::myComputeScheduleLatency(int graph_level, int detailed,float &memLatenc
       {
          Node *_srcN = edit->source();
          Node *_sinkN = edit->sink();
+//ozgurS   
+         if(!(_srcN->isHitCalculated) && _srcN->is_load_instruction()){
+            _srcN->isHitCalculated = true;
+            totalHits += _srcN->lvlMap->find(0)->second.hitCount;
+         }
+         if(!(_sinkN->isHitCalculated) && _sinkN->is_load_instruction()){
+            _sinkN->isHitCalculated = true;
+            totalHits += _sinkN->lvlMap->find(0)->second.hitCount;
+         }
+//ozgurE        
          float edgescore = 0;
          assert (_srcN->isInstructionNode());
          edgescore = _srcN->resourceScore;
@@ -10390,7 +10406,7 @@ SchedDG::myComputeScheduleLatency(int graph_level, int detailed,float &memLatenc
       }
       ++ edit;
    }
-
+std::cerr<<__func__<<" Ozgur try1 total Hits for lvl 1= "<<totalHits<<std::endl;
    resourceLimited = false;
    schedule_length = min_length;
 #if VERBOSE_DEBUG_PALM
@@ -11669,8 +11685,11 @@ SchedDG::Node::computePathToLeaf (unsigned int marker, bool manyBarriers,
 }
 //ozgurS
 //adding my computePathToLeaf
-//
-
+//TODO most likely compute the total hit and misses in here on path and return them
+//keep moving them to the top like I did to the memory and cpu latency.
+//but be carefull to not count one node ome then one  and also 
+//be carefull to remove read mark for the next iteration.
+//this could or not be the correct place for calculating the total hits.
 retValues
 SchedDG::Node::myComputePathToLeaf (unsigned int marker, bool manyBarriers, 
              DisjointSet *ds, float &memLatency, float &cpuLatency)

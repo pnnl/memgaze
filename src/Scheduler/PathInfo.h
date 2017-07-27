@@ -21,8 +21,8 @@
 #include "reuse_group.h"
 #include "Clique.h"
 #include "reg_sched_info.h"
-#include "hashmaps.h"
-#include "miami_types.h"
+#include "hashmaps.h" 
+#include "miami_types.h" 
 #include "path_id.h"
 
 namespace MIAMI
@@ -50,6 +50,39 @@ public:
 
 typedef std::list <MemLevelData> MLDList;
 
+//ozgurS
+class MemoryDataPerLevel{
+public:
+//   MemoryDataPerLevel(int i);
+   MemoryDataPerLevel(int memlevel , MIAMI::InstlvlMap * memlvlMap){
+      level = memlevel;
+      lvlMap = memlvlMap;
+      calculateTotalMiss();
+   }
+   
+   void calculateTotalMiss(){
+      bool lvlFlag = false;
+      this->totalMiss = 0;
+      for ( MIAMI::InstlvlMap::iterator iter=this->lvlMap->begin() ; iter!=this->lvlMap->end() ; iter++){
+         if (iter->first == this->level){
+            lvlFlag = true;
+            this->totalHit = iter->second.hitCount;
+            continue;
+         }
+         if(lvlFlag){
+            this->totalMiss += iter->second.hitCount;
+         }
+      }
+   }
+
+   int level;
+   MIAMI::InstlvlMap * lvlMap;
+   int totalHit;
+   int totalMiss;
+};
+
+typedef std::vector <MemoryDataPerLevel> MDPLList;
+//ozgurE
 
 class PathInfo
 {
@@ -68,7 +101,7 @@ public:
   LatencyType cpulatency;
  //ozgurE 
   uint64_t count;
-  LatencyType latency;
+  LatencyType latency;  //ozgur TODO fallow this to get infor of Hits
   PathID pathId;
   TimeAccount timeStats;
   TimeAccount unitUsage;
@@ -78,6 +111,10 @@ public:
   float serialMemLat;
   float exposedMemLat;
   
+//ozgurS total hits and miss per level in an vector`
+  MDPLList memDataPerLevel;
+//ozgurE
+
   int32_t num_uops;
   // miss info for each memory level
   MLDList memData;

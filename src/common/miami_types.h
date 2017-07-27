@@ -8,7 +8,7 @@
  *
  * Description: Defines common data types used by MIAMI.
  */
-
+#include <map>
 #ifndef MIAMI_TYPES_H
 #define MIAMI_TYPES_H
 
@@ -63,7 +63,15 @@ struct imm_value_t {
    } value;
    bool is_signed;
 };
+//ozgurS moving inslvlmap and mem struct to here
+struct memStruct {
+   int level;
+   int hitCount;
+   double latency;
+};
 
+typedef std::map<int,memStruct> InstlvlMap;
+//ozgurE
 typedef int64_t coeff_t;
 typedef uint64_t ucoeff_t;
 

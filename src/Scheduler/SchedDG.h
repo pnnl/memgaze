@@ -316,7 +316,10 @@ public:
     }
     void PrintObject (ostream& os) const;
     void draw_scheduling (std::ostream& os);
-    
+//ozgurS
+   void setLvlMap (MIAMI::InstlvlMap * myLvlMap){ this->lvlMap = myLvlMap;}
+   MIAMI::InstlvlMap * getLvlMap (){return this->lvlMap;}    
+//ozgurE 
     void visit(unsigned int m)         { _visited = m; }
     bool visited(unsigned int m) const { return (m==_visited); }
     bool visited(unsigned int mL, unsigned int mU) const 
@@ -532,6 +535,7 @@ public:
        pathToExit = 0;
        pathToExitCPU = 0;//ozgurS
        pathToExitMem = 0;//ozgurE
+       isHitCalculated = false;
        edgesToExit = 0;
        distToExit = 0;
        edgesDownstream = 0;
@@ -632,6 +636,10 @@ public:
     int longestCycleCPU;
     int pathToLeafCPU;
     int pathToLeafMem;
+    MIAMI::InstlvlMap * lvlMap;
+    MIAMI::memStruct memData;
+
+
 //ozgurE
     int edgesToLeaf;
 #if USE_SCC_PATHS
@@ -656,6 +664,8 @@ public:
 //ozgurS
     int pathToExitCPU;
     int pathToExitMem;
+   bool isHitCalculated;
+
 //ozgurE
     int edgesToExit;
     int distToExit;
@@ -867,7 +877,11 @@ public:
     int realCPULatency;
     int longestCycleMem;
     int longestCycleCPU;
-/*
+//memory hit informations
+    double hitsPerPath;
+    double hitsPerBlock;
+    double hitsPerInstuction;
+    /*
  * ozgurE
  */
 
