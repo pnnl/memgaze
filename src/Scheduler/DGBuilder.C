@@ -238,15 +238,10 @@ void DGBuilder::calculateMemoryData(MIAMI::MemListPerInst * memData , MIAMI::Mem
    std::vector<MIAMI::InstlvlMap *>::iterator mit=memData->begin();
    while ((bool)nit) {
       Node *nn = nit;
-      std::cerr<<"in while inst address: "<<std::hex<<nn->getAddress()<<std::endl;
       if (nn->isInstructionNode()){
-         std::cerr<<"1 if is inst node inst address: "<<std::hex<<nn->getAddress()<<std::endl;
          if(nn->is_load_instruction()){
-         std::cerr<<"2 if is inst node inst address: "<<std::hex<<nn->getAddress()<<std::endl;
             memData->push_back(nn->getLvlMap()); 
-         std::cerr<<"3 if is inst node inst address: "<<std::hex<<nn->getAddress()<<std::endl;
             mit++;  
-            std::cerr<<__func__<<std::dec<<" ozgurlets test addr: "<<std::hex<<nn->getAddress()<<" hit at lvl 0 is "<<std::dec<<nn->getLvlMap()->find(0)->second.hitCount<<std::endl; 
          }
       }
       ++nit;
