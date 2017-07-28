@@ -112,7 +112,8 @@ public:
            LoadModule *_img,
            int numBlocks, 
            MIAMI::CFG::Node** ba, float* fa, RSIList* innerRegs, 
-           uint64_t _pathFreq = 1, float _avgNumIters = 1.0);
+           uint64_t _pathFreq = 1, float _avgNumIters = 1.0 , 
+           MIAMI::MemListPerInst * memData=NULL, MIAMI::MemDataPerLvlList * mdplList=NULL);
            
    virtual ~DGBuilder();
 
@@ -126,6 +127,10 @@ public:
 
 private:
    void pruneTrivialMemoryDependencies ();
+
+//ozgurS
+   void calculateMemoryData(MIAMI::MemListPerInst * memData ,  MIAMI::MemDataPerLvlList * mdplList);
+//ozgurE
 
    void build_graph(int numBlocks, MIAMI::CFG::Node** ba, float* fa, RSIList* innerRegs);
    int build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float freq);

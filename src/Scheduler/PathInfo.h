@@ -51,37 +51,29 @@ public:
 typedef std::list <MemLevelData> MLDList;
 
 //ozgurS
+//class to keep memory data per level
+
 class MemoryDataPerLevel{
 public:
 //   MemoryDataPerLevel(int i);
-   MemoryDataPerLevel(int memlevel , MIAMI::InstlvlMap * memlvlMap){
-      level = memlevel;
-      lvlMap = memlvlMap;
-      calculateTotalMiss();
-   }
-   
-   void calculateTotalMiss(){
-      bool lvlFlag = false;
-      this->totalMiss = 0;
-      for ( MIAMI::InstlvlMap::iterator iter=this->lvlMap->begin() ; iter!=this->lvlMap->end() ; iter++){
-         if (iter->first == this->level){
-            lvlFlag = true;
-            this->totalHit = iter->second.hitCount;
-            continue;
-         }
-         if(lvlFlag){
-            this->totalMiss += iter->second.hitCount;
-         }
-      }
+   MemoryDataPerLevel(int _level = -1 , int _totalHits = -1, int _totalMiss = -1  ,  float _avgWindow = -1.0){
+      level = _level;
+      totalHits = _totalHits;
+      totalMiss = _totalMiss;
+      avgWindow = _avgWindow;      
    }
 
    int level;
-   MIAMI::InstlvlMap * lvlMap;
-   int totalHit;
+   int totalHits;
    int totalMiss;
+   float avgWindow;
 };
 
-typedef std::vector <MemoryDataPerLevel> MDPLList;
+typedef std::vector <MIAMI::InstlvlMap *> MemListPerInst; 
+
+//this vector will keep all the data in it per level
+//I need to find a wat to build it 
+typedef std::vector <MemoryDataPerLevel> MemDataPerLvlList;
 //ozgurE
 
 class PathInfo
@@ -112,7 +104,8 @@ public:
   float exposedMemLat;
   
 //ozgurS total hits and miss per level in an vector`
-  MDPLList memDataPerLevel;
+  MemDataPerLvlList memDataPerLevel;
+  MemListPerInst memDataPerInst;
 //ozgurE
 
   int32_t num_uops;
