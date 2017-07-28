@@ -1717,7 +1717,7 @@ Routine::myConstructPaths(ScopeImplementation *pscope, int no_fpga_acc, const st
       /*        mdriver.RefNames(), mdriver.RefsTable(), */
               bpit->first->size, bpit->first->blocks, 
               bpit->first->probabs, bpit->first->innerRegs,
-              avgCount, avgCount);
+              avgCount, avgCount, &bpit->second->memDataPerInst , &bpit->second->memDataPerLevel);
               //bpit->second->count, avgCount);
 #if PROFILE_SCHEDULER
          MIAMIP::report_time (stderr, "Graph construction for path %s", pathId.Name());

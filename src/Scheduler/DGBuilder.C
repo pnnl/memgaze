@@ -132,7 +132,8 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
 		     LoadModule *_img,
 		     int numBlocks, CFG::Node** ba, float* fa,
 		     RSIList* innerRegs,
-		     uint64_t _pathFreq, float _avgNumIters)
+		     uint64_t _pathFreq, float _avgNumIters, 
+                     MIAMI::MemListPerInst * memData, MemDataPerLvlList *mdplList)
   : SchedDG(_routine->Name().c_str(), _pathId, _pathFreq, _avgNumIters,
 	    _refAddr, _img),
     optimistic_memory_dep(_opt_mem_dep)
@@ -206,7 +207,7 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
    }
    
    build_graph(numBlocks, ba, fa, innerRegs);
-   
+   calculateMemoryData(memData, mdplList);
    // in loops with many indirect accesses we see an explosion of unnecessary 
    // memory dependencies. Write a method that traverses only memory 
    // instructions, along memory dependencies, and removes any trivial deps.
@@ -221,7 +222,6 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
    builtNodes.map(deleteInstsInMap, NULL);
 }
 
-
 DGBuilder::~DGBuilder()
 {
   if (crt_stack_tops) delete[] crt_stack_tops;
@@ -232,6 +232,59 @@ DGBuilder::~DGBuilder()
   // builtNodes is emptied at the end of the constructor now.
 }
 
+//ozgurS
+void DGBuilder::calculateMemoryData(MIAMI::MemListPerInst * memData , MIAMI::MemDataPerLvlList * mdplList){
+   NodesIterator nit(*this);
+   std::vector<MIAMI::InstlvlMap *>::iterator mit=memData->begin();
+   while ((bool)nit) {
+      Node *nn = nit;
+      std::cerr<<"in while inst address: "<<std::hex<<nn->getAddress()<<std::endl;
+      if (nn->isInstructionNode()){
+         std::cerr<<"1 if is inst node inst address: "<<std::hex<<nn->getAddress()<<std::endl;
+         if(nn->is_load_instruction()){
+         std::cerr<<"2 if is inst node inst address: "<<std::hex<<nn->getAddress()<<std::endl;
+            memData->push_back(nn->getLvlMap()); 
+         std::cerr<<"3 if is inst node inst address: "<<std::hex<<nn->getAddress()<<std::endl;
+            mit++;  
+            std::cerr<<__func__<<std::dec<<" ozgurlets test addr: "<<std::hex<<nn->getAddress()<<" hit at lvl 0 is "<<std::dec<<nn->getLvlMap()->find(0)->second.hitCount<<std::endl; 
+         }
+      }
+      ++nit;
+   }
+   struct Mem{
+      int level;
+      int hits;
+      int miss;
+      float windowSize;
+   }; 
+   std::vector<Mem> memVector;            //TODO find a better  way to loop for each level
+   for (int lvl =0 ; lvl < 10 ; lvl++){   //or just try to ask MAX_LEVEL from user
+      Mem mem;
+      mem.level = lvl;
+      mem.hits = 0;
+      mem.miss = 0;
+      mem.windowSize = 0.0;
+      for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){  
+         mem.hits += (*it)->find(lvl)->second.hitCount;
+         for (int nextlvl =lvl+1 ; nextlvl < 10 ; nextlvl++){
+            mem.miss += (*it)->find(nextlvl)->second.hitCount;
+         }
+         std::cerr<<" OZGUR DATA CONTROL : "<<std::dec<< (*it)->find(lvl)->second.hitCount << std::endl;
+      }
+      if (mem.miss){
+         mem.windowSize = (float)mem.hits/ (float)mem.miss;
+      } else {
+         mem.windowSize = -1.0;
+      }
+      memVector.push_back(mem);
+   }
+   for( std::vector<Mem>::iterator dit=memVector.begin() ; dit!=memVector.end() ; dit++){
+      MIAMI::MemoryDataPerLevel md = MemoryDataPerLevel((*dit).level, (*dit).hits, (*dit).miss, (*dit).windowSize);
+      mdplList->push_back(md);
+      std::cerr<<" OZGUR mem data at lvl: "<<std::dec<< (*dit).level<<" hits: "<<(*dit).hits<<" miss: "<<(*dit).miss<<"windowSize: "<<(*dit).windowSize<< std::endl;
+   }
+}
+//OzgurE
 
 void
 DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
@@ -323,9 +376,9 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
       node->setInOrderIndex(nextUopIndex++);
 //ozgurS
       if (node->is_load_instruction()){
-         //TODO findMe and FIXME
          node->setLvlMap(img->getMemLoadData(node->getAddress()));
          std::cerr<<__func__<<" ozgur test total hit at lvl 0 is "<<node->getLvlMap()->find(0)->second.hitCount<<std::endl; 
+         assert(false && "Impossible!!");
       }
 //ozgurE
       add(node);
@@ -360,22 +413,12 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
   // add also control dependencies from the lastBranch to the top nodes
   if (lastBranch!=NULL)
     {
-      int counterozgursil = 0;
       NodesIterator nit(*this);
       while ((bool)nit) 
 	{
 	  Node *nn = nit;
-            std::cerr<<"inst address: "<<std::hex<<nn->getAddress()<<std::endl;
 	  if (nn->isInstructionNode())
 	    {
-//ozgurS
-            if(nn->is_load_instruction()){
-                  
-               std::cerr<<__func__<<" counter: "<<std::dec<<counterozgursil<<" ozgur test addr: "<<nn->getAddress()<<" hit at lvl 0 is "<<nn->getLvlMap()->find(0)->second.hitCount<<std::endl; 
-               counterozgursil++;
-            }
-//ozgurE
-            
 	      bool is_top = true;
 	      IncomingEdgesIterator ieit(nn);
 	      while ((bool)ieit)
