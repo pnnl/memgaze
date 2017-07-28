@@ -10264,6 +10264,7 @@ SchedDG::myComputeScheduleLatency(int graph_level, int detailed,float &memLatenc
    int i;
    if (HasAllFlags(DG_SCHEDULE_COMPUTED))
    {
+      std::cerr<<__func__<<"3 ozgurCheckLat cpu= "<<cpuLatency<<" tot= "<<schedule_length<<std::endl;
       // we've computed the scheduling before, just return the computed value
       return (schedule_result_t(schedule_length, nextScheduleId-1));
    }
@@ -10344,13 +10345,17 @@ SchedDG::myComputeScheduleLatency(int graph_level, int detailed,float &memLatenc
       cout <<__func__<<" "<<globalLbCycles<<" "<<totalResources<<" "<<numberOfInnerLoops<<endl;
             )
 #endif
+std::cerr<<__func__<<" bef ozgurCheckLat tr= "<<totalResources<<" noil= "<<numberOfInnerLoops<<std::endl;
    if (globalLbCycles >= totalResources + numberOfInnerLoops)
    {
       min_length = globalLbCycles;
+      std::cerr<<__func__<<" glo ozgurCheckLat cpu= "<<cpuLatency<<" tot= "<<min_length<<std::endl;
       timeStats.addDependencyTime (globalLbCycles);
    } else
    {
+      cpuLatency = totalResources + numberOfInnerLoops;
       min_length = totalResources + numberOfInnerLoops;
+      std::cerr<<__func__<<" res ozgurCheckLat cpu= "<<cpuLatency<<" tot= "<<min_length<<std::endl;
       timeStats.addResourcesTime (restrictiveUnit, totalResources);
       if (numberOfInnerLoops)
          timeStats.addDependencyTime (numberOfInnerLoops);
@@ -10372,7 +10377,6 @@ SchedDG::myComputeScheduleLatency(int graph_level, int detailed,float &memLatenc
    // resource scores of the two ends; set also the number of neighbors as 
    // the sum of the neighbors of the two end.
    EdgesIterator edit(*this);
-   int totalHits = 0;
    while ((bool)edit)
    {
       if (! edit->IsRemoved() && edit->isSchedulingEdge())
@@ -10380,16 +10384,6 @@ SchedDG::myComputeScheduleLatency(int graph_level, int detailed,float &memLatenc
       {
          Node *_srcN = edit->source();
          Node *_sinkN = edit->sink();
-//ozgurS   
-         if(!(_srcN->isHitCalculated) && _srcN->is_load_instruction()){
-            _srcN->isHitCalculated = true;
-            totalHits += _srcN->lvlMap->find(0)->second.hitCount;
-         }
-         if(!(_sinkN->isHitCalculated) && _sinkN->is_load_instruction()){
-            _sinkN->isHitCalculated = true;
-            totalHits += _sinkN->lvlMap->find(0)->second.hitCount;
-         }
-//ozgurE        
          float edgescore = 0;
          assert (_srcN->isInstructionNode());
          edgescore = _srcN->resourceScore;
@@ -10406,9 +10400,9 @@ SchedDG::myComputeScheduleLatency(int graph_level, int detailed,float &memLatenc
       }
       ++ edit;
    }
-std::cerr<<__func__<<" Ozgur try1 total Hits for lvl 1= "<<totalHits<<std::endl;
    resourceLimited = false;
    schedule_length = min_length;
+std::cerr<<__func__<<"2 ozgurCheckLat cpu= "<<cpuLatency<<" tot= "<<schedule_length<<std::endl;
 #if VERBOSE_DEBUG_PALM
       DEBUG_PALM(1,
       cout<<__func__<<" sl: "<<schedule_length<<endl;
@@ -10623,6 +10617,7 @@ std::cerr<<__func__<<" Ozgur try1 total Hits for lvl 1= "<<totalHits<<std::endl;
                schedule_length = preDeadlockLength;
 //ozgurS setting back cpu latency to original
                cpuLatency = preDeadlockLengthCPU;
+std::cerr<<__func__<<"1 ozgurCheckLat cpu= "<<cpuLatency<<" tot= "<<schedule_length<<std::endl;
 //ozgurE
                timeStats = savedTimeStats;
                totalResources = savedTotalResources;
@@ -10675,6 +10670,7 @@ std::cerr<<__func__<<" Ozgur try1 total Hits for lvl 1= "<<totalHits<<std::endl;
             schedule_length += extraLength;
 //ozgurS calculating CPU Latency
             cpuLatency += extraLength;
+std::cerr<<__func__<<"0 ozgurCheckLat cpu= "<<cpuLatency<<" tot= "<<schedule_length<<std::endl;
 //ozgurE
          }
          timeStats.addSchedulingTime (unit, 
