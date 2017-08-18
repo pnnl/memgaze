@@ -48,13 +48,7 @@ typedef std::map<addrtype,double> InstLatMap;
 //ozgurS
 
 
-/*struct memStruct {
-   int level;
-   int hitCount;
-   double latency;
-};
 
-typedef std::map<int,memStruct> InstlvlMap;*/
 typedef std::map< addrtype, std::map<int,memStruct> > InstMemMap;
 //ozgurE
 
@@ -187,7 +181,8 @@ private:
    
    BPatch_image* dyn_image;
    InstLatMap instLats;
-   
+  
+   InstlvlMap emptyLevelMap; 
    InstMemMap instMemMap;
 };
 
