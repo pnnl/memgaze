@@ -24,7 +24,7 @@ SkyLake (arch): Intel x86-64 Core Gen6
 
 - https://en.wikipedia.org/wiki/Skylake_(microarchitecture)
 
-SkyLake EP: 
+SkyLake EP:
   - Process: 14 nm
   - AVX-512
   - 6 channels DDR4
