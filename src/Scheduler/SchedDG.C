@@ -6799,7 +6799,6 @@ SchedDG::create_schedule_main (int& unit, Node* &fNode, Edge* &fEdge,
          delete mixedQ;
       return (true);
    }
-   
    return (true);
 }
 //--------------------------------------------------------------------------------------------------------------------

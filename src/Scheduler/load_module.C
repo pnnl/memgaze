@@ -782,6 +782,13 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
       std::string funcName = "func:"+mo->func_name;
       std::string line;
       bool inFunction =false;
+      memStruct emptyMemStruct;
+      emptyMemStruct.level = 0;
+      emptyMemStruct.hitCount = 0;
+      emptyMemStruct.latency = 0;
+      for(int i= 0; i<10; i++){
+         emptyLevelMap[i]=emptyMemStruct;
+      }
       while (std::getline(latFile , line)) {
             if (line == funcName){
                inFunction = true;
@@ -842,7 +849,7 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
 InstlvlMap *LoadModule::getMemLoadData(addrtype insn){
    //TODO create a static variable or return a pointer for this function new  and delete  
    if (instMemMap.count(insn)==0){
-      return NULL;
+      return &emptyLevelMap;
    } else {
       return &instMemMap[insn];
    }

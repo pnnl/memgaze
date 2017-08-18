@@ -1,11 +1,14 @@
 # -*-Mode: makefile;-*-
 
-include ../miami.config
+include ~/modsim-tools/palm-miami/MIAMI-palm/miami.config
 
 #****************************************************************************
 
 TEST_STEMS = \
-	testM30	
+	testM30Path4 
+#	testM30Path3or2A \
+	testM30Path3or2B 
+#	testM30PathX	
 #	petsc-matmult-ozgur 
 #	test1 \
 	test2 \
@@ -65,15 +68,63 @@ clean :
 
 # TODO: variants with and without memory lat file
 
-testM30$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
+testM30Path4$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
+	$(PALM_MIAMI) \
+	  --func _Z13randomAccess3P4nodeii \
+	  --bin_path /home/kili239/Results_Miami_New/seqAndRandom.out \
+	  --lat_path /home/kili239/Results_Miami_New/Simultaneous/palm/1M-100-2/randomAccess/palm-seqAndRandom.out/latency/perf-2757789-2640447.out-lats.dat \
+	  -m $(MACHINE_MODEL) \
+	  --blk_path "10->2->3->5->6->7->9->10" \
+	  --dump_file $@
+
+testM30Path3or2A$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
+	$(PALM_MIAMI) \
+	  --func _Z13randomAccess3P4nodeii \
+	  --bin_path /home/kili239/Results_Miami_New/seqAndRandom.out \
+	  --lat_path /home/kili239/Results_Miami_New/Simultaneous/palm/1M-100-2/randomAccess/palm-seqAndRandom.out/latency/perf-2757789-2640447.out-lats.dat \
+	  -m $(MACHINE_MODEL) \
+	  --blk_path "10->2->3->4->9->10" \
+	  --dump_file $@
+
+testM30PathX$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
+	$(PALM_MIAMI) \
+	  --func _Z13randomAccess3P4nodeii \
+	  --bin_path /home/kili239/Results_Miami_New/seqAndRandom.out \
+	  --lat_path /home/kili239/Results_Miami_New/Simultaneous/palm/1M-100-2/randomAccess/palm-seqAndRandom.out/latency/perf-2757789-2640447.out-lats.dat \
+	  -m $(MACHINE_MODEL) \
+	  --blk_path "$i" \
+	  --dump_file $@
+
+testM30Path3or2B$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
+	$(PALM_MIAMI) \
+	  --func _Z13randomAccess3P4nodeii \
+	  --bin_path /home/kili239/Results_Miami_New/seqAndRandom.out \
+	  --lat_path /home/kili239/Results_Miami_New/Simultaneous/palm/1M-100-2/randomAccess/palm-seqAndRandom.out/latency/perf-2757789-2640447.out-lats.dat \
+	  -m $(MACHINE_MODEL) \
+	  --blk_path "10->2->3->5->6->8->9->10" \
+	  --dump_file $@
+
+testM30Path2$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
 	$(PALM_MIAMI) \
 	  --func _Z13randomAccess3P4nodeii \
 	  --bin_path /home/kili239/Results_Miami_New/withG.out \
 	  --lat_path /home/kili239/Results_Miami_New/MIAMI-palm/100M/30-30/palm-withG.out/latency/lats.dat \
 	  -m $(MACHINE_MODEL) \
-	  --dump_file $@  
-	##--blk_path "" \
+	  --blk_path "0->6->7->5->1" \
 	  --dump_file $@
+
+testM30Path2$(SCHED_STEM).dot : %$(SCHED_STEM).dot :
+	$(PALM_MIAMI) \
+	  --func _Z13randomAccess3P4nodeii \
+	  --bin_path /home/kili239/Results_Miami_New/withG.out \
+	  --lat_path /home/kili239/Results_Miami_New/MIAMI-palm/100M/30-30/palm-withG.out/latency/lats.dat \
+	  -m $(MACHINE_MODEL) \
+	  --blk_path "0->6->7->5->1" \
+	  --dump_file $@
+
+
+
+
 
 
 

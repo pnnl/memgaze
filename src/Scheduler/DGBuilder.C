@@ -209,6 +209,7 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
    build_graph(numBlocks, ba, fa, innerRegs);
    calculateMemoryData(memData, mdplList);
    // in loops with many indirect accesses we see an explosion of unnecessary 
+  std::cout<<"ALALAL"<<std::endl; 
    // memory dependencies. Write a method that traverses only memory 
    // instructions, along memory dependencies, and removes any trivial deps.
 //   if (avgNumIters > ONE_ITERATION_EPSILON) 
@@ -240,7 +241,17 @@ void DGBuilder::calculateMemoryData(MIAMI::MemListPerInst * memData , MIAMI::Mem
       Node *nn = nit;
       if (nn->isInstructionNode()){
          if(nn->is_load_instruction()){
-            memData->push_back(nn->getLvlMap()); 
+           /* if(!nn->getLvlMap()){
+               MIAMI::memStruct temp;
+               temp.level=-1;
+               temp.hitCount=0;
+               temp.latency=0;
+               InstlvlMap * tempL;
+               tempL[0]= temp;
+               memData->push_back(tempL); 
+            } else {*/
+               memData->push_back(nn->getLvlMap()); 
+           // }
             mit++;  
          }
       }
@@ -260,11 +271,12 @@ void DGBuilder::calculateMemoryData(MIAMI::MemListPerInst * memData , MIAMI::Mem
       mem.miss = 0;
       mem.windowSize = 0.0;
       for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){  
-         mem.hits += (*it)->find(lvl)->second.hitCount;
+         for (int prevlvl =0 ; prevlvl <= lvl  ; prevlvl++){
+            mem.hits += (*it)->find(prevlvl)->second.hitCount;
+         }
          for (int nextlvl =lvl+1 ; nextlvl < 10 ; nextlvl++){
             mem.miss += (*it)->find(nextlvl)->second.hitCount;
          }
-         std::cerr<<" OZGUR DATA CONTROL : "<<std::dec<< (*it)->find(lvl)->second.hitCount << std::endl;
       }
       if (mem.miss){
          mem.windowSize = (float)mem.hits/ (float)mem.miss;
@@ -276,7 +288,7 @@ void DGBuilder::calculateMemoryData(MIAMI::MemListPerInst * memData , MIAMI::Mem
    for( std::vector<Mem>::iterator dit=memVector.begin() ; dit!=memVector.end() ; dit++){
       MIAMI::MemoryDataPerLevel md = MemoryDataPerLevel((*dit).level, (*dit).hits, (*dit).miss, (*dit).windowSize);
       mdplList->push_back(md);
-      std::cerr<<" OZGUR mem data at lvl: "<<std::dec<< (*dit).level<<" hits: "<<(*dit).hits<<" miss: "<<(*dit).miss<<"windowSize: "<<(*dit).windowSize<< std::endl;
+      std::cerr<<" OZGUR mem data at lvl: "<<std::dec<< (*dit).level<<" hits: "<<(*dit).hits<<" miss: "<<(*dit).miss<<" windowSize: "<<(*dit).windowSize<< std::endl;
    }
 }
 //OzgurE
@@ -371,6 +383,7 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
       node->setInOrderIndex(nextUopIndex++);
 //ozgurS
       if (node->is_load_instruction()){
+         std::cout<<" OzgurDebuging lvlMap hit count = "<<img->getMemLoadData(node->getAddress())->find(0)->second.hitCount<<std::endl;
          node->setLvlMap(img->getMemLoadData(node->getAddress()));
          std::cerr<<__func__<<" ozgur test total hit at lvl 0 is "<<node->getLvlMap()->find(0)->second.hitCount<<std::endl; 
          assert(false && "Impossible!!");
@@ -491,7 +504,6 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
       // place a inner_loop_entry node there, just to restrict the 
       // scheduling from wrapping around.
     }
-   
   // add the loop carried register dependencies; go through all the blocks
   // again. Only if this path was executed multiple times.
   if (avgNumIters > ONE_ITERATION_EPSILON)
@@ -637,7 +649,8 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
       if (node->is_load_instruction()){
          //TODO findMe and FIXME
          node->setLvlMap(img->getMemLoadData(node->getAddress()));
-         std::cerr<<__func__<<" ozgur testing img total hit at lvl 0 is "<<node->getLvlMap()->find(0)->second.hitCount<<std::endl; 
+std::cout<<"DEBUG OZGUR instadd: "<<pc<<std::endl; //segfault FIXME
+         //std::cerr<<__func__<<" ozgur testing img total hit at lvl 0 is "<<node->getLvlMap()->find(0)->second.hitCount<<std::endl; 
       }
 //ozgurE
       if (node->is_memory_reference())
