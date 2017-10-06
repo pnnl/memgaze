@@ -19,17 +19,19 @@ Kaby Lake (shrink of SkyLake)
 ----------------------------------------
 
 
-SkyLake (arch): Intel x86-64 Core Gen6
+SkyLake Server (arch): Intel x86-64 Core Gen6
 ----------------------------------------
 
 - https://en.wikipedia.org/wiki/Skylake_(microarchitecture)
 
-SkyLake EP:
+SkyLake Server:
   - Process: 14 nm
   - AVX-512
   - 6 channels DDR4
+  - Non-inclusive L3
+  - Sub-NUMA clustering
   - UPI
-  - Omni-Path
+  - Optane, Omni-Path
   
   32 cores/64 threads
 
@@ -46,7 +48,7 @@ Broadwell EP ()
 - http://www.tomshardware.com/reviews/intel-xeon-e5-2600-v4-broadwell-ep,4514.html
 
 
-Haswell (arch): Intel x86-64 Core Gen4
+Haswell-E (arch): Intel x86-64 Core Gen4
 ----------------------------------------
 
 - https://en.wikipedia.org/wiki/Haswell_(microarchitecture)
@@ -55,7 +57,7 @@ Haswell (arch): Intel x86-64 Core Gen4
 - AVX2 (256 bits)
 
 
-IvyBridge (shrink of SandyBridge): Intel x86-64 Core Gen3
+IvyBridge-E (shrink of SandyBridge): Intel x86-64 Core Gen3
 ----------------------------------------
 
 - https://en.wikipedia.org/wiki/Ivy_Bridge_(microarchitecture)
