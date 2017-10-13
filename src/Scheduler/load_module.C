@@ -10,8 +10,17 @@
  * load module.
  */
 
+//***************************************************************************
+// 
+//***************************************************************************
+
 #include <stdio.h>
 #include <stdlib.h>
+
+//***************************************************************************
+// MIAMI includes
+//***************************************************************************
+
 #include "load_module.h"
 #include "routine.h"
 #include "miami_utils.h"
@@ -20,10 +29,29 @@
 #include "tarjans/TarjanIntervals.h"
 #include "debug_scheduler.h"
 
-#include "dyninst-insn-xlate.hpp"
+//***************************************************************************
+// DynInst includes
+//***************************************************************************
 
 #include <CodeObject.h>
 #include <CodeSource.h>
+
+#include <BPatch.h>
+#include <BPatch_object.h>
+#include <BPatch_addressSpace.h>
+#include <BPatch_function.h>
+#include <BPatch_flowGraph.h>
+
+#include <Function.h>
+#include <Instruction.h>
+
+#include <Symtab.h>
+
+
+//***************************************************************************
+// 
+//***************************************************************************
+
 
 using namespace MIAMI;
 using namespace std;
