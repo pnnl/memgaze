@@ -8,7 +8,7 @@
  *
  * Description: Defines common data types used by MIAMI.
  */
-#include <map>
+
 #ifndef MIAMI_TYPES_H
 #define MIAMI_TYPES_H
 
@@ -23,6 +23,8 @@
 # endif
 
 #include <stdint.h>
+
+#include <map>
 
 namespace MIAMI
 {
