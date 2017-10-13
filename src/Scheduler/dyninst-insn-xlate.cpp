@@ -611,7 +611,6 @@ void dynXlate_enter(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Pt
   return;
 }
 
-
 // System call is translated into jump uop, with two destination operands:
 // program counter and flags.
 void dynXlate_sysCall(MIAMI::DecodedInstruction* dInst, std::vector<Assignment::Ptr> assignments, Dyninst::InstructionAPI::Instruction::Ptr insn)
@@ -765,15 +764,15 @@ void dynXlate_assignments(Dyninst::InstructionAPI::Instruction::Ptr insn, MIAMI:
     uop->src_opd[uop->num_src_operands++] = make_operand(OperandType_IMMED, uop->num_imm_values++);
   }
 
-  if (flag) 
+  if (flag) {
     update_dest_with_flag(dInst, insn); // update the primary uop with a flag destination. (x86/x86_64)
+  }
   if (flag && dInst->micro_ops.size() == 0) { 
     dynXlate_test(dInst, assignments, insn); // all dest ops are flags-->test uop
   } else if (flag && dInst->micro_ops.size() == 0 && dInst->micro_ops.begin()->vec_len > 1)
   {
 
   }
-
 }
 
 void dynXlate_assignment(MIAMI::DecodedInstruction* dInst, Assignment::Ptr aptr, Dyninst::InstructionAPI::Instruction::Ptr insn)
@@ -912,9 +911,7 @@ void dynXlate_assignmentAST(MIAMI::DecodedInstruction* dInst, Assignment::Ptr ap
     return;
   }
 
-
   switch(ast->getID()){
-
     case AST::V_ConstantAST : {
 
       ConstantAST::Ptr ast_c = ConstantAST::convert(ast);

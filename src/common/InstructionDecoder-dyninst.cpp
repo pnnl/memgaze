@@ -88,6 +88,7 @@ int dyninst_decode(void* pc, int len, MIAMI::DecodedInstruction *dInst,
   // The instruction's pointer in dyninst may not point to the machine data which MIAMI wants.
   // Haven't encounter any situations which mach_data is used. Thus, leave it like this for now.
   insn_data.dInst->mach_data = const_cast<void*>( static_cast<const void*>(insn_data.dyn_insn->ptr()) ); // CHECK
+
   bool x86 = (insn_data.arch == Dyninst::Architecture::Arch_x86
           || insn_data.arch == Dyninst::Architecture::Arch_x86_64);
 
@@ -873,6 +874,7 @@ void dynXlate_assignmentAST(Dyninst::Assignment::Ptr aptr, MIAMI::instruction_in
   else if (uop->type == MIAMI::IB_load && uop->num_src_operands) {
     return;
   }
+  
   switch(ast->getID()){
     case Dyninst::AST::V_ConstantAST : {
 
