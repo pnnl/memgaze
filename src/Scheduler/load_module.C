@@ -261,7 +261,6 @@ LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
    );
 #endif
    rout = new Routine(this, _start, _size, string(_name), _offset, reloc_offset);
-   //dyninst_note_routine((LoadModule*)this, r); 
    CHECK_COND(rout==NULL, "allocating object for routine %u", r);
    
 #if DEBUG_CFG_COUNTS
