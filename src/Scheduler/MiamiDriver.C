@@ -525,7 +525,6 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
       }
       
       newimg = new LoadModule (id, start_addr, low_offset, iname, hashKey);
-      //dyninst_note_loadModule(id, iname, start_addr, low_offset);
       ++ loadedImgs;
       
       // read only data for this image.
@@ -557,7 +556,6 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
       }
       
       newimg = new LoadModule (id, start_addr, low_offset, iname, hashKey);
-      //dyninst_note_loadModule(id, iname, start_addr, low_offset);
       ++ loadedImgs;
       newimg->createDyninstImage(bpatch);
       newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
