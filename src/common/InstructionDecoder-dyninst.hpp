@@ -23,17 +23,17 @@
 // DynInst includes
 //***************************************************************************
 
-#include "BPatch.h"
-#include "Absloc.h"
-#include "Instruction.h"
-#include "DynAST.h"
-#include "slicing.h"
+#include <BPatch.h>
+#include <Absloc.h>
+#include <Instruction.h>
+#include <DynAST.h>
+#include <slicing.h>
 
-#include "CFG.h" //parseAPI function,block
-#include "CodeObject.h"
-#include "InstructionDecoder.h"
-#include "slicing.h"
-#include "SymEval.h"
+#include <CFG.h> //parseAPI function,block
+#include <CodeObject.h>
+#include <InstructionDecoder.h>
+#include <slicing.h>
+#include <SymEval.h>
 
 //***************************************************************************
 // MIAMI includes
