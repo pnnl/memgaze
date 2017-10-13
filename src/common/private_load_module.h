@@ -17,7 +17,7 @@
 // standard header
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/types.h>
+
 #include <string>
 #include <map>
 
