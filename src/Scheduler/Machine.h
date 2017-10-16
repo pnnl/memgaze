@@ -23,7 +23,7 @@
 #include "BypassRule.h"
 #include "MachineExecutionUnit.h"
 #include "MemoryHierarchyLevel.h"
-#include "instruction_decoding.h"
+#include "InstructionDecoder.hpp"
 
 namespace MIAMI
 {

@@ -19,7 +19,7 @@
 #include "static_branch_analysis.h"
 #include "base_slice.h"
 #include "uipair.h"
-#include "instruction_decoding.h"
+#include "InstructionDecoder.hpp"
 #include "static_memory_analysis.h"
 #include "debug_miami.h"
 #include "private_routine.h"

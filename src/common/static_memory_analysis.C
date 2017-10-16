@@ -16,7 +16,7 @@
 
 #include "slice_references.h"
 #include "static_memory_analysis.h"
-#include "instruction_decoding.h"
+#include "InstructionDecoder.hpp"
 #include "debug_miami.h"
 
 namespace MIAMI

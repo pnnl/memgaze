@@ -38,7 +38,7 @@ using std::setw;
 #include "PrivateCFG.h"
 #include "private_routine.h"
 #include "file_utilities.h"
-#include "instruction_decoding.h"
+#include "InstructionDecoder.hpp"
 #include "tarjans/MiamiRIFG.h"
 
 #define DEBUG_BBLs 0

@@ -28,7 +28,7 @@
 #include "base_slice.h"
 #include "uipair.h"
 #include "instr_info.H"
-#include "instruction_decoding.h"
+#include "InstructionDecoder.hpp"
 #include "PrivateCFG.h"
 #include "bucket_hashmap.h"
 

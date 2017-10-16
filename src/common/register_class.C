@@ -14,7 +14,7 @@
 #include <assert.h>
 #include <sstream>
 #include "register_class.h"
-#include "instruction_decoding.h"
+#include "InstructionDecoder.hpp"
 
 namespace MIAMI
 {
