@@ -11,7 +11,7 @@
 
 #include "MiamiDriver.h"
 #include "scope_implementation.h"
-#include "instruction_decoding.h"
+#include "InstructionDecoder.hpp"
 #include "source_file_mapping.h"
 #include "routine.h"
 #include "debug_scheduler.h"

@@ -13,7 +13,7 @@
 #include <string.h>
 #include "private_routine.h"
 #include "static_branch_analysis.h"
-#include "instruction_decoding.h"
+#include "InstructionDecoder.hpp"
 #include "debug_miami.h"
 
 using namespace std;

@@ -3,7 +3,7 @@
  * the LICENSE file in the MIAMI root folder.
  */
 /* 
- * File: instruction_decoding.h
+ * File: InstructionDecoder.hpp
  * Author: Gabriel Marin, mgabi99@gmail.com
  *
  * Description: A generic interface for accessing architectural specific

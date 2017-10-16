@@ -25,7 +25,7 @@ extern "C" {
 #include "xed-interface.h"
 }
 #include "miami_types.h"
-#include "instruction_decoding.h"
+#include "InstructionDecoder.hpp"
 #include "register_class.h"
 
 

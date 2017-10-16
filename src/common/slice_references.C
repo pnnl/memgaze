@@ -15,7 +15,7 @@
 #include "math_routines.h"
 
 #include "slice_references.h"
-#include "instruction_decoding.h"
+#include "InstructionDecoder.hpp"
 
 namespace MIAMI
 {
