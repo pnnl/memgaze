@@ -213,11 +213,15 @@ COMMON_OBJS = \
 	Assertion.o \
 	debug_miami.o
 
-# InstructionDecoder-dyninst.cpp
 
 ifeq (1,1) # if XED is available...
   COMMON_OBJS += InstructionDecoder-xed.o
 endif
+
+ifeq (1,1) # if DynInst is available...
+  #COMMON_OBJS += InstructionDecoder-dyninst.o
+endif
+
 
 #   Used headers:
 #     gnu_demangle.h, config.h
@@ -363,6 +367,9 @@ $(OBJDIR)common/source_file_mapping_binutils.o : source_file_mapping_binutils.C
 
 $(OBJDIR)common/InstructionDecoder-xed.o : InstructionDecoder-xed.cpp
 	$(CXX) $(CXXFLAGS) $(XED_CFLAGS) $(COMP_OBJ) $@ $<
+
+$(OBJDIR)common/InstructionDecoder-xed.o : InstructionDecoder-dyninst.cpp
+	$(CXX) $(CXXFLAGS) $(DYNINST_CXXFLAGS) $(COMP_OBJ) $@ $<
 
 #----------------------------------------------------------------------------
 
