@@ -219,6 +219,7 @@ ifeq (1,1) # if XED is available...
 endif
 
 ifeq (1,1) # if DynInst is available...
+  #CXXFLAGS += -DDYNINST_DECODE
   #COMMON_OBJS += InstructionDecoder-dyninst.o
 endif
 
@@ -368,7 +369,7 @@ $(OBJDIR)common/source_file_mapping_binutils.o : source_file_mapping_binutils.C
 $(OBJDIR)common/InstructionDecoder-xed.o : InstructionDecoder-xed.cpp
 	$(CXX) $(CXXFLAGS) $(XED_CFLAGS) $(COMP_OBJ) $@ $<
 
-$(OBJDIR)common/InstructionDecoder-xed.o : InstructionDecoder-dyninst.cpp
+$(OBJDIR)common/InstructionDecoder-dyninst.o : InstructionDecoder-dyninst.cpp
 	$(CXX) $(CXXFLAGS) $(DYNINST_CXXFLAGS) $(COMP_OBJ) $@ $<
 
 #----------------------------------------------------------------------------

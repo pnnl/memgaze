@@ -16,30 +16,40 @@
 
 
 //***************************************************************************
-// 
+// system includes
 //***************************************************************************
 
 #include <iostream>
-
-
-//***************************************************************************
-// DynInst includes
-//***************************************************************************
-
-#include "CFG.h" //parseAPI function,block
-#include "BPatch_basicBlock.h"
-#include "BPatch_function.h"
-#include "CodeObject.h"
-#include "InstructionDecoder.h"
-#include "slicing.h"
-#include "SymEval.h"
-
 
 //***************************************************************************
 // MIAMI includes
 //***************************************************************************
 
 #include "InstructionDecoder-dyninst.hpp"
+
+//***************************************************************************
+// DynInst includes
+//***************************************************************************
+
+#include <CodeObject.h>
+#include <CodeSource.h>
+
+#include <BPatch.h>
+#include <BPatch_object.h>
+#include <BPatch_basicBlock.h>
+#include <BPatch_function.h>
+#include <BPatch_flowGraph.h>
+
+#include <CFG.h> //parseAPI function,block
+
+#include <DynAST.h>
+#include <Absloc.h>
+#include <SymEval.h>
+#include <slicing.h>
+
+#include <Instruction.h>
+#include <InstructionDecoder.h>
+#include <InstructionSource.h>
 
 
 //***************************************************************************
@@ -288,7 +298,8 @@ void dynXlate_getAssignments(instruction_data& insn_data)
   Dyninst::InstructionAPI::InstructionDecoder dec(buf, Dyninst::InstructionAPI::InstructionDecoder::maxInstructionLength, insn_data.arch);
   insn_data.dyn_insn = dec.decode();
 
-  Dyninst::AssignmentConverter ac(true);
+  // TODO:tallent: Stack analysis? When forced to choose, I removed it.
+  Dyninst::AssignmentConverter ac(/*cache*/true, /*stack*/false);
   ac.convert(insn_data.dyn_insn, insn_data.pc, insn_data.parse_func, insn_data.parse_blk, insn_data.assignments);
   std::cout<<"dyninst: number of assignments "<<insn_data.assignments.size()<<std::endl;
 }
@@ -614,11 +625,13 @@ void dynXlate_jump_ast( MIAMI::instruction_info* uop, Dyninst::AST::Ptr ast, Dyn
         uop->src_opd[uop->num_src_operands++] = make_operand(MIAMI::OperandType_REGISTER, idx);
 
         int size = 0;
-        if (insn_opVec.size() && insn_opVec.back()->val().op == Dyninst::DataflowAPI::ROSEOperation::extractOp)
+        if (insn_opVec.size() && insn_opVec.back()->val().op == Dyninst::DataflowAPI::ROSEOperation::extractOp) {
           size = insn_opVec.back()->val().size; // don't need to time it by 8, its already in bit
-        else 
+	}
+        else {
           size = ast_v->val().reg.absloc().reg().size() * 8;
-          append_src_regs(uop, MIAMI::OperandType_REGISTER, insn_data.dyn_insn, ast_v->val().reg.absloc().reg(), size, insn_data.arch);
+	}
+	append_src_regs(uop, MIAMI::OperandType_REGISTER, insn_data.dyn_insn, ast_v->val().reg.absloc().reg(), size, insn_data.arch);
       }
       break;
     }

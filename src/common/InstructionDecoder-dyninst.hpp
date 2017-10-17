@@ -18,28 +18,21 @@
 // 
 //***************************************************************************
 
+//***************************************************************************
+// MIAMI includes
+//***************************************************************************
+
+#include "miami_types.h"
+#include "instr_info.H"
 
 //***************************************************************************
 // DynInst includes
 //***************************************************************************
 
 #include <BPatch.h>
-#include <Absloc.h>
-#include <Instruction.h>
-#include <DynAST.h>
-#include <slicing.h>
+#include <BPatch_basicBlock.h>
+#include <BPatch_function.h>
 
-#include <CFG.h> //parseAPI function,block
-#include <CodeObject.h>
-#include <InstructionDecoder.h>
-#include <slicing.h>
-#include <SymEval.h>
-
-//***************************************************************************
-// MIAMI includes
-//***************************************************************************
-
-#include "instr_info.H"
 
 //***************************************************************************
 // 
