@@ -187,7 +187,6 @@ COMMON_OBJS = \
 	Dominator.o \
 	BaseDominator.o \
 	PrivateCFG.o \
-	mark_back_edges.o \
 	static_branch_analysis.o \
 	\
 	slice_references.o \
