@@ -647,7 +647,6 @@ public:
    // add a Node, but check also prospective edges and return how
    // many prospective edges were found to point to this node.
    int addNode (Node* n);
-   uint32_t cfgFlags;
    
    Edge* addEdge(Node* n1, Node* n2, EdgeType _type);
    Edge* addUniqueEdge(Node* n1, Node* n2, EdgeType _type);
@@ -703,10 +702,9 @@ public:
     * previous call. 
     */
    void FinalizeGraph();
-   int computeTopNodes ();
-   NodeList topNodes;
-   Node *cfg_entry, *cfg_exit;
+   
 protected:
+   int computeTopNodes ();
    void recursiveNodeRanks (Node* node, int lev, unsigned int m);
 
    void resetIds() { nextNodeId = 0; nextEdgeId = 0; }
@@ -725,7 +723,7 @@ protected:
    unsigned int topMarker;
    ObjId nextNodeId;
    ObjId nextEdgeId;
-   //NodeList topNodes;
+   NodeList topNodes;
    NodeList bottomNodes;
    EdgeMap prospectiveEdges;
    
@@ -734,7 +732,8 @@ protected:
    
    int maximumGraphRank;
    
-  // Node *cfg_entry, *cfg_exit;
+   uint32_t cfgFlags;
+   Node *cfg_entry, *cfg_exit;
    
    // store the tree relationship of the loop structure, based on their Tarjan
    // indecies. Store it as an array, where an entry points to its parent.
