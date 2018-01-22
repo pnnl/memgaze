@@ -1155,6 +1155,11 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
    DeleteControlFlowGraph();
    return (0);
 }
+//OZGURS
+//in here I need to find the hit ratio and calculate the FP and put it to pscope  for this loop.
+//it looks like  this function  finds executed pats through loops
+//so I can find the loops here
+//OZGURE
 
 /* recursively recover executed paths through loops and loop nests 
  */
@@ -1220,6 +1225,9 @@ Routine::build_paths_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
 //      if (tarj->IntervalType(kid) == RI_TARJ_ACYCLIC)   // not a loop head
       if (! tarj->NodeIsLoopHeader(kid))
       {
+         //OZGURS
+         std::cout<<"kid is not header"<<std::endl;
+         //E
          b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
          // nothing to do here
          b->markWith(marker);
@@ -1260,7 +1268,9 @@ Routine::build_paths_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
                 kid = tarj->TarjNext(kid))
    {
       if (tarj->NodeIsLoopHeader(kid))
-      {
+      { //OZGURS
+         std::cout<<"kid is header"<<std::endl;
+         //E
          int tmarker = tarj->LoopIndex(kid);
          LoopScope *lscope = new LoopScope (pscope, tarj->GetLevel(kid), 
                          tmarker, tmarker);
@@ -1289,9 +1299,15 @@ Routine::build_paths_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
    
    CFG::Node *root_b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(node));
    if (!is_zero || mo->do_ref_scope_index)
-   {
+   { 
+//OZGURS
+std::cout<<"is_zero"<<std::endl;
+//E 
       if (mo->do_streams || mo->do_idecode || mo->do_ref_scope_index)
       {
+ //OZGURS
+std::cout<<"is_zero"<<std::endl;
+//E        
          AddrIntSet scopeMemRefs;
          RefIClassMap refClasses;
          

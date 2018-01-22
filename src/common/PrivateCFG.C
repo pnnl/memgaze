@@ -825,6 +825,8 @@ PrivateCFG::build_loops_scope_tree(TarjanIntervals *tarj, MiamiRIFG* mCfg)
       loopTree[i] = 0;
    RIFGNodeId root = mCfg->GetRootNode();
    build_loops_scope_tree_recursively(root, tarj, 0);
+   //OZGURS
+   //OZGURE
 }
 //--------------------------------------------------------------------------------------------------------------------
 
