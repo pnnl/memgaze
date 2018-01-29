@@ -11388,6 +11388,43 @@ SchedDG::minSchedulingLengthDueToDependencies()
    }
 }
 //ozgurS
+void computeMemory( MIAMI::MemListPerInst * memData, MIAMI::MemDataPerLvlList * mdplList ){
+   std::cerr<<"DEBUG CAN I CALL"<<__func__<<std::endl;
+   struct Mem{
+      int level;
+      int hits;
+      int miss;
+      float windowSize;
+   };
+   std::vector<Mem> memVector;            //TODO find a better  way to loop for each level
+   for (int lvl =0 ; lvl < 10 ; lvl++){   //or just try to ask MAX_LEVEL from user
+      Mem mem;
+      mem.level = lvl; 
+      mem.hits = 0; 
+      mem.miss = 0; 
+      mem.windowSize = 0.0; 
+      for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){  
+         for (int prevlvl =0 ; prevlvl <= lvl  ; prevlvl++){
+            mem.hits += (*it)->find(prevlvl)->second.hitCount;
+         }    
+         for (int nextlvl =lvl+1 ; nextlvl < 10 ; nextlvl++){
+            mem.miss += (*it)->find(nextlvl)->second.hitCount;
+         }    
+      }    
+      if (mem.miss){
+         mem.windowSize = (float)mem.hits/ (float)mem.miss;
+      } else {
+         mem.windowSize = -1.0;
+      }
+      memVector.push_back(mem);
+   }
+   for( std::vector<Mem>::iterator dit=memVector.begin() ; dit!=memVector.end() ; dit++){
+      MIAMI::MemoryDataPerLevel md = MemoryDataPerLevel((*dit).level, (*dit).hits, (*dit).miss, (*dit).windowSize);
+      mdplList->push_back(md);
+      std::cerr<<" HAHAHa OZGUR mem data at lvl: "<<std::dec<< (*dit).level<<" hits: "<<(*dit).hits<<" miss: "<<(*dit).miss<<" windowSize: "<<(*dit).windowSize<< std::endl;
+   }
+
+}
 //creating my minschedulinglengthduetodependencies function
 
 retValues
@@ -11415,10 +11452,19 @@ SchedDG::myMinSchedulingLengthDueToDependencies(float &memLatency, float &cpuLat
    OutgoingEdgesIterator teit(cfg_top);
    unsigned int mm = new_marker();
    unsigned int maxPathToLeaf = 0;
+   MIAMI::MemDataPerLvlList * mdplList = new vector<MemoryDataPerLevel>;
+   MIAMI::MemListPerInst * memData = new vector<MIAMI::InstlvlMap *>;
    while ((bool)teit)
    {
       retValues ret = 
-            teit->sink()->myComputePathToLeaf(mm, manyBarriers, ds, memLatency, cpuLatency);
+            teit->sink()->myComputePathToLeaf(mm, manyBarriers, ds, memLatency, cpuLatency, memData);
+//ozgurS test
+      std::cerr<<"PATH ID IS :"<<pathId<<std::endl;
+      computeMemory(memData , mdplList);
+      if (teit->sink()->is_load_instruction()){
+            std::cerr<<"HOTPATH OZGUR TEST: "<<teit->sink()->getLvlMap()->find(0)->second.hitCount<<std::endl;
+}
+//ozgurE
       unsigned int pathLen = ret.ret;
       int memLatencyTemp = ret.memret;
       int cpuLatencyTemp = ret.cpuret;
@@ -11687,7 +11733,7 @@ SchedDG::Node::computePathToLeaf (unsigned int marker, bool manyBarriers,
 //this could or not be the correct place for calculating the total hits.
 retValues
 SchedDG::Node::myComputePathToLeaf (unsigned int marker, bool manyBarriers, 
-             DisjointSet *ds, float &memLatency, float &cpuLatency)
+             DisjointSet *ds, float &memLatency, float &cpuLatency , MIAMI::MemListPerInst * memData)
 {
    // because I follow only loop independent edges, I cannot have cycles
    if (marker == _visited)  // I saw this node before
@@ -11710,7 +11756,13 @@ SchedDG::Node::myComputePathToLeaf (unsigned int marker, bool manyBarriers,
    pathToLeafCPU = 1;
    pathToLeafMem = 0;
    outCycleSets.clear ();
-   
+//ozgur check if this Node is a load
+//if it is then add to MemData
+   Node *nn = this;
+   if(nn->is_load_instruction()){
+      memData->push_back(nn->getLvlMap());
+   }
+//ozgurE   
    OutgoingEdgesIterator oeit(this);
    while ((bool) oeit)
    {
@@ -11732,7 +11784,7 @@ SchedDG::Node::myComputePathToLeaf (unsigned int marker, bool manyBarriers,
             )
 #endif
          retValues rez = sinkNode->myComputePathToLeaf (marker, 
-                      manyBarriers, ds, memLatency, cpuLatency );
+                      manyBarriers, ds, memLatency, cpuLatency , memData);
          int rezEdges = sinkNode->edgesToLeaf;
          if ((edgeLat+rez.ret > pathToLeaf) || edgesToLeaf==0)
          {

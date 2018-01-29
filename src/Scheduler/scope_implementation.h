@@ -323,6 +323,12 @@ private:
    double *carriedMisses;    // loop carried misses (only for loops)
    double *LIcarriedMisses;  // loop independent carried misses 
    unsigned int scopeId;
+//ozgurS
+   double fp_palm; //loop footprint
+   MemDataPerLvlList memDataPerLevel;
+   MemListPerInst memDataPerInst;
+   MLDList memData_palm;
+//ozgurE
    
    // data structure to hold the stream reuse histograms
    StreamRD::ScopeStreamInfo streamInfo;

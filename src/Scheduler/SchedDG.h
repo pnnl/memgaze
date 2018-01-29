@@ -564,7 +564,7 @@ public:
     int computeSccPathFromRoot (unsigned int marker, int sccId);
 #endif
 //ozgurS
-    retValues myComputePathToLeaf (unsigned int marker, bool manyBarriers, DisjointSet *dsi, float &memLatency, float &cpuLatency );
+    retValues myComputePathToLeaf (unsigned int marker, bool manyBarriers, DisjointSet *dsi, float &memLatency, float &cpuLatency , MIAMI::MemListPerInst * memData);
 //ozgurE
     int computePathToLeaf (unsigned int marker, bool manyBarriers, 
                   DisjointSet *ds);
@@ -638,7 +638,7 @@ public:
     int pathToLeafMem;
     MIAMI::InstlvlMap * lvlMap;
     MIAMI::memStruct memData;
-
+    bool isInLoop;
 
 //ozgurE
     int edgesToLeaf;

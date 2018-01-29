@@ -113,7 +113,7 @@ public:
            int numBlocks, 
            MIAMI::CFG::Node** ba, float* fa, RSIList* innerRegs, 
            uint64_t _pathFreq = 1, float _avgNumIters = 1.0 , 
-           MIAMI::MemListPerInst * memData=NULL, MIAMI::MemDataPerLvlList * mdplList=NULL);
+           MIAMI::MemListPerInst * _memData=NULL, MIAMI::MemDataPerLvlList * _mdplList=NULL);
            
    virtual ~DGBuilder();
 
@@ -234,6 +234,10 @@ private:
    AddrSet memRefs;
 
    Routine* routine;
+//ozgurS memory data
+   MIAMI::MemListPerInst * memData;
+   MemDataPerLvlList *mdplList;
+//ozgurE
 };
 
 }  /* namespace MIAMI_DG */
