@@ -133,7 +133,7 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
 		     int numBlocks, CFG::Node** ba, float* fa,
 		     RSIList* innerRegs,
 		     uint64_t _pathFreq, float _avgNumIters, 
-                     MIAMI::MemListPerInst * memData, MemDataPerLvlList *mdplList)
+                     MIAMI::MemListPerInst * _memData, MemDataPerLvlList *_mdplList)
   : SchedDG(_routine->Name().c_str(), _pathId, _pathFreq, _avgNumIters,
 	    _refAddr, _img),
     optimistic_memory_dep(_opt_mem_dep)
@@ -146,7 +146,8 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
           avgNumIters);
    )
 #endif
-
+   memData =  _memData;
+   mdplList = _mdplList;
    routine = _routine;
    
    // we do not read this flag right now.
