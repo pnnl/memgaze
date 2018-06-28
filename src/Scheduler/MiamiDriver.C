@@ -145,12 +145,12 @@ MIAMI_Driver::Initialize(MiamiOptions *_mo, int _pid)
     mo = _mo;
     
     pid = _pid;
-    
     if (mo->cfg_file.length()<1 && mo->binary_path.length() < 1)  // required argument is missing
     {
        fprintf(stderr, "Required CFG_file_name is missing.\n");
        return (-1);
     }
+
 
     if (mo->cfg_file.length()>1){
       
@@ -223,7 +223,7 @@ MIAMI_Driver::Initialize(MiamiOptions *_mo, int _pid)
             return (-9);
          }
          imgNames[i] = std::string(buf);
-         std::cout <<imgNames[i]<<" "<<(imgNames[i].find("a.out") != std::string::npos)<<std::endl;
+         std::cout <<imgNames[i]<<" test1 "<<(imgNames[i].find("a.out") != std::string::npos)<<std::endl;
          imgFileOffsets.insert(StringOffsetMap::value_type(
              imgNames[i], foffset));
          delete[] buf;
@@ -236,7 +236,7 @@ MIAMI_Driver::Initialize(MiamiOptions *_mo, int _pid)
          allImgs[i] = 0;
       imgNames = new std::string[maxImgs+1];
       imgNames[0] = mo->binary_path;
-      std::cout <<imgNames[0]<<" "<<(imgNames[0].find("a.out") != std::string::npos)<<std::endl;
+      std::cout <<imgNames[0]<<" test2 "<<(imgNames[0].find("a.out") != std::string::npos)<<std::endl;
     }
     
     /* create the root of the program scope tree */
@@ -504,7 +504,6 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
          perror ("Changing offset to start of image failed");
          return;
       }
-      
       // compute a CRC32 checksum for this image file if we need to perform static
       // memory analysis. The CRC is used to check the integrity of the cached values
       uint32_t hashKey = 0;
