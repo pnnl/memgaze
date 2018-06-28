@@ -1655,8 +1655,8 @@ Routine::myConstructPaths(ScopeImplementation *pscope, int no_fpga_acc, const st
       fa.push_back(1.0);
    }
 //ozgurS Check if I can treverse trought all nodes in the block
-   for (std::list<CFG::Node*>::iterator mylit=ba.begin(); mylit != ba.end(); ++mylit){
-   } 
+//   for (std::list<CFG::Node*>::iterator mylit=ba.begin(); mylit != ba.end(); ++mylit){
+//   } 
 //ozgurE
 
    BlockPath *bp = new BlockPath(ba, (CFG::Node*)(*dyn_blkNoToMiamiBlk)[path[path.size()-1]], fa, rl, false);

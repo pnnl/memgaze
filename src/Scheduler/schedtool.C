@@ -69,6 +69,7 @@ const int funcName = 911; //"func", "", "function to analyze (required).");
 const int blkPath = 912; //"blk_path", "", "specify basic blocks to analyze.");
 const int latPath = 913; //"lat_path", "", "path containing instruction level load latency");
 const int dumpFile = 914; //"dump_file", ""
+const int dlaPath = 915; //"lat_path", "", "path containing instruction level data access levels");
 
 
  
@@ -101,6 +102,7 @@ std::string KnobBinaryPath = ""; //"bin_path", "", "binary to analyze (required)
 std::string KnobFuncName = ""; //"func", "", "function to analyze (required).");
 std::string KnobBlkPath = ""; //"blk_path", "", "specify basic blocks to analyze.");
 std::string KnobLatPath = ""; //"lat_path", "", "path containing instruction level load latency");
+std::string KnobDLAPath = ""; //"dla_path", "", "path containing instruction level data level access informations");
 std::string KnobDumpFile = ""; //dump_file, "", "file name to dwar scheduling dump""
 
 /*
@@ -274,6 +276,12 @@ static int parse_opt (int key, char *arg, struct argp_state *state)
             break;
         }
         
+        case dlaPath:
+        {
+            KnobDLAPath.assign(arg);
+            break;
+        }
+        
         case dumpFile:
         {
             KnobDumpFile.assign(arg);
@@ -315,6 +323,7 @@ int parse_args(int argc , char * argv[]){
         { "func", funcName, "STRING", 0, "function to analyze (required)."},
         { "blk_path", blkPath, "STRING", 0, "specify basic blocks to analyze."},
         { "lat_path", latPath, "STRING", 0, "path containing instruction level load latency"},
+        { "dla_path", dlaPath, "STRING", 0, "path containing instruction level data level accessed"},
         { "dump_file", dumpFile, "STRING", 0, "file name to draw scheduling dump"},
         {0}
      };
@@ -373,6 +382,7 @@ main (int argc, char *argv[])
     mo->addFuncName(KnobFuncName);
     mo->addBlockPath(KnobBlkPath);
     mo->addLatPath(KnobLatPath);
+    mo->addDLAPath(KnobDLAPath);
     mo->addDumpFile(KnobDumpFile);
    // TODO ozgur chech this is it a array ? and fix it  
 /*    int numMrdFiles = KnobMrdFiles.NumberOfValues();

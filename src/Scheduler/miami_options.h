@@ -78,6 +78,7 @@ namespace MIAMI
       string block_path;
       string func_name;
       string lat_path;
+      string dla_path; //data access levels and hit counts
       
       MiamiOptions() {
          do_scheduling = false;
@@ -365,7 +366,12 @@ namespace MIAMI
          if (lpath.length())
             lat_path = lpath;
       }
-    
+      
+      void addDLAPath(const string& dlapath) {
+         if (dlapath.length())
+            dla_path = dlapath;
+      }
+   
      void addDumpFile(const string& dfile)
      {
         if (dfile.length()){

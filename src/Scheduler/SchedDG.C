@@ -11389,42 +11389,196 @@ SchedDG::minSchedulingLengthDueToDependencies()
 }
 //ozgurS
 void computeMemory( MIAMI::MemListPerInst * memData, MIAMI::MemDataPerLvlList * mdplList ){
-   std::cerr<<"DEBUG CAN I CALL"<<__func__<<std::endl;
+//   std::cerr<<"DEBUG CAN I CALL"<<__func__<<std::endl;
    struct Mem{
       int level;
       int hits;
       int miss;
       float windowSize;
    };
+   int memoryHits = 0;
    std::vector<Mem> memVector;            //TODO find a better  way to loop for each level
-   for (int lvl =0 ; lvl < 10 ; lvl++){   //or just try to ask MAX_LEVEL from user
-      Mem mem;
-      mem.level = lvl; 
-      mem.hits = 0; 
-      mem.miss = 0; 
-      mem.windowSize = 0.0; 
-      for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){  
-         for (int prevlvl =0 ; prevlvl <= lvl  ; prevlvl++){
-            mem.hits += (*it)->find(prevlvl)->second.hitCount;
-         }    
-         for (int nextlvl =lvl+1 ; nextlvl < 10 ; nextlvl++){
-            mem.miss += (*it)->find(nextlvl)->second.hitCount;
-         }    
-      }    
-      if (mem.miss){
-         mem.windowSize = (float)mem.hits/ (float)mem.miss;
-      } else {
-         mem.windowSize = -1.0;
-      }
-      memVector.push_back(mem);
+   int total_lds = 10; //TODO find this from miami
+   int frame_lds = 8; //TODO find this from miami
+   int strided_lds = 1; //TODO find this from miami
+   int indirect_lds = 1; //TODO find this from miami
+// initializing collected data variables
+   int all_loads = 0;   //lvl 0
+   int l1_hits = 0 ;    //lvl 1
+   int l2_hits = 0 ;    //lvl 2
+   int fb_hits = 0 ;    //lvl 3
+   int l3_hits = 0 ;    //lvl 4
+   int llc_miss = 0 ;   //lvl 5
+   int l2_pf_miss = 0 ; //lvl 6
+// initializing other vaiables
+   float l1 = 0;
+   float l2 = 0;
+   float l3 = 0;
+   float mem = 0;
+   float pf = 0;
+   float mem_hits = 0;
+   float pf_wpl = 0;
+   float mem_wpl = 0;
+   float l1_strided_lds = 0;
+   float fp = 0;
+   for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){
+      all_loads += (*it)->find(0)->second.hitCount;
+      l1_hits += (*it)->find(1)->second.hitCount;
+      l2_hits += (*it)->find(2)->second.hitCount;
+      fb_hits += (*it)->find(3)->second.hitCount;
+      l3_hits += (*it)->find(4)->second.hitCount;
+      llc_miss += (*it)->find(5)->second.hitCount;
+      l2_pf_miss += (*it)->find(6)->second.hitCount;
    }
-   for( std::vector<Mem>::iterator dit=memVector.begin() ; dit!=memVector.end() ; dit++){
-      MIAMI::MemoryDataPerLevel md = MemoryDataPerLevel((*dit).level, (*dit).hits, (*dit).miss, (*dit).windowSize);
-      mdplList->push_back(md);
-      std::cerr<<" HAHAHa OZGUR mem data at lvl: "<<std::dec<< (*dit).level<<" hits: "<<(*dit).hits<<" miss: "<<(*dit).miss<<" windowSize: "<<(*dit).windowSize<< std::endl;
+   if (total_lds){
+      l1_strided_lds = (l1_hits / total_lds) * strided_lds; //TODO check div0
+   } else {
+      l1_strided_lds = -1;
    }
+   if (total_lds && llc_miss){
+      mem_wpl = (float)(((l1_hits+l2_hits+l3_hits)/total_lds) *
+            indirect_lds) /llc_miss; //TODO check div0
+   } else {
+     mem_wpl = -1;  
+   }
+   if (l2_pf_miss){
+      pf_wpl = l1_strided_lds / l2_pf_miss ; //TODO check div0
+   } else {
+      pf_wpl = -1;
+   }
+   mem_hits = llc_miss * mem_wpl;
+   pf = l2_pf_miss * pf_wpl;
+   mem = mem_hits + pf;
+   l3 = l3_hits;
+   l2 = l2_hits + fb_hits;
+   l1 = all_loads -(pf+l2+l3+mem_hits);
+   fp = mem * 4; //TODO find better way
+   std::cout<<"ALL_loads:"<<all_loads<<std::endl;
+   std::cout<<"l1_hits:"<<l1_hits<<std::endl;
+   std::cout<<"l2_hits:"<<l2_hits<<std::endl;
+   std::cout<<"fb_hits:"<<fb_hits<<std::endl;
+   std::cout<<"l3_hits:"<<l3_hits<<std::endl;
+   std::cout<<"llc_miss:"<<llc_miss<<std::endl;
+   std::cout<<"l2_pf_miss:"<<l2_pf_miss<<std::endl;
+   std::cout<<"l1_strided_lds:"<<l1_strided_lds<<std::endl;
+   std::cout<<"mem_wpl:"<<mem_wpl<<std::endl;
+   std::cout<<"pf_wpl:"<<pf_wpl<<std::endl;
+   std::cout<<"mem_hits:"<<mem_hits<<std::endl;
+   std::cout<<"pf:"<<pf<<std::endl;
+   std::cout<<"mem:"<<mem<<std::endl;
+   std::cout<<"l3:"<<l3<<std::endl;
+   std::cout<<"l2:"<<l2<<std::endl;
+   std::cout<<"l1:"<<l1<<std::endl;
+   std::cout<<"FP:"<<fp<<std::endl<<std::endl;
+} 
+//void computeMemory( MIAMI::MemListPerInst * memData, MIAMI::MemDataPerLvlList * mdplList ){
+//   struct Mem{
+//      int level;
+//      int hits;
+//      int miss;
+//      float windowSize;
+//   };
+//   int memoryHits = 0;
+//   std::vector<Mem> memVector;            //TODO find a better  way to loop for each level
+//   std::vector<Mem> memVectorEx;            //TODO find a better  way to loop for each level
+//   for (int lvl =0 ; lvl < 10 ; lvl++){   //or just try to ask MAX_LEVEL from user
+//      Mem mem;
+//      mem.level = lvl; 
+//      mem.hits = 0; 
+//      mem.miss = 0; 
+//      mem.windowSize = 0.0;
+//      Mem memEx;
+//      memEx.level = lvl; 
+//      memEx.hits = 0; 
+//      memEx.miss = 0; 
+//      memEx.windowSize = 0.0;
+//   
+//      for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){  
+//         for (int prevlvl =0 ; prevlvl <= lvl ; prevlvl++){
+//            if (lvl == 4){
+//               mem.level = lvl;
+//               mem.hits = (*it)->find(lvl)->second.hitCount;
+//               break;
+//            }
+//            mem.hits += (*it)->find(prevlvl)->second.hitCount;
+//            std::cout<<"OZGUR MEM HITS: "<<mem.hits<<std::endl;
+//         }    
+//         for (int nextlvl =lvl+1 ; nextlvl < 15 ; nextlvl++){
+//            mem.miss += (*it)->find(nextlvl)->second.hitCount;
+////            std::cout<<"OZGUR MEM MISS: "<<mem.miss<<std::endl;
+//         }
+//         memEx.hits=(*it)->find(lvl)->second.hitCount;
+////         for (int xx = 0 ; xx <5 ;xx++){ 
+////         std::cerr<<"computeMemory->OZGUR  exclusive mem data at lvl: "<<std::dec<< xx <<" hits: "<<(*it)->find(xx)->second.hitCount<< std::endl;
+////         }
+//      }
+////      if (lvl == 0){
+////         mem.miss = mem.hits - mem.miss;
+////         memoryHits = mem.miss;
+////      } else {
+////         mem.miss = mem.miss + memoryHits;
+////      }    
+//      if (mem.miss){
+//         mem.windowSize = (float)mem.hits/ (float)mem.miss;
+//      } else {
+//         mem.windowSize = -1.0;
+//      }
+//      memVector.push_back(mem);
+//      memVectorEx.push_back(memEx);
+//   }
+//
+//
+//   for (int lvl =0 ; lvl < 6 ; lvl++){   //or just try to ask MAX_LEVEL from user
+//      Mem mem;
+//      mem.level = lvl; 
+//      mem.hits = 0; 
+//      mem.miss = 0; 
+//      mem.windowSize = 0.0;
+//      Mem memEx;
+//      memEx.level = lvl; 
+//      memEx.hits = 0; 
+//      memEx.miss = 0; 
+//      memEx.windowSize = 0.0;
+//   
+//      for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){  
+//         for (int prevlvl =0 ; prevlvl <= lvl  ; prevlvl++){
+//            if (lvl != 0 && prevlvl ==0){
+//               continue;
+//            }
+//            mem.hits += (*it)->find(prevlvl)->second.hitCount;
+//         }    
+//         for (int nextlvl =lvl+1 ; nextlvl < 6 ; nextlvl++){
+//            mem.miss += (*it)->find(nextlvl)->second.hitCount;
+//         }
+//         memEx.hits=(*it)->find(lvl)->second.hitCount;
+////         for (int xx = 0 ; xx <5 ;xx++){ 
+////         std::cerr<<"computeMemory->OZGUR  exclusive mem data at lvl: "<<std::dec<< xx <<" hits: "<<(*it)->find(xx)->second.hitCount<< std::endl;
+////         }
+//      }
+//      if (lvl == 0){
+//         mem.miss = mem.hits - mem.miss;
+//         memoryHits = mem.miss;
+//      } else {
+//         mem.miss = mem.miss + memoryHits;
+//      }    
+//      if (mem.miss){
+//         mem.windowSize = (float)mem.hits/ (float)mem.miss;
+//      } else {
+//         mem.windowSize = -1.0;
+//      }
+//      memVector.push_back(mem);
+//      memVectorEx.push_back(memEx);
+//   }
+//   for( std::vector<Mem>::iterator dit=memVector.begin() ; dit!=memVector.end() ; dit++){
+//      MIAMI::MemoryDataPerLevel md = MemoryDataPerLevel((*dit).level, (*dit).hits, (*dit).miss, (*dit).windowSize);
+//      mdplList->push_back(md);
+//      std::cout<<"computeMemory->OZGUR  mem data at lvl: "<<std::dec<< (*dit).level<<" inclusive hits: "<<(*dit).hits<<" miss: "<<(*dit).miss<<" windowSize: "<<(*dit).windowSize<< std::endl;
+//   }
+//   for( std::vector<Mem>::iterator dit=memVectorEx.begin() ; dit!=memVectorEx.end() ; dit++){
+//      std::cout<<"computeMemory->OZGUR  mem data at lvl: "<<std::dec<< (*dit).level<<" exclusive hits: "<<(*dit).hits<< std::endl;
+//   }
 
-}
+//}
 //creating my minschedulinglengthduetodependencies function
 
 retValues
@@ -11459,11 +11613,18 @@ SchedDG::myMinSchedulingLengthDueToDependencies(float &memLatency, float &cpuLat
       retValues ret = 
             teit->sink()->myComputePathToLeaf(mm, manyBarriers, ds, memLatency, cpuLatency, memData);
 //ozgurS test
-      std::cerr<<"PATH ID IS :"<<pathId<<std::endl;
+      std::cout<<"PATH ID IS :"<<pathId<<std::endl;
       computeMemory(memData , mdplList);
+//      for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){
+//         for(int i=0 ; i<7 ; i++){
+//            if ((*it)->find(i)->second.hitCount){
+//               std::cout<<"MemHit lvl :"<<i<<" Hit: "<<(*it)->find(i)->second.hitCount<<std::endl;
+//            }
+//         }
+//      }
       if (teit->sink()->is_load_instruction()){
-            std::cerr<<"HOTPATH OZGUR TEST: "<<teit->sink()->getLvlMap()->find(0)->second.hitCount<<std::endl;
-}
+         std::cout<<"HOTPATH OZGUR TEST: "<<teit->sink()->getLvlMap()->find(0)->second.hitCount<<std::endl;
+      }
 //ozgurE
       unsigned int pathLen = ret.ret;
       int memLatencyTemp = ret.memret;
@@ -11761,6 +11922,7 @@ SchedDG::Node::myComputePathToLeaf (unsigned int marker, bool manyBarriers,
    Node *nn = this;
    if(nn->is_load_instruction()){
       memData->push_back(nn->getLvlMap());
+      //std::cout<<"BURADAMI::"<<nn->getLvlMap()->find(5)->second.hitCount<<std::endl;
    }
 //ozgurE   
    OutgoingEdgesIterator oeit(this);

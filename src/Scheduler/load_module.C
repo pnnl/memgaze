@@ -96,7 +96,7 @@ LoadModule::loadFromFile(FILE *fd, bool parse_routines)
    {fprintf(stderr, "ERROR: " err "\n", __VA_ARGS__); goto load_error; }
 #define CHECK_COND0(cond, err) if (cond) \
    {fprintf(stderr, "ERROR: " err "\n"); goto load_error; }
-
+   
    size_t res;
    int ires;
    uint32_t id;
@@ -796,7 +796,7 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
    base_addr = (MIAMI::addrtype)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-start);
    reloc_offset=base_addr;
    low_addr_offset = (MIAMI::addrtype)codeSrc->offset();
-   cout << (unsigned int*)codeSrc->getPtrToInstruction(start) <<" "<<(unsigned int*)start<<" "<<(unsigned int*)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-(Dyninst::Address)start)<<endl;
+   cout << (unsigned int*)codeSrc->getPtrToInstruction(start) <<" BU mu: "<<(unsigned int*)start<<" "<<(unsigned int*)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-(Dyninst::Address)start)<<endl;
    cout << (unsigned int*)codeSrc->offset()<<" "<<(unsigned int*)codeSrc->length()<<" "<<(unsigned int*)codeSrc->baseAddress()<<" "<<(unsigned int*)codeSrc->loadAddress()<<endl;
    if (mo->lat_path.size() > 0){
       ifstream latFile;
@@ -832,11 +832,14 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
                InstlvlMap lvlMap; 
                for (int i=0; i <numLevel; i++){
                   in >> std::dec >> tempMemStruct.level >> tempMemStruct.hitCount >> tempMemStruct.latency;
+                  std::cout<<"OZGURDATACOLLECTION lvl:"<<tempMemStruct.level<<" hit:"<<tempMemStruct.hitCount<<std::endl;
                   lvlMap[tempMemStruct.level] = tempMemStruct;
                }
                double miss = calculateMissRatio(lvlMap ,  0);
                in >> lat;
                instMemMap[low_addr_offset+insn] = lvlMap;
+               std::cout<<"lvl6::"<<lvlMap[6].hitCount<<std::endl;
+               std::cout<<"insMemMap::"<<instMemMap[low_addr_offset+insn][6].hitCount<<std::endl;
                instLats[low_addr_offset+insn]=lat;
                std::cout<<" 1OZGURDEBUG inst " << std::hex << insn << " lvl: "<< std::dec << instMemMap[low_addr_offset+insn][0].level <<" hit:" <<instMemMap[low_addr_offset+insn][0].hitCount << " lat: " << instMemMap[low_addr_offset+insn][0].latency << " missRatio lvl0: " << miss << std::endl;
             }
@@ -850,6 +853,74 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
       }*/
       latFile.close(); 
    }
+
+   if (mo->dla_path.size() > 0){
+      ifstream dlaFile;
+      dlaFile.open(mo->dla_path);
+      addrtype insn;
+      std::string dlaFuncNm;
+      std::string dlaDso;
+//ozgurS
+      std::string dso = "dso:";
+      std::string funcName = "func:"+mo->func_name;
+      std::string line;
+      bool inFunction =false;
+      memStruct emptyMemStruct;
+      emptyMemStruct.level = 0;
+      emptyMemStruct.hitCount = 0;
+      emptyMemStruct.latency = 0;
+      std::getline(dlaFile , line);
+      std::istringstream in(line);
+      int totalLVLs = 0;
+      in >> std::dec >> totalLVLs ;
+      std::cout<<"OZGUR XTRW totallvl "<<totalLVLs<<std::endl;
+      for(int i= 0; i<totalLVLs; i++){
+         emptyLevelMap[i]=emptyMemStruct;
+      }
+      while (std::getline(dlaFile , line)) {
+            if (line == funcName){
+               inFunction = true;
+               continue;
+            } else if (line.length() < 2){
+               inFunction = false;
+            }
+            if (inFunction){
+               int numLevel = 0;
+               std::cout<<" OZGURXDEBUG line: " << line << std::endl;
+               std::istringstream in(line);
+               in  >> std::hex >> insn >> numLevel;
+               memStruct tempMemStruct;
+               InstlvlMap lvlMap; 
+               for (int i=0; i <numLevel; i++){
+                  in >> std::dec >> tempMemStruct.level >> tempMemStruct.hitCount;
+                  std::cout<<"OZGURDATACOLLECTION lvl:"<<tempMemStruct.level<<" hit:"<<tempMemStruct.hitCount<<std::endl;
+                  lvlMap[tempMemStruct.level] = tempMemStruct;
+               }
+               double miss = calculateMissRatio(lvlMap ,  0);
+               instMemMap[start+insn] = lvlMap;
+               std::cout<<"lvl6::"<<lvlMap[6].hitCount<<std::endl;
+               std::cout<<"insMemMap::"<<instMemMap[start+insn][6].hitCount<<std::endl;
+               std::cout<<" 1OZGURDEBUG inst " << std::hex << insn << " real addres: "<<start+insn << " lvl: "<< std::dec << instMemMap[start+insn][0].level <<" hit:" <<instMemMap[start+insn][0].hitCount  << " missRatio lvl0: " << miss << std::endl;
+            }
+      }
+//ozgurE      
+/*      while (latFile >> std::hex >> insn >> std::dec >> lat >> latFuncNm >> latDso){
+         if (routName.compare(latFuncNm) == 0){
+            cout<< std::hex<<(unsigned int*)low_addr_offset<<" "<<(unsigned int*)insn <<" "<<(unsigned int*)(low_addr_offset+insn)<<std::dec<< " "<<lat<<" "<<latFuncNm<<" "<<latDso<<endl;
+            instLats[low_addr_offset+insn]=lat;
+         }
+      }*/
+      dlaFile.close(); 
+   }
+
+
+
+
+
+
+
+
+
    Routine* rout = new Routine(this, (addrtype)start, (usize_t) end-start, string(routName), (addrtype)start, reloc_offset);
 
    std::cerr << "[INFO]LoadModule::analyzeRoutines(): '" << rout->Name() <<" "<<(unsigned int*)reloc_offset<< "'\n";
