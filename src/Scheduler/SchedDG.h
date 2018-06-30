@@ -485,7 +485,9 @@ public:
     }
 
     void write_label (std::ostream& os, int info=0, bool html_escape=false);
-    
+   
+    inline bool isSeenInFP(){ return seenInFP;} 
+    inline void setSeenInFP(){ seenInFP=true;} 
   private:
     inline void setAddressCalculation() { 
        _flags |= NODE_IS_ADDRESS_CALCULATION;
@@ -557,6 +559,7 @@ public:
        num_uops = 1;
        in_order = 0;  // assign an index in the order in which instructions are found in the path
        id = _in_cfg->nextNodeId++; _visited = 0; tempVal = 0; 
+       seenInFP = false;
     }
     
 #if USE_SCC_PATHS
@@ -691,6 +694,9 @@ public:
     MIAMIU::UISet outCycleSets;
     int num_imm_values;
     imm_value_t immVals[max_num_imm_values];
+   //OzgurS
+    bool seenInFP;
+   //E
   };
   //------------------------------------------------------------------------------------------------------------------
   typedef std::map <unsigned int, Edge*> UiEdgeMap;

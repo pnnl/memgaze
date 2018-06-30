@@ -824,7 +824,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
 //   computeSchedule = _computeSchedule;
    mo = _mo;
    
-   std::cerr << "[INFO]Routine::main_analysis(): '" << name << "'\n";
+   std::cout << "[INFO]Routine::main_analysis(): '" << name << "'\n";
    if (name.compare(mo->debug_routine) == 0)  // they are equal
    {
       // draw CFG
@@ -1301,12 +1301,12 @@ Routine::build_paths_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
    if (!is_zero || mo->do_ref_scope_index)
    { 
 //OZGURS
-std::cout<<"is_zero"<<std::endl;
+std::cout<<"!is_zero1"<<std::endl;
 //E 
       if (mo->do_streams || mo->do_idecode || mo->do_ref_scope_index)
       {
  //OZGURS
-std::cout<<"is_zero"<<std::endl;
+std::cout<<"!is_zero2"<<std::endl;
 //E        
          AddrIntSet scopeMemRefs;
          RefIClassMap refClasses;
@@ -1624,7 +1624,7 @@ void split(const std::string &s, char delim, std::vector<int> &elems) {
 void
 Routine::myConstructPaths(ScopeImplementation *pscope, int no_fpga_acc, const string& spath)
 {
-   std::cerr << "[INFO]Routine::constructPaths(): '" << name << "'\n";
+   std::cout << "[INFO]Routine::constructPaths(): '" << name << "'\n";
    CFG::NodeList ba;
    CFG::EdgeList ea;
    RSIListList rl;
@@ -1654,10 +1654,6 @@ Routine::myConstructPaths(ScopeImplementation *pscope, int no_fpga_acc, const st
       ba.push_back(blk);
       fa.push_back(1.0);
    }
-//ozgurS Check if I can treverse trought all nodes in the block
-//   for (std::list<CFG::Node*>::iterator mylit=ba.begin(); mylit != ba.end(); ++mylit){
-//   } 
-//ozgurE
 
    BlockPath *bp = new BlockPath(ba, (CFG::Node*)(*dyn_blkNoToMiamiBlk)[path[path.size()-1]], fa, rl, false);
    bpmtemp->insert(BPMap::value_type(bp, new PathInfo(1)));

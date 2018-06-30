@@ -239,10 +239,25 @@ DGBuilder::~DGBuilder()
 void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::MemDataPerLvlList * mdplList ){
    NodesIterator nit(*this);
    std::vector<MIAMI::InstlvlMap *>::iterator mit=memData->begin();
+   std::map<unsigned long ,  int> seen;
+  
+
+   NodesIterator fnit(*this);
+   while ((bool)fnit) {
+      Node *fnn = fnit;
+      if (fnn->isInstructionNode()){
+           seen[(unsigned long)fnn->getAddress()] = 1;
+           std::cout<<"OZGUR DEBUG XCV Instruction Address:"<<std::hex<<(unsigned long)fnn->getAddress()<<std::dec<<" intruction type:"<<fnn->getType()<<" number of Uopps: "<<fnn->getNumUopsInInstruction()<<std::endl;
+      }
+      ++fnit;
+   }
+   std::cout<<std::endl<<std::endl; 
    while ((bool)nit) {
       Node *nn = nit;
       if (nn->isInstructionNode()){
-         if(nn->is_load_instruction()){
+           //if(!nn->isSeenInFP()){
+           if(seen.find((unsigned long)nn->getAddress())->second){
+//         if(nn->is_load_instruction()){
            /* if(!nn->getLvlMap()){
                MIAMI::memStruct temp;
                temp.level=-1;
@@ -252,9 +267,13 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
                tempL[0]= temp;
                memData->push_back(tempL); 
             } else {*/
+               std::cout<<"OZGUR DEBUG XCV Instruction Address:"<<std::hex<<(unsigned long)nn->getAddress()<<std::dec<<" intruction type:"<<nn->getType()<<" number of Uopps: "<<nn->getNumUopsInInstruction()<<std::endl;
                memData->push_back(nn->getLvlMap()); 
            // }
             mit++;  
+  //       }
+               seen[(unsigned long)nn->getAddress()] = 0;        
+              //nn->setSeenInFP();         
          }
       }
       ++nit;
@@ -294,6 +313,7 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
    float l1_strided_lds = 0;
    float fp = 0;
    for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){
+      
       all_loads += (*it)->find(0)->second.hitCount;
       l1_hits += (*it)->find(1)->second.hitCount;
       l2_hits += (*it)->find(2)->second.hitCount;
@@ -325,6 +345,8 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
    l2 = l2_hits + fb_hits;
    l1 = all_loads -(pf+l2+l3+mem_hits);
    fp = mem * 4 * c_sample; //TODO find better way
+   
+   std::cout<<"PALM FOOTPRINT OUTPUT FOR ALL MEMORY NODES"<<std::endl;
    std::cout<<"ALL_loads:"<<all_loads<<std::endl;
    std::cout<<"l1_hits:"<<l1_hits<<std::endl;
    std::cout<<"l2_hits:"<<l2_hits<<std::endl;
@@ -341,7 +363,7 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
    std::cout<<"l3:"<<l3<<std::endl;
    std::cout<<"l2:"<<l2<<std::endl;
    std::cout<<"l1:"<<l1<<std::endl;
-   std::cout<<"FP:"<<fp<<std::endl;
+   std::cout<<"FP:"<<fp<<std::endl<<std::endl;
     
 }
 
@@ -437,8 +459,6 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
   for (i = 1; i < numBlocks && g == NULL; ++i) {
     g = ba[i]->inCfg();
   }
-
-  std::cout<<"hmm 0"<<std::endl;
    
   for(i = 0; i < numBlocks; ++i) {
 
@@ -774,13 +794,13 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
 
       iiobj.data = node;
 //ozgurS
-      if (node->is_load_instruction()){
+//      if (node->is_load_instruction()){
          //TODO findMe and FIXME
          node->setLvlMap(img->getMemLoadData(node->getAddress()));
-//std::cout<<"DEBUG OZGUR instadd: "<< std::hex <<node->getAddress()<< std::dec<<" lvl6:"<<node->getLvlMap()->find(6)->second.hitCount<<std::endl; //segfault FIXME
+std::cout<<"DEBUG OZGUR instadd: "<< std::hex <<node->getAddress()<< std::dec<<" lvl0:"<<node->getLvlMap()->find(0)->second.hitCount<<" lvl-1:"<<node->getLvlMap()->find(-1)->second.hitCount<<std::endl; //segfault FIXME
 //std::cout<<"DEBUG OZGUR instadd: "<< std::hex <<node->getAddress()<< std::dec<<" lvl5:"<<node->getLvlMap()->find(5)->second.hitCount<<std::endl; //segfault FIXME
          //std::cerr<<__func__<<" ozgur testing img total hit at lvl 0 is "<<node->getLvlMap()->find(0)->second.hitCount<<std::endl; 
-      }
+//      }
 //ozgurE
       if (node->is_memory_reference())
       {
