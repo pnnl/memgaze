@@ -11453,6 +11453,7 @@ void computeMemory( MIAMI::MemListPerInst * memData, MIAMI::MemDataPerLvlList * 
    l2 = l2_hits + fb_hits;
    l1 = all_loads -(pf+l2+l3+mem_hits);
    fp = mem * 4; //TODO find better way
+   std::cout<<"PALM FP on the Path:"<<all_loads<<std::endl;
    std::cout<<"ALL_loads:"<<all_loads<<std::endl;
    std::cout<<"l1_hits:"<<l1_hits<<std::endl;
    std::cout<<"l2_hits:"<<l2_hits<<std::endl;
@@ -11920,10 +11921,10 @@ SchedDG::Node::myComputePathToLeaf (unsigned int marker, bool manyBarriers,
 //ozgur check if this Node is a load
 //if it is then add to MemData
    Node *nn = this;
-   if(nn->is_load_instruction()){
+//   if(nn->is_load_instruction()){
       memData->push_back(nn->getLvlMap());
       //std::cout<<"BURADAMI::"<<nn->getLvlMap()->find(5)->second.hitCount<<std::endl;
-   }
+//   }
 //ozgurE   
    OutgoingEdgesIterator oeit(this);
    while ((bool) oeit)

@@ -68,6 +68,12 @@ public:
       img_scope = 0;
       undefScope = 0;
       dyn_image = 0;
+      //OZGURS FIXME look if this work for empty and also add check based on -1 
+      //memStruct temp;
+      //temp.hitCount=-1;
+      //temp.level=-1;
+      //temp.latency=0;
+      //emptyLevelMap.insert(std::map<-1,temp>);  
    }
 
    virtual ~LoadModule();
