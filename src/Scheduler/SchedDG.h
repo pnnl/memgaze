@@ -467,7 +467,11 @@ public:
     bool InOrderDependenciesSatisfied(bool initial=false, Edge **dep = 0);
     
     bool is_scalar_stack_reference();
-    
+//OZGURS
+    bool is_scalar_strided_reference();
+    bool is_scalar_indirect_reference();
+//OZGURE    
+
     inline RetiredUopType getRetiredUopType() const
     {
        if (is_branch_instruction())
