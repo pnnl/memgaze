@@ -256,21 +256,20 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
          std::cout<<"lvl is:"<<fnn->getLevel()<<std::endl;
          std::cout<<"is pf op :"<<fnn->is_prefetch_op()<<std::endl;
          std::cout<<"is_scalar_stack_reference :"<<fnn->is_scalar_stack_reference()<<std::endl;
-         std::cout<<"is_scalar_strided_reference :"<<fnn->is_scalar_strided_reference()<<std::endl;
-         std::cout<<"is_scalar_indirect_reference :"<<fnn->is_scalar_indirect_reference()<<std::endl;
+         std::cout<<"is_strided_reference :"<<fnn->is_strided_reference()<<std::endl;
          std::cout<<"isLoopBoilerplate :"<<fnn->isLoopBoilerplate()<<std::endl;
          std::cout<<"isLoopCondition :"<<fnn->isLoopCondition()<<std::endl;
          std::cout<<"type:"<<fnn->getType()<<" IB_inner_loop :"<<IB_inner_loop <<std::endl;
          inLoop = 1;//TODO fix this and find if you are in the loop
          if(fnn->is_load_instruction() && inLoop){
             totalLoadInLoop++;
-            if (fnn->is_scalar_stack_reference())
+            if (fnn->is_scalar_stack_reference()){
                frameLoadInstr++;
-            if (fnn->is_scalar_strided_reference())
+            } else if (fnn->is_strided_reference()){
                stridedLoadInstr++;
-            if (fnn->is_scalar_indirect_reference())
+            } else {
                indirectLoadInstr++;
-
+            }
             std::cout<<"Testing mem Instructions in loop:\nTotal loads:"<<totalLoadInLoop<<"\tframe:"<<frameLoadInstr<<"\tstrided:"<<stridedLoadInstr<<"\tindirect:"<<indirectLoadInstr<<std::endl;
          }
          std::cout<<"OZGUR DEBUG XCV Instruction Address:"<<std::hex<<(unsigned long)fnn->getAddress()<<std::dec<<" intruction type:"<<fnn->getType()<<" number of Uopps: "<<fnn->getNumUopsInInstruction()<<std::endl;

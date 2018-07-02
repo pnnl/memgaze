@@ -320,6 +320,9 @@ int
 SignOfFormula(GFSliceVal const &formula);
 
 bool
+hasConstantFormula(GFSliceVal const &formula, coeff_t &valueNum, ucoeff_t &valueDen);
+
+bool
 IsConstantFormula(GFSliceVal const &formula, coeff_t &valueNum, ucoeff_t &valueDen);
 
 bool

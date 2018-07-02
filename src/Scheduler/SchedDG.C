@@ -12566,59 +12566,21 @@ SchedDG::minSchedulingLengthDueToResources(int& bottleneckUnit,
 
 /* OZGUR PALM
  * Check if an instruction is a memory reference not to the stack
- * with all strides zero, and  indirect or irregular stride.
- */
-bool 
-SchedDG::Node::is_scalar_indirect_reference()
-{
-   if (! is_memory_reference())
-      return (false);
-   int opidx = memoryOpIndex();
-   if (opidx < 0) {
-      fprintf(stderr, "Error: SchedDG::Node::is_scalar_stack_reference: Instruction at 0x%" PRIxaddr ", uop of type %s, has memory opidx %d\n",
-            address, Convert_InstrBin_to_string((MIAMI::InstrBin)type), opidx);
-      assert(!"Negative memopidx. Why??");
-   }
-   RefFormulas *refF = in_cfg()->refFormulas.hasFormulasFor(address, opidx);
-   if (refF == NULL)
-      return (false);
-   
-   GFSliceVal oform = refF->base;
-   coeff_t soffset;
-   if (oform.is_uninitialized() || FormulaIsStackReference(oform, soffset))
-      return (false);
-   
-   // is not stack reference. Now check that all strides are zero and are not 
-   // marked as indirect or irregular
-   int numStrides = refF->NumberOfStrides();
-   for (int i=0 ; i<numStrides ; ++i)
-   {
-      GFSliceVal& stride = refF->strides[i];
-      if (stride.is_uninitialized() ) //|| stride.has_irregular_access() || stride.has_indirect_access())
-         return (false);
-      coeff_t valueNum;
-      ucoeff_t valueDen;
-      if (!IsConstantFormula(stride, valueNum, valueDen) || valueNum!=0)//TODO maybe turn this off 
-         return (false);
-   }
-   return (true);
-}
-
-/* OZGUR PALM
- * Check if an instruction is a memory reference not to the stack
  * with all strides zero, and no indirect or irregular stride.
  */
 bool 
-SchedDG::Node::is_scalar_strided_reference()
+SchedDG::Node::is_strided_reference()
 {
    if (! is_memory_reference())
       return (false);
+   
    int opidx = memoryOpIndex();
    if (opidx < 0) {
       fprintf(stderr, "Error: SchedDG::Node::is_scalar_stack_reference: Instruction at 0x%" PRIxaddr ", uop of type %s, has memory opidx %d\n",
             address, Convert_InstrBin_to_string((MIAMI::InstrBin)type), opidx);
       assert(!"Negative memopidx. Why??");
    }
+   
    RefFormulas *refF = in_cfg()->refFormulas.hasFormulasFor(address, opidx);
    if (refF == NULL)
       return (false);
@@ -12628,8 +12590,7 @@ SchedDG::Node::is_scalar_strided_reference()
    if (oform.is_uninitialized() || FormulaIsStackReference(oform, soffset))
       return (false);
    
-   // is not stack reference. Now check that all strides are zero and are not 
-   // marked as indirect or irregular
+   // is not stack reference. Now check that all strides 
    int numStrides = refF->NumberOfStrides();
    for (int i=0 ; i<numStrides ; ++i)
    {
@@ -12638,8 +12599,10 @@ SchedDG::Node::is_scalar_strided_reference()
          return (false);
       coeff_t valueNum;
       ucoeff_t valueDen;
-//      if (!IsConstantFormula(stride, valueNum, valueDen) || valueNum!=0)
-//         return (false);
+      //TODO!!! Check if this correct
+      //IsPredictableStride
+      if(!hasConstantFormula(stride, valueNum, valueDen))
+         return (false);
    }
    return (true);
 }
@@ -12652,12 +12615,14 @@ SchedDG::Node::is_scalar_stack_reference()
 {
    if (! is_memory_reference())
       return (false);
+
    int opidx = memoryOpIndex();
    if (opidx < 0) {
       fprintf(stderr, "Error: SchedDG::Node::is_scalar_stack_reference: Instruction at 0x%" PRIxaddr ", uop of type %s, has memory opidx %d\n",
             address, Convert_InstrBin_to_string((MIAMI::InstrBin)type), opidx);
       assert(!"Negative memopidx. Why??");
    }
+
    RefFormulas *refF = in_cfg()->refFormulas.hasFormulasFor(address, opidx);
    if (refF == NULL)
       return (false);

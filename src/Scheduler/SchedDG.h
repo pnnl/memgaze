@@ -468,8 +468,7 @@ public:
     
     bool is_scalar_stack_reference();
 //OZGURS
-    bool is_scalar_strided_reference();
-    bool is_scalar_indirect_reference();
+    bool is_strided_reference();
 //OZGURE    
 
     inline RetiredUopType getRetiredUopType() const
