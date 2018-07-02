@@ -240,17 +240,45 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
    NodesIterator nit(*this);
    std::vector<MIAMI::InstlvlMap *>::iterator mit=memData->begin();
    std::map<unsigned long ,  int> seen;
-  
-
+   int frameLoadInstr = 0;
+   int stridedLoadInstr = 0;
+   int indirectLoadInstr = 0;
+   int totalLoadInLoop = 0 ;  
+   bool inLoop = false;
+   
    NodesIterator fnit(*this);
    while ((bool)fnit) {
       Node *fnn = fnit;
       if (fnn->isInstructionNode()){
-           seen[(unsigned long)fnn->getAddress()] = 1;
-           std::cout<<"OZGUR DEBUG XCV Instruction Address:"<<std::hex<<(unsigned long)fnn->getAddress()<<std::dec<<" intruction type:"<<fnn->getType()<<" number of Uopps: "<<fnn->getNumUopsInInstruction()<<std::endl;
+         seen[(unsigned long)fnn->getAddress()] = 1;
+         std::cout<<std::endl<<std::endl; 
+         std::cout<<"inst address:"<<std::hex<<fnn->getAddress()<<std::dec<<std::endl;
+         std::cout<<"lvl is:"<<fnn->getLevel()<<std::endl;
+         std::cout<<"is pf op :"<<fnn->is_prefetch_op()<<std::endl;
+         std::cout<<"is_scalar_stack_reference :"<<fnn->is_scalar_stack_reference()<<std::endl;
+         std::cout<<"is_scalar_strided_reference :"<<fnn->is_scalar_strided_reference()<<std::endl;
+         std::cout<<"is_scalar_indirect_reference :"<<fnn->is_scalar_indirect_reference()<<std::endl;
+         std::cout<<"isLoopBoilerplate :"<<fnn->isLoopBoilerplate()<<std::endl;
+         std::cout<<"isLoopCondition :"<<fnn->isLoopCondition()<<std::endl;
+         std::cout<<"type:"<<fnn->getType()<<" IB_inner_loop :"<<IB_inner_loop <<std::endl;
+         inLoop = 1;//TODO fix this and find if you are in the loop
+         if(fnn->is_load_instruction() && inLoop){
+            totalLoadInLoop++;
+            if (fnn->is_scalar_stack_reference())
+               frameLoadInstr++;
+            if (fnn->is_scalar_strided_reference())
+               stridedLoadInstr++;
+            if (fnn->is_scalar_indirect_reference())
+               indirectLoadInstr++;
+
+            std::cout<<"Testing mem Instructions in loop:\nTotal loads:"<<totalLoadInLoop<<"\tframe:"<<frameLoadInstr<<"\tstrided:"<<stridedLoadInstr<<"\tindirect:"<<indirectLoadInstr<<std::endl;
+         }
+         std::cout<<"OZGUR DEBUG XCV Instruction Address:"<<std::hex<<(unsigned long)fnn->getAddress()<<std::dec<<" intruction type:"<<fnn->getType()<<" number of Uopps: "<<fnn->getNumUopsInInstruction()<<std::endl;
       }
       ++fnit;
    }
+   std::cout<<std::endl<<std::endl; 
+   std::cout<<"Testing mem Instructions Final:\nTotal loads:"<<totalLoadInLoop<<"\tframe:"<<frameLoadInstr<<"\tstrided:"<<stridedLoadInstr<<"\tindirect:"<<indirectLoadInstr<<std::endl;
    std::cout<<std::endl<<std::endl; 
    while ((bool)nit) {
       Node *nn = nit;
@@ -288,10 +316,10 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
    };
    int memoryHits = 0;
    std::vector<Mem> memVector;            //TODO find a better  way to loop for each level
-   int total_lds = 10; //TODO find this from miami
-   int frame_lds = 8; //TODO find this from miami
-   int strided_lds = 1; //TODO find this from miami
-   int indirect_lds = 1; //TODO find this from miami
+   int total_lds = totalLoadInLoop; // 10; //TODO find this from miami
+   int frame_lds = frameLoadInstr; // 8; //TODO find this from miami
+   int strided_lds = stridedLoadInstr; // 1; //TODO find this from miami
+   int indirect_lds =  indirectLoadInstr; // 1; //TODO find this from miami
    int c_sample = 1; //TODO get this from user
 // initializing collected data variables
    int all_loads = 0;   //lvl 0
