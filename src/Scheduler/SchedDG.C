@@ -12597,12 +12597,8 @@ SchedDG::Node::is_strided_reference()
       GFSliceVal& stride = refF->strides[i];
       if (stride.is_uninitialized() || stride.has_irregular_access() || stride.has_indirect_access())
          return (false);
-      coeff_t valueNum;
-      ucoeff_t valueDen;
-      //TODO!!! Check if this correct
-      //IsPredictableStride
-      if(!hasConstantFormula(stride, valueNum, valueDen))
-         return (false);
+
+      //TODO: Do we need an additional test?
    }
    return (true);
 }
