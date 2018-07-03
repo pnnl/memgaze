@@ -709,39 +709,6 @@ SignOfFormula(GFSliceVal const &formula)
    return (0);
 }
 
-// OZGUR PALM
-// check if a GFSliceVal formula has one constant terms 
-bool
-hasConstantFormula(GFSliceVal const &formula, coeff_t &valueNum, ucoeff_t &valueDen)
-{
-   if (formula.is_uninitialized())
-   {
-      fprintf(stderr, "WARNING: IsConstantFormula, formula is uninitialized\n");
-      assert (false);
-      return (false);
-   }
-   GFSliceVal::iterator it;
-   int numConst = 0;
-   int notConst = 0;
-   valueNum=0;
-   valueDen=1;
-   for (it=formula.begin() ; it!=formula.end() ; ++it)
-   {
-      if (it->TermType() == TY_CONSTANT)
-      {
-         assert(numConst==0);
-         numConst++;
-         valueNum = it->ValueNum();
-         valueDen = it->ValueDen();
-         std::cout<<"Bakalim ValueNum: "<<valueNum<<" valueDen: "<<valueDen<<std::endl;
-      } else
-         notConst = 1;
-   }
-   if (!numConst)
-      return (false);
-   return (true);
-}
-
 // check if a GFSliceVal formula has only constant terms (one term at most
 // is possible) and if yes, set the value of that term in the output 
 // argument value
@@ -754,6 +721,7 @@ IsConstantFormula(GFSliceVal const &formula, coeff_t &valueNum, ucoeff_t &valueD
       assert (false);
       return (false);
    }
+
    GFSliceVal::iterator it;
    int numConst = 0;
    int notConst = 0;
