@@ -237,16 +237,18 @@ DGBuilder::~DGBuilder()
 
 //ozgurS
 void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::MemDataPerLvlList * mdplList ){
+   NodesIterator fnit(*this);
    NodesIterator nit(*this);
+   
    std::vector<MIAMI::InstlvlMap *>::iterator mit=memData->begin();
    std::map<unsigned long ,  int> seen;
+   
    int frameLoadInstr = 0;
    int stridedLoadInstr = 0;
    int indirectLoadInstr = 0;
    int totalLoadInLoop = 0 ;  
    bool inLoop = false;
    
-   NodesIterator fnit(*this);
    while ((bool)fnit) {
       Node *fnn = fnit;
       if (fnn->isInstructionNode()){
@@ -276,31 +278,19 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
       }
       ++fnit;
    }
+   
    std::cout<<std::endl<<std::endl; 
    std::cout<<"Testing mem Instructions Final:\nTotal loads:"<<totalLoadInLoop<<"\tframe:"<<frameLoadInstr<<"\tstrided:"<<stridedLoadInstr<<"\tindirect:"<<indirectLoadInstr<<std::endl;
    std::cout<<std::endl<<std::endl; 
+   
    while ((bool)nit) {
       Node *nn = nit;
       if (nn->isInstructionNode()){
-           //if(!nn->isSeenInFP()){
-           if(seen.find((unsigned long)nn->getAddress())->second){
-//         if(nn->is_load_instruction()){
-           /* if(!nn->getLvlMap()){
-               MIAMI::memStruct temp;
-               temp.level=-1;
-               temp.hitCount=0;
-               temp.latency=0;
-               InstlvlMap * tempL;
-               tempL[0]= temp;
-               memData->push_back(tempL); 
-            } else {*/
-               std::cout<<"OZGUR DEBUG XCV Instruction Address:"<<std::hex<<(unsigned long)nn->getAddress()<<std::dec<<" intruction type:"<<nn->getType()<<" number of Uopps: "<<nn->getNumUopsInInstruction()<<std::endl;
-               memData->push_back(nn->getLvlMap()); 
-           // }
+         if(seen.find((unsigned long)nn->getAddress())->second){
+            std::cout<<"OZGUR DEBUG XCV Instruction Address:"<<std::hex<<(unsigned long)nn->getAddress()<<std::dec<<" intruction type:"<<nn->getType()<<" number of Uopps: "<<nn->getNumUopsInInstruction()<<std::endl;
+            memData->push_back(nn->getLvlMap()); 
             mit++;  
-  //       }
-               seen[(unsigned long)nn->getAddress()] = 0;        
-              //nn->setSeenInFP();         
+            seen[(unsigned long)nn->getAddress()] = 0;        
          }
       }
       ++nit;
@@ -313,13 +303,15 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
       int miss;
       float windowSize;
    };
-   int memoryHits = 0;
+   
    std::vector<Mem> memVector;            //TODO find a better  way to loop for each level
-   int total_lds = totalLoadInLoop; // 10; //TODO find this from miami
-   int frame_lds = frameLoadInstr; // 8; //TODO find this from miami
-   int strided_lds = stridedLoadInstr; // 1; //TODO find this from miami
-   int indirect_lds =  indirectLoadInstr; // 1; //TODO find this from miami
+   int memoryHits = 0;
+   int total_lds = totalLoadInLoop; 
+   int frame_lds = frameLoadInstr; 
+   int strided_lds = stridedLoadInstr;
+   int indirect_lds =  indirectLoadInstr; 
    int c_sample = 1; //TODO get this from user
+
 // initializing collected data variables
    int all_loads = 0;   //lvl 0
    int l1_hits = 0 ;    //lvl 1
@@ -328,6 +320,7 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
    int l3_hits = 0 ;    //lvl 4
    int llc_miss = 0 ;   //lvl 5
    int l2_pf_miss = 0 ; //lvl 6
+
 // initializing other vaiables
    float l1 = 0;
    float l2 = 0;
@@ -339,8 +332,8 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
    float mem_wpl = 0;
    float l1_strided_lds = 0;
    float fp = 0;
-   for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){
-      
+
+   for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){      
       all_loads += (*it)->find(0)->second.hitCount;
       l1_hits += (*it)->find(1)->second.hitCount;
       l2_hits += (*it)->find(2)->second.hitCount;
@@ -349,22 +342,26 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
       llc_miss += (*it)->find(5)->second.hitCount;
       l2_pf_miss += (*it)->find(6)->second.hitCount;
    }
+
    if (total_lds){
       l1_strided_lds = ((l1_hits*c_sample) / total_lds) * strided_lds; //TODO check div0
    } else {
       l1_strided_lds = -1;
    }
+
    if (total_lds && llc_miss){
       mem_wpl = (float)((((l1_hits+l2_hits+l3_hits)*c_sample)/total_lds) *
             indirect_lds) /(llc_miss*c_sample); //TODO check div0
    } else {
      mem_wpl = -1; 
    }
+
    if (l2_pf_miss){
       pf_wpl = l1_strided_lds / (l2_pf_miss*c_sample) ; //TODO check div0
    } else {
       pf_wpl = -1;
    }
+
    mem_hits = llc_miss * mem_wpl;
    pf = l2_pf_miss * pf_wpl;
    mem = mem_hits + pf;
@@ -394,81 +391,6 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
     
 }
 
-
-
-////ozgurS
-//void DGBuilder::calculateMemoryData(MIAMI::MemListPerInst * memData , MIAMI::MemDataPerLvlList * mdplList){
-//   NodesIterator nit(*this);
-//   std::vector<MIAMI::InstlvlMap *>::iterator mit=memData->begin();
-//   while ((bool)nit) {
-//      Node *nn = nit;
-//      if (nn->isInstructionNode()){
-//         if(nn->is_load_instruction()){
-//           /* if(!nn->getLvlMap()){
-//               MIAMI::memStruct temp;
-//               temp.level=-1;
-//               temp.hitCount=0;
-//               temp.latency=0;
-//               InstlvlMap * tempL;
-//               tempL[0]= temp;
-//               memData->push_back(tempL); 
-//            } else {*/
-//               memData->push_back(nn->getLvlMap()); 
-//           // }
-//            mit++;  
-//         }
-//      }
-//      ++nit;
-//   }
-//   struct Mem{
-//      int level;
-//      int hits;
-//      int miss;
-//      float windowSize;
-//   };
-//   int memoryHits = 0; 
-//   std::vector<Mem> memVector;            //TODO find a better  way to loop for each level
-//   for (int lvl =0 ; lvl < 6 ; lvl++){   //or just try to ask MAX_LEVEL from user
-//      Mem mem;
-//      mem.level = lvl;
-//      mem.hits = 0;
-//      mem.miss = 0;
-//      mem.windowSize = 0.0;
-//      for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){  
-//          for (int prevlvl =0 ; prevlvl <= lvl  ; prevlvl++){
-//            if (lvl != 0 && prevlvl ==0){ 
-//               continue;
-//            }     
-//            mem.hits += (*it)->find(prevlvl)->second.hitCount;
-//         }
-//         for (int nextlvl =lvl+1 ; nextlvl < 10 ; nextlvl++){
-//            mem.miss += (*it)->find(nextlvl)->second.hitCount;
-//         }
-////         memEx.hits=(*it)->find(lvl)->second.hitCount;
-////       for (int xx = 0 ; xx <5 ;xx++){ 
-////         std::cerr<<"computeMemory->OZGUR  exclusive mem data at lvl: "<<std::dec<< xx <<" hits: "<<(*it)->find(xx)->second.hitCount<< std::endl;
-////       }
-//      }     
-//      if (lvl == 0){
-//         mem.miss = mem.hits - mem.miss;
-//         memoryHits = mem.miss;
-//      } else {
-//         mem.miss = mem.miss + memoryHits;
-//      }     
-//      if (mem.miss){
-//         mem.windowSize = (float)mem.hits/ (float)mem.miss;
-//      } else {
-//         mem.windowSize = -1.0; 
-//      }     
-//      memVector.push_back(mem);
-//   }
-//   for( std::vector<Mem>::iterator dit=memVector.begin() ; dit!=memVector.end() ; dit++){
-//      MIAMI::MemoryDataPerLevel md = MemoryDataPerLevel((*dit).level, (*dit).hits, (*dit).miss, (*dit).windowSize);
-//      mdplList->push_back(md);
-//      std::cerr<<" OZGUR mem data at lvl: "<<std::dec<< (*dit).level<<" hits: "<<(*dit).hits<<" miss: "<<(*dit).miss<<" windowSize: "<<(*dit).windowSize<< std::endl;
-//   }
-//}
-////OzgurE
 
 void
 DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
