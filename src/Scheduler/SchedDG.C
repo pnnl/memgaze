@@ -11614,8 +11614,8 @@ SchedDG::myMinSchedulingLengthDueToDependencies(float &memLatency, float &cpuLat
       retValues ret = 
             teit->sink()->myComputePathToLeaf(mm, manyBarriers, ds, memLatency, cpuLatency, memData);
 //ozgurS test
-      std::cout<<"PATH ID IS :"<<pathId<<std::endl;
-      computeMemory(memData , mdplList);
+//      std::cout<<"PATH ID IS :"<<pathId<<std::endl;
+//      computeMemory(memData , mdplList);
 //      for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){
 //         for(int i=0 ; i<7 ; i++){
 //            if ((*it)->find(i)->second.hitCount){
@@ -11623,9 +11623,9 @@ SchedDG::myMinSchedulingLengthDueToDependencies(float &memLatency, float &cpuLat
 //            }
 //         }
 //      }
-      if (teit->sink()->is_load_instruction()){
-         std::cout<<"HOTPATH OZGUR TEST: "<<teit->sink()->getLvlMap()->find(0)->second.hitCount<<std::endl;
-      }
+//      if (teit->sink()->is_load_instruction()){
+//         std::cout<<"HOTPATH OZGUR TEST: "<<teit->sink()->getLvlMap()->find(0)->second.hitCount<<std::endl;
+//      }
 //ozgurE
       unsigned int pathLen = ret.ret;
       int memLatencyTemp = ret.memret;

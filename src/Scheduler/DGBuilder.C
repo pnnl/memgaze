@@ -274,7 +274,7 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
             }
             std::cout<<"Testing mem Instructions in loop:\nTotal loads:"<<totalLoadInLoop<<"\tframe:"<<frameLoadInstr<<"\tstrided:"<<stridedLoadInstr<<"\tindirect:"<<indirectLoadInstr<<std::endl;
          }
-         std::cout<<"OZGUR DEBUG XCV Instruction Address:"<<std::hex<<(unsigned long)fnn->getAddress()<<std::dec<<" intruction type:"<<fnn->getType()<<" number of Uopps: "<<fnn->getNumUopsInInstruction()<<std::endl;
+         //std::cout<<"OZGUR DEBUG XCV Instruction Address:"<<std::hex<<(unsigned long)fnn->getAddress()<<std::dec<<" intruction type:"<<fnn->getType()<<" number of Uopps: "<<fnn->getNumUopsInInstruction()<<std::endl;
       }
       ++fnit;
    }
