@@ -522,7 +522,7 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
                  << " for reading. Cannot compute its checksum." << endl;
          }
       }
-      
+     std::cout<<__func__<<"Line 525\n"; 
       newimg = new LoadModule (id, start_addr, low_offset, iname, hashKey);
       ++ loadedImgs;
       
@@ -530,11 +530,13 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
       newimg->loadFromFile(fd, false);  // do not parse routines now
       newimg->createDyninstImage(bpatch);
       
+      newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
       // Now go and analyze each routine; compute counts for all blocks and edges,
       // recover executed paths, attempt to decode and schedule the instructions
-      
       // if string not empty, dump CFG of this routine
       newimg->analyzeRoutines(fd, prog, mo);
+      //TODO lets try this here too.
+      //newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
    }
    else{
       uint32_t hashKey = 0;

@@ -97,6 +97,7 @@ LoadModule::loadFromFile(FILE *fd, bool parse_routines)
 #define CHECK_COND0(cond, err) if (cond) \
    {fprintf(stderr, "ERROR: " err "\n"); goto load_error; }
    
+     cout<<__func__<<"Line 100\n"; 
    size_t res;
    int ires;
    uint32_t id;
@@ -220,6 +221,7 @@ LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
 {
 #undef CHECK_COND
 #undef CHECK_COND0
+     cout<<__func__<<"Line 224\n"; 
 
 #define CHECK_COND(cond, err, ...) if (cond) \
    {fprintf(stderr, "ERROR: " err "\n", __VA_ARGS__); goto load_error; }
@@ -293,6 +295,7 @@ load_error:
 int 
 LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
 {
+     cout<<__func__<<"Line 297\n"; 
    size_t res;
    int ires;
    ires = fseek(fd, file_offset, SEEK_SET);
@@ -397,7 +400,7 @@ LoadModule::analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo)
             FinalizeSourceFileInfo();
          return (-1);
       }
-      if (rout->Name().find("_Z5test1i")!=std::string::npos){
+      if (rout->Name().find(mo->func_name)!=std::string::npos){
       std::cerr << "[INFO]LoadModule::analyzeRoutines(): '" << rout->Name() << "'\n";
       addrtype rstart = rout->Start();
       if (mo->do_staticmem)
@@ -760,6 +763,7 @@ LoadModule::createDyninstImage(BPatch& bpatch)
 }
 
 int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const MiamiOptions *mo){
+     std::cout<<__func__<<"Line 766\n"; 
    cout<<"dyninstAnalyzeRoutine"<<endl;
    std::vector<BPatch_function*> tfunctions;
    dyn_image->findFunction(routName.c_str(), tfunctions,false,true,false);
@@ -912,28 +916,28 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
    }
 
 
-
-
-   Routine* rout = new Routine(this, (addrtype)start, (usize_t) end-start, string(routName), (addrtype)start, reloc_offset);
-
-   std::cerr << "[INFO]LoadModule::analyzeRoutines(): '" << rout->Name() <<" "<<(unsigned int*)reloc_offset<< "'\n";
-   addrtype rstart = rout->Start();
-   rout->discover_CFG(rstart);
-   int ires;
-
-   img_scope = new ImageScope(prog, img_name, img_id);
-         
-   if (rout->is_valid_for_analysis()){
-      ires = rout->main_analysis(img_scope, mo);
-      if (ires < 0){
-         fprintf (stderr, "Error while analyzing routine %s\n", rout->Name().c_str());
-         if (mo->do_linemap)
-            FinalizeSourceFileInfo();
-         return (-1);
-      }
-   }
-      
-   delete (rout);
+//TODO FIXME
+//
+//   Routine* rout = new Routine(this, (addrtype)start, (usize_t) end-start, string(routName), (addrtype)start, reloc_offset);
+//
+//   std::cerr << "[INFO]LoadModule::dynInstAnalyzeRoutines(): '" << rout->Name() <<" "<<(unsigned int*)reloc_offset<< "'\n";
+//   addrtype rstart = rout->Start();
+//   rout->discover_CFG(rstart);
+//   int ires;
+//
+//   img_scope = new ImageScope(prog, img_name, img_id);
+//         
+//   if (rout->is_valid_for_analysis()){
+//      ires = rout->main_analysis(img_scope, mo);
+//      if (ires < 0){
+//         fprintf (stderr, "Error while analyzing routine %s\n", rout->Name().c_str());
+//         if (mo->do_linemap)
+//            FinalizeSourceFileInfo();
+//         return (-1);
+//      }
+//   }
+//      
+//   delete (rout);
    return 0;
 }
 

@@ -818,6 +818,7 @@ Routine::computeStrideFormulasForRoutine(RIFGNodeId node, TarjanIntervals *tarj,
 int
 Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
 {
+     std::cout<<__func__<<"Line 821\n"; 
    int ires;
    // compute execution frequency of every edge and block
    CFG *cfg = ControlFlowGraph();
@@ -1168,6 +1169,7 @@ Routine::build_paths_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
             TarjanIntervals *tarj, MiamiRIFG* mCfg, int marker, int level, 
             int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges)
 {
+     std::cout<<__func__<<"Line 1172\n"; 
    CFG::Node* b;
    int kid;
    int is_zero = 1;
@@ -1972,6 +1974,7 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
 			int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, 
 			CFG::AddrEdgeMMap *callEntryEdges)
 {
+     std::cout<<__func__<<"Line 1977\n"; 
    std::cerr << "[INFO]Routine::constructPaths(): '" << name << "'\n";
    CFG::NodeList ba;
    CFG::EdgeList ea;
@@ -2381,6 +2384,7 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
    for (BPMap::iterator bpit=bpmtemp->begin() ; bpit!=bpmtemp->end() ; 
                 ++bpit, ++loopIdx)
    {
+     std::cout<<__func__<<"Line 2387 do I have LOOPS\n"; 
       // pathId is 64 bits; Use 32 bits for head block address,
       // 16 bits for loop index, 16 bits for path index in loop
       PathID pathId(bpit->first->blocks[0]->getStartAddress());
@@ -2525,7 +2529,8 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
      /*            mdriver.RefNames(), mdriver.RefsTable(), */
                  bpit->first->size, bpit->first->blocks, 
                  bpit->first->probabs, bpit->first->innerRegs,
-                 bpit->second->count, avgCount);
+                 bpit->second->count, avgCount,
+                 &bpit->second->memDataPerInst , &bpit->second->memDataPerLevel); //I add this to pass mem data
 #if PROFILE_SCHEDULER
             MIAMIP::report_time (stderr, "Graph construction w/ debug for path %s", pathId.Name());
 #endif

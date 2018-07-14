@@ -395,6 +395,7 @@ CFG::deleteUntakenCallSiteReturnEdges()
 int
 CFG::computeBBAndEdgeCounts()
 {
+     std::cout<<__func__<<"Line 398\n"; 
    // traverse all nodes
    // - for each node check how many incoming and outgoing edges have counts
    // - if node has counts on all edges on one side, we can compute the node frequency
