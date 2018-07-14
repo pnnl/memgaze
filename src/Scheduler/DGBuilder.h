@@ -106,6 +106,15 @@ public:
            int numBlocks, 
            MIAMI::CFG::Node** ba, float* fa, RSIList* innerRegs, 
            uint64_t _pathFreq = 1, float _avgNumIters = 1.0);
+   
+   DGBuilder(const char* func_name, MIAMI::PathID _pathId, int _opt_mem_dep,
+           RFormulasMap& _refAddr, 
+           LoadModule *_img,
+           int numBlocks, 
+           MIAMI::CFG::Node** ba, float* fa, RSIList* innerRegs, 
+           uint64_t _pathFreq = 1, float _avgNumIters = 1.0,
+           MIAMI::MemListPerInst * _memData=NULL, MIAMI::MemDataPerLvlList * _mdplList=NULL);
+
 
    DGBuilder(Routine* _routine, MIAMI::PathID _pathId, int _opt_mem_dep,
            RFormulasMap& _refAddr, 

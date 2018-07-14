@@ -126,6 +126,94 @@ DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
    builtNodes.map(deleteInstsInMap, NULL);
 }
 
+//FOOTPRINT VERSION TODO probably remove this or get rid of the extra stuff later
+DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
+		     int _opt_mem_dep, RFormulasMap& _refAddr,
+		     LoadModule *_img,
+		     int numBlocks, CFG::Node** ba, float* fa,
+		     RSIList* innerRegs,
+		     uint64_t _pathFreq, float _avgNumIters,
+                     MIAMI::MemListPerInst *_memData, MIAMI::MemDataPerLvlList *_mdplList)
+  : SchedDG(func_name, _pathId, _pathFreq, _avgNumIters, _refAddr, _img),
+    optimistic_memory_dep(_opt_mem_dep)
+{
+     std::cout<<__func__<<"Line 140\n"; 
+   assert( (numBlocks>=1) || 
+           !"Number of blocks to schedule is < 1. What's up?");
+#if DEBUG_GRAPH_CONSTRUCTION
+   DEBUG_GRAPH (1,
+      fprintf(stderr, "DGBuilder create path with %f average iterations\n", 
+          avgNumIters);
+   )
+#endif
+   memData =  _memData;
+   mdplList = _mdplList;
+  
+   // we do not read this flag right now.
+   // Assume we do not have pessimistic memory dependencies.
+   pessimistic_memory_dep = 0;
+   num_instructions = 0;
+   
+   nextGpReg = 1;
+   nextInReg = 1;
+   nextUopIndex = 1;
+   minPathAddress = ba[0]->getStartAddress();
+   maxPathAddress = ba[0]->getEndAddress();
+   // gmarin, 09/11/2013: The first block can be an inner loop, and
+   // inner loop nodes do not have an associated CFG, so the reloc_offset
+   // is always zero. Can all the blocks of a path be inner loops?
+   // Probabaly not, but it is safer to get it from the img object.
+   reloc_offset = img->RelocationOffset();  //ba[0]->RelocationOffset();
+   
+   for( int i=1 ; i<numBlocks ; ++i )
+   {
+      if (minPathAddress > ba[i]->getStartAddress())
+         minPathAddress = ba[i]->getStartAddress();
+      if (maxPathAddress < ba[i]->getEndAddress())
+         maxPathAddress = ba[i]->getEndAddress();
+   }
+   prev_inst_may_have_delay_slot = false;
+   instruction_has_stack_operation = false;
+   gpRegs = &gpMapper;
+//   fpRegs = &fpMapper;
+   prevBranch = NULL;
+   prevBarrier = lastBarrier = NULL;
+   lastBranchBB = NULL;
+   lastBranchProb = 0;
+   lastBranchId = 0;
+   // find how many register stacks are on this architecture.
+   // I have to maintain top markers for each one.
+   numRegStacks = number_of_register_stacks();
+   if (numRegStacks>0)
+   {
+      crt_stack_tops = new int[numRegStacks];
+      prev_stack_tops = new int[numRegStacks];
+      for (int i=0 ; i<numRegStacks ; ++i) {
+         crt_stack_tops[i] = prev_stack_tops[i] = max_stack_top_value(i);
+      }
+      stack_tops = crt_stack_tops;
+   } else {
+      stack_tops = crt_stack_tops = prev_stack_tops = 0;
+   }
+   
+   build_graph(numBlocks, ba, fa, innerRegs);
+   calculateMemoryData(memData, mdplList);
+   // in loops with many indirect accesses we see an explosion of unnecessary 
+   // memory dependencies. Write a method that traverses only memory 
+   // instructions, along memory dependencies, and removes any trivial deps.
+//   if (avgNumIters > ONE_ITERATION_EPSILON) 
+   pruneTrivialMemoryDependencies();
+   
+   finalizeGraphConstruction();
+   
+   setCfgFlags(CFG_CONSTRUCTED);
+   
+   // delete the decoded instructions stored in builtNodes
+   builtNodes.map(deleteInstsInMap, NULL);
+}
+
+
+
 // TODO: Palm version!
 DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
 		     int _opt_mem_dep, RFormulasMap& _refAddr,
@@ -237,9 +325,13 @@ DGBuilder::~DGBuilder()
 
 //ozgurS
 void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::MemDataPerLvlList * mdplList ){
+     std::cout<<__func__<<"Line 326\n"; 
    NodesIterator fnit(*this);
    NodesIterator nit(*this);
-   
+   typedef std::vector <MIAMI::InstlvlMap *> MEEEM; 
+   //MIAMI::MemListPerInst * memData;
+   MEEEM * imemData = new MEEEM;
+     
    std::vector<MIAMI::InstlvlMap *>::iterator mit=memData->begin();
    std::map<unsigned long ,  int> seen;
    
@@ -288,7 +380,9 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
       if (nn->isInstructionNode()){
          if(seen.find((unsigned long)nn->getAddress())->second){
             std::cout<<"OZGUR DEBUG XCV Instruction Address:"<<std::hex<<(unsigned long)nn->getAddress()<<std::dec<<" intruction type:"<<nn->getType()<<" number of Uopps: "<<nn->getNumUopsInInstruction()<<std::endl;
-            memData->push_back(nn->getLvlMap()); 
+            imemData->push_back(nn->getLvlMap());
+            //nn->getLvlMap();
+            //memData->push_back(img->getMemLoadData(nn->getAddress()));
             mit++;  
             seen[(unsigned long)nn->getAddress()] = 0;        
          }
@@ -296,6 +390,7 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
       ++nit;
    }
 
+            std::cout<<"XXXDEBUG4"<<std::endl; 
 //   std::cerr<<"DEBUG CAN I CALL"<<__func__<<std::endl;
    struct Mem{
       int level;
@@ -333,7 +428,7 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
    float l1_strided_lds = 0;
    float fp = 0;
 
-   for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){      
+   for (std::vector<MIAMI::InstlvlMap *>::iterator it=imemData->begin() ; it!=imemData->end() ; it++){      
       all_loads += (*it)->find(0)->second.hitCount;
       l1_hits += (*it)->find(1)->second.hitCount;
       l2_hits += (*it)->find(2)->second.hitCount;
