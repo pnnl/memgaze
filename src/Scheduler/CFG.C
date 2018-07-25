@@ -393,9 +393,77 @@ CFG::deleteUntakenCallSiteReturnEdges()
 }
 
 int
+CFG::addBBAndEdgeCounts()
+{
+   std::cout<<__func__<<"Line 398\n"; 
+   bool addEdgeCount = true , addNodeCount =true;
+   EdgesIterator eit(*this);
+   while ((bool)eit)
+   {
+      Edge *ee = (Edge*)eit;
+      if (ee == NULL)
+         cerr << "In computeBBAndEdgeCounts, EdgeIterator returned NULL edge, why?" << endl;
+      else
+      {
+         if (ee->hasCount())  // mark it for both its source and sink nodes
+         {
+            addEdgeCount = false;
+         }
+      }
+      ++ eit;
+   }
+   
+   NodesIterator nit(*this);
+   while ((bool)nit)
+   {
+      Node *nn = nit;
+      if (nn->hasCount())
+      {
+         addNodeCount =  false ;
+      } 
+      ++ nit;
+   }
+   
+   if (addEdgeCount){ 
+      EdgesIterator eit(*this);
+      while ((bool)eit)
+      {
+         Edge *ee = (Edge*)eit;
+         if (ee == NULL)
+            cerr << "In computeBBAndEdgeCounts, EdgeIterator returned NULL edge, why?" << endl;
+         else
+         {
+   //         cerr << "In computeBBAndEdgeCounts, EdgeIterator returned valid edge with id" 
+   //              << ee->getId() << endl;
+            if (!ee->hasCount())  // mark it for both its source and sink nodes
+            {
+               ee->setExecCount(1);
+               ee->setSecondExecCount(1);  // is this ever used?
+            }
+         }
+         ++ eit;
+      }
+   }     
+   if (addNodeCount){ 
+      NodesIterator nit(*this);
+      while ((bool)nit)
+      {
+         Node *nn = nit;
+         if (!nn->hasCount())
+         {
+            nn->setExecCount(1);
+            nn->setBlockCount(1);
+         } 
+         ++ nit;
+      }
+   } 
+   return (0);
+}
+
+int
 CFG::computeBBAndEdgeCounts()
 {
-     std::cout<<__func__<<"Line 398\n"; 
+     std::cout<<__func__<<"Line 441\n"; 
    // traverse all nodes
    // - for each node check how many incoming and outgoing edges have counts
    // - if node has counts on all edges on one side, we can compute the node frequency
@@ -457,7 +525,7 @@ CFG::computeBBAndEdgeCounts()
          nn->flags = nn->flags & ~(NODE_PARTIAL_COUNT);
          nn->flags |= CFG_COUNTER_NODE;
       }
-      
+     
       if (nn->hasCount())
       {
          if (nn->counter > 0)

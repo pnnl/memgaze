@@ -842,6 +842,9 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
          return (-1);
       }
    }
+//TODO FIXME I need to check if I build the cfg by file or dyninst.
+   ires = cfg->addBBAndEdgeCounts();
+
 
    createBlkNoToMiamiBlkMap(cfg);
    
@@ -1974,7 +1977,7 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
 			int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, 
 			CFG::AddrEdgeMMap *callEntryEdges)
 {
-     std::cout<<__func__<<"Line 1977\n"; 
+   std::cout<<__func__<<"Line 1977\n"; 
    std::cerr << "[INFO]Routine::constructPaths(): '" << name << "'\n";
    CFG::NodeList ba;
    CFG::EdgeList ea;
@@ -2307,7 +2310,7 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
          {  // try to fix paths so they include it
             fprintf(stderr, "WARNING: found block 0x%lx (%" PRIu64 "); Go hack the paths\n",
                   db->getStartAddress(), db->ExecCount() );
-            assert(!"I need adjustPaths");
+            assert(!"I need adjustPaths"); //OZGUR if I set ExecCount this will get triggered ??
  //           notready = adjustPaths(pscope, marker, bpmtemp);
             changed = changed || notready;
          }
@@ -2430,6 +2433,8 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
 	 std::cerr << "[INFO]Routine::constructPaths:schedule: '" << name << "'\n";
          RFormulasMap &refFormulas = *rFormulas;
 #if 1
+
+         std::cout << "So I am in if XCV "<<std::endl;
          //sch = new MIAMI_DG::DGBuilder(name.c_str(), pathId, 
          //     1 /*args.optimistic_memory_dep*/, refFormulas,
          //     InLoadModule(),
@@ -2519,6 +2524,7 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
          }  // if do_scheduling
          
 #else  // if 1/0
+         std::cout << "So I am in ELSE XCV "<<std::endl;
          bpit->second->latency = 1;
          bpit->second->num_uops = 1;
          if (pathId==targetPath)

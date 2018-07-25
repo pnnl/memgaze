@@ -12603,6 +12603,131 @@ SchedDG::Node::is_strided_reference()
    return (true);
 }
 
+bool SchedDG::Node::is_registers_set_in_loop(sliceVal in_val){ 
+   std::cout<<__func__<<std::endl;
+   SchedDG* this_cfg = this->in_cfg();
+   NodesIterator nit(*this_cfg);
+   while ((bool)nit) {
+      Node *nn = nit;
+      if (nn->isInstructionNode()){
+         if (nn->is_store_instruction()){
+            int opidx = nn->memoryOpIndex();
+            if (opidx >=0){
+               RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
+               if(refF != NULL){
+                  GFSliceVal oform = refF->base;
+                  GFSliceVal::iterator slit = oform.begin(); 
+                  sliceVal val = *slit;
+                  for (; slit !=oform.end();slit++){
+                     val =*slit;
+                  }
+                  std::cout<<"Node: "<<nn->getId()<<" sliceVal="<<val<<"checing sliceVal="<<in_val<<std::endl;
+                  if( val.ValueNum() == in_val.ValueNum()){
+                     std::cout<<"YEAAAAAAYYYY I found it\n";
+                     return true;
+                  }
+               }
+            }  
+         }
+      }
+      ++nit;
+   }
+   return false;
+}
+
+bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Node *nn){
+   std::cout<<__func__<<" 1 "<<std::endl;
+   RInfoList nnSrcRegs = nn->srcRegs;
+   RInfoList::iterator it = nnSrcRegs.begin();
+   int opidx = nn->memoryOpIndex();
+   for( ; it!=nnSrcRegs.end() ; ++it ) {
+//      if (it->name == 79){//TODO find better way for now it is hardcoded 
+         if (opidx >=0){
+            RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
+            if(refF != NULL){
+               GFSliceVal oform = refF->base;
+               coeff_t offset;
+               if (FormulaIsStackReference(oform, offset)){
+                  std::cout<<"this is a stack ref\n";
+                  
+                  GFSliceVal::iterator slit = oform.begin();
+                  sliceVal val = *slit;
+                  for (; slit !=oform.end();slit++){
+                     val = *slit;
+                  }
+                  std::cout<<"reg 79 Node:"<<nn->getId()<<std::endl;
+                  if(!is_registers_set_in_loop(val))
+                     return false;
+   //               GFSliceVal::iterator slit = oform.begin();
+   //               for (; slit !=oform.end();slit++){
+   //                  sliceVal val = *slit;
+   //               }
+               }
+            }
+//         }
+      }
+   }
+   std::cout<<__func__<<std::endl;
+   bool ret = false;
+   RInfoList nnDestRegs = nn->destRegs;
+   RInfoList::iterator irit = nnDestRegs.begin();
+   for( ; irit!=nnDestRegs.end() ; ++irit ) {
+      if (inSrcReg.name == irit->name){
+         std::cout<<"reg names are matching\n";
+         RInfoList::iterator nnrit = nnSrcRegs.begin();
+         for( ; nnrit!=nnSrcRegs.end() ; ++nnrit ) {
+            IncomingEdgesIterator ieit(nn);
+            while ((bool)ieit){
+               Node *inn = ieit->source();
+               if(recursive_check_dep_to_this_loop(*nnrit ,inn)){
+                  return (true);
+               }
+               ++ieit;
+            }
+         }
+      }
+   }   
+//      IncomingEdgesIterator ieit(nn);
+//      while ((bool)ieit){
+//         Node *inn = ieit->source();
+//         RInfoList inSrcRegs = inn->srcRegs;
+//         RInfoList::iterator irit = inSrcRegs.begin();
+//         for( ; irit!=inSrcRegs.end() ; ++irit ) {
+//            if (rit->name == irit->name) //gives you the number of src reg
+//               std::cout<<"reg names are matching\n";
+//         }
+//         ++ieit;
+//      }
+//   }   
+   return (ret);
+
+}
+/*
+ *Check if this instruction has any memory dependency coming
+ *from outer loop
+ */
+bool
+SchedDG::Node::is_dependent_only_this_loop(){
+   std::cout<<__func__<<std::endl;
+   RInfoList _srcRegs = srcRegs;
+   RInfoList::iterator rit = _srcRegs.begin(); 
+   for( ; rit!=_srcRegs.end() ; ++rit ) {
+      IncomingEdgesIterator ieit(this);
+      while ((bool)ieit){
+         Node *inn = ieit->source();
+         if (recursive_check_dep_to_this_loop(*rit, inn)){
+            return (true);
+         }
+         ++ieit;
+      }
+   }   
+   return (false);
+}
+
+
+
+
+
 /* Check if an instruction is a memory reference to the stack
  * with all strides zero, and no indirect or irregular stride.
  */

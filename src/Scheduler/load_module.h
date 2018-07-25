@@ -136,6 +136,7 @@ public:
 
    void createDyninstImage(BPatch& bpatch);
    int dyninstAnalyzeRoutine(std::string name, ProgScope *prog, const MiamiOptions *mo);
+   int loadFPfile(std::string name, ProgScope *prog, const MiamiOptions *mo);
    BPatch_image* getDyninstImage()
    {
       return dyn_image;

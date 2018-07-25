@@ -319,13 +319,17 @@ sliceVal::LoadFromFile(FILE* fd)
 
 std::ostream& operator<< (std::ostream& os, sliceVal& sv)
 {
+//   os <<"\nIcalled<<1_before\n";
    os << sv.toString();
+//   std::cout<<"\nIcalled<<1_after\n";
    return (os);
 }
 
 std::ostream& operator<< (std::ostream& os, const sliceVal& sv)
 {
+   std::cout<<"\nIcalled<<2_before\n";
    os << sv.toString();
+   std::cout<<"\nIcalled<<2_after\n";
    return (os);
 }
 /*

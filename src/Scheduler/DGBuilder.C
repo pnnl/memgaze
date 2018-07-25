@@ -296,7 +296,6 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
    }
    
    build_graph(numBlocks, ba, fa, innerRegs);
-   calculateMemoryData(memData, mdplList);
    // in loops with many indirect accesses we see an explosion of unnecessary 
    // memory dependencies. Write a method that traverses only memory 
    // instructions, along memory dependencies, and removes any trivial deps.
@@ -306,6 +305,7 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
    finalizeGraphConstruction();
    
    setCfgFlags(CFG_CONSTRUCTED);
+   calculateMemoryData(memData, mdplList);
    
    // delete the decoded instructions stored in builtNodes
    builtNodes.map(deleteInstsInMap, NULL);
@@ -321,24 +321,44 @@ DGBuilder::~DGBuilder()
   // builtNodes is emptied at the end of the constructor now.
 }
 
+void DGBuilder::printPath (DGBuilder::Node * nn , std::vector<int> *visited){
+   if(std::find(visited->begin(), visited->end(), nn->getId()) != visited->end()) {
+      return;
+   } else {
+      visited->push_back(nn->getId());
+   }
+   IncomingEdgesIterator ieit(nn);
+   while ((bool)ieit){
+      Node *inn = ieit->source();
+      
+      inn->longdump(this,std::cout);
+      printPath(inn , visited);
+      ++ieit;
+   }
+   return;
+}
 
 
 //ozgurS
 void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::MemDataPerLvlList * mdplList ){
      std::cout<<__func__<<"Line 326\n"; 
+//         std::cout<<std::endl;
+//         this->dump();
+//         std::cout<<std::endl;
+//         std::cout<<std::endl;
    NodesIterator fnit(*this);
    NodesIterator nit(*this);
    typedef std::vector <MIAMI::InstlvlMap *> MEEEM; 
    //MIAMI::MemListPerInst * memData;
    MEEEM * imemData = new MEEEM;
-     
+   std::vector<int> visited; 
    std::vector<MIAMI::InstlvlMap *>::iterator mit=memData->begin();
    std::map<unsigned long ,  int> seen;
    
-   int frameLoadInstr = 0;
-   int stridedLoadInstr = 0;
-   int indirectLoadInstr = 0;
-   int totalLoadInLoop = 0 ;  
+   long int frameLoadInstr = 0;
+   long int stridedLoadInstr = 0;
+   long int indirectLoadInstr = 0;
+   long int totalLoadInLoop = 0 ;  
    bool inLoop = false;
    
    while ((bool)fnit) {
@@ -354,15 +374,63 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
          std::cout<<"isLoopBoilerplate :"<<fnn->isLoopBoilerplate()<<std::endl;
          std::cout<<"isLoopCondition :"<<fnn->isLoopCondition()<<std::endl;
          std::cout<<"type:"<<fnn->getType()<<" IB_inner_loop :"<<IB_inner_loop <<std::endl;
+         std::cout<<std::endl;
+         std::cout<<"From here I am trying to find that if I have a dependency to outerloop\n"; 
+         std::cout<<"Node Dump :\n";
+         fnn->longdump(this,std::cout);  
+         std::cout<<"I am looking dep for NODEID:"<<fnn->getId()<<std::endl;
+//         printPath(fnn, &visited);
+         visited.clear();
+ //        std::cout<<std::endl;std::cout<<std::endl;std::cout<<std::endl;std::cout<<std::endl;std::cout<<std::endl;
+//         IncomingEdgesIterator ieit(fnn);
+//         int breakPoint = -1;
+//         while ((bool)ieit){
+//            Node *inn = ieit->source();
+//            if (breakPoint ==-1){
+//               breakPoint = inn->getId();   
+//            } else if(breakPoint == inn->getId()) {
+//               break;
+//            }
+//            inn->longdump(this,std::cout);
+//            //RInfoList::iterator rit = inn->srcRegs.begin();
+//            //for( ; rit!=srcRegs.end() ; ++rit ){
+//          }
+            int opidx = fnn->memoryOpIndex();
+            if (opidx >=0){
+               RefFormulas *refF = fnn->in_cfg()->refFormulas.hasFormulasFor(fnn->getAddress(), opidx);
+               if(refF != NULL){
+                  GFSliceVal oform = refF->base;
+                  std::cout<<"oform is: "<<oform<<std::endl;
+                  GFSliceVal::iterator slit = oform.begin();
+                  int index = 0;
+                  for (; slit !=oform.end();slit++){
+                     sliceVal val = *slit;
+                     std::cout<<"part: "<<index<<" slice:"<<val<<std::endl;
+                     index++;
+                  }
+                  int numStrides = refF->NumberOfStrides();
+                  for (int i=0 ; i<numStrides ; ++i){
+                     GFSliceVal& stride = refF->strides[i];
+                     //std::cout<<"stride "<<i<<" is:"<<stride<<std::endl;
+                  }
+               }
+            }
+
+         std::cout<<std::endl<<std::endl;
          inLoop = 1;//TODO fix this and find if you are in the loop
          if(fnn->is_load_instruction() && inLoop){
             totalLoadInLoop++;
             if (fnn->is_scalar_stack_reference()){
                frameLoadInstr++;
+               std::cout<<"this is a stack Load\n";
             } else if (fnn->is_strided_reference()){
                stridedLoadInstr++;
+               std::cout<<"this is a strided Load\n";
+                  fnn->is_dependent_only_this_loop();
             } else {
                indirectLoadInstr++;
+               std::cout<<"this is a indirect Load\n";
+                  fnn->is_dependent_only_this_loop();
             }
             std::cout<<"Testing mem Instructions in loop:\nTotal loads:"<<totalLoadInLoop<<"\tframe:"<<frameLoadInstr<<"\tstrided:"<<stridedLoadInstr<<"\tindirect:"<<indirectLoadInstr<<std::endl;
          }
@@ -380,7 +448,9 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
       if (nn->isInstructionNode()){
          if(seen.find((unsigned long)nn->getAddress())->second){
             std::cout<<"OZGUR DEBUG XCV Instruction Address:"<<std::hex<<(unsigned long)nn->getAddress()<<std::dec<<" intruction type:"<<nn->getType()<<" number of Uopps: "<<nn->getNumUopsInInstruction()<<std::endl;
-            imemData->push_back(nn->getLvlMap());
+            if (nn->getLvlMap()){
+               imemData->push_back(nn->getLvlMap());
+            }
             //nn->getLvlMap();
             //memData->push_back(img->getMemLoadData(nn->getAddress()));
             mit++;  
@@ -390,31 +460,30 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
       ++nit;
    }
 
-            std::cout<<"XXXDEBUG4"<<std::endl; 
 //   std::cerr<<"DEBUG CAN I CALL"<<__func__<<std::endl;
    struct Mem{
       int level;
-      int hits;
-      int miss;
+      long int hits;
+      long int miss;
       float windowSize;
    };
    
    std::vector<Mem> memVector;            //TODO find a better  way to loop for each level
-   int memoryHits = 0;
-   int total_lds = totalLoadInLoop; 
-   int frame_lds = frameLoadInstr; 
-   int strided_lds = stridedLoadInstr;
-   int indirect_lds =  indirectLoadInstr; 
+   long int memoryHits = 0;
+   long int total_lds = totalLoadInLoop; 
+   long int frame_lds = frameLoadInstr; 
+   long int strided_lds = stridedLoadInstr;
+   long int indirect_lds =  indirectLoadInstr; 
    int c_sample = 1; //TODO get this from user
 
 // initializing collected data variables
-   int all_loads = 0;   //lvl 0
-   int l1_hits = 0 ;    //lvl 1
-   int l2_hits = 0 ;    //lvl 2
-   int fb_hits = 0 ;    //lvl 3
-   int l3_hits = 0 ;    //lvl 4
-   int llc_miss = 0 ;   //lvl 5
-   int l2_pf_miss = 0 ; //lvl 6
+   long int all_loads = 0;   //lvl 0
+   long int l1_hits = 0 ;    //lvl 1
+   long int l2_hits = 0 ;    //lvl 2
+   long int fb_hits = 0 ;    //lvl 3
+   long int l3_hits = 0 ;    //lvl 4
+   long int llc_miss = 0 ;   //lvl 5
+   long int l2_pf_miss = 0 ; //lvl 6
 
 // initializing other vaiables
    float l1 = 0;
@@ -573,12 +642,12 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
 
       SchedDG::Node* node = new Node(this, pc, 0, primary_uop);
       node->setInOrderIndex(nextUopIndex++);
-//ozgurS
+//ozgurS TODO are we sure that only load inst has FP data ???
       if (node->is_load_instruction()){
          std::cout<<" OzgurDebuging lvlMap hit count = "<<img->getMemLoadData(node->getAddress())->find(0)->second.hitCount<<std::endl;
          node->setLvlMap(img->getMemLoadData(node->getAddress()));
          std::cout<<__func__<<" ozgur test total hit at lvl 0 is "<<node->getLvlMap()->find(0)->second.hitCount<<std::endl; 
-         assert(false && "Impossible!!");
+         assert(false && "Impossible!!");// why this is impossible ??
       }
 //ozgurE
       add(node);

@@ -266,6 +266,7 @@ public:
        exec_unit_type = ExecUnitType_LAST;
        vec_width = 0;
        Ctor();
+       lvlMap = NULL;
     }
     
     Node (SchedDG* _g, addrtype _address, int _idx, const InstructionClass& _ic) : DGraph::Node()
@@ -281,6 +282,7 @@ public:
        else
           vec_len = 0;
        Ctor();
+       lvlMap = NULL;
     }
     
     Node (SchedDG* _g, addrtype _address, int _idx, MIAMI::instruction_info& iiobj) :
@@ -296,6 +298,7 @@ public:
        else
           vec_width = 0;
        Ctor();
+       lvlMap = NULL;
     }
     
     virtual ~Node () {  }
@@ -469,6 +472,10 @@ public:
     bool is_scalar_stack_reference();
 //OZGURS
     bool is_strided_reference();
+    bool is_dependent_only_this_loop();
+    bool recursive_check_dep_to_this_loop(register_info inSrcReg ,Node *nn);
+    bool is_registers_set_in_loop(sliceVal in_val);
+    bool is_dependent_to_upper_loops();
 //OZGURE    
 
     inline RetiredUopType getRetiredUopType() const
@@ -1611,10 +1618,10 @@ protected:
    float avgNumIters;
    Node *cfg_top, *cfg_bottom;
    Node *lastBranch;
-
+public: //FIXME TODO this should be protected
    // information to determine more precise memory dependencies
    RFormulasMap &refFormulas;
-   
+protected:
    LoadModule *img;
    /*  refNames and refsTable have been deprecated. The info is stored in
     *  the LoadModule object now. Use the API to check ref names.

@@ -68,7 +68,7 @@ struct imm_value_t {
 //ozgurS moving inslvlmap and mem struct to here
 struct memStruct {
    int level;
-   int hitCount;
+   double hitCount;
    double latency;
 };
 
