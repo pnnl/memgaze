@@ -408,6 +408,7 @@ public:
    Node* CfgExit() const     { return (static_cast<CFG::Node*>(cfg_exit)); }
    
    int computeBBAndEdgeCounts();
+   int addBBAndEdgeCounts();
    void deleteUntakenCallSiteReturnEdges();
    
 private:

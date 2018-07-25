@@ -134,6 +134,7 @@ public:
    
    const AddrSet& getMemoryReferences() const { return (memRefs); }
 
+    void printPath (DGBuilder::Node * nn , std::vector<int> * visited);
 private:
    void pruneTrivialMemoryDependencies ();
 

@@ -525,12 +525,14 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
      std::cout<<__func__<<"Line 525\n"; 
       newimg = new LoadModule (id, start_addr, low_offset, iname, hashKey);
       ++ loadedImgs;
-      
+     //TODO FIXME I commented out newimg->loadFromFile(fd, false) to force
+     //control flow to fetch cfg from dynisnt 
       // read only data for this image.
       newimg->loadFromFile(fd, false);  // do not parse routines now
       newimg->createDyninstImage(bpatch);
-      
-      newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
+     //FIXME TODO 
+      //newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
+      newimg->loadFPfile(mo->func_name, prog, mo);
       // Now go and analyze each routine; compute counts for all blocks and edges,
       // recover executed paths, attempt to decode and schedule the instructions
       // if string not empty, dump CFG of this routine
