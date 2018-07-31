@@ -126,93 +126,6 @@ DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
    builtNodes.map(deleteInstsInMap, NULL);
 }
 
-//FOOTPRINT VERSION TODO probably remove this or get rid of the extra stuff later
-DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
-		     int _opt_mem_dep, RFormulasMap& _refAddr,
-		     LoadModule *_img,
-		     int numBlocks, CFG::Node** ba, float* fa,
-		     RSIList* innerRegs,
-		     uint64_t _pathFreq, float _avgNumIters,
-                     MIAMI::MemListPerInst *_memData, MIAMI::MemDataPerLvlList *_mdplList)
-  : SchedDG(func_name, _pathId, _pathFreq, _avgNumIters, _refAddr, _img),
-    optimistic_memory_dep(_opt_mem_dep)
-{
-     std::cout<<__func__<<"Line 140\n"; 
-   assert( (numBlocks>=1) || 
-           !"Number of blocks to schedule is < 1. What's up?");
-#if DEBUG_GRAPH_CONSTRUCTION
-   DEBUG_GRAPH (1,
-      fprintf(stderr, "DGBuilder create path with %f average iterations\n", 
-          avgNumIters);
-   )
-#endif
-   memData =  _memData;
-   mdplList = _mdplList;
-  
-   // we do not read this flag right now.
-   // Assume we do not have pessimistic memory dependencies.
-   pessimistic_memory_dep = 0;
-   num_instructions = 0;
-   
-   nextGpReg = 1;
-   nextInReg = 1;
-   nextUopIndex = 1;
-   minPathAddress = ba[0]->getStartAddress();
-   maxPathAddress = ba[0]->getEndAddress();
-   // gmarin, 09/11/2013: The first block can be an inner loop, and
-   // inner loop nodes do not have an associated CFG, so the reloc_offset
-   // is always zero. Can all the blocks of a path be inner loops?
-   // Probabaly not, but it is safer to get it from the img object.
-   reloc_offset = img->RelocationOffset();  //ba[0]->RelocationOffset();
-   
-   for( int i=1 ; i<numBlocks ; ++i )
-   {
-      if (minPathAddress > ba[i]->getStartAddress())
-         minPathAddress = ba[i]->getStartAddress();
-      if (maxPathAddress < ba[i]->getEndAddress())
-         maxPathAddress = ba[i]->getEndAddress();
-   }
-   prev_inst_may_have_delay_slot = false;
-   instruction_has_stack_operation = false;
-   gpRegs = &gpMapper;
-//   fpRegs = &fpMapper;
-   prevBranch = NULL;
-   prevBarrier = lastBarrier = NULL;
-   lastBranchBB = NULL;
-   lastBranchProb = 0;
-   lastBranchId = 0;
-   // find how many register stacks are on this architecture.
-   // I have to maintain top markers for each one.
-   numRegStacks = number_of_register_stacks();
-   if (numRegStacks>0)
-   {
-      crt_stack_tops = new int[numRegStacks];
-      prev_stack_tops = new int[numRegStacks];
-      for (int i=0 ; i<numRegStacks ; ++i) {
-         crt_stack_tops[i] = prev_stack_tops[i] = max_stack_top_value(i);
-      }
-      stack_tops = crt_stack_tops;
-   } else {
-      stack_tops = crt_stack_tops = prev_stack_tops = 0;
-   }
-   
-   build_graph(numBlocks, ba, fa, innerRegs);
-   calculateMemoryData(memData, mdplList);
-   // in loops with many indirect accesses we see an explosion of unnecessary 
-   // memory dependencies. Write a method that traverses only memory 
-   // instructions, along memory dependencies, and removes any trivial deps.
-//   if (avgNumIters > ONE_ITERATION_EPSILON) 
-   pruneTrivialMemoryDependencies();
-   
-   finalizeGraphConstruction();
-   
-   setCfgFlags(CFG_CONSTRUCTED);
-   
-   // delete the decoded instructions stored in builtNodes
-   builtNodes.map(deleteInstsInMap, NULL);
-}
-
-
 
 // TODO: Palm version!
 DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
@@ -220,8 +133,7 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
 		     LoadModule *_img,
 		     int numBlocks, CFG::Node** ba, float* fa,
 		     RSIList* innerRegs,
-		     uint64_t _pathFreq, float _avgNumIters, 
-                     MIAMI::MemListPerInst * _memData, MemDataPerLvlList *_mdplList)
+		     uint64_t _pathFreq, float _avgNumIters) 
   : SchedDG(_routine->Name().c_str(), _pathId, _pathFreq, _avgNumIters,
 	    _refAddr, _img),
     optimistic_memory_dep(_opt_mem_dep)
@@ -234,8 +146,6 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
           avgNumIters);
    )
 #endif
-   memData =  _memData;
-   mdplList = _mdplList;
    routine = _routine;
    
    // we do not read this flag right now.
@@ -305,7 +215,7 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
    finalizeGraphConstruction();
    
    setCfgFlags(CFG_CONSTRUCTED);
-   calculateMemoryData(memData, mdplList);
+   calculateMemoryData(_routine);
    
    // delete the decoded instructions stored in builtNodes
    builtNodes.map(deleteInstsInMap, NULL);
@@ -321,45 +231,20 @@ DGBuilder::~DGBuilder()
   // builtNodes is emptied at the end of the constructor now.
 }
 
-void DGBuilder::printPath (DGBuilder::Node * nn , std::vector<int> *visited){
-   if(std::find(visited->begin(), visited->end(), nn->getId()) != visited->end()) {
-      return;
-   } else {
-      visited->push_back(nn->getId());
-   }
-   IncomingEdgesIterator ieit(nn);
-   while ((bool)ieit){
-      Node *inn = ieit->source();
-      
-      inn->longdump(this,std::cout);
-      printPath(inn , visited);
-      ++ieit;
-   }
-   return;
-}
-
 
 //ozgurS
-void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::MemDataPerLvlList * mdplList ){
-     std::cout<<__func__<<"Line 326\n"; 
-//         std::cout<<std::endl;
-//         this->dump();
-//         std::cout<<std::endl;
-//         std::cout<<std::endl;
+void DGBuilder::calculateMemoryData(Routine* _routine){
+   std::cout<<__func__<<"Line 326\n"; 
    NodesIterator fnit(*this);
    NodesIterator nit(*this);
    typedef std::vector <MIAMI::InstlvlMap *> MEEEM; 
-   //MIAMI::MemListPerInst * memData;
    MEEEM * imemData = new MEEEM;
-   std::vector<int> visited; 
-   std::vector<MIAMI::InstlvlMap *>::iterator mit=memData->begin();
    std::map<unsigned long ,  int> seen;
    
-   long int frameLoadInstr = 0;
-   long int stridedLoadInstr = 0;
-   long int indirectLoadInstr = 0;
-   long int totalLoadInLoop = 0 ;  
-   bool inLoop = false;
+   long int total_lds = 0;
+   long int frame_lds = 0;
+   long int strided_lds = 0;
+   long int indirect_lds = 0 ;  
    
    while ((bool)fnit) {
       Node *fnn = fnit;
@@ -379,68 +264,50 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
          std::cout<<"Node Dump :\n";
          fnn->longdump(this,std::cout);  
          std::cout<<"I am looking dep for NODEID:"<<fnn->getId()<<std::endl;
-//         printPath(fnn, &visited);
-         visited.clear();
- //        std::cout<<std::endl;std::cout<<std::endl;std::cout<<std::endl;std::cout<<std::endl;std::cout<<std::endl;
-//         IncomingEdgesIterator ieit(fnn);
-//         int breakPoint = -1;
-//         while ((bool)ieit){
-//            Node *inn = ieit->source();
-//            if (breakPoint ==-1){
-//               breakPoint = inn->getId();   
-//            } else if(breakPoint == inn->getId()) {
-//               break;
-//            }
-//            inn->longdump(this,std::cout);
-//            //RInfoList::iterator rit = inn->srcRegs.begin();
-//            //for( ; rit!=srcRegs.end() ; ++rit ){
-//          }
-            int opidx = fnn->memoryOpIndex();
-            if (opidx >=0){
-               RefFormulas *refF = fnn->in_cfg()->refFormulas.hasFormulasFor(fnn->getAddress(), opidx);
-               if(refF != NULL){
-                  GFSliceVal oform = refF->base;
-                  std::cout<<"oform is: "<<oform<<std::endl;
-                  GFSliceVal::iterator slit = oform.begin();
-                  int index = 0;
-                  for (; slit !=oform.end();slit++){
-                     sliceVal val = *slit;
-                     std::cout<<"part: "<<index<<" slice:"<<val<<std::endl;
-                     index++;
-                  }
-                  int numStrides = refF->NumberOfStrides();
-                  for (int i=0 ; i<numStrides ; ++i){
-                     GFSliceVal& stride = refF->strides[i];
-                     //std::cout<<"stride "<<i<<" is:"<<stride<<std::endl;
-                  }
+         int opidx = fnn->memoryOpIndex();
+         if (opidx >=0){
+            RefFormulas *refF = fnn->in_cfg()->refFormulas.hasFormulasFor(fnn->getAddress(), opidx);
+            if(refF != NULL){
+               GFSliceVal oform = refF->base;
+               std::cout<<"oform is: "<<oform<<std::endl;
+               GFSliceVal::iterator slit = oform.begin();
+               int index = 0;
+               for (; slit !=oform.end();slit++){
+                  sliceVal val = *slit;
+                  std::cout<<"part: "<<index<<" slice:"<<val<<std::endl;
+                  index++;
+               }
+               int numStrides = refF->NumberOfStrides();
+               for (int i=0 ; i<numStrides ; ++i){
+                  GFSliceVal& stride = refF->strides[i];
+                  //std::cout<<"stride "<<i<<" is:"<<stride<<std::endl;
                }
             }
+         }
 
          std::cout<<std::endl<<std::endl;
-         inLoop = 1;//TODO fix this and find if you are in the loop
-         if(fnn->is_load_instruction() && inLoop){
-            totalLoadInLoop++;
+         if(fnn->is_load_instruction()){
+            total_lds++;
             if (fnn->is_scalar_stack_reference()){
-               frameLoadInstr++;
+               frame_lds++;
                std::cout<<"this is a stack Load\n";
             } else if (fnn->is_strided_reference()){
-               stridedLoadInstr++;
+               strided_lds++;
                std::cout<<"this is a strided Load\n";
                   fnn->is_dependent_only_this_loop();
             } else {
-               indirectLoadInstr++;
+               indirect_lds++;
                std::cout<<"this is a indirect Load\n";
                   fnn->is_dependent_only_this_loop();
             }
-            std::cout<<"Testing mem Instructions in loop:\nTotal loads:"<<totalLoadInLoop<<"\tframe:"<<frameLoadInstr<<"\tstrided:"<<stridedLoadInstr<<"\tindirect:"<<indirectLoadInstr<<std::endl;
+            std::cout<<"Testing mem Instructions in loop:\nTotal loads:"<<total_lds<<"\tframe:"<<frame_lds<<"\tstrided:"<<strided_lds<<"\tindirect:"<<indirect_lds<<std::endl;
          }
-         //std::cout<<"OZGUR DEBUG XCV Instruction Address:"<<std::hex<<(unsigned long)fnn->getAddress()<<std::dec<<" intruction type:"<<fnn->getType()<<" number of Uopps: "<<fnn->getNumUopsInInstruction()<<std::endl;
       }
       ++fnit;
    }
    
    std::cout<<std::endl<<std::endl; 
-   std::cout<<"Testing mem Instructions Final:\nTotal loads:"<<totalLoadInLoop<<"\tframe:"<<frameLoadInstr<<"\tstrided:"<<stridedLoadInstr<<"\tindirect:"<<indirectLoadInstr<<std::endl;
+   std::cout<<"Testing mem Instructions Final:\nTotal loads:"<<total_lds<<"\tframe:"<<frame_lds<<"\tstrided:"<<strided_lds<<"\tindirect:"<<indirect_lds<<std::endl;
    std::cout<<std::endl<<std::endl; 
    
    while ((bool)nit) {
@@ -451,9 +318,6 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
             if (nn->getLvlMap()){
                imemData->push_back(nn->getLvlMap());
             }
-            //nn->getLvlMap();
-            //memData->push_back(img->getMemLoadData(nn->getAddress()));
-            mit++;  
             seen[(unsigned long)nn->getAddress()] = 0;        
          }
       }
@@ -470,11 +334,6 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
    
    std::vector<Mem> memVector;            //TODO find a better  way to loop for each level
    long int memoryHits = 0;
-   long int total_lds = totalLoadInLoop; 
-   long int frame_lds = frameLoadInstr; 
-   long int strided_lds = stridedLoadInstr;
-   long int indirect_lds =  indirectLoadInstr; 
-   int c_sample = 1; //TODO get this from user
 
 // initializing collected data variables
    long int all_loads = 0;   //lvl 0
@@ -508,20 +367,20 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
    }
 
    if (total_lds){
-      l1_strided_lds = ((l1_hits*c_sample) / total_lds) * strided_lds; //TODO check div0
+      l1_strided_lds = ((l1_hits) / total_lds) * strided_lds; 
    } else {
       l1_strided_lds = -1;
    }
 
    if (total_lds && llc_miss){
-      mem_wpl = (float)((((l1_hits+l2_hits+l3_hits)*c_sample)/total_lds) *
-            indirect_lds) /(llc_miss*c_sample); //TODO check div0
+      mem_wpl = (float)((((l1_hits+l2_hits+l3_hits))/total_lds) *
+            indirect_lds) /(llc_miss); 
    } else {
      mem_wpl = -1; 
    }
 
    if (l2_pf_miss){
-      pf_wpl = l1_strided_lds / (l2_pf_miss*c_sample) ; //TODO check div0
+      pf_wpl = l1_strided_lds / (l2_pf_miss) ;
    } else {
       pf_wpl = -1;
    }
@@ -532,7 +391,7 @@ void DGBuilder::calculateMemoryData( MIAMI::MemListPerInst * memData, MIAMI::Mem
    l3 = l3_hits;
    l2 = l2_hits + fb_hits;
    l1 = all_loads -(pf+l2+l3+mem_hits);
-   fp = mem * 4 * c_sample; //TODO find better way
+   fp = mem * 4 ; //TODO find better way
    
    std::cout<<"PALM FOOTPRINT OUTPUT FOR ALL MEMORY NODES"<<std::endl;
    std::cout<<"ALL_loads:"<<all_loads<<std::endl;

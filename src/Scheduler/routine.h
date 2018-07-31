@@ -27,9 +27,14 @@
 #include "miami_options.h"
 #include "miami_containers.h"
 #include "instruction_class.h"
-
 #include <BPatch.h>
-
+//OZGURS
+//#include "routine.h"
+#include "miami_types.h"
+#include "DGBuilder.h"
+using namespace MIAMI;
+using namespace MIAMI_DG;
+//OZGURE
 namespace MIAMI
 {
 typedef std::list<std::string> StringList;
@@ -99,8 +104,13 @@ private:
 
    void myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const std::string& path);
    void constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
-            int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges);
+            int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges,
+            TarjanIntervals *tarj, RIFGNodeId node, MiamiRIFG* mCfg);//TODO Remove this line
 
+   void constructOuterLoopDG(ScopeImplementation *pscope, CFG::Node *b, int marker,
+            int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges, 
+            SchedDG *sch);
+   
    CFG::NodeList::iterator addBlock(ScopeImplementation *pscope, CFG::Node *pentry, 
            CFG::Node *thisb, CFG::Edge *lastE, CFG::NodeList& ba, CFG::EdgeList &ea, 
            RSIListList &rl, int marker, BPMap *bpm, int64_t& iCount);
@@ -146,7 +156,71 @@ private:
    BlkAddrMap* dyn_addrToBlkNo;
 
 };
-
+//LoopScope
+////this vector will keep the dependencies of each indiriect
+////or strided load but not the frame loads
+//typedef std::vector <FPdependencies* > FPDepVector;
+//
+//struct FPdependencies{
+//   coeff_t offset;
+//   int level;
+//};
+//
+//class FP{
+//public:
+//   FP(double _fp=-1){
+//      fp = _fp;
+//   }
+//   
+//   virtual ~FP(){}
+//
+//   double getFP(){return fp;}
+//   void setFP(double _fp){fp = _fp;}
+//   //This fuction will add a dependency to FP
+//   //it will also update the fp based on dependencies if it requires
+//   void addFPDependency(FPdependencies *_fpDep);
+//   FPDepMap * getFPDependencies(){return &fpDep;}
+//private:
+//   double fp;
+//   FPDepVector fpDep;
+//};
+//
+//class LoopFP {
+//public:
+//   LoopFP(FP *_fp, addrtype _loopId, addrtype _startAddress, 
+//            int _level, int _index, long int _loopCount, LoopFP *_innerLoop = NULL){
+//      fp = _fp;
+//      loopId = _loopId;
+//      startAddress = _startAddress;
+//      level = _level;
+//      index = _index;
+//      loopCount = _loopCount;
+//      innerLoop = _innerLoop;
+//   }
+//
+//   virtual ~LoopFP() {}
+//
+//   FP * getLoopFP(){return fp;}
+//   void setLoopFP(FP *_fp){fp = _fp;}
+//
+//   addrtype getLoopId(){return loopId;}
+//   addrtype getStartAddress(){return startAddress;}
+//   int getLevel () {return level;}
+//   int getIndex () {return index;}
+//   long int getLoopCount(){return loopCount;}
+//
+//   LoopFP * getInnerLoop(){return innerLoop;}
+//   void setInnerLoop(LoopFP * _innerLoop){innerLoop = _innerLoop;}
+//
+//private:
+//   FP *fp;
+//   addrtype loopId;
+//   addrtype startAddress;
+//   int level;
+//   int index;
+//   long int loopCount;
+//   LoopFP *innerLoop;
+//};
 
 };
 

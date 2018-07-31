@@ -14,6 +14,7 @@
 
 #include "scope_implementation.h"
 #include <string>
+//#include "routine.h"
 
 namespace MIAMI
 {
@@ -134,6 +135,13 @@ public:
       level = _level; index = _index;
    }
    
+//   LoopScope(ScopeImplementation *_parent, int _level, int _index, 
+//                  CodeScopeKey _key, MIAMI::LoopFP _loopFP)
+//         : ScopeImplementation(_parent, LOOP_SCOPE, _key)
+//   {
+//      level = _level; index = _index; loopFP = _loopFP;
+//   }
+   
    virtual ~LoopScope()  {}
 
    std::string ToString();
@@ -148,8 +156,12 @@ public:
    virtual void setStartLine(unsigned int _eLine, std::string& _func);
    virtual void setEndLine(unsigned int _eLine, std::string& _func);
    
+//   void addLoopFP( LoopFP _loopFP){ loopFP = _loopFP;}
+//   MIAMI::LoopFP * getLoopFP(){retrun loopFP;}
+
 private:
    int level, index;
+//   MIAMI::LoopFP loopFP;
 };
 
 class GroupScope : public ScopeImplementation
@@ -177,6 +189,71 @@ private:
    std::string group_name;
 };
 
+////this vector will keep the dependencies of each indiriect
+////or strided load but not the frame loads
+//typedef std::vector <FPdependencies* > FPDepVector;
+//
+//struct FPdependencies{
+//   coeff_t offset;
+//   int level;
+//};
+//
+//class FP{
+//public:
+//   FP(double _fp=-1){
+//      fp = _fp;
+//   }
+//   
+//   virtual ~FP(){}
+//
+//   double getFP(){return fp;}
+//   void setFP(double _fp){fp = _fp;}
+//   //This fuction will add a dependency to FP
+//   //it will also update the fp based on dependencies if it requires
+//   void addFPDependency(FPdependencies *_fpDep);
+//   FPDepMap * getFPDependencies(){return &fpDep;}
+//private:
+//   double fp;
+//   FPDepVector fpDep;
+//};
+//
+//class LoopFP {
+//public:
+//   LoopFP(FP *_fp, addrtype _loopId, addrtype _startAddress, 
+//            int _level, int _index, long int _loopCount, LoopFP *_innerLoop = NULL){
+//      fp = _fp;
+//      loopId = _loopId;
+//      startAddress = _startAddress;
+//      level = _level;
+//      index = _index;
+//      loopCount = _loopCount;
+//      innerLoop = _innerLoop;
+//   }
+//
+//   virtual ~LoopFP() {}
+//
+//   FP * getLoopFP(){return fp;}
+//   void setLoopFP(FP *_fp){fp = _fp;}
+//
+//   addrtype getLoopId(){return loopId;}
+//   addrtype getStartAddress(){return startAddress;}
+//   int getLevel () {return level;}
+//   int getIndex () {return index;}
+//   long int getLoopCount(){return loopCount;}
+//
+//   LoopFP * getInnerLoop(){return innerLoop;}
+//   void setInnerLoop(LoopFP * _innerLoop){innerLoop = _innerLoop;}
+//
+//private:
+//   FP *fp;
+//   addrtype loopId;
+//   addrtype startAddress;
+//   int level;
+//   int index;
+//   long int loopCount;
+//   LoopFP *innerLoop;
+//};
+//
 
 } /* namespace MIAMI */
 
