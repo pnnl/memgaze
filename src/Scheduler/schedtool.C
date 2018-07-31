@@ -409,6 +409,7 @@ main (int argc, char *argv[])
    MIAMI::mdriver.ParseIncludeExcludeFiles(KnobIncludeFile, KnobExcludeFile);
     
     int nImgs = MIAMI::mdriver.NumberOfImages();
+    nImgs=1;//TODO FIXME this is a hack delete it
     const std::string* iNames = MIAMI::mdriver.getImageNames();
     for (int i=0 ; i<nImgs ; ++i)
     {

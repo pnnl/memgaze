@@ -12636,71 +12636,60 @@ bool SchedDG::Node::is_registers_set_in_loop(sliceVal in_val){
 }
 
 bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Node *nn){
-   std::cout<<__func__<<" 1 "<<std::endl;
+   std::cout<<__func__<<std::endl;
    RInfoList nnSrcRegs = nn->srcRegs;
-   RInfoList::iterator it = nnSrcRegs.begin();
+//   RInfoList::iterator it = nnSrcRegs.begin();
    int opidx = nn->memoryOpIndex();
-   for( ; it!=nnSrcRegs.end() ; ++it ) {
-//      if (it->name == 79){//TODO find better way for now it is hardcoded 
-         if (opidx >=0){
-            RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
-            if(refF != NULL){
-               GFSliceVal oform = refF->base;
-               coeff_t offset;
-               if (FormulaIsStackReference(oform, offset)){
-                  std::cout<<"this is a stack ref\n";
-                  
-                  GFSliceVal::iterator slit = oform.begin();
-                  sliceVal val = *slit;
-                  for (; slit !=oform.end();slit++){
-                     val = *slit;
-                  }
-                  std::cout<<"reg 79 Node:"<<nn->getId()<<std::endl;
-                  if(!is_registers_set_in_loop(val))
+//   for( ; it!=nnSrcRegs.end() ; ++it ) {
+   if (nn->is_load_instruction()){
+      if (opidx >=0){
+         RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
+         if(refF != NULL){
+            GFSliceVal oform = refF->base;
+            coeff_t offset;
+            if (FormulaIsStackReference(oform, offset)){
+               std::cout<<"this is a stack ref: "<<std::endl;
+               GFSliceVal::iterator slit = oform.begin();
+               sliceVal val = *slit;
+               for (; slit !=oform.end();slit++){
+                  val = *slit;
+               }
+               std::cout<<"reg 79 Node:"<<nn->getId()<<std::endl;
+               if(!is_registers_set_in_loop(val)){
+                  if(is_dependent_to_upper_loops(/*val,thisloop->startAddress, thisloop->endAddress */)){  
                      return false;
-   //               GFSliceVal::iterator slit = oform.begin();
-   //               for (; slit !=oform.end();slit++){
-   //                  sliceVal val = *slit;
-   //               }
+                  } else {
+                     return true;
+                  }
+               
                }
             }
-//         }
+         }
       }
    }
-   std::cout<<__func__<<std::endl;
+   
+   std::cout<<__func__<<" calling next node"<<std::endl;
    bool ret = false;
    RInfoList nnDestRegs = nn->destRegs;
    RInfoList::iterator irit = nnDestRegs.begin();
    for( ; irit!=nnDestRegs.end() ; ++irit ) {
-      if (inSrcReg.name == irit->name){
+      if (inSrcReg.name == irit->name){//TODO if no match still go back on dependencieis
+                                       //FIXME is it possible to not have a match ??
          std::cout<<"reg names are matching\n";
          RInfoList::iterator nnrit = nnSrcRegs.begin();
          for( ; nnrit!=nnSrcRegs.end() ; ++nnrit ) {
             IncomingEdgesIterator ieit(nn);
             while ((bool)ieit){
                Node *inn = ieit->source();
-               if(recursive_check_dep_to_this_loop(*nnrit ,inn)){
-                  return (true);
+               if(!recursive_check_dep_to_this_loop(*nnrit ,inn)){
+                  return (false);
                }
                ++ieit;
             }
          }
       }
    }   
-//      IncomingEdgesIterator ieit(nn);
-//      while ((bool)ieit){
-//         Node *inn = ieit->source();
-//         RInfoList inSrcRegs = inn->srcRegs;
-//         RInfoList::iterator irit = inSrcRegs.begin();
-//         for( ; irit!=inSrcRegs.end() ; ++irit ) {
-//            if (rit->name == irit->name) //gives you the number of src reg
-//               std::cout<<"reg names are matching\n";
-//         }
-//         ++ieit;
-//      }
-//   }   
    return (ret);
-
 }
 /*
  *Check if this instruction has any memory dependency coming
@@ -12715,18 +12704,26 @@ SchedDG::Node::is_dependent_only_this_loop(){
       IncomingEdgesIterator ieit(this);
       while ((bool)ieit){
          Node *inn = ieit->source();
-         if (recursive_check_dep_to_this_loop(*rit, inn)){
-            return (true);
+         if (!recursive_check_dep_to_this_loop(*rit, inn)){
+            return (false);
          }
          ++ieit;
       }
    }   
-   return (false);
+   return (true);
 }
 
-
-
-
+/*
+ * This function check if any of thememory access dependencies 
+ * which was not in this loop dependen to outer loop
+ * Only call this function if you have a remaining dependencies.
+ * If this returns false that means my remaining dependencies are
+ * local , global variable or arguments to the function
+ * which are not affected the footprint.
+ */
+bool SchedDG::Node::is_dependent_to_upper_loops(){
+   return false;
+}
 
 /* Check if an instruction is a memory reference to the stack
  * with all strides zero, and no indirect or irregular stride.

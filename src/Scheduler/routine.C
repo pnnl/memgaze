@@ -843,7 +843,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
       }
    }
 //TODO FIXME I need to check if I build the cfg by file or dyninst.
-   ires = cfg->addBBAndEdgeCounts();
+//   ires = cfg->addBBAndEdgeCounts();
 
 
    createBlkNoToMiamiBlkMap(cfg);
@@ -1274,7 +1274,9 @@ Routine::build_paths_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
    {
       if (tarj->NodeIsLoopHeader(kid))
       { //OZGURS
-         std::cout<<"kid is header"<<std::endl;
+         CFG::Node *nn = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
+         std::cout<<"kid is header starts:"<<std::hex<<nn->getStartAddress()<<std::dec<<std::endl;
+         std::cout<<"Loop index:"<<tarj->LoopIndex(kid)<<" Level:"<<tarj->GetLevel(kid)<<std::endl; 
          //E
          int tmarker = tarj->LoopIndex(kid);
          LoopScope *lscope = new LoopScope (pscope, tarj->GetLevel(kid), 
@@ -1466,7 +1468,8 @@ std::cout<<"!is_zero2"<<std::endl;
       
       if (mo->do_cfgpaths){
          constructPaths(pscope, root_b, marker, no_fpga_acc, entryEdges,
-			callEntryEdges);
+			callEntryEdges,
+                        tarj, node, mCfg);//TODO mayneed to fix this
       }
       if(mo->do_mycfgpaths){
          myConstructPaths(pscope,no_fpga_acc,mo->block_path);
@@ -1480,7 +1483,8 @@ std::cout<<"!is_zero2"<<std::endl;
 #endif
       if (mo->do_cfgpaths){
          constructPaths(pscope, root_b, marker, no_fpga_acc, entryEdges,
-			callEntryEdges);
+			callEntryEdges,
+                        tarj, node, mCfg);
       }
       if(mo->do_mycfgpaths){
          myConstructPaths(pscope,no_fpga_acc,mo->block_path);
@@ -1734,7 +1738,7 @@ Routine::myConstructPaths(ScopeImplementation *pscope, int no_fpga_acc, const st
       /*        mdriver.RefNames(), mdriver.RefsTable(), */
               bpit->first->size, bpit->first->blocks, 
               bpit->first->probabs, bpit->first->innerRegs,
-              avgCount, avgCount, &bpit->second->memDataPerInst , &bpit->second->memDataPerLevel);
+              avgCount, avgCount);
               //bpit->second->count, avgCount);
 #if PROFILE_SCHEDULER
          MIAMIP::report_time (stderr, "Graph construction for path %s", pathId.Name());
@@ -1971,13 +1975,349 @@ Routine::myConstructPaths(ScopeImplementation *pscope, int no_fpga_acc, const st
    }
 }
 
+void
+Routine::constructOuterLoopDG(ScopeImplementation *pscope, CFG::Node *b, int marker,
+			int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, 
+			CFG::AddrEdgeMMap *callEntryEdges,
+                        SchedDG *sch)
+{
+   std::cout<<__func__<<"Line 1977\n"; 
+   std::cout<<"b: "<<std::hex<<b->getStartAddress()<<std::dec<<std::endl; 
+   std::cerr << "[INFO]Routine::constructPathsLoopDG(): '" << name << "'\n";
+   CFG::NodeList ba;
+   CFG::EdgeList ea;
+   RSIListList rl;
+   BMSet& entries = pscope->InnerEntries();
+   BMSet& exits = pscope->InnerExits();
+   PairRSIMap &pathRegs = pscope->PathRegisters ();
+   BPMap *bpmtemp = new BPMap();
+   LatencyType thisLoopLatency = 0;
+   uint64_t thisLoopUops = 0;
+
+   const Machine *tmach = 0;
+   if (mo->has_mdl)
+      tmach = mdriver.targets.front();
+   CFG *cfg = ControlFlowGraph();
+   
+   // b should be the loop head; For irreducible intervals we can have more
+   // than one head. For this I created the entryEdges data structure which
+   // stores all entry edges for an interval. We will use this more general 
+   // method. We iterate over all entry edges of a loop and attempt to recover
+   // the executed paths. Function call can also result in entry points for
+   // some intervals. This happens if I use instrumentation by request. The
+   // hooks that I use to start and stop instrumentation are in fact function
+   // calls. I do not know if it can happen naturally to have function calls
+   // as entry point, but perhaps a call to setjmp can act as an entry 
+   // point if we longjmp to it.
+   // gmarin 2009/11/06: For irreducible intervals I can have also edges going 
+   // into the middle of the loop, which can be the header of a normal loop
+   // inside the irreducible interval (the way I construct them). So I must 
+   // make the entry / exit blocks of all loops one level inside an irreducible
+   // interval avaialble as entry/exit blocks for the parent interval of the
+   // irreducible loop.
+   
+   std::pair <CFG::AddrEdgeMMap::iterator, CFG::AddrEdgeMMap::iterator> _entries = 
+           entryEdges->equal_range (b->getStartAddress());
+   CFG::AddrEdgeMMap::iterator eit;
+   for (eit=_entries.first ; eit!=_entries.second ; ++eit)
+   {
+      CFG::Edge *in_e = dynamic_cast<CFG::Edge*>(eit->second);
+      int64_t inCount = in_e->secondExecCount();
+      
+      if (inCount > 0)
+      {
+         CFG::Node *in_b = in_e->sink();
+         entries.insert (BMarker (in_b, in_b, marker, 0));
+         addBlock (pscope, in_b, in_b, in_e, ba, ea, rl, marker, bpmtemp, inCount);
+      } 
+   }
+
+   // it is possible to have some blocks with non-zero frequency ????
+   assert (ba.empty());  // I pop back anything I push.
+   assert (ea.empty());
+   assert (rl.empty());
+
+   // try also the entry points due to function calls.
+   // I wonder how should I process these? I would like to start with the
+   // actual function call that is the entry point. It may happen to have
+   // several function calls along the path. What if I start from some
+   // intermediary one?
+   _entries = callEntryEdges->equal_range (b->getStartAddress());
+   for (eit=_entries.first ; eit!=_entries.second ; ++eit)
+   {
+      CFG::Edge *in_e = dynamic_cast<CFG::Edge*>(eit->second);
+      int64_t inCount = in_e->ExecCount();
+      CFG::Node *in_b = in_e->sink();
+      CFG::Node *surrogb = in_e->source();
+      CFG::Edge *surrogE = surrogb->firstIncoming();
+      int64_t surrogCount = surrogE->ExecCount();
+      inCount -= surrogCount;
+
+      if (inCount>0 && in_b->isMarkedWith(marker) && in_b->Size()>0 && 
+                 in_b->ExecCount()>0)
+      {
+         entries.insert (BMarker (in_b, in_b, marker, 0));
+         addBlock (pscope, in_b, in_b, in_e, ba, ea, rl, marker, bpmtemp, inCount);
+      }
+   }
+
+   // it is possible to have some blocks with non-zero frequency ????
+   assert (ba.empty());  // I pop back anything I push.
+   assert (ea.empty());
+   assert (rl.empty());
+   
+   // There is one case which is not covered by the normal path detection approach
+   // When the Tarjan identified loop head has also a self cycling back-edge which 
+   // typically would create an inner loop, but the same node cannot be loop head
+   // at two different levels. I need to try forming a path from the loop head.
+   // This path may not even exit the main loop. We'll improvise something.
+   if (b->ExecCount()>0 && !b->isCfgEntry())  // try building paths from this node
+   {
+      int64_t lhCount = b->ExecCount();
+      addBlock (pscope, 0, b, NULL, ba, ea, rl, marker, bpmtemp, lhCount);
+   }
+
+   BMSet::iterator it;
+   // Check all the exits. If we exit with an edge that enters into an inner loop
+   // we must check the exits of that inner loop. We should find an exit from that
+   // inner loop that crosses multiple levels
+   for (it=exits.begin() ; it!=exits.end() ; )
+   {
+      ScopeImplementation *inScope = 0;
+      int lEntered = 0;
+      if ((lEntered=it->dummyE->getNumLevelsEntered())>0 &&
+            (inScope=pscope->Descendant (it->b->getMarkedWith()))!=0
+         )  // I must check exits from all those levels
+      {
+      
+         typedef std::list<ScopeImplementation*> ScopeList;
+         ScopeList iScopes;   // build a list of entered scopes, sorted from outer to inner most
+         int64_t exit_counter = it->dummyE->ExecCount();  // how much count we have to replace
+         
+         
+         while(inScope)
+         {
+            // I should not include the current scope. When a loop entry edge enters
+            // additional inner loops and I am looking at all the exits, I want to
+            // exclude the outermost loop, the one in which we are trying to find paths.
+            // Check by marker. If inScope's marker is current loop's marker, then do not
+            // include it and stop. We should not consider any loops which are outer this one.
+            if ((int)inScope->getMarkedWith() <= marker)
+               break;
+            iScopes.push_front(inScope);
+            if (lEntered > 1)
+            {
+               lEntered -= 1;
+               inScope = inScope->Parent();
+            } else
+               inScope = 0;
+         }
+         ScopeList::iterator slit = iScopes.begin();
+         for ( ; slit!=iScopes.end() ; )
+         {
+            inScope = *slit;
+            
+            BMSet& oldExits = inScope->InnerExits();
+
+            // first, add all exits to a map, ordered by the following criteria:
+            // - exist to a node marked with a smaller marker (key = 10)
+            // - exits to a node marked with marker  (key = 20)
+            // - exits that get me to a node marked with marker ^ MARKER_CODE (key = 50)
+            // - exist to a node marked with a larger marker  (key = 50)
+            typedef std::multimap<unsigned int, const BMarker*> ExitsMap;
+            ExitsMap sExits;  // scope exits
+            for (BMSet::iterator oit=oldExits.begin() ; oit!=oldExits.end() ; ++oit)
+            {
+               const BMarker *bm = &(*oit);
+               unsigned int key = 50;
+               int bmMarker = bm->b->getMarkedWith();
+               if (bmMarker < marker)
+                  key = 10;
+               else if (bmMarker == marker)
+                  key = 20;
+               // otherwise, the marker stays at 50
+               sExits.insert(ExitsMap::value_type(key, bm));
+            }
+            
+            for (ExitsMap::iterator emit=sExits.begin() ; 
+                 emit!=sExits.end() && exit_counter>0 ; 
+                 ++emit)
+            {
+               const BMarker *bm = emit->second;
+               if (bm->freq==0 || bm->dummyE->ExecCount()<=0)
+               {
+                  continue;
+               }
+               // add this exit to the current scope.
+               CFG::Node *lnode = pscope->hasLoopNode(it->entry);
+               assert(lnode);
+               int64_t counter = bm->dummyE->ExecCount();
+               if (counter > exit_counter)
+                  counter = exit_counter;  // we only need to replace that many exit paths
+               BMarker tempM (bm->entry, bm->b, marker, 
+                       new inner_loop_edge (lnode, bm->b),
+                       counter);
+               // mark that we are using counter exits
+               bm->dummyE->setExecCount(bm->dummyE->ExecCount() - counter);
+               BMSet::iterator bit = exits.find (tempM);
+               if (bit != exits.end())
+               {
+                  // I cannot modify in place because it is a const, bah
+                  tempM.freq += bit->freq;
+                  exits.erase (bit);
+               }
+               tempM.dummyE->setExecCount (tempM.freq);
+               unsigned int lEntered2 = bm->dummyE->getNumLevelsEntered();
+               tempM.dummyE->setNumLevelsEntered(lEntered2);
+               exits.insert (tempM);
+               exit_counter -= counter;
+            }
+            
+            // if this was the last scope to try, return; I do not want to go finalize a path 
+            // at the same time
+            ++slit;
+         }  // for each scope in iScopes
+      
+         // see if we used all the exit frequency
+         if (exit_counter > 0)  // BAAAAD
+         {
+            fprintf(stderr, "BAAAD: I have %" PRId64 " out of %" PRId64 " exit path counts that were not converted.\n", 
+                       exit_counter, it->dummyE->ExecCount());
+            it->dummyE->setExecCount(exit_counter);
+         } else   // it is zero
+         {
+            // Erase the current exit from the exits map
+            BMSet::iterator it2 = it;
+            ++ it;
+            exits.erase(it2);
+            continue;
+         }
+      }  // exit edge enters inner loop
+      
+      ++ it;
+   }
+   std::cout<<"OZGURXRT DEBUG 1\n";
+
+   // check that all blocks exhausted their frequency
+   // if any block has non-zero frequency, try to insert it in some path
+   // this is a laborious process
+
+   bool notready;
+   bool changed = false;
+   do
+   {
+      notready = false;
+      CFG::NodesIterator nit(*cfg);
+      while ((bool)nit)
+      {
+         CFG::Node *db = nit;
+         if (db->isMarkedWith(marker) && db->Size()>0 && db->ExecCount()>0)  // a lost block
+         {  // try to fix paths so they include it
+            fprintf(stderr, "WARNING: found block 0x%lx (%" PRIu64 "); Go hack the paths\n",
+                  db->getStartAddress(), db->ExecCount() );
+            assert(!"I need adjustPaths"); //OZGUR if I set ExecCount this will get triggered ??
+ //           notready = adjustPaths(pscope, marker, bpmtemp);
+            changed = changed || notready;
+         }
+         ++ nit;
+      }
+   } while(notready);
+
+
+#if PROFILE_SCHEDULER || DEBUG_BLOCK_PATHS_PRINT
+   long num_found_paths = bpmtemp->size();
+#endif
+#if PROFILE_SCHEDULER
+   MIAMIP::report_time (stderr, "Recover %ld paths for scope %s", num_found_paths,
+        pscope->ToString().c_str());
+#endif
+
+   std::cout<<"OZGURXRT DEBUG 2\n"<<"bptemp size:"<<bpmtemp->size()<<std::endl;
+   /* Temporary method to account for memory stalls and such.
+    * Keep track of all memory references in this scope. After all paths
+    * are scheduled, I will compute an average IPC for the scope.
+    * Next, use the mechanistic model to compute memory stalls and
+    * memory overlap.
+    */
+   AddrSet scopeMemRefs;
+   int loopIdx = 1;
+   for (BPMap::iterator bpit=bpmtemp->begin() ; bpit!=bpmtemp->end() ; 
+                ++bpit, ++loopIdx)
+   {
+     std::cout<<__func__<<"Line 2387 do I have LOOPS\n"; 
+      // pathId is 64 bits; Use 32 bits for head block address,
+      // 16 bits for loop index, 16 bits for path index in loop
+      PathID pathId(bpit->first->blocks[0]->getStartAddress());
+      if (pscope->getScopeType()==LOOP_SCOPE)
+         pathId.scopeIdx = dynamic_cast<LoopScope*>(pscope)->Index();
+      else
+      {
+         assert (pscope->getScopeType()==ROUTINE_SCOPE);
+         pathId.scopeIdx = 1;  // routines have index 1 I think
+      }
+      pathId.pathIdx = loopIdx;
+      bpit->second->pathId = pathId;
+
+      // FIXME: must compute the average number of times the backedge 
+      // is taken everytime we enter the loop; Use a dummy value now
+      float exit_count = pscope->getExitCount();
+      assert (exit_count>0.f || bpmtemp->size()==1);
+      if (exit_count<0.0001)
+         exit_count = bpit->second->count;
+
+//         float avgCount = pscope->getTotalCount() / pscope->getExitCount();
+      float avgCount = bpit->second->count / exit_count; //pscope->getExitCount();
+      if (! bpit->first->isExitPath ())
+         avgCount += 1.0;
+
+      // for now just dump the path to check that we can construct them correctly
+      
+
+  //    MIAMI_DG::DGBuilder *sch = NULL;
+      
+
+   std::cout<<"OZGURXRT DEBUG 3\n";
+      if (mo->do_build_dg)
+      {
+	 std::cerr << "[INFO]Routine::constructPathsLoopDG:schedule: '" << name << "'\n";
+         RFormulasMap &refFormulas = *rFormulas;
+
+         std::cout << "So I am in if new "<<std::endl;
+         sch = new MIAMI_DG::DGBuilder(this, pathId,
+              1 /*args.optimistic_memory_dep*/, refFormulas,
+              InLoadModule(),
+              bpit->first->size, bpit->first->blocks, 
+              bpit->first->probabs, bpit->first->innerRegs,
+              bpit->second->count, avgCount);
+#if PROFILE_SCHEDULER
+         MIAMIP::report_time (stderr, "Graph construction for path %s", pathId.Name());
+#endif
+
+         bpit->second->latency = 1;
+         bpit->second->num_uops = 1;
+         
+        
+        
+         if (sch)
+         {
+            delete sch;
+         }
+
+         thisLoopLatency += (bpit->second->count)*(bpit->second->latency);
+         thisLoopUops += (bpit->second->count)*(bpit->second->num_uops);
+      }  // if do_build_dg
+   }
+}
+
 
 void
 Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
 			int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, 
-			CFG::AddrEdgeMMap *callEntryEdges)
+			CFG::AddrEdgeMMap *callEntryEdges,
+                        TarjanIntervals *tarj,RIFGNodeId node, MiamiRIFG* mCfg )//Remove this line TODO
 {
    std::cout<<__func__<<"Line 1977\n"; 
+   std::cout<<"b: "<<std::hex<<b->getStartAddress()<<std::dec<<std::endl; 
    std::cerr << "[INFO]Routine::constructPaths(): '" << name << "'\n";
    CFG::NodeList ba;
    CFG::EdgeList ea;
@@ -2452,7 +2792,48 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
 #if PROFILE_SCHEDULER
          MIAMIP::report_time (stderr, "Graph construction for path %s", pathId.Name());
 #endif
-
+         MIAMI_DG::DGBuilder *schOuterLoop = NULL;
+//OZGURS 
+         {
+         int kid;
+         //CFG *myCfg = ControlFlowGraph();
+         //myCfg->computeBBAndEdgeCounts();
+         //createBlkNoToMiamiBlkMap(cfg);
+         //MiamiRIFG mCfg(myCfg);
+         //TarjanIntervals tarj(mCfg);
+         RIFGNodeId nodei = node;//mCfg->GetRootNode();
+         int cur_loop_index =-1, cur_loop_level=-1;
+         int prev_loop_index, prev_loop_level;
+//            for (kid = tarj->TarjOuter(nodei) ; kid != RIFG_NIL ;kid = tarj->TarjNext(kid)){
+//               CFG::Node *nn = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
+//            std::cout<<" kid:"<<std::hex<<nn->getStartAddress()<<
+//                  " this:"<<b->getStartAddress()<<std::dec<<std::endl;
+//            //if (tarj->NodeIsLoopHeader(kid)){
+//               if (b == nn){
+//                  std::cout<<"YUPPI I FOUND Node:"<<std::hex<<b->getStartAddress()<<
+//                     " kid:"<<nn->getStartAddress()<<
+//                     " 1st blk:"<<bpit->first->blocks[0]->getStartAddress()<<std::dec<<
+//                     " PathID:"<<pathId<<std::endl;
+//                  cur_loop_index = tarj->LoopIndex(kid);
+                  cur_loop_index = tarj->LoopIndex(node);
+//                  cur_loop_level = tarj->GetLevel(kid);
+                  cur_loop_level = tarj->GetLevel(node);
+//                  break;
+//               }
+//            //}
+//         }
+//         for (kid = tarj->TarjInners(nodei) ; kid != RIFG_NIL ;kid = tarj->TarjNext(kid)){
+         for (kid = tarj->TarjOuter(node) ; kid != RIFG_NIL ;kid = tarj->TarjNext(kid)){
+            if (tarj->NodeIsLoopHeader(kid)){
+               std::cout<<"cur: "<<cur_loop_level<<" kid: "<<tarj->GetLevel(kid)<<std::endl;
+               if (cur_loop_level-1 ==  tarj->GetLevel(kid)){
+                  constructOuterLoopDG(pscope, b, marker, no_fpga_acc, 
+                        entryEdges, callEntryEdges, schOuterLoop);
+               }
+            }
+         }
+         }
+//OZGURE
          bpit->second->latency = 1;
          bpit->second->num_uops = 1;
          
