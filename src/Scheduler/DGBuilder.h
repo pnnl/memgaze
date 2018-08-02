@@ -125,12 +125,13 @@ public:
    
    const AddrSet& getMemoryReferences() const { return (memRefs); }
 
+//ozgurS
+   void calculateMemoryData(int level);
+//ozgurE
+
 private:
    void pruneTrivialMemoryDependencies ();
 
-//ozgurS
-   void calculateMemoryData(Routine* _routine);
-//ozgurE
 
    void build_graph(int numBlocks, MIAMI::CFG::Node** ba, float* fa, RSIList* innerRegs);
    int build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float freq);

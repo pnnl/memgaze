@@ -12603,7 +12603,7 @@ SchedDG::Node::is_strided_reference()
    return (true);
 }
 
-bool SchedDG::Node::is_registers_set_in_loop(sliceVal in_val){ 
+bool SchedDG::Node::is_registers_set_in_loop(sliceVal in_val ,int level){ 
    std::cout<<__func__<<std::endl;
    SchedDG* this_cfg = this->in_cfg();
    NodesIterator nit(*this_cfg);
@@ -12635,7 +12635,7 @@ bool SchedDG::Node::is_registers_set_in_loop(sliceVal in_val){
    return false;
 }
 
-bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Node *nn){
+bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Node *nn, int level){
    std::cout<<__func__<<std::endl;
    RInfoList nnSrcRegs = nn->srcRegs;
 //   RInfoList::iterator it = nnSrcRegs.begin();
@@ -12655,7 +12655,7 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
                   val = *slit;
                }
                std::cout<<"reg 79 Node:"<<nn->getId()<<std::endl;
-               if(!is_registers_set_in_loop(val)){
+               if(!is_registers_set_in_loop(val,level)){
                   if(is_dependent_to_upper_loops(/*val,thisloop->startAddress, thisloop->endAddress */)){  
                      return false;
                   } else {
@@ -12681,7 +12681,7 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
             IncomingEdgesIterator ieit(nn);
             while ((bool)ieit){
                Node *inn = ieit->source();
-               if(!recursive_check_dep_to_this_loop(*nnrit ,inn)){
+               if(!recursive_check_dep_to_this_loop(*nnrit ,inn, level)){
                   return (false);
                }
                ++ieit;
@@ -12696,7 +12696,7 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
  *from outer loop
  */
 bool
-SchedDG::Node::is_dependent_only_this_loop(){
+SchedDG::Node::is_dependent_only_this_loop( int level){
    std::cout<<__func__<<std::endl;
    RInfoList _srcRegs = srcRegs;
    RInfoList::iterator rit = _srcRegs.begin(); 
@@ -12704,7 +12704,7 @@ SchedDG::Node::is_dependent_only_this_loop(){
       IncomingEdgesIterator ieit(this);
       while ((bool)ieit){
          Node *inn = ieit->source();
-         if (!recursive_check_dep_to_this_loop(*rit, inn)){
+         if (!recursive_check_dep_to_this_loop(*rit, inn , level)){
             return (false);
          }
          ++ieit;
