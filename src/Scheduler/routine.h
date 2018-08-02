@@ -98,9 +98,19 @@ public:
 private:
    const char * ComputeObjectNameForRef(addrtype pc, int32_t memop);
 
+   int build_loops_for_interval(ScopeImplementation *pscope, RIFGNodeId node, 
+           TarjanIntervals *tarj, MiamiRIFG* mCfg, int marker, int level, 
+           int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges);
+   
+   void constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
+            int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges);
+            //TarjanIntervals *tarj, RIFGNodeId node, MiamiRIFG* mCfg);//TODO Remove this line
+
    int build_paths_for_interval(ScopeImplementation *pscope, RIFGNodeId node, 
            TarjanIntervals *tarj, MiamiRIFG* mCfg, int marker, int level, 
            int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges);
+
+
 
    void myConstructPaths (ScopeImplementation *pscope, int no_fpga_acc, const std::string& path);
    void constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
@@ -111,6 +121,9 @@ private:
             int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges, 
             SchedDG *sch);
    
+   int simpleAddBlock(CFG::Node *thisb, CFG::NodeList& ba,  MIAMIU::FloatArray& fa, int marker);
+
+  
    CFG::NodeList::iterator addBlock(ScopeImplementation *pscope, CFG::Node *pentry, 
            CFG::Node *thisb, CFG::Edge *lastE, CFG::NodeList& ba, CFG::EdgeList &ea, 
            RSIListList &rl, int marker, BPMap *bpm, int64_t& iCount);

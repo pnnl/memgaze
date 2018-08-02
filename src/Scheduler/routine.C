@@ -1080,6 +1080,10 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
          MIAMIP::report_time (stderr, "Compute symbolic formulas for routine %s", rName.c_str());
 #endif
       }
+      //OZGURS
+      build_loops_for_interval (rscope, root, &tarj, &mCfg, tarj.LoopIndex(root), 0,
+                1 /*no_fpga_acc */, entryEdges, callEntryEdges);
+      //OZGURE
       // pass level info as well.
       if (build_paths_for_interval (rscope, root, &tarj, &mCfg, tarj.LoopIndex(root), 0,
                 1 /*no_fpga_acc */, entryEdges, callEntryEdges))
@@ -1159,6 +1163,353 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
    DeleteControlFlowGraph();
    return (0);
 }
+
+//OZGURS
+//in here I need to find the hit ratio and calculate the FP and put it to pscope  for this loop.
+//it looks like  this function  finds executed pats through loops
+//so I can find the loops here
+//
+//this function will build 1 dependency graph for each loop nest
+//
+//OZGURE 
+
+int
+Routine::build_loops_for_interval (ScopeImplementation *pscope, RIFGNodeId node, 
+            TarjanIntervals *tarj, MiamiRIFG* mCfg, int marker, int level, 
+            int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges)
+{
+     std::cout<<__func__<<"Line 1181\n"; 
+   CFG::Node* b;
+   int kid;
+   int is_zero = 1;
+
+   std::cerr << __func__<<" "<< name << "'\n";
+   b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(node));
+   b->markWith(marker);
+   
+   // Assign a unique ID to each scope in a LoadModule
+   // I identify scopes by their starting offset and level.
+   // This informations should be repeatable from to run. In the absence 
+   // of fully resolving indirect jumps, the CFGs may be incomplete, but
+   // I will try to find a way of choosing an appropriate scope in those
+   // situations. 
+   // However, another problem is caused by irreducible intervals. Irreducible
+   // intervals are characterized by having multiple nodes that can act as
+   // entry points. The Tarjan analysis picks one of the entry nodes to
+   // act as loop header, and I use that node's starting address to identify
+   // the scope. This may cause irreducible intervals to be identified by
+   // different starting addresses. I need to assign an ID to each possible
+   // starting address, and associate the interval's ScopeImplementation 
+   // object to each ID.
+   LoadModule *img = InLoadModule();
+   addrtype saddress = 0, reloc = img->RelocationOffset();
+   int rlevel = 0;
+   if (b->isCfgEntry())
+      saddress = Start();
+   else
+   {
+      saddress = b->getStartAddress();
+      rlevel = tarj->GetLevel(node);
+   }
+   int32_t nodeScopeId = img->AllocateIndexForScopePC(saddress+reloc, rlevel);
+   // In memreuse we also set the parent of a scope. Do we need this info??
+   // Decide later. However, I want to record the pscope associated with a scope ID.
+   img->SetSIForScope(nodeScopeId, pscope);  // set ScopeImplementation for this scope
+   pscope->setScopeId(nodeScopeId);
+//   img->SetParentForScope(nodeScopeId, parentId);
+
+   if (b->ExecCount() > 0)
+      is_zero = 0;
+   if (mo->do_linemap && b->Size()>0 && (b->ExecCount()>0 || b->Size()>5))
+      compute_lineinfo_for_block(pscope, b);
+      
+   // I need to iterate over the nodes twice. First time process only acyclic
+   // blocks. Mark them with current marker and compute line info, but do not 
+   // go recursivly inside loops or irreducible intervals (?).
+   // In the second pass process interval and irreducible nodes recursively.
+   // I need this two pass process because I want to compute the line info
+   // for outer blocks first. Inside loops I use the end line number of
+   // routines, therefore I need to compute it before I process any inner loop.
+   for (kid = tarj->TarjInners(node) ; kid != RIFG_NIL ; 
+                kid = tarj->TarjNext(kid))
+   {
+//      if (tarj->IntervalType(kid) == RI_TARJ_ACYCLIC)   // not a loop head
+        CFG::Node* nn  = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
+      std::cout<<"for level:"<<level<<" Kid:"<<std::hex<<nn->getStartAddress()<<std::dec<<std::endl;
+      if (! tarj->NodeIsLoopHeader(kid))
+      {
+         //OZGURS
+         std::cout<<"kid is not header"<<std::endl;
+         //E
+         b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
+         // nothing to do here
+         b->markWith(marker);
+         if (mo->do_linemap && b->Size()>0 && (b->ExecCount()>0 || b->Size()>5))
+            compute_lineinfo_for_block(pscope, b);
+         if (b->ExecCount() > 0)
+            is_zero = 0;
+      
+         // If the kid is part of an Irreducible interval, then check to
+         // see if it has any entry edges. In that case, assign a new
+         // scope ID for this scope using the block's starting address
+         if (tarj->getNodeType(node) == TarjanIntervals::NODE_IRREDUCIBLE)  // (natural) loop head
+         {
+            // iterate over the block's incoming edges
+            RIFGEdgeId inEdge;
+            RIFGEdgeIterator* ei = mCfg->GetEdgeIterator(kid, ED_INCOMING);
+            for (inEdge = ei->Current(); inEdge != RIFG_NIL; inEdge = (*ei)++)
+            {
+               RIFGNodeId src = mCfg->GetEdgeSrc (inEdge);
+               int lEnter = 0, lExit = 0;   // store number of levels crossed
+               tarj->tarj_entries_exits (src, kid, lEnter, lExit);
+               if (lEnter > 0)  // it is an interval entry edge
+               {
+                  saddress = b->getStartAddress();
+                  int32_t altScopeId = img->AllocateIndexForScopePC(saddress+reloc, rlevel);
+                  // In memreuse we also set the parent of a scope. Do we need this info??
+                  // Decide later. However, I want to record the pscope associated with a scope ID.
+                  img->SetSIForScope(altScopeId, pscope);  // assign ScopeImplementation for this scope
+                  //img->SetParentForScope(altScopeId, parentId);
+               }
+            }
+            delete ei;
+         }
+      }
+   }
+
+   for (kid = tarj->TarjInners(node) ; kid != RIFG_NIL ; 
+                kid = tarj->TarjNext(kid))
+   {
+      if (tarj->NodeIsLoopHeader(kid))
+      { //OZGURS
+         CFG::Node *nn = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
+         std::cout<<"kid is header starts:"<<std::hex<<nn->getStartAddress()<<std::dec<<std::endl;
+         std::cout<<"Loop index:"<<tarj->LoopIndex(kid)<<" Level:"<<tarj->GetLevel(kid)<<std::endl; 
+         //E
+         int tmarker = tarj->LoopIndex(kid);
+         LoopScope *lscope = new LoopScope (pscope, tarj->GetLevel(kid), 
+                         tmarker, tmarker);
+         if (lscope == 0) {
+            fprintf (stderr, "Cannot allocate new scope (loop)!!!\n");
+            exit (-11);
+         }
+         lscope->setMarkedWith(tmarker);
+//         assert (lscope->LoopNode() != 0);
+//         lscope->LoopNode()->markWith(tmarker);
+         
+         if (!build_loops_for_interval (pscope/*lscope*/, kid, tarj, mCfg, tmarker, level+1,
+                   no_fpga_acc, entryEdges, callEntryEdges))
+         {
+            RoutineScope *rscope = (RoutineScope*)lscope->Ancestor(ROUTINE_SCOPE);
+            assert (rscope!=NULL || !"Interval does not have ROUTINE ancestor");
+            pscope->addSourceFileInfo(lscope->getFileIndex(), rscope->RoutineName(),
+                 lscope->getStartLine(), lscope->getEndLine());
+            // these lines come from the inner loop. I should have already
+            // added them in the global map. Do not add them again.
+//            pscope->setStartLine (lscope->getStartLine());
+//            pscope->setEndLine (lscope->getEndLine());
+         }
+      }
+   }
+   
+   CFG::Node *root_b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(node));
+   if (!is_zero || mo->do_ref_scope_index)
+   { 
+//OZGURS
+std::cout<<"!is_zero1"<<std::endl;
+//E 
+      if (mo->do_streams || mo->do_idecode || mo->do_ref_scope_index)
+      {
+ //OZGURS
+std::cout<<"!is_zero2"<<std::endl;
+//E        
+         AddrIntSet scopeMemRefs;
+         RefIClassMap refClasses;
+         
+         // traverse all blocks and decode the instructions in them
+         if (root_b->Size()>0 && (root_b->ExecCount()>0 || mo->do_ref_scope_index)) {
+            decode_instructions_for_block(pscope, root_b, root_b->ExecCount(), 
+                       scopeMemRefs, refClasses);
+         //, nodeScopeId);
+	 }
+         for (kid = tarj->TarjInners(node) ; kid != RIFG_NIL ; 
+                  kid = tarj->TarjNext(kid))
+            if (! tarj->NodeIsLoopHeader(kid))
+            {
+               b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
+               if (b->Size()>0 && (b->ExecCount()>0 || mo->do_ref_scope_index))
+                  decode_instructions_for_block(pscope, b, b->ExecCount(), 
+                         scopeMemRefs, refClasses);
+            }
+            
+         if (mo->do_ref_scope_index)
+         {
+            // use a temporary data-structure in which we include the first reference
+            // of each set. When we try to find equivalencies for a new ref, we
+            // only have to compare against the representatives of each set. All
+            // refs in a set must have the same type, name, strides, ...
+            // Use a map, where the value associated with a key is the ref's index.
+            AddrIntSet setRepresentatives;
+            addrtype reloc = img->RelocationOffset();
+            AddrIntSet::iterator ais = scopeMemRefs.begin(), ris;
+            for ( ; ais!=scopeMemRefs.end() ; ++ais)
+            {
+               // Get a unique index for this memory micro-op
+               int32_t iidx = img->AllocateIndexForInstPC(ais->first+reloc, ais->second);
+               // set also the scope index for this reference
+               img->SetScopeIndexForReference(iidx, nodeScopeId);
+               
+               // I should also group references into sets, based on their strides
+               // Aggregate references based on their type (load/store, int/fp,
+               // 32/64/128/... bits), their strides, and their corresponding 
+               // source code names.
+               // Should I also aggregate references with 0 strides? Yeah, why not.
+               const char *var_name = ComputeObjectNameForRef(ais->first, ais->second);
+               
+               // I need to get the full type of a reference. Use an InstructionClass?
+               // I have the refClasses map now. Use it to compare instruction types.
+               InstructionClass &iclass = refClasses[*ais];
+               assert (iclass.isValid());  // we should have class information for this reference
+               
+               // Get the symbolic forulas for the reference
+               RefFormulas* rf = rFormulas->hasFormulasFor(ais->first, ais->second);
+               int numStrides = 0;
+               if (rf)
+                  numStrides = rf->NumberOfStrides();
+                  
+               bool found = false;
+               // iterate over all representatives previously found
+               for (ris=setRepresentatives.begin() ; 
+                    !found && ris!=setRepresentatives.end() ; 
+                    ++ris)
+               {
+                  InstructionClass o_iclass = refClasses[*ris];
+                  // check types first, skip remaining tests if not equal
+                  if (! iclass.equals(o_iclass))
+                     continue;
+                     
+                  // Get the symbolic forulas for the reference
+                  RefFormulas* orf = rFormulas->hasFormulasFor(ris->first, ris->second);
+                  int o_numStrides = 0;
+                  if (orf)
+                     o_numStrides = orf->NumberOfStrides();
+                  // they should have equal numbers of strides, because they come
+                  // from the same loop
+                  if (numStrides != o_numStrides)
+                  {
+                     fprintf(stderr, "ERROR: References at locations <0x%" PRIxaddr ",%d> and <0x%"
+                            PRIxaddr ",%d> from the same loop, have different number of strides, %d and %d, respectivelly."
+                            " Problem likely caused by cached symbolic formulas from a different input, and variations in the CFGs between the inputs."
+                            " This loop is located at offset 0x%" PRIxaddr ", level %d in routine %s.\n",
+                            ais->first, ais->second, ris->first, ris->second,
+                            numStrides, o_numStrides, 
+                            (root_b->isCfgEntry() ? Start() : root_b->getStartAddress()),
+                            tarj->GetLevel(node), Name().c_str());
+                     fprintf(stderr, "Delete the associated <imageName-imageHash.stAn> file for this Image and run again.\n");
+                            
+                     assert (numStrides == o_numStrides);
+                  }
+                  bool eq_strides = true;
+                  for (int ss=0 ; ss<numStrides && eq_strides ; ++ss)
+                     if  (! FormulasAreIdentical(rf->strides[ss], 
+                                                orf->strides[ss]))
+                        eq_strides = false;
+                  if (! eq_strides)
+                     continue;
+                  
+                  // Finally, compare their names
+                  // Names are associated with set indecies, oops
+                  int32_t oidx = img->AllocateIndexForInstPC(ris->first+reloc, ris->second);
+                  int32_t setIdx = img->GetSetIndexForReference(oidx);
+                  const char* oname = img->GetNameForSetIndex(setIdx);
+                  if (! strcmp(var_name, oname))  // names are equal, hurrah
+                  {
+                     found = true;  // we'll exit the loop on this flag
+                     // add this ref to the found set
+                     img->AddReferenceToSet(iidx, setIdx);
+#if DEBUG_STATIC_MEMORY
+                     DEBUG_STMEM(2,
+                        fprintf(stderr, ">> Memory refer at 0x%" PRIxaddr " / %d has the same type (%s), name (%s) and pattern as ref at 0x%" PRIxaddr " / %d\n",
+                            ais->first, ais->second, iclass.ToString().c_str(), 
+                            var_name, ris->first, ris->second);
+                     )
+#endif
+                  }
+               }  // for each of previously found sets
+               
+               if (! found)  // no equivalencies, start a new set
+               {
+                  // add reference info to the set of representatives
+                  setRepresentatives.insert(*ais);
+                  // start a new set
+                  int32_t newset = img->AddReferenceToSet(iidx);
+                  // set variable name for this set
+                  img->SetNameForSetIndex(newset, var_name);
+#if DEBUG_STATIC_MEMORY
+                  DEBUG_STMEM(2,
+                     fprintf(stderr, ">> Memory refer at 0x%" PRIxaddr " / %d of type (%s), name (%s), starts a new set %d\n",
+                         ais->first, ais->second, iclass.ToString().c_str(), 
+                         var_name, newset);
+                  )
+#endif
+                  
+                  // for new sets, I need to record irregular access information
+                  // for later use.
+                  for (int ss=0 ; ss<numStrides ; ++ss)
+                     if  (rf->strides[ss].has_irregular_access() ||
+                          rf->strides[ss].has_indirect_access())
+                        img->SetIrregularAccessForSet(newset, ss);
+               }
+            }  // for each mem ref
+         }  // if do_ref_scope_index
+         
+         if (mo->do_streams)
+         {
+            // I need to get the set of memory refs in this scope
+            // the address field of the memrefs array is modified by the 
+            // compute_stream_reuse routine
+            RFormulasMap &refFormulas = *rFormulas;
+            mdriver.compute_stream_reuse_for_scope(mdriver.fstream, pscope, img->ImageID(), 
+                  scopeMemRefs, refFormulas, img->BaseAddr()+img->LowOffsetAddr()-reloc);
+         }
+      }
+      
+      if (mo->do_cfgpaths){
+         constructLoops(pscope, root_b, marker, no_fpga_acc, entryEdges,
+			callEntryEdges);
+                        //tarj, node, mCfg);//TODO mayneed to fix this
+      }
+      if(mo->do_mycfgpaths){
+         myConstructPaths(pscope,no_fpga_acc,mo->block_path);
+      }
+
+      return (0);
+   } else
+   {
+#if DEBUG_PROG_SCOPE
+      fprintf (stderr, "DELETING SCOPE\n");
+#endif
+      if (mo->do_cfgpaths){
+         //constructPaths(pscope, root_b, marker, no_fpga_acc, entryEdges,
+	//		callEntryEdges,
+         //               tarj, node, mCfg);
+      }
+      if(mo->do_mycfgpaths){
+         myConstructPaths(pscope,no_fpga_acc,mo->block_path);
+      }
+      return (0);
+   }
+   return (0);
+}
+
+
+
+
+
+
+
+
+
 //OZGURS
 //in here I need to find the hit ratio and calculate the FP and put it to pscope  for this loop.
 //it looks like  this function  finds executed pats through loops
@@ -2308,7 +2659,106 @@ Routine::constructOuterLoopDG(ScopeImplementation *pscope, CFG::Node *b, int mar
       }  // if do_build_dg
    }
 }
+//OZGURS
+//to construct all loops 
+void
+Routine::constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
+			int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, 
+			CFG::AddrEdgeMMap *callEntryEdges)
+{
+   std::cout<<__func__<<"Line 2669\n"; 
+   std::cout<<"b: "<<std::hex<<b->getStartAddress()<<std::dec<<" level:"<<b->getLevel()<<std::endl; 
+   std::cerr << "[INFO]Routine::constructLoops(): '" << name << "'\n";
+   CFG::NodeList ba;
+   CFG::EdgeList ea;
+   RSIListList rl;
+   PairRSIMap &pathRegs = pscope->PathRegisters ();
+   BPMap *bpmtemp = new BPMap();
+   LatencyType thisLoopLatency = 0;
+   uint64_t thisLoopUops = 0;
+   MIAMIU::FloatArray fa;
+   const Machine *tmach = 0;
+   if (mo->has_mdl)
+      tmach = mdriver.targets.front();
+   CFG *cfg = ControlFlowGraph();
+   simpleAddBlock(b, ba, fa, b->getStartAddress()+99);
+   BlockPath *bp = new BlockPath(ba, b , fa, rl , false);
+   bpmtemp->insert(BPMap::value_type(bp, new PathInfo(1)));
 
+   /* Temporary method to account for memory stalls and such.
+    * Keep track of all memory references in this scope. After all paths
+    * are scheduled, I will compute an average IPC for the scope.
+    * Next, use the mechanistic model to compute memory stalls and
+    * memory overlap.
+    */
+   std::cout<<__func__<<std::endl;
+   AddrSet scopeMemRefs;
+   int loopIdx = 1;
+   for (BPMap::iterator bpit=bpmtemp->begin() ; bpit!=bpmtemp->end() ; 
+                ++bpit, ++loopIdx)
+   {
+      for (int i=0; i < bpit->first->size ; i++){
+         std::cout<<"loopIDX: "<<loopIdx<<" block start addres:"<<std::hex<<bpit->first->blocks[i]->getStartAddress()<<std::dec<<std::endl;
+      }
+     std::cout<<__func__<<"Line 2387 do I have LOOPS\n"; 
+      // pathId is 64 bits; Use 32 bits for head block address,
+      // 16 bits for loop index, 16 bits for path index in loop
+      PathID pathId(bpit->first->blocks[0]->getStartAddress());
+      if (pscope->getScopeType()==LOOP_SCOPE)
+         pathId.scopeIdx = dynamic_cast<LoopScope*>(pscope)->Index();
+      else
+      {
+         //assert (pscope->getScopeType()==ROUTINE_SCOPE);
+         pathId.scopeIdx = 1;  // routines have index 1 I think
+      }
+      pathId.pathIdx = loopIdx;
+      bpit->second->pathId = pathId;
+
+      // FIXME: must compute the average number of times the backedge 
+      // is taken everytime we enter the loop; Use a dummy value now
+      float exit_count = pscope->getExitCount();
+      //assert (exit_count>0.f || bpmtemp->size()==1);
+      if (exit_count<0.0001)
+         exit_count = bpit->second->count;
+
+//         float avgCount = pscope->getTotalCount() / pscope->getExitCount();
+      float avgCount = bpit->second->count / exit_count; //pscope->getExitCount();
+      if (! bpit->first->isExitPath ())
+         avgCount += 1.0;
+
+     
+      MIAMI_DG::DGBuilder *sch = NULL;
+      
+      if (mo->do_build_dg)
+      {
+	 std::cerr << "[INFO]Routine::constructPaths:schedule: '" << name << "'\n";
+         RFormulasMap &refFormulas = *rFormulas;
+
+         std::cout << "So I am in if XCV "<<std::endl;
+         //sch = new MIAMI_DG::DGBuilder(name.c_str(), pathId, 
+         //     1 /*args.optimistic_memory_dep*/, refFormulas,
+         //     InLoadModule(),
+         // /*        mdriver.RefNames(), mdriver.RefsTable(), */
+         //     bpit->first->size, bpit->first->blocks, 
+         //     bpit->first->probabs, bpit->first->innerRegs,
+         //     bpit->second->count, avgCount);
+         sch = new MIAMI_DG::DGBuilder(this, pathId,
+              1 /*args.optimistic_memory_dep*/, refFormulas,
+              InLoadModule(),
+      /*        mdriver.RefNames(), mdriver.RefsTable(), */
+              bpit->first->size, bpit->first->blocks, 
+              bpit->first->probabs, bpit->first->innerRegs,
+              bpit->second->count, avgCount);
+      
+         sch->calculateMemoryData(b->getLevel());
+
+         if (sch)
+         {
+            delete sch;
+         }
+      }
+   }
+}
 
 void
 Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
@@ -2650,7 +3100,7 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
          {  // try to fix paths so they include it
             fprintf(stderr, "WARNING: found block 0x%lx (%" PRIu64 "); Go hack the paths\n",
                   db->getStartAddress(), db->ExecCount() );
-            assert(!"I need adjustPaths"); //OZGUR if I set ExecCount this will get triggered ??
+            //assert(!"I need adjustPaths"); //OZGUR if I set ExecCount this will get triggered ??
  //           notready = adjustPaths(pscope, marker, bpmtemp);
             changed = changed || notready;
          }
@@ -2722,12 +3172,16 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
     * Next, use the mechanistic model to compute memory stalls and
     * memory overlap.
     */
+   std::cout<<__func__<<std::endl;
    AddrSet scopeMemRefs;
    int loopIdx = 1;
    for (BPMap::iterator bpit=bpmtemp->begin() ; bpit!=bpmtemp->end() ; 
                 ++bpit, ++loopIdx)
    {
-     std::cout<<__func__<<"Line 2387 do I have LOOPS\n"; 
+      for (int i=0; i < bpit->first->size ; i++){
+         std::cout<<"loopIDX: "<<loopIdx<<" block start addres:"<<std::hex<<bpit->first->blocks[i]->getStartAddress()<<std::dec<<std::endl;
+      }
+      std::cout<<__func__<<"Line 2387 do I have LOOPS\n"; 
       // pathId is 64 bits; Use 32 bits for head block address,
       // 16 bits for loop index, 16 bits for path index in loop
       PathID pathId(bpit->first->blocks[0]->getStartAddress());
@@ -2794,45 +3248,44 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
 #endif
          MIAMI_DG::DGBuilder *schOuterLoop = NULL;
 //OZGURS 
-         {
-         int kid;
-         //CFG *myCfg = ControlFlowGraph();
-         //myCfg->computeBBAndEdgeCounts();
-         //createBlkNoToMiamiBlkMap(cfg);
-         //MiamiRIFG mCfg(myCfg);
-         //TarjanIntervals tarj(mCfg);
-         RIFGNodeId nodei = node;//mCfg->GetRootNode();
-         int cur_loop_index =-1, cur_loop_level=-1;
-         int prev_loop_index, prev_loop_level;
-//            for (kid = tarj->TarjOuter(nodei) ; kid != RIFG_NIL ;kid = tarj->TarjNext(kid)){
-//               CFG::Node *nn = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
-//            std::cout<<" kid:"<<std::hex<<nn->getStartAddress()<<
-//                  " this:"<<b->getStartAddress()<<std::dec<<std::endl;
-//            //if (tarj->NodeIsLoopHeader(kid)){
-//               if (b == nn){
-//                  std::cout<<"YUPPI I FOUND Node:"<<std::hex<<b->getStartAddress()<<
-//                     " kid:"<<nn->getStartAddress()<<
-//                     " 1st blk:"<<bpit->first->blocks[0]->getStartAddress()<<std::dec<<
-//                     " PathID:"<<pathId<<std::endl;
-//                  cur_loop_index = tarj->LoopIndex(kid);
-                  cur_loop_index = tarj->LoopIndex(node);
-//                  cur_loop_level = tarj->GetLevel(kid);
-                  cur_loop_level = tarj->GetLevel(node);
-//                  break;
+//         {
+//            int kid;
+//            //CFG *myCfg = ControlFlowGraph();
+//            //myCfg->computeBBAndEdgeCounts();
+//            //createBlkNoToMiamiBlkMap(cfg);
+//            //MiamiRIFG mCfg(myCfg);
+//            //TarjanIntervals tarj(mCfg);
+//            RIFGNodeId nodei = node;//mCfg->GetRootNode();
+//            int cur_loop_index =-1, cur_loop_level=-1;
+//            int prev_loop_index, prev_loop_level;
+//   //            for (kid = tarj->TarjOuter(nodei) ; kid != RIFG_NIL ;kid = tarj->TarjNext(kid)){
+//   //               CFG::Node *nn = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
+//   //            std::cout<<" kid:"<<std::hex<<nn->getStartAddress()<<
+//   //                  " this:"<<b->getStartAddress()<<std::dec<<std::endl;
+//   //            //if (tarj->NodeIsLoopHeader(kid)){
+//   //               if (b == nn){
+//   //                  std::cout<<"YUPPI I FOUND Node:"<<std::hex<<b->getStartAddress()<<
+//   //                     " kid:"<<nn->getStartAddress()<<
+//   //                     " 1st blk:"<<bpit->first->blocks[0]->getStartAddress()<<std::dec<<
+//   //                     " PathID:"<<pathId<<std::endl;
+//   //                  cur_loop_index = tarj->LoopIndex(kid);
+//                     cur_loop_index = tarj->LoopIndex(node);
+//   //                  cur_loop_level = tarj->GetLevel(kid);
+//                     cur_loop_level = tarj->GetLevel(node);
+//   //                  break;
+//   //               }
+//   //            //}
+//   //         }
+//            for (kid = tarj->TarjOuter(node) ; kid != RIFG_NIL ;kid = tarj->TarjNext(kid)){
+//               if (tarj->NodeIsLoopHeader(kid)){
+//                  std::cout<<"cur: "<<cur_loop_level<<" kid: "<<tarj->GetLevel(kid)<<std::endl;
+//                  if (cur_loop_level-1 ==  tarj->GetLevel(kid)){
+//                     constructOuterLoopDG(pscope, b, marker, no_fpga_acc, 
+//                           entryEdges, callEntryEdges, schOuterLoop);
+//                  }
 //               }
-//            //}
+//            }
 //         }
-//         for (kid = tarj->TarjInners(nodei) ; kid != RIFG_NIL ;kid = tarj->TarjNext(kid)){
-         for (kid = tarj->TarjOuter(node) ; kid != RIFG_NIL ;kid = tarj->TarjNext(kid)){
-            if (tarj->NodeIsLoopHeader(kid)){
-               std::cout<<"cur: "<<cur_loop_level<<" kid: "<<tarj->GetLevel(kid)<<std::endl;
-               if (cur_loop_level-1 ==  tarj->GetLevel(kid)){
-                  constructOuterLoopDG(pscope, b, marker, no_fpga_acc, 
-                        entryEdges, callEntryEdges, schOuterLoop);
-               }
-            }
-         }
-         }
 //OZGURE
          bpit->second->latency = 1;
          bpit->second->num_uops = 1;
@@ -3042,6 +3495,42 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
       mdriver.compute_memory_stalls_for_scope(pscope, scopeMemRefs);
    }
 }
+
+//OZGURS
+// pentry is the path entry block
+// - it can be NULL when I attempt to build a path from the loop head without an explicit
+//   non-zero incoming edge into the node
+// - in this case, I should not be able to find an exit path ... more corner cases.
+int
+Routine::simpleAddBlock(CFG::Node *thisb, CFG::NodeList& ba,  MIAMIU::FloatArray& fa, int marker)
+{
+   std::cout<<__func__<<std::endl;
+   if(!(bool)thisb)
+      return 0;
+   if (thisb->Size()>0 && thisb->isMarkedWith(marker) && thisb->ExecCount()<=0)
+      return 0;
+   if (thisb->isMarkedWith(marker) )
+      return 0;
+   
+//   ba.push_back(thisb);
+//   fa.push_back(1.0);
+   thisb->markWith(marker);
+   CFG::OutgoingEdgesIterator oeit(thisb);
+   while ((bool)oeit){
+      CFG::Edge *e = oeit;
+      ++ oeit;
+      if (e->ExecCount() == 0)
+         continue;
+      //if (e->source()->)
+      simpleAddBlock(e->sink(), ba , fa , marker);
+   }
+   ba.push_front(thisb);
+   fa.push_back(1.0);
+   return 0;
+}
+//OZGURE
+
+
 
 // pentry is the path entry block
 // - it can be NULL when I attempt to build a path from the loop head without an explicit

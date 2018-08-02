@@ -335,6 +335,7 @@ public:
     
     int getType() const   { return (type); }
     int getLevel() const  { return (_level); }
+    int setLevel(int level)  { _level=level; }
     void setNotDraw()     { _flags = (_flags | NODE_DONOT_DRAW); }
     unsigned int Degree() const   { return (fanin+fanout); }
 
@@ -472,9 +473,9 @@ public:
     bool is_scalar_stack_reference();
 //OZGURS
     bool is_strided_reference();
-    bool is_dependent_only_this_loop();
-    bool recursive_check_dep_to_this_loop(register_info inSrcReg ,Node *nn);
-    bool is_registers_set_in_loop(sliceVal in_val);
+    bool is_dependent_only_this_loop(int level);
+    bool recursive_check_dep_to_this_loop(register_info inSrcReg ,Node *nn, int level);
+    bool is_registers_set_in_loop(sliceVal in_val,int level);
     bool is_dependent_to_upper_loops();
 //OZGURE    
 

@@ -215,7 +215,7 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
    finalizeGraphConstruction();
    
    setCfgFlags(CFG_CONSTRUCTED);
-   calculateMemoryData(_routine);
+//   calculateMemoryData(-1);
    
    // delete the decoded instructions stored in builtNodes
    builtNodes.map(deleteInstsInMap, NULL);
@@ -233,7 +233,7 @@ DGBuilder::~DGBuilder()
 
 
 //ozgurS
-void DGBuilder::calculateMemoryData(Routine* _routine){
+void DGBuilder::calculateMemoryData(int level){
    std::cout<<__func__<<"Line 326\n"; 
    NodesIterator fnit(*this);
    NodesIterator nit(*this);
@@ -294,11 +294,11 @@ void DGBuilder::calculateMemoryData(Routine* _routine){
             } else if (fnn->is_strided_reference()){
                strided_lds++;
                std::cout<<"this is a strided Load\n";
-                  fnn->is_dependent_only_this_loop();
+                  fnn->is_dependent_only_this_loop(level);
             } else {
                indirect_lds++;
                std::cout<<"this is a indirect Load\n";
-                  fnn->is_dependent_only_this_loop();
+                  fnn->is_dependent_only_this_loop(level);
             }
             std::cout<<"Testing mem Instructions in loop:\nTotal loads:"<<total_lds<<"\tframe:"<<frame_lds<<"\tstrided:"<<strided_lds<<"\tindirect:"<<indirect_lds<<std::endl;
          }
@@ -756,6 +756,9 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
       if (entryVal)
          node->setEntryValue (entryVal);
       add(node);
+      //OZGURS
+      node->setLevel(b->getLevel());
+      //OZGURE
       // save how many micro-ops were in the original instruction
       // we may use this info later to reason about the number of instructions
       // and retirement rate
