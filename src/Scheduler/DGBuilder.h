@@ -126,7 +126,7 @@ public:
    const AddrSet& getMemoryReferences() const { return (memRefs); }
 
 //ozgurS
-   void calculateMemoryData(int level);
+   float calculateMemoryData(int level, int index , std::map<int,double> levelExecCounts);
 //ozgurE
 
 private:

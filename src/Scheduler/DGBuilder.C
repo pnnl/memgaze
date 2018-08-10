@@ -233,87 +233,109 @@ DGBuilder::~DGBuilder()
 
 
 //ozgurS
-void DGBuilder::calculateMemoryData(int level){
+float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double> levelExecCounts){
    std::cout<<__func__<<"Line 326\n"; 
+   std::cout<<"Level:"<<level<<std::endl;
+   std::map<int, double> loopsExecs = levelExecCounts;
+
+   loopsExecs.find(1)->second = loopsExecs.find(1)->second - 1; 
+      std::cout<<"loopExecCounts.find("<<0<<")->second"<<loopsExecs.find(0)->second<<std::endl;
+      std::cout<<"levelExecCounts.find("<<0<<")->second"<<levelExecCounts.find(0)->second<<std::endl;
+      std::cout<<"levelExecCounts.find("<<1<<")->second"<<loopsExecs.find(1)->second<<std::endl;
+   for (int i=2; i<=level; i++){
+      std::cout<<"levelExecCounts.find("<<i<<")->second"<<loopsExecs.find(i)->second<<std::endl;
+      loopsExecs.find(i)->second = loopsExecs.find(i)->second - loopsExecs.find(i-1)->second; 
+      std::cout<<"levelExecCounts.find("<<i<<")->second"<<loopsExecs.find(i)->second<<std::endl;
+   }
+
+
+
    NodesIterator fnit(*this);
    NodesIterator nit(*this);
    typedef std::vector <MIAMI::InstlvlMap *> MEEEM; 
    MEEEM * imemData = new MEEEM;
    std::map<unsigned long ,  int> seen;
-   
-   long int total_lds = 0;
-   long int frame_lds = 0;
-   long int strided_lds = 0;
-   long int indirect_lds = 0 ;  
-   
+   std::list<coeff_t> stackOffsetsOffLoops;
+   std::list<int> dependOnList;
+   float total_lds = 0;
+   float frame_lds = 0;
+   float strided_lds = 0;
+   float indirect_lds = 0;
+   float execRatio= 0.0;
+   //std::map<Node* ,std::list<int>> dependencyMap;
+   std::map<Node* ,std::list<depOffset>> dependencyMap;
+
    while ((bool)fnit) {
       Node *fnn = fnit;
-      if (fnn->isInstructionNode()){
-         seen[(unsigned long)fnn->getAddress()] = 1;
-         std::cout<<std::endl<<std::endl; 
-         std::cout<<"inst address:"<<std::hex<<fnn->getAddress()<<std::dec<<std::endl;
-         std::cout<<"lvl is:"<<fnn->getLevel()<<std::endl;
-         std::cout<<"is pf op :"<<fnn->is_prefetch_op()<<std::endl;
-         std::cout<<"is_scalar_stack_reference :"<<fnn->is_scalar_stack_reference()<<std::endl;
-         std::cout<<"is_strided_reference :"<<fnn->is_strided_reference()<<std::endl;
-         std::cout<<"isLoopBoilerplate :"<<fnn->isLoopBoilerplate()<<std::endl;
-         std::cout<<"isLoopCondition :"<<fnn->isLoopCondition()<<std::endl;
-         std::cout<<"type:"<<fnn->getType()<<" IB_inner_loop :"<<IB_inner_loop <<std::endl;
-         std::cout<<std::endl;
-         std::cout<<"From here I am trying to find that if I have a dependency to outerloop\n"; 
-         std::cout<<"Node Dump :\n";
-         fnn->longdump(this,std::cout);  
-         std::cout<<"I am looking dep for NODEID:"<<fnn->getId()<<std::endl;
-         int opidx = fnn->memoryOpIndex();
-         if (opidx >=0){
-            RefFormulas *refF = fnn->in_cfg()->refFormulas.hasFormulasFor(fnn->getAddress(), opidx);
-            if(refF != NULL){
-               GFSliceVal oform = refF->base;
-               std::cout<<"oform is: "<<oform<<std::endl;
-               GFSliceVal::iterator slit = oform.begin();
-               int index = 0;
-               for (; slit !=oform.end();slit++){
-                  sliceVal val = *slit;
-                  std::cout<<"part: "<<index<<" slice:"<<val<<std::endl;
-                  index++;
-               }
-               int numStrides = refF->NumberOfStrides();
-               for (int i=0 ; i<numStrides ; ++i){
-                  GFSliceVal& stride = refF->strides[i];
-                  //std::cout<<"stride "<<i<<" is:"<<stride<<std::endl;
+      std::cout<<"Node: "<<std::hex<<fnn->getAddress()<<std::dec<<" level:"<<fnn->getLevel()<<" index:"<<fnn->getLoopIndex()<<" in lvl:"<<level<<" in idx:"<<index<<std::endl;
+      if(fnn->getLevel()==level && fnn->getLoopIndex()==index){
+         if (fnn->isInstructionNode()){
+            seen[(unsigned long)fnn->getAddress()] = 5;
+            std::cout<<std::endl<<std::endl; 
+            std::cout<<"inst address:"<<std::hex<<fnn->getAddress()<<std::dec<<std::endl;
+            std::cout<<"lvl is:"<<fnn->getLevel()<<std::endl;
+            std::cout<<"is_scalar_stack_reference :"<<fnn->is_scalar_stack_reference()<<std::endl;
+            std::cout<<"is_strided_reference :"<<fnn->is_strided_reference()<<std::endl;
+            std::cout<<"type:"<<fnn->getType()<<" IB_inner_loop :"<<IB_inner_loop <<std::endl;
+            std::cout<<std::endl;
+            std::cout<<"Node Dump :\n";
+            fnn->longdump(this,std::cout);  
+            int opidx = fnn->memoryOpIndex();
+            if (opidx >=0){
+               RefFormulas *refF = fnn->in_cfg()->refFormulas.hasFormulasFor(fnn->getAddress(), opidx);
+               if(refF != NULL){
+                  GFSliceVal oform = refF->base;
+                  std::cout<<"oform is: "<<oform<<std::endl;
                }
             }
-         }
 
-         std::cout<<std::endl<<std::endl;
-         if(fnn->is_load_instruction()){
-            total_lds++;
-            if (fnn->is_scalar_stack_reference()){
-               frame_lds++;
-               std::cout<<"this is a stack Load\n";
-            } else if (fnn->is_strided_reference()){
-               strided_lds++;
-               std::cout<<"this is a strided Load\n";
-                  fnn->is_dependent_only_this_loop(level);
-            } else {
-               indirect_lds++;
-               std::cout<<"this is a indirect Load\n";
-                  fnn->is_dependent_only_this_loop(level);
+            std::cout<<std::endl;
+            if(fnn->is_load_instruction()){
+               execRatio = (double)fnn->getExecCount() / (double)loopsExecs.find(fnn->getLevel())->second;
+               std::cout<<"Ratio:"<<execRatio<<" this node execCount:"<<fnn->getExecCount()<<" loop exec count:"<<loopsExecs.find(fnn->getLevel())->second<<std::endl;
+               std::cout<<"ExecUnitType:"<<fnn->getExecUnitType()<<" BitWidth:"<<fnn->getBitWidth()<<" vecWidth:"<<fnn->getVecWidth()<<std::endl;
+               bool flag_stride = true;
+               total_lds+=1*execRatio;
+               if (fnn->is_scalar_stack_reference()){
+                  frame_lds+=1*execRatio;
+                  std::cout<<"this is a stack Load\n";
+               } else if (fnn->is_strided_reference()){
+                  IncomingEdgesIterator ieit(fnn);
+                  while ((bool)ieit){
+                     Node *nn = ieit->source();
+                     std::cout<<"nnId: "<<nn->getId()<<std::endl;
+                     if (nn->is_scalar_stack_reference()){
+                        frame_lds+=1*execRatio;
+                        std::cout<<"this is a constant strided load Load\n";
+                        flag_stride = false;
+                     }
+                     ++ieit;
+                  }
+                  if (flag_stride){
+                     strided_lds+=1*execRatio;
+                     std::cout<<"this is a strided Load\n";
+                     fnn->checkDependencies(&dependencyMap , level , index);
+                  }
+               } else {
+                  indirect_lds+=1*execRatio;
+                  std::cout<<"this is a indirect Load\n";
+                  fnn->checkDependencies(&dependencyMap , level , index);
+               }
+               std::cout<<"Testing mem Instructions in loop:\nTotal loads:"<<total_lds<<"\tframe:"<<frame_lds<<"\tstrided:"<<strided_lds<<"\tindirect:"<<indirect_lds<<std::endl;
             }
-            std::cout<<"Testing mem Instructions in loop:\nTotal loads:"<<total_lds<<"\tframe:"<<frame_lds<<"\tstrided:"<<strided_lds<<"\tindirect:"<<indirect_lds<<std::endl;
          }
       }
       ++fnit;
    }
    
-   std::cout<<std::endl<<std::endl; 
+   std::cout<<std::endl; 
    std::cout<<"Testing mem Instructions Final:\nTotal loads:"<<total_lds<<"\tframe:"<<frame_lds<<"\tstrided:"<<strided_lds<<"\tindirect:"<<indirect_lds<<std::endl;
    std::cout<<std::endl<<std::endl; 
    
    while ((bool)nit) {
       Node *nn = nit;
       if (nn->isInstructionNode()){
-         if(seen.find((unsigned long)nn->getAddress())->second){
+         if(seen.find((unsigned long)nn->getAddress())->second==5){
             std::cout<<"OZGUR DEBUG XCV Instruction Address:"<<std::hex<<(unsigned long)nn->getAddress()<<std::dec<<" intruction type:"<<nn->getType()<<" number of Uopps: "<<nn->getNumUopsInInstruction()<<std::endl;
             if (nn->getLvlMap()){
                imemData->push_back(nn->getLvlMap());
@@ -381,6 +403,8 @@ void DGBuilder::calculateMemoryData(int level){
 
    if (l2_pf_miss){
       pf_wpl = l1_strided_lds / (l2_pf_miss) ;
+//      if(pf_wpl > 16)
+//         pf_wpl = 16;
    } else {
       pf_wpl = -1;
    }
@@ -391,8 +415,112 @@ void DGBuilder::calculateMemoryData(int level){
    l3 = l3_hits;
    l2 = l2_hits + fb_hits;
    l1 = all_loads -(pf+l2+l3+mem_hits);
-   fp = mem * 4 ; //TODO find better way
+//   fp = mem * 4 ; //TODO find better way
+   fp = mem ; //TODO find better way
    
+   std::map<int , int> levels;
+   
+   std::cout<<"levelExecCounts.find("<<0<<")->second"<<levelExecCounts.find(0)->second<<std::endl;
+   for (int i=level; i>1; i--){
+      levelExecCounts.find(i)->second = levelExecCounts.find(i)->second / levelExecCounts.find(i-1)->second; 
+      std::cout<<"levelExecCounts.find("<<i<<")->second"<<levelExecCounts.find(i)->second<<std::endl;
+   }
+   levelExecCounts.find(1)->second = levelExecCounts.find(1)->second - 1;
+   std::cout<<"levelExecCounts.find("<<1<<")->second"<<levelExecCounts.find(1)->second<<std::endl;
+   std::cout<<"levelExecCounts.find("<<0<<")->second"<<levelExecCounts.find(0)->second<<std::endl;
+   float totLoads = strided_lds + indirect_lds;
+   std::cout<<"total loads:"<<totLoads<<std::endl;
+   float adjusted_fp=0;
+   std::list<std::list<depOffset>> baseOffsets;
+   std::map<Node* ,std::list<depOffset>>::iterator it =  dependencyMap.begin();
+   bool skip = false;
+   for (;it!=dependencyMap.end();++it){
+      for (int i= 0 ; i <= level ; i++){
+         levels.insert(std::map<int , int>::value_type(i , 0));
+      }
+      long int divider =1; 
+      std::list<depOffset>::iterator dit;
+      std::list<depOffset>::iterator lit;
+      std::list<depOffset>::iterator bit;
+      std::list<std::list<depOffset>>::iterator baseit = baseOffsets.begin();
+      for ( ; baseit!=baseOffsets.end(); ++baseit){
+         skip = false;
+         for (bit = baseit->begin(), dit = it->second.begin() ; bit!=baseit->end(); ++bit, ++dit){ 
+            std::cout<<"base level:"<<bit->level<<" offset:"<<bit->offset<<std::endl;
+            std::cout<<"depMap level:"<<dit->level<<" offset:"<<dit->offset<<std::endl;
+            if (bit->offset == dit->offset ){
+                  std::cout<<"offsets are same\n";
+               if ( dit->level == 0 && bit->level == 0){
+                  std::cout<<"skip is setted true\n";
+                  skip = true;
+               }
+            }
+         }
+         if(dit != it->second.end()){
+            std::cout<<"not same lenght\n";
+            skip =false;
+         }
+         if(skip){
+            std::cout<<"I am skipping\n";
+            break;
+         }
+
+            std::cout<<"go next iter\n";
+      }
+      if(skip){
+         std::cout<<"I found same array\n";
+         for (lit = it->second.begin() ; lit!=it->second.end(); ++lit){
+            std::cout<<"this is in level:"<<lit->level<<" offset:"<<lit->offset<<std::endl;
+         }
+         continue;
+      } else {
+         std::cout<<"This is not same array\n";
+         for (lit = it->second.begin() ; lit!=it->second.end(); ++lit){
+            std::cout<<"this is in level:"<<lit->level<<" offset:"<<lit->offset<<std::endl;
+         }
+         baseOffsets.push_back(it->second);
+      }
+//      if(std::find(baseOffsets.begin(),baseOffsets.end(),it->second)!=baseOffsets.end()){
+//         for (lit = it->second.begin() ; lit!=it->second.end(); ++lit){
+//            std::cout<<"this is in level:"<<lit->level<<" offset:"<<lit->offset<<std::endl;
+//         }
+//         std::cout<<"I found same array\n";
+//         continue;
+//      } else {
+//         for (lit = it->second.begin() ; lit!=it->second.end(); ++lit){
+//            std::cout<<"this is in level:"<<lit->level<<" offset:"<<lit->offset<<std::endl;
+//         }
+//         std::cout<<"This is not same array\n";
+//         baseOffsets.push_back(it->second);
+//      }
+      for (lit = it->second.begin() ; lit!=it->second.end(); ++lit){
+         int lvl = lit->level;
+         //sliceVal sval = lit->offset;
+         coeff_t sval = lit->offset;
+         depOffset tempDO;
+         tempDO.level = lvl;
+         tempDO.offset = sval;
+         levels.find(lvl)->second = 1;
+         std::cout<<" Level: "<<lvl;
+      }
+      std::cout<<std::endl;
+      for(int i =0 ; i <=level; i++){
+            std::cout<<" level:"<<i<<" count:"<<levelExecCounts.find(i)->second<<std::endl;
+         if (levels.find(i)->second ==0){
+            divider *=levelExecCounts.find(i)->second;
+            std::cout<<"divider: "<<divider<<" level:"<<i<<" count:"<<levelExecCounts.find(i)->second<<std::endl;
+         }
+      }
+//      int fp_of_load = (fp/ totLoads)/divider;
+      int size = it->first->getBitWidth()/8;
+      execRatio = (double)it->first->getExecCount() / (double)loopsExecs.find(it->first->getLevel())->second;
+      double fp_of_load = (((fp *size) / totLoads)/divider)*execRatio;
+      
+      adjusted_fp+=fp_of_load;
+      std::cout<<"this loads fp="<<fp_of_load<<" Divider="<<divider<<std::endl;
+      levels.clear();
+   }
+   fp = fp *4;//this is not correct is just there to check results with excel 
    std::cout<<"PALM FOOTPRINT OUTPUT FOR ALL MEMORY NODES"<<std::endl;
    std::cout<<"ALL_loads:"<<all_loads<<std::endl;
    std::cout<<"l1_hits:"<<l1_hits<<std::endl;
@@ -411,7 +539,9 @@ void DGBuilder::calculateMemoryData(int level){
    std::cout<<"l2:"<<l2<<std::endl;
    std::cout<<"l1:"<<l1<<std::endl;
    std::cout<<"FP:"<<fp<<std::endl<<std::endl;
-    
+   std::cout<<"Adjusted FP:"<<adjusted_fp<<std::endl<<std::endl;
+   //return fp; 
+   return adjusted_fp;
 }
 
 
@@ -758,6 +888,8 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
       add(node);
       //OZGURS
       node->setLevel(b->getLevel());
+      node->setLoopIndex(b->getLoopIndex());
+      node->setExecCount(b->ExecCount());
       //OZGURE
       // save how many micro-ops were in the original instruction
       // we may use this info later to reason about the number of instructions
