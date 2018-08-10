@@ -12795,8 +12795,8 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
    RInfoList nnSrcRegs = nn->srcRegs;
 //   RInfoList::iterator it = nnSrcRegs.begin();
    int opidx = nn->memoryOpIndex();
-   
-  
+   std::cout<<"Node:"<<nn->getId()<<" Address:"<<std::hex<<nn->getAddress()<<std::dec<<" Level:"<<nn->getLevel()<<std::endl;   
+ 
    if (nn->is_store_instruction()){
       if (level==nn->getLevel()){
          RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
@@ -12874,35 +12874,7 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
       }
    }
 
-//   for( ; it!=nnSrcRegs.end() ; ++it ) {
-//   if (nn->is_load_instruction()){
-//      if (opidx >=0){
-//         RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
-//         if(refF != NULL){
-//            GFSliceVal oform = refF->base;
-//            coeff_t offset;
-//            if (FormulaIsStackReference(oform, offset)){
-//               std::cout<<"this is a stack ref: "<<std::endl;
-//               GFSliceVal::iterator slit = oform.begin();
-//               sliceVal val = *slit;
-//               for (; slit !=oform.end();slit++){
-//                  val = *slit;
-//               }
-//               std::cout<<"reg 79 Node:"<<nn->getId()<<std::endl;
-//               if(!is_registers_set_in_loop(val,level)){
-//                  if(is_dependent_to_upper_loops(/*val,thisloop->startAddress, thisloop->endAddress */)){  
-//                     return false;
-//                  } else {
-//                     return true;
-//                  }
-//               
-//               }
-//            }
-//         }
-//      }
-//   }
-//   }
-   
+  
    std::cout<<__func__<<" calling next node"<<std::endl;
    bool ret = false;
    RInfoList nnDestRegs = nn->destRegs;
@@ -12932,6 +12904,7 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
    std::cout<<__func__<<" Iam done"<<std::endl;
    return (ret);
 }
+
 /*
  *Check if this instruction has any memory dependency coming
  *from outer loop

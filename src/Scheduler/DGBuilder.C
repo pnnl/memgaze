@@ -432,16 +432,50 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
    std::cout<<"total loads:"<<totLoads<<std::endl;
    float adjusted_fp=0;
    std::list<std::list<depOffset>> baseOffsets;
+   std::list<depOffset> indirectBaseOffsets;
    std::map<Node* ,std::list<depOffset>>::iterator it =  dependencyMap.begin();
    bool skip = false;
    for (;it!=dependencyMap.end();++it){
+      std::list<depOffset>::iterator tit =it->second.begin();
+      std::list<depOffset>::iterator dit;
+      std::list<depOffset>::iterator lit;
+      std::list<depOffset>::iterator bit;
+     
+      std::cout<<"Looking Node:"<<it->first->getId()<<" at address:"<<std::hex<<it->first->getAddress()<<std::dec<<" size:"<<it->second.size()<<std::endl;
+      for (; tit!=it->second.end(); ++tit){
+         std::cout<<"This node dep level:"<<tit->level<<" offset:"<<tit->offset<<std::endl;
+      }
+     //TODO FIXME check  if this corrupt the matrix 
+      if(!it->first->is_strided_reference()){
+//This block helps to eliminate mulple access but I am not sure
+//if it is correct thing to do.
+         if (it->second.size()==1){
+//            bit = indirectBaseOffsets.begin();
+//            dit = it->second.begin();
+//            if(bit != indirectBaseOffsets.end()){
+//               std::cout<<"did I get seg fault here?\n";
+//               if(bit->offset == dit->offset){
+//                  continue;
+//               }
+//            }
+//            indirectBaseOffsets.push_back(*(it->second.begin()));
+            int size1 = it->first->getBitWidth()/8;
+            execRatio = (double)it->first->getExecCount() / (double)loopsExecs.find(it->first->getLevel())->second;
+            double fp_of_load = (((fp *size1) / totLoads)*execRatio);///2; TODO why this works??
+      
+            adjusted_fp+=fp_of_load;
+            std::cout<<"this loads fp="<<fp_of_load<<" Size="<<size1<<" Ratio="<<execRatio<<std::endl;
+      std::cout<<std::endl;
+            levels.clear();
+            continue;
+         }
+      }
+      std::cout<<std::endl;
+      //Check End
       for (int i= 0 ; i <= level ; i++){
          levels.insert(std::map<int , int>::value_type(i , 0));
       }
       long int divider =1; 
-      std::list<depOffset>::iterator dit;
-      std::list<depOffset>::iterator lit;
-      std::list<depOffset>::iterator bit;
       std::list<std::list<depOffset>>::iterator baseit = baseOffsets.begin();
       for ( ; baseit!=baseOffsets.end(); ++baseit){
          skip = false;
@@ -517,7 +551,7 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
       double fp_of_load = (((fp *size) / totLoads)/divider)*execRatio;
       
       adjusted_fp+=fp_of_load;
-      std::cout<<"this loads fp="<<fp_of_load<<" Divider="<<divider<<std::endl;
+      std::cout<<"this loads fp="<<fp_of_load<<" Divider="<<divider<<" Size="<<size<<" Ratio="<<execRatio<<std::endl;
       levels.clear();
    }
    fp = fp *4;//this is not correct is just there to check results with excel 
