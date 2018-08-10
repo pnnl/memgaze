@@ -126,6 +126,19 @@ typedef std::pair<int, uint32_t> schedule_result_t;
      int memret;
      int cpuret;
    };
+
+    struct depOffset{
+      int level;
+//      sliceVal offset;
+      coeff_t offset;
+      
+      bool operator==(const depOffset& a) const
+      {
+          return (level == a.level && offset == a.offset);
+      }
+    
+    };
+
 //ozgurE
 
 
@@ -336,6 +349,15 @@ public:
     int getType() const   { return (type); }
     int getLevel() const  { return (_level); }
     int setLevel(int level)  { _level=level; }
+    int getLoopIndex() const  { return (_loopIdx); }
+    int setLoopIndex(int loopIdx)  { _loopIdx=loopIdx; }
+
+    width_t getBitWidth() const { return bit_width;}
+    width_t getVecWidth() const { return vec_width;}
+    double getExecCount() const  { return (_execCount); }
+    double setExecCount(double execCount)  { _execCount=execCount; }
+
+    
     void setNotDraw()     { _flags = (_flags | NODE_DONOT_DRAW); }
     unsigned int Degree() const   { return (fanin+fanout); }
 
@@ -473,9 +495,11 @@ public:
     bool is_scalar_stack_reference();
 //OZGURS
     bool is_strided_reference();
-    bool is_dependent_only_this_loop(int level);
-    bool recursive_check_dep_to_this_loop(register_info inSrcReg ,Node *nn, int level);
-    bool is_registers_set_in_loop(sliceVal in_val,int level);
+    int checkDependencies(std::map<Node* ,std::list<depOffset>> *depMap ,int level, int index);
+    bool recursive_check_dep_to_this_loop(register_info inSrcReg ,Node *nn, int level, 
+                        int index ,std::list<depOffset> *depLevels);
+    bool is_registers_set_in_loop(sliceVal in_val,Node *nn ,Node* firstNode ,int level, int index);
+    bool is_registers_set_in_level(sliceVal in_val,Node *nn ,Node* firstNode ,int level);
     bool is_dependent_to_upper_loops();
 //OZGURE    
 
@@ -512,7 +536,7 @@ public:
     
     void Ctor() 
     { 
-       _flags = 0; _level = 0;
+       _flags = 0; _level = 0; _loopIdx = 0;
        sccId = 0;
        resourceScore = 0.f;
 //       dependencyScore = 0;
@@ -571,6 +595,7 @@ public:
        in_order = 0;  // assign an index in the order in which instructions are found in the path
        id = _in_cfg->nextNodeId++; _visited = 0; tempVal = 0; 
        seenInFP = false;
+       _execCount = 0;
     }
     
 #if USE_SCC_PATHS
@@ -593,6 +618,7 @@ public:
 
     SchedDG* _in_cfg;
     int _level;
+    int _loopIdx;
     int hasCycles;
     unsigned int _visited;
     unsigned int tempVal;
@@ -707,6 +733,7 @@ public:
     imm_value_t immVals[max_num_imm_values];
    //OzgurS
     bool seenInFP;
+    double _execCount;
    //E
   };
   //------------------------------------------------------------------------------------------------------------------

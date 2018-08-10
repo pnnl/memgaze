@@ -12603,70 +12603,305 @@ SchedDG::Node::is_strided_reference()
    return (true);
 }
 
-bool SchedDG::Node::is_registers_set_in_loop(sliceVal in_val ,int level){ 
+bool SchedDG::Node::is_registers_set_in_level(sliceVal in_val, Node* nn ,Node* firstNode ,int level){ 
    std::cout<<__func__<<std::endl;
-   SchedDG* this_cfg = this->in_cfg();
-   NodesIterator nit(*this_cfg);
-   while ((bool)nit) {
-      Node *nn = nit;
-      if (nn->isInstructionNode()){
-         if (nn->is_store_instruction()){
-            int opidx = nn->memoryOpIndex();
+//   if(nn->getLoopIndex() != index)
+//      return false;
+   std::cout<<std::hex<<"nn:"<<nn->getAddress()<<std::dec<<std::endl;
+   bool ret = false;
+   if(firstNode != NULL){
+   std::cout<<std::hex<<"nn:"<<nn->getAddress()<< " firstNode"<<firstNode->getAddress()<<std::dec<<std::endl;
+      if(nn->getLevel() > level)
+         return false;
+      if(nn->getAddress()!=firstNode->getAddress())
+         return false;
+   }
+
+   OutgoingEdgesIterator ieit(nn);
+   while(ieit){
+      Node * nextNode = ieit->sink();
+      ++ieit;
+   std::cout<<"nextNode:"<<nextNode->getId()<<" Address:"<<std::hex<<nextNode->getAddress()<<std::dec<<std::endl;
+      if (nextNode->getLevel() > level ){
+         continue;
+      }
+      if (nextNode->getLevel() < level ){
+ //        nextNode->is_registers_set_in_loop(in_val, nextNode ,firstNode ,level, index);
+         continue; 
+      }
+      if(firstNode == NULL){
+         firstNode = nextNode;
+      }
+      if (nextNode->isInstructionNode()){
+         if (nextNode->is_store_instruction()){
+            int opidx = nextNode->memoryOpIndex();
             if (opidx >=0){
-               RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
+               RefFormulas *refF = nextNode->in_cfg()->refFormulas.hasFormulasFor(nextNode->getAddress(), opidx);
                if(refF != NULL){
                   GFSliceVal oform = refF->base;
-                  GFSliceVal::iterator slit = oform.begin(); 
+                  GFSliceVal::iterator slit = oform.begin();
                   sliceVal val = *slit;
                   for (; slit !=oform.end();slit++){
                      val =*slit;
                   }
-                  std::cout<<"Node: "<<nn->getId()<<" sliceVal="<<val<<"checing sliceVal="<<in_val<<std::endl;
                   if( val.ValueNum() == in_val.ValueNum()){
-                     std::cout<<"YEAAAAAAYYYY I found it\n";
+                     std::cout<<"AM I returning here ??\n";
                      return true;
-                  }
+                  } /*else {
+                     nextNode->is_registers_set_in_loop(in_val, nextNode ,firstNode ,level, index);
+                  }*/
                }
-            }  
+            }
+         } else {
+            if(nextNode->is_registers_set_in_level(in_val, nextNode ,firstNode ,level)){
+               ret = true;
+            }
          }
       }
-      ++nit;
+      firstNode = NULL;
    }
-   return false;
+   std::cout<<__func__<<" Iam done"<<std::endl;
+
+//   SchedDG* this_cfg = this->in_cfg();
+//   NodesIterator nit(*this_cfg);
+//   while ((bool)nit) {
+//      Node *nn = nit;
+//      if (nn->isInstructionNode()){
+//         if (nn->is_store_instruction()){
+//            int opidx = nn->memoryOpIndex();
+//            if (opidx >=0){
+//               RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
+//               if(refF != NULL){
+//                  GFSliceVal oform = refF->base;
+//                  GFSliceVal::iterator slit = oform.begin(); 
+//                  sliceVal val = *slit;
+//                  for (; slit !=oform.end();slit++){
+//                     val =*slit;
+//                  }
+//                  std::cout<<"Node: "<<nn->getId()<<" sliceVal="<<val<<"checing sliceVal="<<in_val<<std::endl;
+//                  if( val.ValueNum() == in_val.ValueNum()){
+//                     std::cout<<"YEAAAAAAYYYY I found it\n";
+//                     return true;
+//                  }
+//               }
+//            }  
+//         }
+//      }
+//      ++nit;
+//   }
+   return ret;
+}
+   
+
+bool SchedDG::Node::is_registers_set_in_loop(sliceVal in_val, Node* nn ,Node* firstNode ,int level, int index){ 
+   std::cout<<__func__<<std::endl;
+//   if(nn->getLoopIndex() != index)
+//      return false;
+   std::cout<<std::hex<<"nn:"<<nn->getAddress()<<std::dec<<std::endl;
+   bool ret = false;
+   if(firstNode != NULL){
+   std::cout<<std::hex<<"nn:"<<nn->getAddress()<< " firstNode"<<firstNode->getAddress()<<std::dec<<std::endl;
+      if(nn->getLevel() == level && nn->getLoopIndex() != index)
+         return false;
+      if(nn->getLevel() > level)
+         return false;
+      if(nn->getAddress()!=firstNode->getAddress())
+         return false;
+   }
+
+   OutgoingEdgesIterator ieit(nn);
+   while(ieit){
+      Node * nextNode = ieit->sink();
+      ++ieit;
+   std::cout<<"nextNode:"<<nextNode->getId()<<" Address:"<<std::hex<<nextNode->getAddress()<<std::dec<<std::endl;
+      if (nextNode->getLevel() == level && nextNode->getLoopIndex() != index){
+         continue;
+      }
+      if (nextNode->getLevel() > level ){
+         continue;
+      }
+      if (nextNode->getLevel() < level ){
+ //        nextNode->is_registers_set_in_loop(in_val, nextNode ,firstNode ,level, index);
+         continue; 
+      }
+      if(firstNode == NULL){
+         firstNode = nextNode;
+      }
+      if (nextNode->isInstructionNode()){
+         if (nextNode->is_store_instruction()){
+            int opidx = nextNode->memoryOpIndex();
+            if (opidx >=0){
+               RefFormulas *refF = nextNode->in_cfg()->refFormulas.hasFormulasFor(nextNode->getAddress(), opidx);
+               if(refF != NULL){
+                  GFSliceVal oform = refF->base;
+                  GFSliceVal::iterator slit = oform.begin();
+                  sliceVal val = *slit;
+                  for (; slit !=oform.end();slit++){
+                     val =*slit;
+                  }
+                  if( val.ValueNum() == in_val.ValueNum()){
+                     std::cout<<"AM I returning here ??\n";
+                     return true;
+                  } /*else {
+                     nextNode->is_registers_set_in_loop(in_val, nextNode ,firstNode ,level, index);
+                  }*/
+               }
+            }
+         } else {
+            if(nextNode->is_registers_set_in_loop(in_val, nextNode ,firstNode ,level, index)){
+               ret = true;
+            }
+         }
+      }
+      firstNode = NULL;
+   }
+   std::cout<<__func__<<" Iam done"<<std::endl;
+
+//   SchedDG* this_cfg = this->in_cfg();
+//   NodesIterator nit(*this_cfg);
+//   while ((bool)nit) {
+//      Node *nn = nit;
+//      if (nn->isInstructionNode()){
+//         if (nn->is_store_instruction()){
+//            int opidx = nn->memoryOpIndex();
+//            if (opidx >=0){
+//               RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
+//               if(refF != NULL){
+//                  GFSliceVal oform = refF->base;
+//                  GFSliceVal::iterator slit = oform.begin(); 
+//                  sliceVal val = *slit;
+//                  for (; slit !=oform.end();slit++){
+//                     val =*slit;
+//                  }
+//                  std::cout<<"Node: "<<nn->getId()<<" sliceVal="<<val<<"checing sliceVal="<<in_val<<std::endl;
+//                  if( val.ValueNum() == in_val.ValueNum()){
+//                     std::cout<<"YEAAAAAAYYYY I found it\n";
+//                     return true;
+//                  }
+//               }
+//            }  
+//         }
+//      }
+//      ++nit;
+//   }
+   return ret;
 }
 
-bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Node *nn, int level){
+
+
+bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Node *nn, int level,
+                     int index , std::list<depOffset> *depLevels){
    std::cout<<__func__<<std::endl;
    RInfoList nnSrcRegs = nn->srcRegs;
 //   RInfoList::iterator it = nnSrcRegs.begin();
    int opidx = nn->memoryOpIndex();
-//   for( ; it!=nnSrcRegs.end() ; ++it ) {
-   if (nn->is_load_instruction()){
-      if (opidx >=0){
+   
+  
+   if (nn->is_store_instruction()){
+      if (level==nn->getLevel()){
          RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
          if(refF != NULL){
             GFSliceVal oform = refF->base;
             coeff_t offset;
             if (FormulaIsStackReference(oform, offset)){
-               std::cout<<"this is a stack ref: "<<std::endl;
                GFSliceVal::iterator slit = oform.begin();
                sliceVal val = *slit;
                for (; slit !=oform.end();slit++){
                   val = *slit;
                }
-               std::cout<<"reg 79 Node:"<<nn->getId()<<std::endl;
-               if(!is_registers_set_in_loop(val,level)){
-                  if(is_dependent_to_upper_loops(/*val,thisloop->startAddress, thisloop->endAddress */)){  
-                     return false;
-                  } else {
-                     return true;
+               depOffset newDep;
+               newDep.level = level;
+               //newDep.offset = val;
+               newDep.offset = offset;
+               std::cout<<"offset "<<offset<<" val:"<<val<<std::endl;
+               //depLevels->push_back(level);
+               depLevels->push_back(newDep);
+               std::cout<<__func__<<"Store is in my level"<<std::endl;
+               return true;
+            }
+         }
+      } else {
+         if (opidx >=0){
+            RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
+            if(refF != NULL){
+               GFSliceVal oform = refF->base;
+               coeff_t offset;
+               if (FormulaIsStackReference(oform, offset)){
+                  GFSliceVal::iterator slit = oform.begin();
+                  sliceVal val = *slit;
+                  for (; slit !=oform.end();slit++){
+                     val = *slit;
                   }
-               
+                  if (nn->is_registers_set_in_loop(val, nn, NULL, level, index)){
+                     std::cout<<"Level is "<<level<<" index is "<<index<<std::endl;
+                     depOffset newDep;
+                     newDep.level = level;
+                     //newDep.offset = val;
+                     newDep.offset = offset;
+                     depLevels->push_back(newDep);
+               std::cout<<"offset "<<offset<<" val:"<<val<<std::endl;
+                     //depLevels->push_back(level);
+                     return true;
+                  } else {
+                     for (int i  = level-1 ; i>0 ; i--){
+                        if (nn->is_registers_set_in_level(val, nn, NULL, i)){
+                           std::cout<<"Level is "<<i<<" index is "<<index<<std::endl;
+                           depOffset newDep;
+                           newDep.level = i;
+                           //newDep.offset = val;
+                           newDep.offset = offset;
+               std::cout<<"offset "<<offset<<" val:"<<val<<std::endl;
+                           depLevels->push_back(newDep);
+
+                          // depLevels->push_back(i);
+                           return false;
+                        }
+                     }   
+                     depOffset newDep;
+                     newDep.level = nn->getLevel();
+                     //newDep.offset = val;
+                     newDep.offset = offset;
+                     depLevels->push_back(newDep);
+               std::cout<<"offset "<<offset<<" val:"<<val<<std::endl;
+
+                     //depLevels->push_back(nn->getLevel());
+                     std::cout<<"Level is "<<nn->getLevel()<<" index is "<<nn->getLoopIndex()<<std::endl;
+                     return false;
+                  }
                }
             }
          }
       }
    }
+
+//   for( ; it!=nnSrcRegs.end() ; ++it ) {
+//   if (nn->is_load_instruction()){
+//      if (opidx >=0){
+//         RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
+//         if(refF != NULL){
+//            GFSliceVal oform = refF->base;
+//            coeff_t offset;
+//            if (FormulaIsStackReference(oform, offset)){
+//               std::cout<<"this is a stack ref: "<<std::endl;
+//               GFSliceVal::iterator slit = oform.begin();
+//               sliceVal val = *slit;
+//               for (; slit !=oform.end();slit++){
+//                  val = *slit;
+//               }
+//               std::cout<<"reg 79 Node:"<<nn->getId()<<std::endl;
+//               if(!is_registers_set_in_loop(val,level)){
+//                  if(is_dependent_to_upper_loops(/*val,thisloop->startAddress, thisloop->endAddress */)){  
+//                     return false;
+//                  } else {
+//                     return true;
+//                  }
+//               
+//               }
+//            }
+//         }
+//      }
+//   }
+//   }
    
    std::cout<<__func__<<" calling next node"<<std::endl;
    bool ret = false;
@@ -12678,39 +12913,49 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
          std::cout<<"reg names are matching\n";
          RInfoList::iterator nnrit = nnSrcRegs.begin();
          for( ; nnrit!=nnSrcRegs.end() ; ++nnrit ) {
+            std::cout<<"Node: "<<nn->getId()<<" register"<<*nnrit<<std::endl;
             IncomingEdgesIterator ieit(nn);
             while ((bool)ieit){
                Node *inn = ieit->source();
-               if(!recursive_check_dep_to_this_loop(*nnrit ,inn, level)){
-                  return (false);
-               }
+               if(inn->getType() == IB_ret)
+                  return false;
                ++ieit;
+               std::cout<<"srcNode: "<<inn->getId()<<" register"<<*nnrit<<std::endl;
+               if(recursive_check_dep_to_this_loop(*nnrit ,inn, level, index , depLevels)){
+                  return (true);
+               }
+               //++ieit;
             }
          }
       }
    }   
+   std::cout<<__func__<<" Iam done"<<std::endl;
    return (ret);
 }
 /*
  *Check if this instruction has any memory dependency coming
  *from outer loop
  */
-bool
-SchedDG::Node::is_dependent_only_this_loop( int level){
+int
+SchedDG::Node::checkDependencies(std::map<Node* ,std::list<depOffset>> *depMap ,int level, int index){
    std::cout<<__func__<<std::endl;
    RInfoList _srcRegs = srcRegs;
-   RInfoList::iterator rit = _srcRegs.begin(); 
+   RInfoList::iterator rit = _srcRegs.begin();
+   //std::list<int> depLevels;
+   std::list<depOffset> depLevels;
    for( ; rit!=_srcRegs.end() ; ++rit ) {
       IncomingEdgesIterator ieit(this);
       while ((bool)ieit){
          Node *inn = ieit->source();
-         if (!recursive_check_dep_to_this_loop(*rit, inn , level)){
-            return (false);
-         }
+         inn->recursive_check_dep_to_this_loop(*rit, inn , level , index, &depLevels);
          ++ieit;
       }
-   }   
-   return (true);
+   }
+   
+   depMap->insert(std::map<Node* ,std::list<depOffset>>::value_type(this, depLevels));
+   std::cout<<__func__<<" I am done"<<std::endl;
+   
+   return (1);
 }
 
 /*

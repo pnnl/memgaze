@@ -1182,7 +1182,7 @@ Routine::build_loops_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
    CFG::Node* b;
    int kid;
    int is_zero = 1;
-
+   
    std::cerr << __func__<<" "<< name << "'\n";
    b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(node));
    b->markWith(marker);
@@ -1235,7 +1235,9 @@ Routine::build_loops_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
    {
 //      if (tarj->IntervalType(kid) == RI_TARJ_ACYCLIC)   // not a loop head
         CFG::Node* nn  = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
-      std::cout<<"for level:"<<level<<" Kid:"<<std::hex<<nn->getStartAddress()<<std::dec<<std::endl;
+        nn->setLoopIndex(tarj->LoopIndex(kid));
+      std::cout<<"for level:"<<level<<" Kid:"<<kid<<" Address:"<<std::hex<<nn->getStartAddress()<<std::dec<<std::endl;
+      std::cout<<"ExecCount="<<nn->ExecCount()<<std::endl;
       if (! tarj->NodeIsLoopHeader(kid))
       {
          //OZGURS
@@ -1474,10 +1476,10 @@ std::cout<<"!is_zero2"<<std::endl;
          }
       }
       
-      if (mo->do_cfgpaths){
+      if (mo->do_cfgpaths && !level){
          constructLoops(pscope, root_b, marker, no_fpga_acc, entryEdges,
-			callEntryEdges);
-                        //tarj, node, mCfg);//TODO mayneed to fix this
+			callEntryEdges,
+                        tarj, mCfg);//TODO mayneed to fix this
       }
       if(mo->do_mycfgpaths){
          myConstructPaths(pscope,no_fpga_acc,mo->block_path);
@@ -2664,7 +2666,8 @@ Routine::constructOuterLoopDG(ScopeImplementation *pscope, CFG::Node *b, int mar
 void
 Routine::constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
 			int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, 
-			CFG::AddrEdgeMMap *callEntryEdges)
+			CFG::AddrEdgeMMap *callEntryEdges,
+                        TarjanIntervals *tarj, MiamiRIFG* mCfg)
 {
    std::cout<<__func__<<"Line 2669\n"; 
    std::cout<<"b: "<<std::hex<<b->getStartAddress()<<std::dec<<" level:"<<b->getLevel()<<std::endl; 
@@ -2681,7 +2684,13 @@ Routine::constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
    if (mo->has_mdl)
       tmach = mdriver.targets.front();
    CFG *cfg = ControlFlowGraph();
-   simpleAddBlock(b, ba, fa, b->getStartAddress()+99);
+
+   //tarjar variables
+   //MiamiRIFG mCfg(cfg);
+   //TarjanIntervals tarj(mCfg);  // computes tarjan intervals
+   RIFGNodeId root = mCfg->GetRootNode();
+  
+   simpleAddBlock(root, ba, fa, b->getStartAddress()+99 , mCfg, tarj);
    BlockPath *bp = new BlockPath(ba, b , fa, rl , false);
    bpmtemp->insert(BPMap::value_type(bp, new PathInfo(1)));
 
@@ -2749,8 +2758,16 @@ Routine::constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
               bpit->first->size, bpit->first->blocks, 
               bpit->first->probabs, bpit->first->innerRegs,
               bpit->second->count, avgCount);
-      
-         sch->calculateMemoryData(b->getLevel());
+         std::map<int , float> fpPerLoop;
+         float totalFP=0;
+         std::map<int,double> levelExecCounts;
+         calculateFP(sch, root, mCfg, tarj, 0, &fpPerLoop, &totalFP, levelExecCounts);
+         //sch->calculateMemoryData(b->getLevel());
+         std::cout<<"TOTAL Footprint is "<<totalFP<<std::endl;
+         std::map<int , float>::iterator it;
+         for (it= fpPerLoop.begin(); it != fpPerLoop.end() ; it++){
+            std::cout<<"Footprint of Loop at index "<<it->first<<" is "<<it->second<<std::endl; 
+         }
 
          if (sch)
          {
@@ -2759,6 +2776,73 @@ Routine::constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
       }
    }
 }
+
+//OZGURS this function traverse on tarjan interval and calculate FP
+//starting from inner most loop to outer most
+int
+Routine::calculateFP(SchedDG *sch, RIFGNodeId node, 
+                     MiamiRIFG* mCfg, TarjanIntervals *tarj , int level ,
+                     std::map<int , float> *fpPerLoop, float *totalFP,
+                     std::map<int,double> levelExecCounts){
+   int kid , parent;
+   float tempFP = 0;
+   MIAMI_DG::DGBuilder * thisSch = static_cast<DGBuilder*>(sch);
+   std::cout<<__func__<<std::endl;
+         CFG::Node *b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(node));
+         std::cout<<" begin CALCFPlevelExecCounts.find("<<tarj->GetLevel(node)<<")->second "<<b->ExecCount()<<std::endl;
+         if(tarj->GetLevel(node) == 0)
+            levelExecCounts.insert(std::map<int,long int>::value_type(tarj->GetLevel(node),  b->ExecCount()));
+         std::cout<<"node CALCFPlevelExecCounts.find("<<tarj->GetLevel(node)<<")->second "<<levelExecCounts.find(tarj->GetLevel(node))->second<<std::endl;
+         std::cout<<"level0 CALCFPlevelExecCounts.find("<<0<<")->second "<<levelExecCounts.find(0)->second<<std::endl;
+   for (kid = tarj->TarjInners(node) ; kid != RIFG_NIL ;kid = tarj->TarjNext(kid)){
+      if (tarj->NodeIsLoopHeader(kid)){
+            std::cout<<"KID: "<<kid<<std::endl;
+         b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
+         std::cout<<" hmm CALCFPlevelExecCounts.find("<<tarj->GetLevel(kid)<<")->second "<<b->ExecCount()<<std::endl;
+         levelExecCounts.insert(std::map<int,long int>::value_type(tarj->GetLevel(kid),  b->ExecCount()));
+         calculateFP(sch, kid, mCfg, tarj, tarj->GetLevel(kid), fpPerLoop, totalFP , levelExecCounts);
+         
+//         //std::map<int,long int> levelExecCounts;
+//         //CFG::Node *b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
+//         levelExecCounts.insert(std::map<int,long int>::value_type(tarj->GetLevel(kid),  b->ExecCount()));
+//         std::cout<<"CALCFPlevelExecCounts.find("<<tarj->GetLevel(kid)<<")->second"<<levelExecCounts.find(tarj->GetLevel(kid))->second<<std::endl;
+//         
+//         for (parent = tarj->TarjOuter(kid) ; parent != RIFG_NIL ;parent = tarj->TarjOuter(parent)){
+//            std::cout<<"KID: "<<kid<<" Parent:"<<parent<<std::endl;
+//            if (!tarj->NodeIsLoopHeader(parent)){   
+//            std::cout<<"Not header KID: "<<kid<<" Parent:"<<parent<<std::endl;
+//            //This may not be the correct way FIXME 
+//            //TODO just add when it is loop head it needs to be a loop head
+//               for (parent = tarj->TarjNext(parent) ; parent != RIFG_NIL ;parent = tarj->TarjNext(parent)){
+//            std::cout<<"Not header in for KID: "<<kid<<" Parent:"<<parent<<std::endl;
+//               if (tarj->NodeIsLoopHeader(parent)){
+//            std::cout<<"Not header in for&if KID: "<<kid<<" Parent:"<<parent<<std::endl;
+//                     CFG::Node *b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(parent));
+//                     levelExecCounts.insert(std::map<int,long int>::value_type(tarj->GetLevel(parent),  b->ExecCount()));
+//         std::cout<<"CALCFPlevelExecCounts.find("<<tarj->GetLevel(kid)<<")->second"<<levelExecCounts.find(tarj->GetLevel(kid))->second<<std::endl;
+//                     break;
+//                  }
+//               }
+//            } else {
+//            std::cout<<"header KID: "<<kid<<" Parent:"<<parent<<std::endl;
+//               CFG::Node *b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(parent));
+//               levelExecCounts.insert(std::map<int,long int>::value_type(tarj->GetLevel(parent), b->ExecCount()));
+//         std::cout<<"CALCFPlevelExecCounts.find("<<tarj->GetLevel(kid)<<")->second"<<levelExecCounts.find(tarj->GetLevel(kid))->second<<std::endl;
+//            }
+//         }
+         
+         tempFP = thisSch->calculateMemoryData(tarj->GetLevel(kid), tarj->LoopIndex(kid) , levelExecCounts);
+         fpPerLoop->insert(std::map<int , float>::value_type(tarj->LoopIndex(kid), tempFP));
+         *totalFP += tempFP;
+      }
+   }                 
+   std::cout<<"TempFP="<<tempFP<<" Total="<<*totalFP<<std::endl;
+   std::cout<<"TotalFP="<<*totalFP<<std::endl;
+   return 0;
+   //sch->calculateMemoryData(b->getLevel());
+}
+//OZGURE
+
 
 void
 Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
@@ -3246,7 +3330,7 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
 #if PROFILE_SCHEDULER
          MIAMIP::report_time (stderr, "Graph construction for path %s", pathId.Name());
 #endif
-         MIAMI_DG::DGBuilder *schOuterLoop = NULL;
+//         MIAMI_DG::DGBuilder *schOuterLoop = NULL;
 //OZGURS 
 //         {
 //            int kid;
@@ -3502,8 +3586,11 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
 //   non-zero incoming edge into the node
 // - in this case, I should not be able to find an exit path ... more corner cases.
 int
-Routine::simpleAddBlock(CFG::Node *thisb, CFG::NodeList& ba,  MIAMIU::FloatArray& fa, int marker)
+Routine::simpleAddBlock(RIFGNodeId node, CFG::NodeList& ba,  MIAMIU::FloatArray& fa,
+                        int marker , MiamiRIFG *mCfg, TarjanIntervals *tarj)
 {
+   CFG::Node* thisb = static_cast<CFG::Node*>(mCfg->GetRIFGNode(node));
+   int kid;
    std::cout<<__func__<<std::endl;
    if(!(bool)thisb)
       return 0;
@@ -3511,21 +3598,36 @@ Routine::simpleAddBlock(CFG::Node *thisb, CFG::NodeList& ba,  MIAMIU::FloatArray
       return 0;
    if (thisb->isMarkedWith(marker) )
       return 0;
-   
+
 //   ba.push_back(thisb);
 //   fa.push_back(1.0);
    thisb->markWith(marker);
-   CFG::OutgoingEdgesIterator oeit(thisb);
-   while ((bool)oeit){
-      CFG::Edge *e = oeit;
-      ++ oeit;
-      if (e->ExecCount() == 0)
-         continue;
-      //if (e->source()->)
-      simpleAddBlock(e->sink(), ba , fa , marker);
+   for (kid = tarj->TarjInners(node) ; kid != RIFG_NIL ;kid = tarj->TarjNext(kid)){
+      CFG::Node* nn  = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
+      std::cout<<"kid id:"<<kid<<" Node:"<<std::hex<<nn->getStartAddress()<<std::dec<<std::endl;
+      if (! tarj->NodeIsLoopHeader(kid)){
+         ba.push_back(nn);
+         fa.push_back(1.0);
+         nn->markWith(marker);
+      } 
+      if (tarj->NodeIsLoopHeader(kid)){
+         ba.push_back(nn);
+         fa.push_back(1.0);
+         simpleAddBlock(kid, ba , fa , marker , mCfg , tarj);
+         nn->markWith(marker);
+      }
    }
-   ba.push_front(thisb);
-   fa.push_back(1.0);
+//   CFG::OutgoingEdgesIterator oeit(thisb);
+//   while ((bool)oeit){
+//      CFG::Edge *e = oeit;
+//      ++ oeit;
+//      if (e->ExecCount() == 0)
+//         continue;
+//      //if (e->source()->)
+//      simpleAddBlock(e->sink(), ba , fa , marker);
+//   }
+//   ba.push_front(thisb);
+//   fa.push_back(1.0);
    return 0;
 }
 //OZGURE

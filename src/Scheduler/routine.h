@@ -103,8 +103,8 @@ private:
            int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges);
    
    void constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
-            int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges);
-            //TarjanIntervals *tarj, RIFGNodeId node, MiamiRIFG* mCfg);//TODO Remove this line
+            int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges,
+            TarjanIntervals *tarj, MiamiRIFG* mCfg);//TODO Remove this line
 
    int build_paths_for_interval(ScopeImplementation *pscope, RIFGNodeId node, 
            TarjanIntervals *tarj, MiamiRIFG* mCfg, int marker, int level, 
@@ -121,8 +121,13 @@ private:
             int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges, 
             SchedDG *sch);
    
-   int simpleAddBlock(CFG::Node *thisb, CFG::NodeList& ba,  MIAMIU::FloatArray& fa, int marker);
+   int simpleAddBlock(RIFGNodeId node, CFG::NodeList& ba,  MIAMIU::FloatArray& fa, int marker, 
+            MiamiRIFG* mCfg, TarjanIntervals *tarj);
 
+   int calculateFP(SchedDG *sch, RIFGNodeId node, 
+            MiamiRIFG* mCfg, TarjanIntervals *tarj , int level,
+            std::map<int , float> *fpPerLoop, float *totalFP,
+            std::map<int,double> levelExecCounts);
   
    CFG::NodeList::iterator addBlock(ScopeImplementation *pscope, CFG::Node *pentry, 
            CFG::Node *thisb, CFG::Edge *lastE, CFG::NodeList& ba, CFG::EdgeList &ea, 

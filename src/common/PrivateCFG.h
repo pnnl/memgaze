@@ -209,6 +209,9 @@ public:
     NodeType getType() const   { return (type); }
     int getLevel() const     { return (_level); }
     void setLevel(int lev)   { _level = lev; }
+    int getLoopIndex() const     { return (_loopIdx); }
+    void setLoopIndex(int idx)   { _loopIdx = idx; }
+
     addrtype Size() const    { return (end_addr - start_addr); }
 
     int getRank() const     { return (rank); }
@@ -339,6 +342,7 @@ public:
        _visited = 0; tempVal = 0;
        flags = 0; 
        _level = 0; 
+       _loopIdx = 0; 
        rank = 0;
        path_rank = 0;
        target = MIAMI_NO_ADDRESS;
@@ -352,6 +356,7 @@ public:
 
     PrivateCFG* _in_cfg;
     int _level;
+    int _loopIdx;
     int rank, path_rank;
 
     unsigned int _visited;
