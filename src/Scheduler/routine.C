@@ -2342,14 +2342,10 @@ Routine::constructOuterLoopDG(ScopeImplementation *pscope, CFG::Node *b, int mar
    RSIListList rl;
    BMSet& entries = pscope->InnerEntries();
    BMSet& exits = pscope->InnerExits();
-   PairRSIMap &pathRegs = pscope->PathRegisters ();
    BPMap *bpmtemp = new BPMap();
    LatencyType thisLoopLatency = 0;
    uint64_t thisLoopUops = 0;
 
-   const Machine *tmach = 0;
-   if (mo->has_mdl)
-      tmach = mdriver.targets.front();
    CFG *cfg = ControlFlowGraph();
    
    // b should be the loop head; For irreducible intervals we can have more
@@ -2669,21 +2665,12 @@ Routine::constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
 			CFG::AddrEdgeMMap *callEntryEdges,
                         TarjanIntervals *tarj, MiamiRIFG* mCfg)
 {
-   std::cout<<__func__<<"Line 2669\n"; 
-   std::cout<<"b: "<<std::hex<<b->getStartAddress()<<std::dec<<" level:"<<b->getLevel()<<std::endl; 
    std::cerr << "[INFO]Routine::constructLoops(): '" << name << "'\n";
    CFG::NodeList ba;
    CFG::EdgeList ea;
    RSIListList rl;
-   PairRSIMap &pathRegs = pscope->PathRegisters ();
    BPMap *bpmtemp = new BPMap();
-   LatencyType thisLoopLatency = 0;
-   uint64_t thisLoopUops = 0;
    MIAMIU::FloatArray fa;
-   const Machine *tmach = 0;
-   if (mo->has_mdl)
-      tmach = mdriver.targets.front();
-   CFG *cfg = ControlFlowGraph();
 
    //tarjar variables
    //MiamiRIFG mCfg(cfg);
@@ -2700,16 +2687,15 @@ Routine::constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
     * Next, use the mechanistic model to compute memory stalls and
     * memory overlap.
     */
-   std::cout<<__func__<<std::endl;
    AddrSet scopeMemRefs;
    int loopIdx = 1;
    for (BPMap::iterator bpit=bpmtemp->begin() ; bpit!=bpmtemp->end() ; 
                 ++bpit, ++loopIdx)
    {
-      for (int i=0; i < bpit->first->size ; i++){
-         std::cout<<"loopIDX: "<<loopIdx<<" block start addres:"<<std::hex<<bpit->first->blocks[i]->getStartAddress()<<std::dec<<std::endl;
-      }
-     std::cout<<__func__<<"Line 2387 do I have LOOPS\n"; 
+//      for (int i=0; i < bpit->first->size ; i++){
+//         std::cout<<"loopIDX: "<<loopIdx<<" block start addres:"<<std::hex<<bpit->first->blocks[i]->getStartAddress()<<std::dec<<std::endl;
+//      }
+      
       // pathId is 64 bits; Use 32 bits for head block address,
       // 16 bits for loop index, 16 bits for path index in loop
       PathID pathId(bpit->first->blocks[0]->getStartAddress());
@@ -2743,14 +2729,6 @@ Routine::constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
 	 std::cerr << "[INFO]Routine::constructPaths:schedule: '" << name << "'\n";
          RFormulasMap &refFormulas = *rFormulas;
 
-         std::cout << "So I am in if XCV "<<std::endl;
-         //sch = new MIAMI_DG::DGBuilder(name.c_str(), pathId, 
-         //     1 /*args.optimistic_memory_dep*/, refFormulas,
-         //     InLoadModule(),
-         // /*        mdriver.RefNames(), mdriver.RefsTable(), */
-         //     bpit->first->size, bpit->first->blocks, 
-         //     bpit->first->probabs, bpit->first->innerRegs,
-         //     bpit->second->count, avgCount);
          sch = new MIAMI_DG::DGBuilder(this, pathId,
               1 /*args.optimistic_memory_dep*/, refFormulas,
               InLoadModule(),
@@ -2762,7 +2740,6 @@ Routine::constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
          float totalFP=0;
          std::map<int,double> levelExecCounts;
          calculateFP(sch, root, mCfg, tarj, 0, &fpPerLoop, &totalFP, levelExecCounts);
-         //sch->calculateMemoryData(b->getLevel());
          std::cout<<"TOTAL Footprint is "<<totalFP<<std::endl;
          std::map<int , float>::iterator it;
          for (it= fpPerLoop.begin(); it != fpPerLoop.end() ; it++){
@@ -2784,53 +2761,19 @@ Routine::calculateFP(SchedDG *sch, RIFGNodeId node,
                      MiamiRIFG* mCfg, TarjanIntervals *tarj , int level ,
                      std::map<int , float> *fpPerLoop, float *totalFP,
                      std::map<int,double> levelExecCounts){
-   int kid , parent;
+   int kid ;
    float tempFP = 0;
    MIAMI_DG::DGBuilder * thisSch = static_cast<DGBuilder*>(sch);
-   std::cout<<__func__<<std::endl;
-         CFG::Node *b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(node));
-         std::cout<<" begin CALCFPlevelExecCounts.find("<<tarj->GetLevel(node)<<")->second "<<b->ExecCount()<<std::endl;
-         if(tarj->GetLevel(node) == 0)
-            levelExecCounts.insert(std::map<int,long int>::value_type(tarj->GetLevel(node),  b->ExecCount()));
-         std::cout<<"node CALCFPlevelExecCounts.find("<<tarj->GetLevel(node)<<")->second "<<levelExecCounts.find(tarj->GetLevel(node))->second<<std::endl;
-         std::cout<<"level0 CALCFPlevelExecCounts.find("<<0<<")->second "<<levelExecCounts.find(0)->second<<std::endl;
+   CFG::Node *b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(node));
+   
+   if(tarj->GetLevel(node) == 0){
+      levelExecCounts.insert(std::map<int,long int>::value_type(tarj->GetLevel(node),  b->ExecCount()));
+   }
    for (kid = tarj->TarjInners(node) ; kid != RIFG_NIL ;kid = tarj->TarjNext(kid)){
       if (tarj->NodeIsLoopHeader(kid)){
-            std::cout<<"KID: "<<kid<<std::endl;
          b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
-         std::cout<<" hmm CALCFPlevelExecCounts.find("<<tarj->GetLevel(kid)<<")->second "<<b->ExecCount()<<std::endl;
          levelExecCounts.insert(std::map<int,long int>::value_type(tarj->GetLevel(kid),  b->ExecCount()));
          calculateFP(sch, kid, mCfg, tarj, tarj->GetLevel(kid), fpPerLoop, totalFP , levelExecCounts);
-         
-//         //std::map<int,long int> levelExecCounts;
-//         //CFG::Node *b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
-//         levelExecCounts.insert(std::map<int,long int>::value_type(tarj->GetLevel(kid),  b->ExecCount()));
-//         std::cout<<"CALCFPlevelExecCounts.find("<<tarj->GetLevel(kid)<<")->second"<<levelExecCounts.find(tarj->GetLevel(kid))->second<<std::endl;
-//         
-//         for (parent = tarj->TarjOuter(kid) ; parent != RIFG_NIL ;parent = tarj->TarjOuter(parent)){
-//            std::cout<<"KID: "<<kid<<" Parent:"<<parent<<std::endl;
-//            if (!tarj->NodeIsLoopHeader(parent)){   
-//            std::cout<<"Not header KID: "<<kid<<" Parent:"<<parent<<std::endl;
-//            //This may not be the correct way FIXME 
-//            //TODO just add when it is loop head it needs to be a loop head
-//               for (parent = tarj->TarjNext(parent) ; parent != RIFG_NIL ;parent = tarj->TarjNext(parent)){
-//            std::cout<<"Not header in for KID: "<<kid<<" Parent:"<<parent<<std::endl;
-//               if (tarj->NodeIsLoopHeader(parent)){
-//            std::cout<<"Not header in for&if KID: "<<kid<<" Parent:"<<parent<<std::endl;
-//                     CFG::Node *b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(parent));
-//                     levelExecCounts.insert(std::map<int,long int>::value_type(tarj->GetLevel(parent),  b->ExecCount()));
-//         std::cout<<"CALCFPlevelExecCounts.find("<<tarj->GetLevel(kid)<<")->second"<<levelExecCounts.find(tarj->GetLevel(kid))->second<<std::endl;
-//                     break;
-//                  }
-//               }
-//            } else {
-//            std::cout<<"header KID: "<<kid<<" Parent:"<<parent<<std::endl;
-//               CFG::Node *b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(parent));
-//               levelExecCounts.insert(std::map<int,long int>::value_type(tarj->GetLevel(parent), b->ExecCount()));
-//         std::cout<<"CALCFPlevelExecCounts.find("<<tarj->GetLevel(kid)<<")->second"<<levelExecCounts.find(tarj->GetLevel(kid))->second<<std::endl;
-//            }
-//         }
-         
          tempFP = thisSch->calculateMemoryData(tarj->GetLevel(kid), tarj->LoopIndex(kid) , levelExecCounts);
          fpPerLoop->insert(std::map<int , float>::value_type(tarj->LoopIndex(kid), tempFP));
          *totalFP += tempFP;
@@ -2839,7 +2782,6 @@ Routine::calculateFP(SchedDG *sch, RIFGNodeId node,
    std::cout<<"TempFP="<<tempFP<<" Total="<<*totalFP<<std::endl;
    std::cout<<"TotalFP="<<*totalFP<<std::endl;
    return 0;
-   //sch->calculateMemoryData(b->getLevel());
 }
 //OZGURE
 

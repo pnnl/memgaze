@@ -53,7 +53,7 @@ const int includeFile = 'I'; //"I", "", "only analyze routines whose names are l
 const int excludeFile = 'X'; //"X", "", "do not analyze routines whose names are listed in the specified file, default: none");
 const int routineName = 'r'; //"r", "", "specify routine name for which to dump CFG in dot format, default: none");
 const int numberParts = 'p'; //"p", "1", "number of parts to split a routine's CFG into for drawing in dot format. Useful for very large routines.");
-const int cfgFile = 'c'; //"c", "", "read CFG information from specified file (required)");
+const int cfgFile = 'c'; //"c", "", "read CFG information from specified file (required)"); 
 const int mrdFiles = 902; //"mrd", "", "specify a memory reuse distance file for data reuse analysis. This switch can be used more than once to pass multiple MRD files.");
 const int threshold = 'f'; //"f", "0.0", "threshold to use for filtering program scopes. Only output program scopes that contribute more than the specified fraction of at least one performance metric.");
 const int detailedMetrics = 903; //"detailed", "0", "detailed performance database: output additional performance metrics, see manual for the list of affected metrics");
@@ -69,7 +69,8 @@ const int funcName = 911; //"func", "", "function to analyze (required).");
 const int blkPath = 912; //"blk_path", "", "specify basic blocks to analyze.");
 const int latPath = 913; //"lat_path", "", "path containing instruction level load latency");
 const int dumpFile = 914; //"dump_file", ""
-const int dlaPath = 915; //"lat_path", "", "path containing instruction level data access levels");
+const int fpPath = 915; //"lat_path", "", "path containing instruction level data access levels");
+const int palm_cfgFile = 916; //"palm_cfg", "", "read palm CFG information from specified file (required)");
 
 
  
@@ -84,6 +85,7 @@ std::string KnobExcludeFile = ""; //"X", "", "do not analyze routines whose name
 std::string KnobRoutineName = ""; //"r", "", "specify routine name for which to dump CFG in dot format, default: none");
 int KnobNumberParts = 1; //"p", "1", "number of parts to split a routine's CFG into for drawing in dot format. Useful for very large routines.");
 std::string KnobCfgFile = ""; //"c", "", "read CFG information from specified file (required)");
+std::string KnobPalmCfgFile = ""; //"palm_cfg", "", "read palm CFG information from specified file (required)");
 std::string KnobMrdFiles = ""; //"mrd", "", "specify a memory reuse distance file for data reuse analysis. This switch can be used more than once to pass multiple MRD files.");
 
 double KnobThreshold = 0.0; //"f", "0.0", "threshold to use for filtering program scopes. Only output program scopes that contribute more than the specified fraction of at least one performance metric.");
@@ -102,7 +104,7 @@ std::string KnobBinaryPath = ""; //"bin_path", "", "binary to analyze (required)
 std::string KnobFuncName = ""; //"func", "", "function to analyze (required).");
 std::string KnobBlkPath = ""; //"blk_path", "", "specify basic blocks to analyze.");
 std::string KnobLatPath = ""; //"lat_path", "", "path containing instruction level load latency");
-std::string KnobDLAPath = ""; //"dla_path", "", "path containing instruction level data level access informations");
+std::string KnobFpPath = ""; //"fp_path", "", "path containing instruction footprint profile");
 std::string KnobDumpFile = ""; //dump_file, "", "file name to dwar scheduling dump""
 
 /*
@@ -192,6 +194,13 @@ static int parse_opt (int key, char *arg, struct argp_state *state)
             break;
         }
 
+        case palm_cfgFile:
+        {
+            KnobPalmCfgFile.assign(arg);
+            break;
+        }
+
+
         case mrdFiles:
         {
             KnobMrdFiles.append(arg);
@@ -276,9 +285,9 @@ static int parse_opt (int key, char *arg, struct argp_state *state)
             break;
         }
         
-        case dlaPath:
+        case fpPath:
         {
-            KnobDLAPath.assign(arg);
+            KnobFpPath.assign(arg);
             break;
         }
         
@@ -309,6 +318,7 @@ int parse_args(int argc , char * argv[]){
         { 0, routineName, "STRING", 0, "specify routine name for which to dump CFG in dot format, default: none"},
         { 0, numberParts, "BOOL", 0, "number of parts to split a routine's CFG into for drawing in dot format. Useful for very large routines."},
         { 0, cfgFile, "STRING", 0, "read CFG information from specified file (required)"},
+        { "palm_cfg", palm_cfgFile, "STRING", 0, "read palm CFG information from specified file (required)"},
         { "mrd", mrdFiles, "STRING", 0, "specify a memory reuse distance file for data reuse analysis. This switch can be used more than once to pass multiple MRD files."},
         { 0, threshold, "FLOAT", 0, "threshold to use for filtering program scopes. Only output program scopes that contribute more than the specified fraction of at least one performance metric."},
         { "detailed", detailedMetrics, "BOOL", 0, "detailed performance database: output additional performance metrics, see manual for the list of affected metrics"},
@@ -323,7 +333,7 @@ int parse_args(int argc , char * argv[]){
         { "func", funcName, "STRING", 0, "function to analyze (required)."},
         { "blk_path", blkPath, "STRING", 0, "specify basic blocks to analyze."},
         { "lat_path", latPath, "STRING", 0, "path containing instruction level load latency"},
-        { "dla_path", dlaPath, "STRING", 0, "path containing instruction level data level accessed"},
+        { "fp_path", fpPath, "STRING", 0, "path containing instruction footprint profile"},
         { "dump_file", dumpFile, "STRING", 0, "file name to draw scheduling dump"},
         {0}
      };
@@ -371,6 +381,7 @@ main (int argc, char *argv[])
     mo->addDebugRoutine(KnobRoutineName);
     mo->addDebugParts(KnobNumberParts);
     mo->addCfgFile(KnobCfgFile);
+    mo->addPalmCfgFile(KnobPalmCfgFile);
     mo->setNoLinemap(KnobSkipLineMap);
     mo->setNoScopeTree(KnobNoScopes);
     mo->setDoInstructionMix(KnobInstructionMix);
@@ -382,19 +393,8 @@ main (int argc, char *argv[])
     mo->addFuncName(KnobFuncName);
     mo->addBlockPath(KnobBlkPath);
     mo->addLatPath(KnobLatPath);
-    mo->addDLAPath(KnobDLAPath);
+    mo->addFpPath(KnobFpPath);
     mo->addDumpFile(KnobDumpFile);
-   // TODO ozgur chech this is it a array ? and fix it  
-/*    int numMrdFiles = KnobMrdFiles.NumberOfValues();
-    if (numMrdFiles > 0)
-    {
-       // pass all the mrd files to the MiamiOptions object
-       int i;
-       for (i=0 ; i<numMrdFiles ; ++i)
-          mo->addMrdFile(KnobMrdFiles.Value(i));
-    }
-  */
-
   
     if (! mo->CheckDependencies())
        return 0;
@@ -409,7 +409,7 @@ main (int argc, char *argv[])
    MIAMI::mdriver.ParseIncludeExcludeFiles(KnobIncludeFile, KnobExcludeFile);
     
     int nImgs = MIAMI::mdriver.NumberOfImages();
-    nImgs=1;//TODO FIXME this is a hack delete it
+    nImgs=1;//TODO FIXME this is a hack delete it for full run
     const std::string* iNames = MIAMI::mdriver.getImageNames();
     for (int i=0 ; i<nImgs ; ++i)
     {

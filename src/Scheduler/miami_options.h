@@ -27,6 +27,7 @@ namespace MIAMI
    {
    public:
       bool do_scheduling; // compute full instruction schedule
+      bool do_fp; // compute full footprint
       bool has_mdl;       // has machine description file
       bool do_cfgcounts;  // compute BB and Edge counts
       bool do_scopetree;  // construct the scope tree
@@ -68,6 +69,7 @@ namespace MIAMI
       string debug_routine;
       int    debug_parts;   // split routine CFG into these many parts based on rank when drawing
       string cfg_file;
+      string palm_cfg_file;
       string persistent_cache;
       string exec_path;
       string exec_name;
@@ -78,10 +80,11 @@ namespace MIAMI
       string block_path;
       string func_name;
       string lat_path;
-      string dla_path; //data access levels and hit counts
+      string fp_path; //footprint profile
       
       MiamiOptions() {
          do_scheduling = false;
+         do_fp = false;
          has_mdl = false;
          do_cfgcounts = false;
          do_scopetree = true;
@@ -116,12 +119,14 @@ namespace MIAMI
       
       bool CheckDependencies() {
          bool is_good = true;
-         if (do_cfgcounts && !(cfg_file.length() || (binary_path.length() && func_name.length()))) {
+         if (do_cfgcounts && !((palm_cfg_file.length() || cfg_file.length()) || (binary_path.length() && func_name.length()))) {
             // we do not have a cfg file
             fprintf(stderr, "Some of the specified options require a CFG file. Repeat run with a valid CFG file.\n");
             is_good = false;
          }
-         if ((do_scheduling || has_mrd) && !has_mdl) {
+         if (do_fp){
+            is_good = true;
+         } else if ((do_scheduling || has_mrd) && !has_mdl) {
             // we must compute instruction schedule but we lack a machine description file
             fprintf(stderr, "Some of the specified options require a machine description file. Repeat run with a valid MDF file.\n");
             is_good = false;
@@ -234,6 +239,11 @@ namespace MIAMI
       void addCfgFile(const string& cfile) {
          if (cfile.length())
             cfg_file = cfile;
+      }
+       
+      void addPalmCfgFile(const string& cfile) {
+         if (cfile.length())
+            palm_cfg_file = cfile;
       }
       
       void setNoPid(bool np) {
@@ -367,9 +377,22 @@ namespace MIAMI
             lat_path = lpath;
       }
       
-      void addDLAPath(const string& dlapath) {
-         if (dlapath.length())
-            dla_path = dlapath;
+      void addFpPath(const string& fppath) {
+         if (fppath.length())
+            fp_path = fppath;
+
+         if (! no_scheduling)
+         {
+            do_fp = true;
+            do_cfgpaths = true;
+            do_build_dg = true;
+            do_ref_scope_index = true;
+            
+            do_cfgcounts = true;
+            do_idecode = true;
+            dump_xml = true;
+         }
+
       }
    
      void addDumpFile(const string& dfile)

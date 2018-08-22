@@ -9,6 +9,9 @@
  * Description: Implements the main control logic for the MIAMI scheduler.
  */
 
+#include <fstream>
+#include <string>
+
 #include "MiamiDriver.h"
 #include "scope_implementation.h"
 #include "InstructionDecoder.hpp"
@@ -145,7 +148,7 @@ MIAMI_Driver::Initialize(MiamiOptions *_mo, int _pid)
     mo = _mo;
     
     pid = _pid;
-    if (mo->cfg_file.length()<1 && mo->binary_path.length() < 1)  // required argument is missing
+    if (mo->cfg_file.length()<1 && mo->binary_path.length() < 1 && mo->palm_cfg_file.length()<1)  // required argument is missing
     {
        fprintf(stderr, "Required CFG_file_name is missing.\n");
        return (-1);
@@ -228,8 +231,37 @@ MIAMI_Driver::Initialize(MiamiOptions *_mo, int _pid)
              imgNames[i], foffset));
          delete[] buf;
       }
-    }
-    else{ // a binary file was specified instead of a cfg
+    } else if (mo->palm_cfg_file.length()>1){ //OzgurS adding palm cfg
+   std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
+      //fd = fopen(mo->palm_cfg_file.c_str(), "rb");
+      std::ifstream palm_fd;
+      palm_fd.open(mo->palm_cfg_file.c_str());
+
+      if (!palm_fd.is_open())
+      {
+         fprintf (stderr, "Cannot access palm cfg file %s\n", mo->cfg_file.c_str());
+         return (-2);
+      }
+      maxImgs = 1;
+      std::string line;
+      std::string bin_path;
+      while (! palm_fd.eof()){
+   std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
+         std::getline(palm_fd , line);
+         if (line.find("binary-path") != std::string::npos){
+            bin_path =line.substr(line.find(": ")+2, -1);
+            break;
+         }
+      }
+      allImgs = (LoadModule**) malloc ((maxImgs+1) * sizeof (LoadModule*));
+      for (uint32_t i=0 ; i<=maxImgs ; ++i)
+         allImgs[i] = 0;
+      imgNames = new std::string[maxImgs+1];
+      imgNames[0] = bin_path;
+      palm_fd.close();
+      std::cout <<imgNames[0]<<" debuug "<<(imgNames[0].find("a.out") != std::string::npos)<<std::endl;
+//OzguE
+    } else { // a binary file was specified instead of a cfg
       maxImgs = 1;
       allImgs = (LoadModule**) malloc ((maxImgs+1) * sizeof (LoadModule*));
       for (uint32_t i=0 ; i<=maxImgs ; ++i)
@@ -522,23 +554,31 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
                  << " for reading. Cannot compute its checksum." << endl;
          }
       }
-     std::cout<<__func__<<"Line 525\n"; 
       newimg = new LoadModule (id, start_addr, low_offset, iname, hashKey);
       ++ loadedImgs;
      //TODO FIXME I commented out newimg->loadFromFile(fd, false) to force
      //control flow to fetch cfg from dynisnt 
       // read only data for this image.
-      newimg->loadFromFile(fd, false);  // do not parse routines now
-      newimg->createDyninstImage(bpatch);
-     //FIXME TODO 
-      //newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
-      newimg->loadFPfile(mo->func_name, prog, mo);
-      // Now go and analyze each routine; compute counts for all blocks and edges,
-      // recover executed paths, attempt to decode and schedule the instructions
-      // if string not empty, dump CFG of this routine
-      newimg->analyzeRoutines(fd, prog, mo);
-      //TODO lets try this here too.
-      //newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
+      if (mo->do_fp && mo->palm_cfg_file.length()>1){
+         std::cout<<"in do fp:"<<mo->do_fp<<" file size:"<< mo->palm_cfg_file.length()<<std::endl;
+         newimg->palmLoadFromFile(mo);
+         newimg->createDyninstImage(bpatch);
+         newimg->loadFPfile(mo->func_name, prog, mo);
+         newimg->palmAnalyzeRoutines(prog, mo);
+      } else { 
+         std::cout<<"out do fp:"<<mo->do_fp<<" file size:"<< mo->palm_cfg_file.length()<<std::endl;
+         newimg->loadFromFile(fd, false);  // do not parse routines now
+         newimg->createDyninstImage(bpatch);
+        //FIXME TODO 
+         //newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
+         newimg->loadFPfile(mo->func_name, prog, mo);
+         // Now go and analyze each routine; compute counts for all blocks and edges,
+         // recover executed paths, attempt to decode and schedule the instructions
+         // if string not empty, dump CFG of this routine
+         newimg->analyzeRoutines(fd, prog, mo);
+         //TODO lets try this here too.
+         //newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
+      }
    }
    else{
       uint32_t hashKey = 0;
@@ -560,8 +600,16 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
       
       newimg = new LoadModule (id, start_addr, low_offset, iname, hashKey);
       ++ loadedImgs;
-      newimg->createDyninstImage(bpatch);
-      newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
+      if (mo->do_fp && mo->palm_cfg_file.length()>1){
+         std::cout<<"in do fp:"<<mo->do_fp<<" file size:"<< mo->palm_cfg_file.length()<<std::endl;
+         newimg->palmLoadFromFile(mo);
+         newimg->createDyninstImage(bpatch);
+         newimg->loadFPfile(mo->func_name, prog, mo);
+         newimg->palmAnalyzeRoutines(prog, mo);
+      } else {
+         newimg->createDyninstImage(bpatch);
+         newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
+      }
    }
 }
 
