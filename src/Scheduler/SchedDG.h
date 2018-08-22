@@ -348,14 +348,14 @@ public:
     
     int getType() const   { return (type); }
     int getLevel() const  { return (_level); }
-    int setLevel(int level)  { _level=level; }
+    void setLevel(int level)  { _level=level; }
     int getLoopIndex() const  { return (_loopIdx); }
-    int setLoopIndex(int loopIdx)  { _loopIdx=loopIdx; }
+    void setLoopIndex(int loopIdx)  { _loopIdx=loopIdx; }
 
     width_t getBitWidth() const { return bit_width;}
     width_t getVecWidth() const { return vec_width;}
     double getExecCount() const  { return (_execCount); }
-    double setExecCount(double execCount)  { _execCount=execCount; }
+    void setExecCount(double execCount)  { _execCount=execCount; }
 
     
     void setNotDraw()     { _flags = (_flags | NODE_DONOT_DRAW); }

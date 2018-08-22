@@ -32,42 +32,42 @@ using namespace MIAMI;
 
 namespace MIAMI_DG
 {
-DecodedInstruction* defDInstP = 0;
-typedef std::list<DecodedInstruction*> DIList;
+   DecodedInstruction* defDInstP = 0;
+   typedef std::list<DecodedInstruction*> DIList;
 
-static int deleteInstsInMap(void *arg0, addrtype pc, void *value)
-{
-   DecodedInstruction *di = static_cast<DecodedInstruction*>((void*)(*(addrtype*)value));
-   delete (di);
-   return (0);
-}
+   static int deleteInstsInMap(void *arg0, addrtype pc, void *value)
+   {
+      DecodedInstruction *di = static_cast<DecodedInstruction*>((void*)(*(addrtype*)value));
+      delete (di);
+      return (0);
+   }
 
 #define DECODE_INSTRUCTIONS_IN_PATH 0
-static PathID targetPath(0xe7367c, 37, 2);
+   static PathID targetPath(0xe7367c, 37, 2);
 
 DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
-		     int _opt_mem_dep, RFormulasMap& _refAddr,
-		     LoadModule *_img,
-		     int numBlocks, CFG::Node** ba, float* fa,
-		     RSIList* innerRegs,
-		     uint64_t _pathFreq, float _avgNumIters)
-  : SchedDG(func_name, _pathId, _pathFreq, _avgNumIters, _refAddr, _img),
-    optimistic_memory_dep(_opt_mem_dep)
+      int _opt_mem_dep, RFormulasMap& _refAddr,
+      LoadModule *_img,
+      int numBlocks, CFG::Node** ba, float* fa,
+      RSIList* innerRegs,
+      uint64_t _pathFreq, float _avgNumIters)
+   : SchedDG(func_name, _pathId, _pathFreq, _avgNumIters, _refAddr, _img),
+   optimistic_memory_dep(_opt_mem_dep)
 {
    assert( (numBlocks>=1) || 
-           !"Number of blocks to schedule is < 1. What's up?");
+         !"Number of blocks to schedule is < 1. What's up?");
 #if DEBUG_GRAPH_CONSTRUCTION
    DEBUG_GRAPH (1,
-      fprintf(stderr, "DGBuilder create path with %f average iterations\n", 
-          avgNumIters);
-   )
+         fprintf(stderr, "DGBuilder create path with %f average iterations\n", 
+            avgNumIters);
+         )
 #endif
-   
-   // we do not read this flag right now.
-   // Assume we do not have pessimistic memory dependencies.
-   pessimistic_memory_dep = 0;
+
+      // we do not read this flag right now.
+      // Assume we do not have pessimistic memory dependencies.
+      pessimistic_memory_dep = 0;
    num_instructions = 0;
-   
+
    nextGpReg = 1;
    nextInReg = 1;
    nextUopIndex = 1;
@@ -78,7 +78,7 @@ DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
    // is always zero. Can all the blocks of a path be inner loops?
    // Probabaly not, but it is safer to get it from the img object.
    reloc_offset = img->RelocationOffset();  //ba[0]->RelocationOffset();
-   
+
    for( int i=1 ; i<numBlocks ; ++i )
    {
       if (minPathAddress > ba[i]->getStartAddress())
@@ -89,7 +89,7 @@ DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
    prev_inst_may_have_delay_slot = false;
    instruction_has_stack_operation = false;
    gpRegs = &gpMapper;
-//   fpRegs = &fpMapper;
+   //   fpRegs = &fpMapper;
    prevBranch = NULL;
    prevBarrier = lastBarrier = NULL;
    lastBranchBB = NULL;
@@ -109,19 +109,19 @@ DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
    } else {
       stack_tops = crt_stack_tops = prev_stack_tops = 0;
    }
-   
+
    build_graph(numBlocks, ba, fa, innerRegs);
-   
+
    // in loops with many indirect accesses we see an explosion of unnecessary 
    // memory dependencies. Write a method that traverses only memory 
    // instructions, along memory dependencies, and removes any trivial deps.
-//   if (avgNumIters > ONE_ITERATION_EPSILON) 
+   //   if (avgNumIters > ONE_ITERATION_EPSILON) 
    pruneTrivialMemoryDependencies();
-   
+
    finalizeGraphConstruction();
-   
+
    setCfgFlags(CFG_CONSTRUCTED);
-   
+
    // delete the decoded instructions stored in builtNodes
    builtNodes.map(deleteInstsInMap, NULL);
 }
@@ -129,30 +129,30 @@ DGBuilder::DGBuilder(const char* func_name, PathID _pathId,
 
 // TODO: Palm version!
 DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
-		     int _opt_mem_dep, RFormulasMap& _refAddr,
-		     LoadModule *_img,
-		     int numBlocks, CFG::Node** ba, float* fa,
-		     RSIList* innerRegs,
-		     uint64_t _pathFreq, float _avgNumIters) 
-  : SchedDG(_routine->Name().c_str(), _pathId, _pathFreq, _avgNumIters,
-	    _refAddr, _img),
-    optimistic_memory_dep(_opt_mem_dep)
+      int _opt_mem_dep, RFormulasMap& _refAddr,
+      LoadModule *_img,
+      int numBlocks, CFG::Node** ba, float* fa,
+      RSIList* innerRegs,
+      uint64_t _pathFreq, float _avgNumIters) 
+   : SchedDG(_routine->Name().c_str(), _pathId, _pathFreq, _avgNumIters,
+         _refAddr, _img),
+   optimistic_memory_dep(_opt_mem_dep)
 {
    assert( (numBlocks>=1) || 
-           !"Number of blocks to schedule is < 1. What's up?");
+         !"Number of blocks to schedule is < 1. What's up?");
 #if DEBUG_GRAPH_CONSTRUCTION
    DEBUG_GRAPH (1,
-      fprintf(stderr, "DGBuilder create path with %f average iterations\n", 
-          avgNumIters);
-   )
+         fprintf(stderr, "DGBuilder create path with %f average iterations\n", 
+            avgNumIters);
+         )
 #endif
-   routine = _routine;
-   
+      routine = _routine;
+
    // we do not read this flag right now.
    // Assume we do not have pessimistic memory dependencies.
    pessimistic_memory_dep = 0;
    num_instructions = 0;
-   
+
    nextGpReg = 1;
    nextInReg = 1;
    nextUopIndex = 1;
@@ -165,7 +165,7 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
    // is always zero. Can all the blocks of a path be inner loops?
    // Probabaly not, but it is safer to get it from the img object.
    reloc_offset = img->RelocationOffset();  //ba[0]->RelocationOffset();
-   
+
    for( int i=1 ; i<numBlocks ; ++i )
    {
       std::cout<<"->"<<routine->getBlockNoFromAddr(ba[i]->getStartAddress(),ba[i]->getEndAddress())<<":"<<ba[i]->getType();
@@ -184,7 +184,7 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
    prev_inst_may_have_delay_slot = false;
    instruction_has_stack_operation = false;
    gpRegs = &gpMapper;
-//   fpRegs = &fpMapper;
+   //   fpRegs = &fpMapper;
    prevBranch = NULL;
    prevBarrier = lastBarrier = NULL;
    lastBranchBB = NULL;
@@ -204,51 +204,42 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
    } else {
       stack_tops = crt_stack_tops = prev_stack_tops = 0;
    }
-   
+
    build_graph(numBlocks, ba, fa, innerRegs);
    // in loops with many indirect accesses we see an explosion of unnecessary 
    // memory dependencies. Write a method that traverses only memory 
    // instructions, along memory dependencies, and removes any trivial deps.
-//   if (avgNumIters > ONE_ITERATION_EPSILON) 
+   //   if (avgNumIters > ONE_ITERATION_EPSILON) 
    pruneTrivialMemoryDependencies();
-   
+
    finalizeGraphConstruction();
-   
+
    setCfgFlags(CFG_CONSTRUCTED);
-//   calculateMemoryData(-1);
-   
+   //   calculateMemoryData(-1);
+
    // delete the decoded instructions stored in builtNodes
    builtNodes.map(deleteInstsInMap, NULL);
 }
 
 DGBuilder::~DGBuilder()
 {
-  if (crt_stack_tops) delete[] crt_stack_tops;
-  if (prev_stack_tops) delete[] prev_stack_tops;
-  // I need to delete all the decoded instructions stored in builtNodes
-  // Perhaps I can delete them even earlier, after the graph is build. 
-  // I am not going to use the buildNodes hashMap after that.
-  // builtNodes is emptied at the end of the constructor now.
+   if (crt_stack_tops) delete[] crt_stack_tops;
+   if (prev_stack_tops) delete[] prev_stack_tops;
+   // I need to delete all the decoded instructions stored in builtNodes
+   // Perhaps I can delete them even earlier, after the graph is build. 
+   // I am not going to use the buildNodes hashMap after that.
+   // builtNodes is emptied at the end of the constructor now.
 }
 
 
 //ozgurS
 float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double> levelExecCounts){
-   std::cout<<__func__<<"Line 326\n"; 
-   std::cout<<"Level:"<<level<<std::endl;
    std::map<int, double> loopsExecs = levelExecCounts;
 
    loopsExecs.find(1)->second = loopsExecs.find(1)->second - 1; 
-      std::cout<<"loopExecCounts.find("<<0<<")->second"<<loopsExecs.find(0)->second<<std::endl;
-      std::cout<<"levelExecCounts.find("<<0<<")->second"<<levelExecCounts.find(0)->second<<std::endl;
-      std::cout<<"levelExecCounts.find("<<1<<")->second"<<loopsExecs.find(1)->second<<std::endl;
    for (int i=2; i<=level; i++){
-      std::cout<<"levelExecCounts.find("<<i<<")->second"<<loopsExecs.find(i)->second<<std::endl;
       loopsExecs.find(i)->second = loopsExecs.find(i)->second - loopsExecs.find(i-1)->second; 
-      std::cout<<"levelExecCounts.find("<<i<<")->second"<<loopsExecs.find(i)->second<<std::endl;
    }
-
-
 
    NodesIterator fnit(*this);
    NodesIterator nit(*this);
@@ -262,81 +253,70 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
    float strided_lds = 0;
    float indirect_lds = 0;
    float execRatio= 0.0;
-   //std::map<Node* ,std::list<int>> dependencyMap;
    std::map<Node* ,std::list<depOffset>> dependencyMap;
 
    while ((bool)fnit) {
       Node *fnn = fnit;
-      std::cout<<"Node: "<<std::hex<<fnn->getAddress()<<std::dec<<" level:"<<fnn->getLevel()<<" index:"<<fnn->getLoopIndex()<<" in lvl:"<<level<<" in idx:"<<index<<std::endl;
       if(fnn->getLevel()==level && fnn->getLoopIndex()==index){
          if (fnn->isInstructionNode()){
             seen[(unsigned long)fnn->getAddress()] = 5;
-            std::cout<<std::endl<<std::endl; 
-            std::cout<<"inst address:"<<std::hex<<fnn->getAddress()<<std::dec<<std::endl;
-            std::cout<<"lvl is:"<<fnn->getLevel()<<std::endl;
-            std::cout<<"is_scalar_stack_reference :"<<fnn->is_scalar_stack_reference()<<std::endl;
-            std::cout<<"is_strided_reference :"<<fnn->is_strided_reference()<<std::endl;
-            std::cout<<"type:"<<fnn->getType()<<" IB_inner_loop :"<<IB_inner_loop <<std::endl;
-            std::cout<<std::endl;
-            std::cout<<"Node Dump :\n";
-            fnn->longdump(this,std::cout);  
-            int opidx = fnn->memoryOpIndex();
-            if (opidx >=0){
-               RefFormulas *refF = fnn->in_cfg()->refFormulas.hasFormulasFor(fnn->getAddress(), opidx);
-               if(refF != NULL){
-                  GFSliceVal oform = refF->base;
-                  std::cout<<"oform is: "<<oform<<std::endl;
-               }
-            }
+//            std::cout<<std::endl<<std::endl; 
+//            std::cout<<"inst address:"<<std::hex<<fnn->getAddress()<<std::dec<<std::endl;
+//            std::cout<<"lvl is:"<<fnn->getLevel()<<std::endl;
+//            std::cout<<"is_scalar_stack_reference :"<<fnn->is_scalar_stack_reference()<<std::endl;
+//            std::cout<<"is_strided_reference :"<<fnn->is_strided_reference()<<std::endl;
+//            std::cout<<"type:"<<fnn->getType()<<" IB_inner_loop :"<<IB_inner_loop <<std::endl;
+//            std::cout<<std::endl;
+//            std::cout<<"Node Dump :\n";
+//            fnn->longdump(this,std::cout);  
+//            int opidx = fnn->memoryOpIndex();
+//            if (opidx >=0){
+//               RefFormulas *refF = fnn->in_cfg()->refFormulas.hasFormulasFor(fnn->getAddress(), opidx);
+//               if(refF != NULL){
+//                  GFSliceVal oform = refF->base;
+//                  std::cout<<"oform is: "<<oform<<std::endl;
+//               }
+//            }
 
-            std::cout<<std::endl;
             if(fnn->is_load_instruction()){
                execRatio = (double)fnn->getExecCount() / (double)loopsExecs.find(fnn->getLevel())->second;
-               std::cout<<"Ratio:"<<execRatio<<" this node execCount:"<<fnn->getExecCount()<<" loop exec count:"<<loopsExecs.find(fnn->getLevel())->second<<std::endl;
-               std::cout<<"ExecUnitType:"<<fnn->getExecUnitType()<<" BitWidth:"<<fnn->getBitWidth()<<" vecWidth:"<<fnn->getVecWidth()<<std::endl;
                bool flag_stride = true;
                total_lds+=1*execRatio;
                if (fnn->is_scalar_stack_reference()){
                   frame_lds+=1*execRatio;
-                  std::cout<<"this is a stack Load\n";
                } else if (fnn->is_strided_reference()){
                   IncomingEdgesIterator ieit(fnn);
                   while ((bool)ieit){
                      Node *nn = ieit->source();
-                     std::cout<<"nnId: "<<nn->getId()<<std::endl;
                      if (nn->is_scalar_stack_reference()){
                         frame_lds+=1*execRatio;
-                        std::cout<<"this is a constant strided load Load\n";
                         flag_stride = false;
                      }
                      ++ieit;
                   }
                   if (flag_stride){
                      strided_lds+=1*execRatio;
-                     std::cout<<"this is a strided Load\n";
                      fnn->checkDependencies(&dependencyMap , level , index);
                   }
                } else {
                   indirect_lds+=1*execRatio;
-                  std::cout<<"this is a indirect Load\n";
                   fnn->checkDependencies(&dependencyMap , level , index);
                }
-               std::cout<<"Testing mem Instructions in loop:\nTotal loads:"<<total_lds<<"\tframe:"<<frame_lds<<"\tstrided:"<<strided_lds<<"\tindirect:"<<indirect_lds<<std::endl;
+//               std::cout<<"Testing mem Instructions in loop:\nTotal loads:"<<total_lds<<"\tframe:"<<frame_lds<<"\tstrided:"<<strided_lds<<"\tindirect:"<<indirect_lds<<std::endl;
             }
          }
       }
       ++fnit;
    }
-   
-   std::cout<<std::endl; 
-   std::cout<<"Testing mem Instructions Final:\nTotal loads:"<<total_lds<<"\tframe:"<<frame_lds<<"\tstrided:"<<strided_lds<<"\tindirect:"<<indirect_lds<<std::endl;
-   std::cout<<std::endl<<std::endl; 
-   
+
+//   std::cout<<std::endl; 
+//   std::cout<<"Testing mem Instructions Final:\nTotal loads:"<<total_lds<<"\tframe:"<<frame_lds<<"\tstrided:"<<strided_lds<<"\tindirect:"<<indirect_lds<<std::endl;
+//   std::cout<<std::endl<<std::endl; 
+
    while ((bool)nit) {
       Node *nn = nit;
       if (nn->isInstructionNode()){
          if(seen.find((unsigned long)nn->getAddress())->second==5){
-            std::cout<<"OZGUR DEBUG XCV Instruction Address:"<<std::hex<<(unsigned long)nn->getAddress()<<std::dec<<" intruction type:"<<nn->getType()<<" number of Uopps: "<<nn->getNumUopsInInstruction()<<std::endl;
             if (nn->getLvlMap()){
                imemData->push_back(nn->getLvlMap());
             }
@@ -346,18 +326,17 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
       ++nit;
    }
 
-//   std::cerr<<"DEBUG CAN I CALL"<<__func__<<std::endl;
+   //   std::cerr<<"DEBUG CAN I CALL"<<__func__<<std::endl;
    struct Mem{
       int level;
       long int hits;
       long int miss;
       float windowSize;
    };
-   
-   std::vector<Mem> memVector;            //TODO find a better  way to loop for each level
-   long int memoryHits = 0;
 
-// initializing collected data variables
+   std::vector<Mem> memVector;            
+
+   // initializing collected data variables
    long int all_loads = 0;   //lvl 0
    long int l1_hits = 0 ;    //lvl 1
    long int l2_hits = 0 ;    //lvl 2
@@ -366,7 +345,7 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
    long int llc_miss = 0 ;   //lvl 5
    long int l2_pf_miss = 0 ; //lvl 6
 
-// initializing other vaiables
+   // initializing other vaiables
    float l1 = 0;
    float l2 = 0;
    float l3 = 0;
@@ -398,13 +377,14 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
       mem_wpl = (float)((((l1_hits+l2_hits+l3_hits))/total_lds) *
             indirect_lds) /(llc_miss); 
    } else {
-     mem_wpl = -1; 
+      mem_wpl = -1; 
    }
 
    if (l2_pf_miss){
       pf_wpl = l1_strided_lds / (l2_pf_miss) ;
-//      if(pf_wpl > 16)
-//         pf_wpl = 16;
+      if(pf_wpl > 32){
+         std::cout<<"Pf_wpl is higher then 32 you cannot trust this FP\n";
+      }
    } else {
       pf_wpl = -1;
    }
@@ -415,62 +395,103 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
    l3 = l3_hits;
    l2 = l2_hits + fb_hits;
    l1 = all_loads -(pf+l2+l3+mem_hits);
-//   fp = mem * 4 ; //TODO find better way
-   fp = mem ; //TODO find better way
-   
+   fp = mem ; 
+
    std::map<int , int> levels;
-   
-   std::cout<<"levelExecCounts.find("<<0<<")->second"<<levelExecCounts.find(0)->second<<std::endl;
+
    for (int i=level; i>1; i--){
       levelExecCounts.find(i)->second = levelExecCounts.find(i)->second / levelExecCounts.find(i-1)->second; 
-      std::cout<<"levelExecCounts.find("<<i<<")->second"<<levelExecCounts.find(i)->second<<std::endl;
    }
    levelExecCounts.find(1)->second = levelExecCounts.find(1)->second - 1;
-   std::cout<<"levelExecCounts.find("<<1<<")->second"<<levelExecCounts.find(1)->second<<std::endl;
-   std::cout<<"levelExecCounts.find("<<0<<")->second"<<levelExecCounts.find(0)->second<<std::endl;
    float totLoads = strided_lds + indirect_lds;
-   std::cout<<"total loads:"<<totLoads<<std::endl;
    float adjusted_fp=0;
    std::list<std::list<depOffset>> baseOffsets;
    std::list<depOffset> indirectBaseOffsets;
    std::map<Node* ,std::list<depOffset>>::iterator it =  dependencyMap.begin();
    bool skip = false;
    for (;it!=dependencyMap.end();++it){
-      std::list<depOffset>::iterator tit =it->second.begin();
       std::list<depOffset>::iterator dit;
       std::list<depOffset>::iterator lit;
       std::list<depOffset>::iterator bit;
-     
-      std::cout<<"Looking Node:"<<it->first->getId()<<" at address:"<<std::hex<<it->first->getAddress()<<std::dec<<" size:"<<it->second.size()<<std::endl;
-      for (; tit!=it->second.end(); ++tit){
-         std::cout<<"This node dep level:"<<tit->level<<" offset:"<<tit->offset<<std::endl;
-      }
-     //TODO FIXME check  if this corrupt the matrix 
+
+//      std::cout<<"Looking Node:"<<it->first->getId()<<" at address:"<<std::hex<<it->first->getAddress()<<std::dec<<" size:"<<it->second.size()<<std::endl;
+//      for (; tit!=it->second.end(); ++tit){
+//         std::cout<<"This node dep level:"<<tit->level<<" offset:"<<tit->offset<<std::endl;
+//      }
       if(!it->first->is_strided_reference()){
-//This block helps to eliminate mulple access but I am not sure
-//if it is correct thing to do.
+         //This block helps to eliminate mulple access but I am not sure
+         //if it is correct thing to do.
          if (it->second.size()==1){
-//            bit = indirectBaseOffsets.begin();
-//            dit = it->second.begin();
-//            if(bit != indirectBaseOffsets.end()){
-//               std::cout<<"did I get seg fault here?\n";
-//               if(bit->offset == dit->offset){
-//                  continue;
-//               }
-//            }
-//            indirectBaseOffsets.push_back(*(it->second.begin()));
+            bit = indirectBaseOffsets.begin();
+            dit = it->second.begin();
+            if(bit != indirectBaseOffsets.end()){
+               if(bit->level == dit->offset){
+                  int opidx = it->first->memoryOpIndex();
+                  if (opidx >=0){
+                     RefFormulas *refF = it->first->in_cfg()->refFormulas.hasFormulasFor(it->first->getAddress(), opidx);
+                     if(refF != NULL){
+                        GFSliceVal oform = refF->base;
+                        coeff_t offset1=0;
+                        GFSliceVal::iterator sliceit;
+                        for (sliceit=oform.begin() ; sliceit!=oform.end() ; ++sliceit){
+                           if (sliceit->TermType() == TY_CONSTANT){
+                              offset1 = sliceit->ValueNum();
+//                              std::cout<<"Slice valnum:"<<offset1<<std::endl;
+                           }
+                        }
+                        if(bit->offset == offset1){
+//                           std::cout<<"Skip  linked ds node:"<<it->first->getId()<<std::endl;
+//                           std::cout<<"baseoffset:"<<bit->level<<" offset:"<<bit->offset<<std::endl;
+//                           std::cout<<" others baseoffset:"<<dit->offset<<" offset:"<<offset1<<std::endl;
+//                           std::cout<<"Formula: "<<oform<<std::endl;
+                           continue;
+                        }
+                        depOffset depLinked;
+                        depLinked.level = dit->offset;
+                        depLinked.offset = offset1;
+                        indirectBaseOffsets.push_back(depLinked);
+//                        std::cout<<"adding  linked ds node:"<<it->first->getId()<<std::endl;
+//                        std::cout<<"baseoffset:"<<depLinked.level<<" offset:"<<depLinked.offset<<std::endl;
+                     }
+                  }
+               }
+            } else {
+               int opidx = it->first->memoryOpIndex();
+               if (opidx >=0){
+                  RefFormulas *refF = it->first->in_cfg()->refFormulas.hasFormulasFor(it->first->getAddress(), opidx);
+                  if(refF != NULL){
+                     GFSliceVal oform = refF->base;
+                     coeff_t offset2= 0;
+                     GFSliceVal::iterator sliceit;
+                     for (sliceit=oform.begin() ; sliceit!=oform.end() ; ++sliceit){
+                        if (sliceit->TermType() == TY_CONSTANT){
+                           offset2 = sliceit->ValueNum();
+                        }
+                     }
+                     depOffset depLinked;
+                     depLinked.level = dit->offset;
+                     depLinked.offset = offset2;
+                     indirectBaseOffsets.push_back(depLinked);
+//                     std::cout<<"adding  linked ds node:"<<it->first->getId()<<std::endl;
+//                     std::cout<<"baseoffset:"<<depLinked.level<<" offset:"<<depLinked.offset<<std::endl;
+//                     std::cout<<"Formula: "<<oform<<std::endl;
+                  }
+               }
+
+
+            }
             int size1 = it->first->getBitWidth()/8;
             execRatio = (double)it->first->getExecCount() / (double)loopsExecs.find(it->first->getLevel())->second;
             double fp_of_load = (((fp *size1) / totLoads)*execRatio);///2; TODO why this works??
-      
+
             adjusted_fp+=fp_of_load;
-            std::cout<<"this loads fp="<<fp_of_load<<" Size="<<size1<<" Ratio="<<execRatio<<std::endl;
-      std::cout<<std::endl;
+//            std::cout<<"Added linked ds node:"<<it->first->getId()<<std::endl;
+//            std::cout<<"this loads fp="<<fp_of_load<<" Size="<<size1<<" Ratio="<<execRatio<<std::endl;
+//            std::cout<<std::endl;
             levels.clear();
             continue;
          }
       }
-      std::cout<<std::endl;
       //Check End
       for (int i= 0 ; i <= level ; i++){
          levels.insert(std::map<int , int>::value_type(i , 0));
@@ -480,78 +501,59 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
       for ( ; baseit!=baseOffsets.end(); ++baseit){
          skip = false;
          for (bit = baseit->begin(), dit = it->second.begin() ; bit!=baseit->end(); ++bit, ++dit){ 
-            std::cout<<"base level:"<<bit->level<<" offset:"<<bit->offset<<std::endl;
-            std::cout<<"depMap level:"<<dit->level<<" offset:"<<dit->offset<<std::endl;
+//            std::cout<<"base level:"<<bit->level<<" offset:"<<bit->offset<<std::endl;
+//            std::cout<<"depMap level:"<<dit->level<<" offset:"<<dit->offset<<std::endl;
             if (bit->offset == dit->offset ){
-                  std::cout<<"offsets are same\n";
+//               std::cout<<"offsets are same\n";
                if ( dit->level == 0 && bit->level == 0){
-                  std::cout<<"skip is setted true\n";
+//                  std::cout<<"skip is setted true\n";
                   skip = true;
                }
             }
          }
          if(dit != it->second.end()){
-            std::cout<<"not same lenght\n";
+//            std::cout<<"not same lenght\n";
             skip =false;
          }
          if(skip){
-            std::cout<<"I am skipping\n";
+//            std::cout<<"I am skipping\n";
             break;
          }
 
-            std::cout<<"go next iter\n";
+//         std::cout<<"go next iter\n";
       }
       if(skip){
-         std::cout<<"I found same array\n";
+//         std::cout<<"I found same array\n";
          for (lit = it->second.begin() ; lit!=it->second.end(); ++lit){
-            std::cout<<"this is in level:"<<lit->level<<" offset:"<<lit->offset<<std::endl;
+//            std::cout<<"this is in level:"<<lit->level<<" offset:"<<lit->offset<<std::endl;
          }
          continue;
       } else {
-         std::cout<<"This is not same array\n";
+//         std::cout<<"This is not same array\n";
          for (lit = it->second.begin() ; lit!=it->second.end(); ++lit){
-            std::cout<<"this is in level:"<<lit->level<<" offset:"<<lit->offset<<std::endl;
+//            std::cout<<"this is in level:"<<lit->level<<" offset:"<<lit->offset<<std::endl;
          }
          baseOffsets.push_back(it->second);
       }
-//      if(std::find(baseOffsets.begin(),baseOffsets.end(),it->second)!=baseOffsets.end()){
-//         for (lit = it->second.begin() ; lit!=it->second.end(); ++lit){
-//            std::cout<<"this is in level:"<<lit->level<<" offset:"<<lit->offset<<std::endl;
-//         }
-//         std::cout<<"I found same array\n";
-//         continue;
-//      } else {
-//         for (lit = it->second.begin() ; lit!=it->second.end(); ++lit){
-//            std::cout<<"this is in level:"<<lit->level<<" offset:"<<lit->offset<<std::endl;
-//         }
-//         std::cout<<"This is not same array\n";
-//         baseOffsets.push_back(it->second);
-//      }
       for (lit = it->second.begin() ; lit!=it->second.end(); ++lit){
          int lvl = lit->level;
          //sliceVal sval = lit->offset;
-         coeff_t sval = lit->offset;
-         depOffset tempDO;
-         tempDO.level = lvl;
-         tempDO.offset = sval;
          levels.find(lvl)->second = 1;
-         std::cout<<" Level: "<<lvl;
+//         std::cout<<" Level: "<<lvl;
       }
-      std::cout<<std::endl;
       for(int i =0 ; i <=level; i++){
-            std::cout<<" level:"<<i<<" count:"<<levelExecCounts.find(i)->second<<std::endl;
+//         std::cout<<" level:"<<i<<" count:"<<levelExecCounts.find(i)->second<<std::endl;
          if (levels.find(i)->second ==0){
             divider *=levelExecCounts.find(i)->second;
-            std::cout<<"divider: "<<divider<<" level:"<<i<<" count:"<<levelExecCounts.find(i)->second<<std::endl;
+//            std::cout<<"divider: "<<divider<<" level:"<<i<<" count:"<<levelExecCounts.find(i)->second<<std::endl;
          }
       }
-//      int fp_of_load = (fp/ totLoads)/divider;
       int size = it->first->getBitWidth()/8;
       execRatio = (double)it->first->getExecCount() / (double)loopsExecs.find(it->first->getLevel())->second;
       double fp_of_load = (((fp *size) / totLoads)/divider)*execRatio;
-      
+
       adjusted_fp+=fp_of_load;
-      std::cout<<"this loads fp="<<fp_of_load<<" Divider="<<divider<<" Size="<<size<<" Ratio="<<execRatio<<std::endl;
+//      std::cout<<"this loads fp="<<fp_of_load<<" Divider="<<divider<<" Size="<<size<<" Ratio="<<execRatio<<std::endl;
       levels.clear();
    }
    fp = fp *4;//this is not correct is just there to check results with excel 
@@ -581,268 +583,268 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
 
 void
 DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
-		       RSIList* innerRegs)
+      RSIList* innerRegs)
 {
-  std::cerr << "[INFO]DGBuilder::build_graph: '" << name() << "'\n";
-  
-  int i, numLoops = 0;
-  bool lastInsnNOP = false;
+   std::cerr << "[INFO]DGBuilder::build_graph: '" << name() << "'\n";
 
-  // Find a block with a non NULL CFG pointer. Inner loop nodes are
-  // special nodes that are not part of the CFG and they have an
-  // uninitialized pointer.
-  CFG *g = ba[0]->inCfg();   
-  for (i = 1; i < numBlocks && g == NULL; ++i) {
-    g = ba[i]->inCfg();
-  }
-   
-  for(i = 0; i < numBlocks; ++i) {
+   int i, numLoops = 0;
+   bool lastInsnNOP = false;
 
-#if DEBUG_GRAPH_CONSTRUCTION
-    DEBUG_GRAPH (3,
-		 fprintf(stderr, "Processing block %d with prob %f, from address [%" PRIxaddr ",%" PRIxaddr "]\n",
-			 i, fa[i], ba[i]->getStartAddress(), ba[i]->getEndAddress());
-		 )
-#endif
+   // Find a block with a non NULL CFG pointer. Inner loop nodes are
+   // special nodes that are not part of the CFG and they have an
+   // uninitialized pointer.
+   CFG *g = ba[0]->inCfg();   
+   for (i = 1; i < numBlocks && g == NULL; ++i) {
+      g = ba[i]->inCfg();
+   }
 
-    addrtype pc;
-    if (! ba[i]->is_inner_loop()) {
-      if (! ba[i]->isCfgEntry()) {
-	CFG::ForwardInstructionIterator iit(ba[i]);
-	while ((bool)iit)
-	  {
-	    pc = iit.Address();
-	    inMapper.clear();  // internal registers are valid only across 
-	    // micro-ops part of one native instruction
-	    build_node_for_instruction(pc, ba[i], fabs(fa[i]));
-	    MIAMI::DecodedInstruction* &dInst = builtNodes[pc];
-	    MIAMI::instruction_info &primary_uop = dInst->micro_ops.back();
-	    if (primary_uop.type == MIAMI::InstrBin::IB_nop){
-	      lastInsnNOP = true;
-	    }
-	    else{
-	      lastInsnNOP = false;
-	    }
-	    std::cout <<"here "<< primary_uop.type <<" " << MIAMI::InstrBin::IB_nop<<std::endl;
-	    num_instructions += 1;
-	    if (ba[i]->is_delay_block())
-	      {
-		prev_inst_may_have_delay_slot = false;
-		gpRegs = &gpMapper;
-		stack_tops = crt_stack_tops;
-		//                  fpRegs = &fpMapper;
-		break;
-	      }
-	    ++ iit;
-	  }
-      }
-    }
-    else {
-      // An inner loop entry. Create a special 'barrier' node.
-      int type = IB_inner_loop;  // CFG_LOOP_ENTRY_TYPE;
-      pc = numLoops + 1;
+   for(i = 0; i < numBlocks; ++i) {
 
 #if DEBUG_GRAPH_CONSTRUCTION
-      DEBUG_GRAPH (1,
-		   fprintf(stderr, " => Found entry into inner loop. Create a loop entry node at %" PRIaddr ".\n",
-			   pc);
-		   )
+      DEBUG_GRAPH (3,
+            fprintf(stderr, "Processing block %d with prob %f, from address [%" PRIxaddr ",%" PRIxaddr "]\n",
+               i, fa[i], ba[i]->getStartAddress(), ba[i]->getEndAddress());
+            )
 #endif
 
-      MIAMI::DecodedInstruction* &dInst = builtNodes[pc];
-      assert(dInst == NULL); 
-      dInst = new MIAMI::DecodedInstruction();
-      dInst->micro_ops.push_back(MIAMI::instruction_info());
-      MIAMI::instruction_info &primary_uop = dInst->micro_ops.back();
-
-      primary_uop.type = (MIAMI::InstrBin)type;         
-      primary_uop.width = 0;
-      primary_uop.vec_len = 1;
-      primary_uop.exec_unit = ExecUnit_SCALAR;
-      primary_uop.exec_unit_type = ExecUnitType_INT;
-      primary_uop.num_src_operands = 0;
-      primary_uop.num_dest_operands = 0;
-
-      SchedDG::Node* node = new Node(this, pc, 0, primary_uop);
-      node->setInOrderIndex(nextUopIndex++);
-//ozgurS TODO are we sure that only load inst has FP data ???
-      if (node->is_load_instruction()){
-         std::cout<<" OzgurDebuging lvlMap hit count = "<<img->getMemLoadData(node->getAddress())->find(0)->second.hitCount<<std::endl;
-         node->setLvlMap(img->getMemLoadData(node->getAddress()));
-         std::cout<<__func__<<" ozgur test total hit at lvl 0 is "<<node->getLvlMap()->find(0)->second.hitCount<<std::endl; 
-         assert(false && "Impossible!!");// why this is impossible ??
+         addrtype pc;
+      if (! ba[i]->is_inner_loop()) {
+         if (! ba[i]->isCfgEntry()) {
+            CFG::ForwardInstructionIterator iit(ba[i]);
+            while ((bool)iit)
+            {
+               pc = iit.Address();
+               inMapper.clear();  // internal registers are valid only across 
+               // micro-ops part of one native instruction
+               build_node_for_instruction(pc, ba[i], fabs(fa[i]));
+               MIAMI::DecodedInstruction* &dInst = builtNodes[pc];
+               MIAMI::instruction_info &primary_uop = dInst->micro_ops.back();
+               if (primary_uop.type == MIAMI::InstrBin::IB_nop){
+                  lastInsnNOP = true;
+               }
+               else{
+                  lastInsnNOP = false;
+               }
+               std::cout <<"here "<< primary_uop.type <<" " << MIAMI::InstrBin::IB_nop<<std::endl;
+               num_instructions += 1;
+               if (ba[i]->is_delay_block())
+               {
+                  prev_inst_may_have_delay_slot = false;
+                  gpRegs = &gpMapper;
+                  stack_tops = crt_stack_tops;
+                  //                  fpRegs = &fpMapper;
+                  break;
+               }
+               ++ iit;
+            }
+         }
       }
-//ozgurE
-      add(node);
-      markBarrierNode (node);
-         
-      primary_uop.data = node;
-         
-      // I could also clear the register renaming maps. This will ensure
-      // there are no dependencies between instructions before and after
-      // the inner loop (dependencies would be covered by the execution 
-      // time of the loop anyway). But I choose to keep them for now, to 
-      // account for the missing dependencies between instructions in
-      // loops at different levels.
-      //
-      // gmarin: Unfortunately, these dependecies across 
-      // inner loops and routine calls, create a lot of problems for the
-      // scheduler. I will clear the renaming maps now inside the method
-      // "handle_control_dependencies" :(
-      // gmarin: Now we set register dependencies into and from
-      // an inner loop. We still do not allow register dependencies between
-      // instructions before and after an inner loop.
-      handle_inner_loop_register_dependencies(node, innerRegs[numLoops], 1);
-      handle_control_dependencies(node, type, ba[i], -fa[i]);
-      numLoops += 1;
-    }
-  }
+      else {
+         // An inner loop entry. Create a special 'barrier' node.
+         int type = IB_inner_loop;  // CFG_LOOP_ENTRY_TYPE;
+         pc = numLoops + 1;
 
-  std::cout<<"hmm 1"<<std::endl;
+#if DEBUG_GRAPH_CONSTRUCTION
+         DEBUG_GRAPH (1,
+               fprintf(stderr, " => Found entry into inner loop. Create a loop entry node at %" PRIaddr ".\n",
+                  pc);
+               )
+#endif
 
-  // compute the top nodes here. Register carried dependencies are not 
-  // taken into account anyway
-  // add also control dependencies from the lastBranch to the top nodes
-  if (lastBranch!=NULL)
-    {
+            MIAMI::DecodedInstruction* &dInst = builtNodes[pc];
+         assert(dInst == NULL); 
+         dInst = new MIAMI::DecodedInstruction();
+         dInst->micro_ops.push_back(MIAMI::instruction_info());
+         MIAMI::instruction_info &primary_uop = dInst->micro_ops.back();
+
+         primary_uop.type = (MIAMI::InstrBin)type;         
+         primary_uop.width = 0;
+         primary_uop.vec_len = 1;
+         primary_uop.exec_unit = ExecUnit_SCALAR;
+         primary_uop.exec_unit_type = ExecUnitType_INT;
+         primary_uop.num_src_operands = 0;
+         primary_uop.num_dest_operands = 0;
+
+         SchedDG::Node* node = new Node(this, pc, 0, primary_uop);
+         node->setInOrderIndex(nextUopIndex++);
+         //ozgurS TODO are we sure that only load inst has FP data ???
+         if (node->is_load_instruction()){
+            std::cout<<" OzgurDebuging lvlMap hit count = "<<img->getMemLoadData(node->getAddress())->find(0)->second.hitCount<<std::endl;
+            node->setLvlMap(img->getMemLoadData(node->getAddress()));
+            std::cout<<__func__<<" ozgur test total hit at lvl 0 is "<<node->getLvlMap()->find(0)->second.hitCount<<std::endl; 
+            assert(false && "Impossible!!");// why this is impossible ??
+         }
+         //ozgurE
+         add(node);
+         markBarrierNode (node);
+
+         primary_uop.data = node;
+
+         // I could also clear the register renaming maps. This will ensure
+         // there are no dependencies between instructions before and after
+         // the inner loop (dependencies would be covered by the execution 
+         // time of the loop anyway). But I choose to keep them for now, to 
+         // account for the missing dependencies between instructions in
+         // loops at different levels.
+         //
+         // gmarin: Unfortunately, these dependecies across 
+         // inner loops and routine calls, create a lot of problems for the
+         // scheduler. I will clear the renaming maps now inside the method
+         // "handle_control_dependencies" :(
+         // gmarin: Now we set register dependencies into and from
+         // an inner loop. We still do not allow register dependencies between
+         // instructions before and after an inner loop.
+         handle_inner_loop_register_dependencies(node, innerRegs[numLoops], 1);
+         handle_control_dependencies(node, type, ba[i], -fa[i]);
+         numLoops += 1;
+      }
+   }
+
+   std::cout<<"hmm 1"<<std::endl;
+
+   // compute the top nodes here. Register carried dependencies are not 
+   // taken into account anyway
+   // add also control dependencies from the lastBranch to the top nodes
+   if (lastBranch!=NULL)
+   {
       NodesIterator nit(*this);
       while ((bool)nit) 
-	{
-	  Node *nn = nit;
-	  if (nn->isInstructionNode())
-	    {
-	      bool is_top = true;
-	      IncomingEdgesIterator ieit(nn);
-	      while ((bool)ieit)
-		{
-		  // check if this is a loop independent scheduling edge
-		  // for control edges, verify that this is not one that can
-		  // be removed by branch predictor.
-		  if ( ieit->getLevel()==0 && !ieit->IsRemoved() && 
-		       ieit->isSchedulingEdge() && 
-                       (ieit->getType()!=CONTROL_TYPE || 
-                        ieit->getProbability()<BR_HIGH_PROBABILITY ||
-                        nn->isBarrierNode() || 
-                        ieit->source()->isBarrierNode()) )
-		    {
-		      is_top = false;
-		      break;
-		    }
-		  ++ ieit;
-		}
-	      if (is_top)
-		{
-		  addUniqueDependency(lastBranch, nn, TRUE_DEPENDENCY,
-				      CONTROL_TYPE, 1, 1, 0, lastBranchProb);
-		}
-	    }
-	  ++ nit;
-	}
-    }
+      {
+         Node *nn = nit;
+         if (nn->isInstructionNode())
+         {
+            bool is_top = true;
+            IncomingEdgesIterator ieit(nn);
+            while ((bool)ieit)
+            {
+               // check if this is a loop independent scheduling edge
+               // for control edges, verify that this is not one that can
+               // be removed by branch predictor.
+               if ( ieit->getLevel()==0 && !ieit->IsRemoved() && 
+                     ieit->isSchedulingEdge() && 
+                     (ieit->getType()!=CONTROL_TYPE || 
+                      ieit->getProbability()<BR_HIGH_PROBABILITY ||
+                      nn->isBarrierNode() || 
+                      ieit->source()->isBarrierNode()) )
+               {
+                  is_top = false;
+                  break;
+               }
+               ++ ieit;
+            }
+            if (is_top)
+            {
+               addUniqueDependency(lastBranch, nn, TRUE_DEPENDENCY,
+                     CONTROL_TYPE, 1, 1, 0, lastBranchProb);
+            }
+         }
+         ++ nit;
+      }
+   }
 
-  // If there are any inner loops or function calls in this path, then
-  // I should disable SWP. This is what most compilers do.
-  // if (hasBarrierNodes())
-  //    avgNumIters = 1.0;
-  std::cout <<"lastInsnNOP "<<lastInsnNOP<<std::endl;
-  if (avgNumIters <= ONE_ITERATION_EPSILON)  // no SWP for this path
-    {
+   // If there are any inner loops or function calls in this path, then
+   // I should disable SWP. This is what most compilers do.
+   // if (hasBarrierNodes())
+   //    avgNumIters = 1.0;
+   std::cout <<"lastInsnNOP "<<lastInsnNOP<<std::endl;
+   if (avgNumIters <= ONE_ITERATION_EPSILON)  // no SWP for this path
+   {
       if (lastBranch && !lastBranch->isBarrierNode()) // it was not added before
-	{
-	  markBarrierNode (lastBranch);
-	  // add also control dependencies from all recent branches to this 
-	  // barrier
-	  NodeSet::iterator nsit = recentBranches.begin();
-	  for ( ; nsit!=recentBranches.end() ; ++nsit )
-	    {
-	      // lastBranch should be in recentBranches, but do not process
-	      // it like a regular branch since it is a barrier node now.
-	      if (*nsit == lastBranch)
-		continue;
-	      // if the node does not have any outgoing dependency, create one;
-	      // create one even if it has an outgoing control dependency with 
-	      // high probability
-	      int has_dep = 0;
-	      OutgoingEdgesIterator oeit(*nsit);
-	      while ((bool)oeit)
-		{       
-		  if ( oeit->getLevel()==0 && 
-		       (oeit->getType()!=CONTROL_TYPE || 
-			oeit->getProbability()<BR_HIGH_PROBABILITY ||
-			oeit->sink()->isBarrierNode()) )
-		    {    
-		      has_dep = 1;
-		      break;
-		    }
-		  ++ oeit;
-		}
-	      if (!has_dep)
-		addUniqueDependency(*nsit, lastBranch, TRUE_DEPENDENCY,
-				    CONTROL_TYPE, 0, 0, 0, 0.0);
-	    }
-	  recentBranches.clear();
-	}
+      {
+         markBarrierNode (lastBranch);
+         // add also control dependencies from all recent branches to this 
+         // barrier
+         NodeSet::iterator nsit = recentBranches.begin();
+         for ( ; nsit!=recentBranches.end() ; ++nsit )
+         {
+            // lastBranch should be in recentBranches, but do not process
+            // it like a regular branch since it is a barrier node now.
+            if (*nsit == lastBranch)
+               continue;
+            // if the node does not have any outgoing dependency, create one;
+            // create one even if it has an outgoing control dependency with 
+            // high probability
+            int has_dep = 0;
+            OutgoingEdgesIterator oeit(*nsit);
+            while ((bool)oeit)
+            {       
+               if ( oeit->getLevel()==0 && 
+                     (oeit->getType()!=CONTROL_TYPE || 
+                      oeit->getProbability()<BR_HIGH_PROBABILITY ||
+                      oeit->sink()->isBarrierNode()) )
+               {    
+                  has_dep = 1;
+                  break;
+               }
+               ++ oeit;
+            }
+            if (!has_dep)
+               addUniqueDependency(*nsit, lastBranch, TRUE_DEPENDENCY,
+                     CONTROL_TYPE, 0, 0, 0, 0.0);
+         }
+         recentBranches.clear();
+      }
       else if (!lastBranch && !lastInsnNOP)
-	assert (!"Can we have a path without a lastBranch? Look at this path pal.");
+         assert (!"Can we have a path without a lastBranch? Look at this path pal.");
       // if the assert above ever fails, understand when it can happen and
       // place a inner_loop_entry node there, just to restrict the 
       // scheduling from wrapping around.
-    }
-  // add the loop carried register dependencies; go through all the blocks
-  // again. Only if this path was executed multiple times.
-  if (avgNumIters > ONE_ITERATION_EPSILON)
-    {
+   }
+   // add the loop carried register dependencies; go through all the blocks
+   // again. Only if this path was executed multiple times.
+   if (avgNumIters > ONE_ITERATION_EPSILON)
+   {
       numLoops = 0;
       for( i=0 ; i<numBlocks ; ++i )
-	{
-	  addrtype pc;
-	  if (ba[i]->is_inner_loop ())
-	    {
-	      MIAMI::DecodedInstruction* &dInst = builtNodes[numLoops + 1];
-	      assert(dInst != NULL && dInst->micro_ops.size()==1);
+      {
+         addrtype pc;
+         if (ba[i]->is_inner_loop ())
+         {
+            MIAMI::DecodedInstruction* &dInst = builtNodes[numLoops + 1];
+            assert(dInst != NULL && dInst->micro_ops.size()==1);
 
-	      SchedDG::Node* node = static_cast<SchedDG::Node*>(dInst->micro_ops.front().data);
-	      assert(node != NULL);
-              handle_inner_loop_register_dependencies (node, innerRegs[numLoops], 0);
-	      ++ numLoops;
-	    }
-	  else
+            SchedDG::Node* node = static_cast<SchedDG::Node*>(dInst->micro_ops.front().data);
+            assert(node != NULL);
+            handle_inner_loop_register_dependencies (node, innerRegs[numLoops], 0);
+            ++ numLoops;
+         }
+         else
             if (!ba[i]->isCfgEntry())
-	      {
-		CFG::ForwardInstructionIterator iit(ba[i]);
-		while ((bool)iit)
-		  {
-		    pc = iit.Address();
-                  
-		    MIAMI::DecodedInstruction* &dInst = builtNodes[pc];
-		    assert(dInst != NULL && !dInst->micro_ops.empty());
-                  
-		    // One native instruction can be decoded into multiple micro-ops
-		    // Iterate over all micro-ops
-		    MIAMI::InstrList::iterator lit = dInst->micro_ops.begin();
-		    for ( ; lit!=dInst->micro_ops.end() ; ++lit)
-		      {
-			SchedDG::Node* node = static_cast<SchedDG::Node*>(lit->data);
-			assert(node != NULL);
-			if (node->is_intrinsic_type ())
-			  handle_intrinsic_register_dependencies (node, 0);
-			else
-			  handle_register_dependencies (dInst, *lit, node, ba[i], 0);
-		      }
+            {
+               CFG::ForwardInstructionIterator iit(ba[i]);
+               while ((bool)iit)
+               {
+                  pc = iit.Address();
 
-		    if (ba[i]->is_delay_block())
-		      {
-			prev_inst_may_have_delay_slot = false;
-			gpRegs = &gpMapper;
-			stack_tops = crt_stack_tops;
-			//                     fpRegs = &fpMapper;
-			break;
-		      }
-		    ++ iit;
-		  }
-	      }
-	}
-    }
+                  MIAMI::DecodedInstruction* &dInst = builtNodes[pc];
+                  assert(dInst != NULL && !dInst->micro_ops.empty());
+
+                  // One native instruction can be decoded into multiple micro-ops
+                  // Iterate over all micro-ops
+                  MIAMI::InstrList::iterator lit = dInst->micro_ops.begin();
+                  for ( ; lit!=dInst->micro_ops.end() ; ++lit)
+                  {
+                     SchedDG::Node* node = static_cast<SchedDG::Node*>(lit->data);
+                     assert(node != NULL);
+                     if (node->is_intrinsic_type ())
+                        handle_intrinsic_register_dependencies (node, 0);
+                     else
+                        handle_register_dependencies (dInst, *lit, node, ba[i], 0);
+                  }
+
+                  if (ba[i]->is_delay_block())
+                  {
+                     prev_inst_may_have_delay_slot = false;
+                     gpRegs = &gpMapper;
+                     stack_tops = crt_stack_tops;
+                     //                     fpRegs = &fpMapper;
+                     break;
+                  }
+                  ++ iit;
+               }
+            }
+      }
+   }
 }
 
 
@@ -852,7 +854,7 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
    MIAMI::DecodedInstruction* &dInst = builtNodes[pc];
    //assert(dInst == NULL); // rfriese: probably need to make this an if to use with dyninst
    dInst = new MIAMI::DecodedInstruction();
-   
+
    int res = InstructionDecoder::decode_dbg(pc+reloc_offset, b->getEndAddress()-pc, dInst, "DGBuilder::build_node_for_instruction");
 
    // DynInst-based decoding
@@ -860,20 +862,20 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
    BPatch_function* dyn_func = routine->getDynFunction();
    BPatch_basicBlock* dyn_blk = routine->getBlockFromAddr(b->getStartAddress(), b->getEndAddress());
    if (!dyn_blk) {
-     fprintf(stderr,"Dyninst: no block found at addr: 0x%lx\n",b->getStartAddress());
+      fprintf(stderr,"Dyninst: no block found at addr: 0x%lx\n",b->getStartAddress());
    }
-   
+
    MIAMI::DecodedInstruction dInst2;
    res = InstructionDecoder::decode_dyninst(pc+reloc_offset, b->getEndAddress()-pc, &dInst2, dyn_func, dyn_blk);
 
    //res = isaXlate_insn_old(pc+reloc_offset, dInst); //FIXME: deprecated
 #endif
-   
+
    if (res < 0) { // error while decoding
       return (res);
    }
 
-   
+
 #if DECODE_INSTRUCTIONS_IN_PATH
    if (!targetPath || targetPath==pathId)
    {
@@ -882,7 +884,7 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
       DumpInstrList(dInst);
    }
 #endif
-      
+
    // one native instruction can be decoded into multiple micro-ops
    // iterate over them
    MIAMI::InstrList::iterator lit = dInst->micro_ops.begin();
@@ -896,10 +898,10 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
       // of fortran intrinsics and other short inlinable functions
       EntryValue *entryVal = 0;
 #if 0  // not sure if we still need to deal with instrinsics on x86 where
-       // we see the code in shared libraries. Decide later.
+      // we see the code in shared libraries. Decide later.
       if (type==IB_jump)  // compute function call target
       {
-//      fprintf (stderr, "Found function call at pc=0x%08x\n", pc);
+         //      fprintf (stderr, "Found function call at pc=0x%08x\n", pc);
          routine *r = b->in_routine ();
          addr temp = mach_inst_target (r->get_mach_inst(pc), pc, 0);
          executable *exec = r->in_executable ();
@@ -912,11 +914,11 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
 #endif
 #if DEBUG_GRAPH_CONSTRUCTION
       DEBUG_GRAPH (7,
-         fprintf(stderr, " -> process micro-op %d of instruction at 0x%lx of type %s\n",
+            fprintf(stderr, " -> process micro-op %d of instruction at 0x%lx of type %s\n",
                i, pc, Convert_InstrBin_to_string((InstrBin)type) );
-      )
+            )
 #endif
-      SchedDG::Node* node = new Node(this, pc, i, iiobj);
+         SchedDG::Node* node = new Node(this, pc, i, iiobj);
       if (entryVal)
          node->setEntryValue (entryVal);
       add(node);
@@ -934,15 +936,15 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
          markBarrierNode (node);
 
       iiobj.data = node;
-//ozgurS
-//      if (node->is_load_instruction()){
-         //TODO findMe and FIXME
-         node->setLvlMap(img->getMemLoadData(node->getAddress()));
-std::cout<<"DEBUG OZGUR instadd: "<< std::hex <<node->getAddress()<< std::dec<<" lvl0:"<<node->getLvlMap()->find(0)->second.hitCount<<" lvl-1:"<<node->getLvlMap()->find(-1)->second.hitCount<<std::endl; //segfault FIXME
-//std::cout<<"DEBUG OZGUR instadd: "<< std::hex <<node->getAddress()<< std::dec<<" lvl5:"<<node->getLvlMap()->find(5)->second.hitCount<<std::endl; //segfault FIXME
-         //std::cerr<<__func__<<" ozgur testing img total hit at lvl 0 is "<<node->getLvlMap()->find(0)->second.hitCount<<std::endl; 
-//      }
-//ozgurE
+      //ozgurS
+      //      if (node->is_load_instruction()){
+      //TODO findMe and FIXME
+      node->setLvlMap(img->getMemLoadData(node->getAddress()));
+      std::cout<<"DEBUG OZGUR instadd: "<< std::hex <<node->getAddress()<< std::dec<<" lvl0:"<<node->getLvlMap()->find(0)->second.hitCount<<" lvl-1:"<<node->getLvlMap()->find(-1)->second.hitCount<<std::endl; //segfault FIXME
+      //std::cout<<"DEBUG OZGUR instadd: "<< std::hex <<node->getAddress()<< std::dec<<" lvl5:"<<node->getLvlMap()->find(5)->second.hitCount<<std::endl; //segfault FIXME
+      //std::cerr<<__func__<<" ozgur testing img total hit at lvl 0 is "<<node->getLvlMap()->find(0)->second.hitCount<<std::endl; 
+      //      }
+      //ozgurE
       if (node->is_memory_reference())
       {
          int stackAccess = 0;
@@ -955,12 +957,12 @@ std::cout<<"DEBUG OZGUR instadd: "<< std::hex <<node->getAddress()<< std::dec<<"
          if (opidx < 0)   // did not find one?, error
          {
             fprintf(stderr, "Error: DGBuilder::build_node_for_instruction: cannot find memory operand index for instruction at 0x%" PRIxaddr ", micro-op %d of type %s\n",
-               pc, i, Convert_InstrBin_to_string((InstrBin)type));
+                  pc, i, Convert_InstrBin_to_string((InstrBin)type));
             assert(!"I cannot find memory operand for micro-op!!!");
          }
          node->setMemoryOpIndex(opidx);
          handle_memory_dependencies (node, pc, opidx, type, stackAccess);
-         
+
          // store all the PCs corresponding to memory references
          // if needed, differentiate between loads and stores
          memRefs.insert(pc);
@@ -969,7 +971,7 @@ std::cout<<"DEBUG OZGUR instadd: "<< std::hex <<node->getAddress()<< std::dec<<"
          handle_intrinsic_register_dependencies (node, 1);
       else
          handle_register_dependencies (dInst, iiobj, node, b, 1);
-   
+
       handle_control_dependencies (node, type, b, freq);
 
 #if DECODE_INSTRUCTIONS_IN_PATH
@@ -985,7 +987,7 @@ std::cout<<"DEBUG OZGUR instadd: "<< std::hex <<node->getAddress()<< std::dec<<"
 
 void
 DGBuilder::handle_control_dependencies (SchedDG::Node *node, int type, 
-                MIAMI::CFG::Node* b, float freq)
+      MIAMI::CFG::Node* b, float freq)
 {
    // if this instruction has no LOOP_INDEPENDENT dependencies from a node
    // after the lastBranch, but has register or memory dependencies from a 
@@ -993,21 +995,21 @@ DGBuilder::handle_control_dependencies (SchedDG::Node *node, int type,
    // branch.
    // This does not apply to instructions in the delay slot whose execution 
    // is not conditioned by the branch (unless it is an anuled delay slot)
-   
+
    // if this is a delay slot and I do not have a register dependency from 
    // last branch to this instruction, then this instruction is logically
    // before the branch. Check if this is such a delay slot.
    bool delay_process_later = false;
    if (b->is_delay_block() && lastBranch && 
-              b->firstIncoming()->source()==lastBranchBB &&
-              !node->isBarrierNode() )
+         b->firstIncoming()->source()==lastBranchBB &&
+         !node->isBarrierNode() )
    {
       int has_dep = 0;
       IncomingEdgesIterator ieit(node);
       while ((bool)ieit)
       {       
          if ( ieit->getLevel()==0 &&
-              ieit->source()==lastBranch )
+               ieit->source()==lastBranch )
          {    
             has_dep = 1;
             break;
@@ -1037,41 +1039,41 @@ DGBuilder::handle_control_dependencies (SchedDG::Node *node, int type,
          {
             has_dep = 1;
             if (ieit->getType()!=CONTROL_TYPE ||
-                ieit->getProbability()<BR_HIGH_PROBABILITY ||
-                node->isBarrierNode() || 
-                ieit->source()->isBarrierNode())
+                  ieit->getProbability()<BR_HIGH_PROBABILITY ||
+                  node->isBarrierNode() || 
+                  ieit->source()->isBarrierNode())
             {
                has_strong_dep = 1;
                break;
             }
          } else
-         if (elevel==0 && ieit->getType()!=CONTROL_TYPE)
-         {
-            assert (srcId < lastBranchId);
-            has_memreg_dep_from_before = 1;
-         }
+            if (elevel==0 && ieit->getType()!=CONTROL_TYPE)
+            {
+               assert (srcId < lastBranchId);
+               has_memreg_dep_from_before = 1;
+            }
          ++ ieit;
       }
-      
+
       if (!has_dep && (has_memreg_dep_from_before || lastBranch==lastBarrier))
          addUniqueDependency(lastBranch, node, TRUE_DEPENDENCY,
-             CONTROL_TYPE, 0, 0, 0, lastBranchProb);
+               CONTROL_TYPE, 0, 0, 0, lastBranchProb);
 
       if (!has_strong_dep && lastBarrier && lastBarrier!=lastBranch)
          addUniqueDependency(lastBarrier, node, TRUE_DEPENDENCY,
-             CONTROL_TYPE, 0, 0, 0, 0.0);
+               CONTROL_TYPE, 0, 0, 0, 0.0);
    }
-   
+
    // barrier nodes should have been identified as such by now
    if (node->isBarrierNode())
    {
       prevBarrier = lastBarrier;
       lastBarrier = node;
    }
-   
-//   if (type==CFG_LOOP_ENTRY_TYPE || InstrBinIsBranchType ((InstrBin)type))
+
+   //   if (type==CFG_LOOP_ENTRY_TYPE || InstrBinIsBranchType ((InstrBin)type))
    if ( InstrBinIsBranchType ((InstrBin)type) || 
-        node->isBarrierNode())
+         node->isBarrierNode())
    {
       // add a control dependency from each of the recent nodes to this one
       NodeSet::iterator nsit = recentNodes.begin();
@@ -1085,10 +1087,10 @@ DGBuilder::handle_control_dependencies (SchedDG::Node *node, int type,
          while ((bool)oeit)
          {       
             if ( oeit->getLevel()==0 && 
-                 (oeit->getType()!=CONTROL_TYPE || 
-                  oeit->getProbability()<BR_HIGH_PROBABILITY ||
-                  oeit->source()->isBarrierNode() ||
-                  oeit->sink()->isBarrierNode()) )
+                  (oeit->getType()!=CONTROL_TYPE || 
+                   oeit->getProbability()<BR_HIGH_PROBABILITY ||
+                   oeit->source()->isBarrierNode() ||
+                   oeit->sink()->isBarrierNode()) )
             {    
                has_dep = 1;
                break;
@@ -1099,7 +1101,7 @@ DGBuilder::handle_control_dependencies (SchedDG::Node *node, int type,
             // I mark it with probability 1.0, but I do not prune control 
             // dependencies that go into a branch. I should set it to 0.
             addUniqueDependency(*nsit, node, TRUE_DEPENDENCY,
-                CONTROL_TYPE, 0, 0, 0, 0.0);  //1.0);
+                  CONTROL_TYPE, 0, 0, 0, 0.0);  //1.0);
       }
       recentNodes.clear();
 
@@ -1118,9 +1120,9 @@ DGBuilder::handle_control_dependencies (SchedDG::Node *node, int type,
             while ((bool)oeit)
             {       
                if ( oeit->getLevel()==0 && 
-                    (oeit->getType()!=CONTROL_TYPE || 
-                     oeit->getProbability()<BR_HIGH_PROBABILITY ||
-                     oeit->sink()->isBarrierNode()) )
+                     (oeit->getType()!=CONTROL_TYPE || 
+                      oeit->getProbability()<BR_HIGH_PROBABILITY ||
+                      oeit->sink()->isBarrierNode()) )
                {    
                   has_dep = 1;
                   break;
@@ -1131,24 +1133,24 @@ DGBuilder::handle_control_dependencies (SchedDG::Node *node, int type,
                // I mark it with probability 1.0, but I do not prune control 
                // dependencies that go into a branch. I should set it to 0.
                addUniqueDependency(*nsit, node, TRUE_DEPENDENCY,
-                   CONTROL_TYPE, 0, 0, 0, 0.0);  //1.0);
+                     CONTROL_TYPE, 0, 0, 0, 0.0);  //1.0);
          }
          recentBranches.clear();
       }  // else, this is a branch; add it to recentBranches
       else
          recentBranches.insert (node);
-     
+
       prevBranch = lastBranch;
       prevBranchProb = lastBranchProb;
       prevBranchId = lastBranchId;
-      
+
       lastBranch = node;
       lastBranchBB = b;
       lastBranchId = node->getId();
       // the fraction of times the next edge was taken
       lastBranchProb = freq;
    }
-   
+
    // When I process the basic blocks, I see the instruction in the delay 
    // slot after I see the branch whose delay slot it fills. But the 
    // instruction in the delay slot is logically before the branch (if there
@@ -1163,8 +1165,8 @@ DGBuilder::handle_control_dependencies (SchedDG::Node *node, int type,
          // I mark it with probability 1.0, but I do not prune control 
          // dependencies that go into a branch. I should set it to 0.
          addUniqueDependency(node, lastBranch, TRUE_DEPENDENCY,
-                CONTROL_TYPE, 0, 0, 0, 0.0);  //1.0);
-                
+               CONTROL_TYPE, 0, 0, 0, 0.0);  //1.0);
+
          // update the lastBranchId to point to the instruction in the 
          // delay slot because this instruction has an id greater than the
          // branch itself (it is the order in which we process the blocks)
@@ -1172,7 +1174,7 @@ DGBuilder::handle_control_dependencies (SchedDG::Node *node, int type,
          lastBranchId = node->getId();
          switchNodeIds (lastBranch, node);
       }
-      
+
       // however, I need to add a control dependency from the branch before 
       // the last to the delay slot instruction if it has incoming 
       // dependencies from before the lastBranch, but not from a node after 
@@ -1191,35 +1193,35 @@ DGBuilder::handle_control_dependencies (SchedDG::Node *node, int type,
             {    
                has_dep = 1;
                if (ieit->getType()!=CONTROL_TYPE ||
-                   ieit->getProbability()<BR_HIGH_PROBABILITY ||
-                   node->isBarrierNode() || 
-                   ieit->source()->isBarrierNode())
+                     ieit->getProbability()<BR_HIGH_PROBABILITY ||
+                     node->isBarrierNode() || 
+                     ieit->source()->isBarrierNode())
                {
                   has_strong_dep = 1;
                   break;
                }
             } else
-            if (elevel==0 && ieit->getType()!=CONTROL_TYPE)
-            {
-               assert (srcId < prevBranchId);
-               has_memreg_dep_from_before = 1;
-            }
+               if (elevel==0 && ieit->getType()!=CONTROL_TYPE)
+               {
+                  assert (srcId < prevBranchId);
+                  has_memreg_dep_from_before = 1;
+               }
             ++ ieit;
          }
          if (!has_dep && (has_memreg_dep_from_before || 
-                 prevBranch==lastBarrier || prevBranch==prevBarrier))
+                  prevBranch==lastBarrier || prevBranch==prevBarrier))
             addUniqueDependency(prevBranch, node, TRUE_DEPENDENCY,
-                CONTROL_TYPE, 0, 0, 0, prevBranchProb);
+                  CONTROL_TYPE, 0, 0, 0, prevBranchProb);
          if (!has_strong_dep)
          {
             if (lastBarrier && lastBarrier!=lastBranch && prevBranch!=lastBarrier)
                addUniqueDependency(lastBarrier, node, TRUE_DEPENDENCY,
-                        CONTROL_TYPE, 0, 0, 0, 0.0);
+                     CONTROL_TYPE, 0, 0, 0, 0.0);
             else 
                if (prevBarrier && lastBarrier==lastBranch && 
-                         prevBarrier!=prevBranch)
+                     prevBarrier!=prevBranch)
                   addUniqueDependency(prevBarrier, node, TRUE_DEPENDENCY,
-                           CONTROL_TYPE, 0, 0, 0, 0.0);
+                        CONTROL_TYPE, 0, 0, 0, 0.0);
          }
       }
    } 
@@ -1232,13 +1234,13 @@ DGBuilder::handle_control_dependencies (SchedDG::Node *node, int type,
 // no additional check is performed inside this routine
 void
 DGBuilder::handle_memory_dependencies(SchedDG::Node* node, addrtype pc, int opidx,
-            int type, int stackAccess)
+      int type, int stackAccess)
 {
    int is_store =  node->is_store_instruction();
 
    // we do not differentiate between stack, fp and int memory ops anymore
    memory_dependencies_for_node(node, pc, opidx, is_store, 
-                 gpStores, gpLoads);
+         gpStores, gpLoads);
    if (is_store)
       gpStores.push_back(node);
    else
@@ -1248,7 +1250,7 @@ DGBuilder::handle_memory_dependencies(SchedDG::Node* node, addrtype pc, int opid
 
 void
 DGBuilder::memory_dependencies_for_node(SchedDG::Node* node, addrtype pc, int opidx,
-         int is_store, UNPArray& stores, UNPArray& loads)
+      int is_store, UNPArray& stores, UNPArray& loads)
 {
    RefFormulas *refF = refFormulas.hasFormulasFor(pc,opidx);
    GFSliceVal _formula;
@@ -1256,16 +1258,16 @@ DGBuilder::memory_dependencies_for_node(SchedDG::Node* node, addrtype pc, int op
    {
 #if DEBUG_GRAPH_CONSTRUCTION
       DEBUG_GRAPH (1,
-         fprintf(stderr, "WARNING: Did not find any formulas for memory instruction at address 0x%" PRIxaddr ", opidx %d\n",
-                    pc, opidx);
-      )
+            fprintf(stderr, "WARNING: Did not find any formulas for memory instruction at address 0x%" PRIxaddr ", opidx %d\n",
+               pc, opidx);
+            )
 #endif
-      if (!pessimistic_memory_dep)
-         return;
-      
+         if (!pessimistic_memory_dep)
+            return;
+
       // TODO: refF is NULL; implement alternate solution
       // Until then, I have to return
-//      return;
+      //      return;
    } else
    {
       _formula = refF->base;
@@ -1273,18 +1275,18 @@ DGBuilder::memory_dependencies_for_node(SchedDG::Node* node, addrtype pc, int op
       {
 #if DEBUG_GRAPH_CONSTRUCTION
          DEBUG_GRAPH (2,
-            fprintf(stderr, "WARNING: Did not find base formula for memory instruction at address 0x%" PRIxaddr ", opidx %d\n",
-                       pc, opidx);
-         )
+               fprintf(stderr, "WARNING: Did not find base formula for memory instruction at address 0x%" PRIxaddr ", opidx %d\n",
+                  pc, opidx);
+               )
 #endif
-         if (optimistic_memory_dep)
-            return;
+            if (optimistic_memory_dep)
+               return;
       }
    }
    // Stack accesses sould only have the stack pointer register and a constant offset
    coeff_t offset;
    bool is_stack = FormulaIsStackReference(_formula, offset);
-   
+
    UNPArray::iterator npit;
    UNPArray::iterator auxit;
    bool res;
@@ -1300,14 +1302,14 @@ DGBuilder::memory_dependencies_for_node(SchedDG::Node* node, addrtype pc, int op
       int depDir = TRUE_DEPENDENCY;
       if (is_store)
          depDir = OUTPUT_DEPENDENCY;
-         
+
       npit=stores.end();
       if (!is_store || !is_stack)
          while(npit!=stores.begin())
          {
             --npit;
             res = computeMemoryDependenciesForOneIter(node, _formula, 
-                     *npit, depDir);
+                  *npit, depDir);
             // stop when first dependency is found. It does not make sense to
             // go further back because the most recent store we find will be
             // dependence chained to another store and so on.
@@ -1320,7 +1322,7 @@ DGBuilder::memory_dependencies_for_node(SchedDG::Node* node, addrtype pc, int op
       if (is_store && !is_stack)
       {
          depDir = ANTI_DEPENDENCY;
-         
+
          npit=loads.end();
          res = false;
          while(npit!=loads.begin())
@@ -1333,7 +1335,7 @@ DGBuilder::memory_dependencies_for_node(SchedDG::Node* node, addrtype pc, int op
             } else
                --npit;
             res = computeMemoryDependenciesForOneIter(node, _formula, *npit, 
-                 depDir);
+                  depDir);
             // if we created a dependency we should remove current load
             // from loads, such that it is not tested against newer stores
             // to the same location. Next store will be daisy-chained to
@@ -1353,16 +1355,16 @@ DGBuilder::memory_dependencies_for_node(SchedDG::Node* node, addrtype pc, int op
       {
 #if DEBUG_GRAPH_CONSTRUCTION
          DEBUG_GRAPH (2,
-            fprintf(stderr, "WARNING: Did not find stride formula for memory instruction at address 0x%" PRIxaddr "\n",
-                      pc);
-         )
+               fprintf(stderr, "WARNING: Did not find stride formula for memory instruction at address 0x%" PRIxaddr "\n",
+                  pc);
+               )
 #endif
-         if (optimistic_memory_dep)
-            return;
+            if (optimistic_memory_dep)
+               return;
       }
       coeff_t valueNum;
       ucoeff_t valueDen;
-      
+
       int refIsScalar = 0;
       int refIsIndirect = 0;
       if (_iterFormula.has_indirect_access())
@@ -1379,15 +1381,15 @@ DGBuilder::memory_dependencies_for_node(SchedDG::Node* node, addrtype pc, int op
          refTypes = 2;
          negDir = posDir = OUTPUT_DEPENDENCY;
       }
-      
+
       npit=stores.end();
       if (!is_store || !is_stack || !refIsScalar || refIsIndirect)
          while(npit!=stores.begin())
          {
             -- npit;
             res = computeMemoryDependenciesForManyIter(node, _formula, 
-                _iterFormula, refIsScalar, refIsIndirect, *npit, negDir, 
-                posDir, refTypes);
+                  _iterFormula, refIsScalar, refIsIndirect, *npit, negDir, 
+                  posDir, refTypes);
             if (res && is_stack && refIsScalar && !refIsIndirect)
                break;
          }  // while npit!=stores.begin()
@@ -1397,14 +1399,14 @@ DGBuilder::memory_dependencies_for_node(SchedDG::Node* node, addrtype pc, int op
          posDir = TRUE_DEPENDENCY;
          negDir = ANTI_DEPENDENCY;
          refTypes = 1;
-         
+
          npit=loads.end();
          while(npit!=loads.begin())
          {
             --npit;
             res = computeMemoryDependenciesForManyIter(node, _formula, 
-                _iterFormula, refIsScalar, refIsIndirect, *npit, negDir, 
-                posDir, refTypes);
+                  _iterFormula, refIsScalar, refIsIndirect, *npit, negDir, 
+                  posDir, refTypes);
          }
       }  // while npit!=loads.begin()
    }  // multiple iterations executed
@@ -1414,7 +1416,7 @@ DGBuilder::memory_dependencies_for_node(SchedDG::Node* node, addrtype pc, int op
 
 bool
 DGBuilder::computeMemoryDependenciesForOneIter(SchedDG::Node *node, 
-        GFSliceVal& _formula, SchedDG::Node *nodeB, int depDir)
+      GFSliceVal& _formula, SchedDG::Node *nodeB, int depDir)
 {
    coeff_t valueNum;
    ucoeff_t valueDen;
@@ -1432,19 +1434,19 @@ DGBuilder::computeMemoryDependenciesForOneIter(SchedDG::Node *node,
       if (!pessimistic_memory_dep)
          return (false);
    }
-   
+
    oform = refF->base;
    if (oform.is_uninitialized() || _formula.is_uninitialized() ||
-       !IsConstantFormula(_formula-oform, valueNum, valueDen))
+         !IsConstantFormula(_formula-oform, valueNum, valueDen))
    {
       if (!optimistic_memory_dep)
          addUniqueDependency(nodeB, node, 
-            depDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+               depDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
    } else
       if (valueNum==0)
       {
          addUniqueDependency(nodeB, node, 
-            depDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+               depDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
          return (true);
       }
    return (false);
@@ -1453,15 +1455,15 @@ DGBuilder::computeMemoryDependenciesForOneIter(SchedDG::Node *node,
 
 bool
 DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node, 
-        GFSliceVal& _formula, GFSliceVal& _iterFormula, int refIsScalar, 
-        int refIsIndirect, SchedDG::Node *nodeB, int negDir, int posDir,
-        int refTypes)
+      GFSliceVal& _formula, GFSliceVal& _iterFormula, int refIsScalar, 
+      int refIsIndirect, SchedDG::Node *nodeB, int negDir, int posDir,
+      int refTypes)
 {
    coeff_t valueNum;
    ucoeff_t valueDen;
    bool res = false;
    addrtype reloc = img->RelocationOffset();
-   
+
    addrtype pc = node->getAddress();  // pc of the this instruction
    addrtype opc = nodeB->getAddress();  // pc of the Other instruction
    int oopidx = nodeB->memoryOpIndex();
@@ -1472,12 +1474,12 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
    }
 #if DEBUG_GRAPH_CONSTRUCTION
    DEBUG_GRAPH (4,
-      fprintf(stderr, "Computing multi-iter mem dependency between inst at 0x%" PRIxaddr " and inst at pc 0x%" PRIxaddr "\n",
-               pc, opc);
-   )
+         fprintf(stderr, "Computing multi-iter mem dependency between inst at 0x%" PRIxaddr " and inst at pc 0x%" PRIxaddr "\n",
+            pc, opc);
+         )
 #endif
 
-   GFSliceVal oform;
+      GFSliceVal oform;
    GFSliceVal oiter;
    RefFormulas *refF = refFormulas.hasFormulasFor(opc,oopidx);
    if (refF == NULL)
@@ -1485,836 +1487,836 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
       if (pessimistic_memory_dep)
       {
          addUniqueDependency(nodeB, node, 
-              negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+               negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
          addUniqueDependency(node, nodeB, 
-              posDir, MEMORY_TYPE, 1, 1, 0);
+               posDir, MEMORY_TYPE, 1, 1, 0);
       }
       return (false);
    }
-   
+
    oform = refF->base;
    if (refF->strides.size()>0)
       oiter = refF->strides[0];
-      
+
    int ref2IsScalar = 0;
    if  (!oiter.is_uninitialized() && 
-        IsConstantFormula(oiter, valueNum, valueDen) &&
-        valueNum==0)
+         IsConstantFormula(oiter, valueNum, valueDen) &&
+         valueNum==0)
       ref2IsScalar = 1;
-         
+
    coeff_t factor1 = 0, factor2 = 0;
 #if DEBUG_GRAPH_CONSTRUCTION
    DEBUG_GRAPH (4,
-      std::cerr << "Testing dependencies between B" << node->getId() << " with baseF=" << _formula
-           << " and iterF=" << _iterFormula << ", and B" << nodeB->getId()
-           << " with baseF=" << oform << " and iterF=" << oiter 
-           << ". DIFF BaseF=" << _formula-oform << std::endl;
-   )
+         std::cerr << "Testing dependencies between B" << node->getId() << " with baseF=" << _formula
+         << " and iterF=" << _iterFormula << ", and B" << nodeB->getId()
+         << " with baseF=" << oform << " and iterF=" << oiter 
+         << ". DIFF BaseF=" << _formula-oform << std::endl;
+         )
 #endif
-   
-   if (oform.is_uninitialized() || oiter.is_uninitialized() || 
-       _formula.is_uninitialized() || _iterFormula.is_uninitialized())
-   {
-      if (!optimistic_memory_dep)
-      {
-         addUniqueDependency(nodeB, node, 
-              negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
-         addUniqueDependency(node, nodeB, 
-              posDir, MEMORY_TYPE, 1, 1, 0);
-      }
-   } else
-   // if one of the accesses is indirect, be conservative and assume
-   // dependency such that reordering is disabled.
-   // the compiler is conservative also in such cases and I think
-   // the static analysis will produce few if any false positives.
-   // Be a little more optimistic. If the two base formulas differ through 
-   // some constant term (fixed register, not a load to reg), then its likely
-   // that the corresponding references access different arrays, so I should
-   // not have memory dependencies. With statically allocated arrays, I will
-   // not find any registers. Add another case: if the formulas differ by a
-   // constant term that is larger than the stride of the non-indirect one
-   // times the number of iterations, then we do not have a dependency either.
-   // This is not very clean, but I found a case where thousands of 
-   // dependencies were created while not needed.
-   // Since I recover names for all references, I should test also the names.
-   // Create a dependence only if the two references access same array.
-   // Another instance for avoiding dependencies: if base formulas differ by a 
-   // constant term and the strides are equal and non-zero (even if marked as indirect), 
-   // but the difference of the base formulas is not a multiple of the stride,
-   // then it is very likely that the two references access different locations.
-   // 11/13/2013, gmarin: do not mark as a dependence if the strides are equal and zero 
-   // (even if indirect), and if the base formulas differe by a non-zero term. 
-   // I think HasIntegerRatio between a non-zero contant term and zero returns true, 
-   // so check explicitly if the iter formula is in fact zero.
-   if ( IsConstantFormula(_iterFormula-oiter, valueNum, valueDen) && // the same stride (even if marked indirect)
-        valueNum==0 &&
-        IsConstantFormula(_formula-oform, valueNum, valueDen) && // but the two refs access
-        valueNum!=0 &&    // locations a constant offset apart
-        ((IsConstantFormula(_iterFormula, valueNum, valueDen) && valueNum==0) ||
-          !HasIntegerRatio(_formula-oform, _iterFormula, factor1, factor2))
-      )  // and base's difference is not a multiple of the stride
-      return (false);   // then, we do not have a dependency
-   else
-   if (refIsIndirect || oiter.has_indirect_access())
-   {
-      // check array names
-      int32_t iidx = img->GetIndexForInstPC(pc+reloc, node->memoryOpIndex());
-      assert (iidx > 0);
-      int32_t oidx = img->GetIndexForInstPC(opc+reloc, oopidx);
-      assert (oidx > 0);
-      const char* name_pc = img->GetNameForReference(iidx);
-      const char* name_opc = img->GetNameForReference(oidx);
-      
-      /** gmarin 03/28/2013: I should also exclude cases when the base 
-       * formulas differ by Loads from constant addresses. I do not know if 
-       * I can make a good case for it yet, but it would fix a lot false 
-       * memory dependencies between indirect loads and stores.
-       */
-      // do not create dependencies between indirect accesses if
-      // - they access different array names (I do not have names yet)
-      // - optimistic_memory_dep is set AND
-      //    - formulas differ by a register, or
-      //    - formulas differ by a TY_REFERENCE term (load from constant address)
-      GFSliceVal diffFormula = _formula - oform;
 
-      // if the two refs access same data array
-      if (!strcmp (name_pc, name_opc) && 
-           (!optimistic_memory_dep || 
-               (!FormulaContainsRegister (diffFormula) &&
-                !FormulaContainsReferenceTerm (diffFormula))
-           ) )
+      if (oform.is_uninitialized() || oiter.is_uninitialized() || 
+            _formula.is_uninitialized() || _iterFormula.is_uninitialized())
       {
-         // My only hope is to have a large constant term difference
-         int constStride = 0;
-         if (!refIsScalar && !refIsIndirect && 
-                IsConstantFormula(_iterFormula, valueNum, valueDen))
-            constStride = -valueNum;
-         else
-            if (!ref2IsScalar && !oiter.has_indirect_access() && 
-                 IsConstantFormula (oiter, valueNum, valueDen))
-               constStride = valueNum;
-      
-         // if no access is direct with a constant stride, or we cannot tell 
-         // much from the constant terms, then create the dependencies
-         // This solution is not that good. It does not guarantee neither few
-         // positiver, nor few negatives. It just fixes a particular case I
-         // found in nogaps. FIXME???
-         float rez;
-         if (!constStride ||
-             ((rez=(((float)ConstantTermOfFormula(_formula-oform))/
-               ((float)constStride)))<=avgNumIters && rez>=0) )
+         if (!optimistic_memory_dep)
          {
-            Edge *ee = addUniqueDependency(nodeB, node, 
-                 negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
-            ee->markIndirect();  // mark dependencies that are created due to
-                                 // indirect accesses
-            ee = addUniqueDependency(node, nodeB, 
-                 posDir, MEMORY_TYPE, 1, 1, 0);
-            ee->markIndirect();
-         }
-      }
-   } else  // strides are computed and accesses are not indirect
-   if (refIsScalar || ref2IsScalar)
-   {
-      if (refIsScalar && ref2IsScalar)
-      {
-         if (!IsConstantFormula(_formula-oform, valueNum, valueDen))
-         {
-            if (!optimistic_memory_dep)
-               addUniqueDependency(nodeB, node, 
-                    negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
-         } else
-            if (valueNum==0)
-            {
-               // if both accesses are scalars, create only true dependencies.
-               // Anti- and Output- ones can be eliminated by scalar 
-               // expansion.
-               if (refTypes==0)
-                  addUniqueDependency (nodeB, node, 
-                       negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
-               else if (refTypes==1)
-                  addUniqueDependency (node, nodeB, posDir, MEMORY_TYPE, 
-                       1, 1, 0);
-               res = true;
-            }
-      } else  // one access is scalar and one is array
-      {
-         GFSliceVal stride;
-         if (refIsScalar)
-            stride = oiter;
-         else
-            stride = _iterFormula;
-         GFSliceVal diffFormula = _formula - oform;
-         coeff_t factor1 = 0, factor2 = 0;
-         if ( IsConstantFormula(diffFormula, valueNum, valueDen) &&
-              valueNum==0)
-         {
-#if DEBUG_GRAPH_CONSTRUCTION
-            DEBUG_GRAPH (2,
-               std::cerr << "Mem reference at " << std::hex << pc
-                    << " and reference at " << opc << " have memory "
-                    << "dependency caused by first iteration " 
-                    << "(FIXED to most restrictive)." << std::dec << std::endl;
-            )
-#endif
-            // I think that even though the dependency is only on the
-            // first iteration, or it has varying distance, I should not
-            // mark them as special dependencies, but use the distance
-            // that is the strictest (smallest) from all the values
-            // taken.
             addUniqueDependency(nodeB, node, 
-                    negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
-//            addUniqueDependency(nodeB, node, 
-//                    negDir, MEMORY_TYPE, VARYING_DISTANCE, 1, 0);
-         } else
-            if (HasIntegerRatio(diffFormula, stride, factor1, factor2)
-                && (factor2==1 || factor2==(-1)) )
+                  negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+            addUniqueDependency(node, nodeB, 
+                  posDir, MEMORY_TYPE, 1, 1, 0);
+         }
+      } else
+         // if one of the accesses is indirect, be conservative and assume
+         // dependency such that reordering is disabled.
+         // the compiler is conservative also in such cases and I think
+         // the static analysis will produce few if any false positives.
+         // Be a little more optimistic. If the two base formulas differ through 
+         // some constant term (fixed register, not a load to reg), then its likely
+         // that the corresponding references access different arrays, so I should
+         // not have memory dependencies. With statically allocated arrays, I will
+         // not find any registers. Add another case: if the formulas differ by a
+         // constant term that is larger than the stride of the non-indirect one
+         // times the number of iterations, then we do not have a dependency either.
+         // This is not very clean, but I found a case where thousands of 
+         // dependencies were created while not needed.
+         // Since I recover names for all references, I should test also the names.
+         // Create a dependence only if the two references access same array.
+         // Another instance for avoiding dependencies: if base formulas differ by a 
+         // constant term and the strides are equal and non-zero (even if marked as indirect), 
+         // but the difference of the base formulas is not a multiple of the stride,
+         // then it is very likely that the two references access different locations.
+         // 11/13/2013, gmarin: do not mark as a dependence if the strides are equal and zero 
+         // (even if indirect), and if the base formulas differe by a non-zero term. 
+         // I think HasIntegerRatio between a non-zero contant term and zero returns true, 
+         // so check explicitly if the iter formula is in fact zero.
+         if ( IsConstantFormula(_iterFormula-oiter, valueNum, valueDen) && // the same stride (even if marked indirect)
+               valueNum==0 &&
+               IsConstantFormula(_formula-oform, valueNum, valueDen) && // but the two refs access
+               valueNum!=0 &&    // locations a constant offset apart
+               ((IsConstantFormula(_iterFormula, valueNum, valueDen) && valueNum==0) ||
+                !HasIntegerRatio(_formula-oform, _iterFormula, factor1, factor2))
+            )  // and base's difference is not a multiple of the stride
+            return (false);   // then, we do not have a dependency
+         else
+            if (refIsIndirect || oiter.has_indirect_access())
             {
-               factor1 = factor1 / factor2;
-               int minIter = abs(factor1);
-               // the existence of this dependency depends on the
-               // number of iterations. But the number of iterations
-               // depends on the problem size. I have to parameterize
-               // this dependency. FIXME
-               // 10/23/06 mgabi: Well, if the distance is larger than the 
-               // average number of iterations, then most likely there isn't
-               // a dependency for larger problem sizes either. This happens
-               // frequently for statically allocated data (like for a maximum
-               // problem size set at compile time). If we ever reach a 
-               // problem size that causes a dependency, then most likely we
-               // have exceeded the allocated memory and need to recompile 
-               // with a larger maximum data set.
-               if ( ((ref2IsScalar && factor1<0) || 
-                    (refIsScalar && factor1>0)) 
-                    && minIter<avgNumIters )
+               // check array names
+               int32_t iidx = img->GetIndexForInstPC(pc+reloc, node->memoryOpIndex());
+               assert (iidx > 0);
+               int32_t oidx = img->GetIndexForInstPC(opc+reloc, oopidx);
+               assert (oidx > 0);
+               const char* name_pc = img->GetNameForReference(iidx);
+               const char* name_opc = img->GetNameForReference(oidx);
+
+               /** gmarin 03/28/2013: I should also exclude cases when the base 
+                * formulas differ by Loads from constant addresses. I do not know if 
+                * I can make a good case for it yet, but it would fix a lot false 
+                * memory dependencies between indirect loads and stores.
+                */
+               // do not create dependencies between indirect accesses if
+               // - they access different array names (I do not have names yet)
+               // - optimistic_memory_dep is set AND
+               //    - formulas differ by a register, or
+               //    - formulas differ by a TY_REFERENCE term (load from constant address)
+               GFSliceVal diffFormula = _formula - oform;
+
+               // if the two refs access same data array
+               if (!strcmp (name_pc, name_opc) && 
+                     (!optimistic_memory_dep || 
+                      (!FormulaContainsRegister (diffFormula) &&
+                       !FormulaContainsReferenceTerm (diffFormula))
+                     ) )
                {
-#if DEBUG_GRAPH_CONSTRUCTION
-                  DEBUG_GRAPH (2,
-                     std::cerr << "Mem reference at " << std::hex << pc
-                          << " and reference at " << opc << " have memory "
-                          << "dependency caused by iteration " << std::dec
-                          << minIter << " (FIXED to most restrictive)."
-                          << std::endl;
-                  )
-#endif
-                  // I think that even though the dependency has varying 
-                  // distance, I should not mark them as special 
-                  // dependencies, but use the distance that is the strictest 
-                  // (smallest) from all the values taken.
-                  addUniqueDependency(nodeB, node, 
-                          negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
-                  if ((minIter+1) < avgNumIters)
-                     addUniqueDependency (node, nodeB, 
-                             posDir, MEMORY_TYPE, 1, 1, 0);
-//                  addUniqueDependency(nodeB, node, CHANGING_DEPENDENCY, 
-//                            MEMORY_TYPE, VARYING_DISTANCE, abs(factor1), 0);
-               }
-               
-            }
-      }
-   } else  // strides are computed and both accesses are of array type
-   {
-      // instead of treating the equal strides case separately,
-      // can I generalize for all cases?
-      // should I check for irregular strides? 
-      // (these are not accurately computed)
-      factor1 = factor2 = 0;
-      if (HasIntegerRatio(_iterFormula, oiter, factor1, factor2))
-      {
-         // strides have the same terms; good I guess
-         GFSliceVal diffFormula = _formula - oform;
-         if ( IsConstantFormula(diffFormula, valueNum, valueDen) &&
-              valueNum==0)
-         {
-            // base formulas are equal; if strides are equal than we 
-            // have loop independent dependency, otherwise we have
-            // dependency only in the first iteration
-            if (factor1 == factor2)
-            {
-               addUniqueDependency(nodeB, node, 
-                       negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
-            } else
-            // else, if factors have different signs, they go away
-            // from each other => depend on first iteration only
-            if ((factor1>0 && factor2<0) || (factor1<0 && factor2>0))
-            {
-#if DEBUG_GRAPH_CONSTRUCTION
-               DEBUG_GRAPH (2,
-                  std::cerr << "Mem reference at " << std::hex << pc 
-                       << " and reference at " << opc << " have memory "
-                       << "dependency only on the first iteration." 
-                       << std::dec << std::endl;
-               )
-#endif
-               // I think that even though the dependency is only on the
-               // first iteration, or it has varying distance, I should not
-               // mark them as special dependencies, but use the distance
-               // that is the strictest (smallest) from all the values
-               // taken.
-               addUniqueDependency(nodeB, node, 
-                       negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
-//               addUniqueDependency(nodeB, node, 
-//                       negDir, MEMORY_TYPE, ONE_ITERATION, 1, 0);
-            } else  // factors have same sign => varying distance
-            {
-               // factors can be only positive
-               assert(factor1>0 && factor2>0);
-               
-#if DEBUG_GRAPH_CONSTRUCTION
-               DEBUG_GRAPH (2,
-                  std::cerr << "Mem reference at " << std::hex << pc
-                       << " and reference at " << opc << " have memory "
-                       << "dependencies with varying distance starting "
-                       << "with the first iteration." << std::dec << std::endl;
-               )
-#endif
-               addUniqueDependency(nodeB, node, 
-                       negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
-               if (factor1 > factor2)
-               {
-                  addUniqueDependency (node, nodeB, 
-                         posDir, MEMORY_TYPE, 1, 1, 0);
-               }
-#if 0
-               if (factor1 > factor2)
-               {
-                  addUniqueDependency (nodeB, node, 
-                         negDir, MEMORY_TYPE, ONE_ITERATION, 0, 0);
-                  addUniqueDependency (node, nodeB, 
-                         posDir, MEMORY_TYPE, VARYING_DISTANCE, 1, 0);
-               } else
-                  addUniqueDependency(nodeB, node,
-                         negDir, MEMORY_TYPE, VARYING_DISTANCE, 0, 0);
-#endif
-            }
-         } else   // base formulas are not equal
-                  // check if difference and strides have integer ratio
-         {
-            coeff_t diffFact1 = 0, diffFact2 = 0;
-            // strides have integer factor, but compute their GCD
-            // this is equal to stride1/factor1 or stride2/factor2.
-            // Division should be exact.
-            
-            // Both factors cannot be negative at the same time b/c
-            // the -1 term is reduced in HasIntegerRatio. At most one
-            // factor is negative
-            GFSliceVal gcdStride;
-            if (factor1 < 0)
-            {
-               assert(factor2>0);
-               gcdStride = oiter / factor2;
-            } else
-               gcdStride = _iterFormula / factor1;
-               
-#if DEBUG_GRAPH_CONSTRUCTION
-            DEBUG_GRAPH (2,
-               std::cerr << "Comparing unequal formulas with integer ratio strides: "
-                    << " _formula=" << _formula << "; _iterFormula=" << _iterFormula
-                    << "; oform=" << oform << "; oiter=" << oiter 
-                    << "; diffFormula=" << diffFormula << "; gcdStride=" << gcdStride
-                    << std::endl;
-            )
-#endif
-            
-            if (HasIntegerRatio(diffFormula, gcdStride, diffFact1,
-                  diffFact2) && (diffFact2==1 || diffFact2==(-1)) )
-            {
-#if DEBUG_GRAPH_CONSTRUCTION
-              DEBUG_GRAPH (3,
-                 std::cerr << "-> diffFact1=" << diffFact1 << ", diffFact2=" << diffFact2 
-                      << ", factor1=" << factor1 << ", factor2=" << factor2 << std::endl;
-              )
-#endif
-               if (diffFact2==(-1))
-                  diffFact1 = -(diffFact1);
-               // simple case if strides are equal, then distance must
-               // be an integer
-               if (factor1==factor2)
-               { 
-                  if ((abs(diffFact1)%abs(factor1))==0)
+                  // My only hope is to have a large constant term difference
+                  int constStride = 0;
+                  if (!refIsScalar && !refIsIndirect && 
+                        IsConstantFormula(_iterFormula, valueNum, valueDen))
+                     constStride = -valueNum;
+                  else
+                     if (!ref2IsScalar && !oiter.has_indirect_access() && 
+                           IsConstantFormula (oiter, valueNum, valueDen))
+                        constStride = valueNum;
+
+                  // if no access is direct with a constant stride, or we cannot tell 
+                  // much from the constant terms, then create the dependencies
+                  // This solution is not that good. It does not guarantee neither few
+                  // positiver, nor few negatives. It just fixes a particular case I
+                  // found in nogaps. FIXME???
+                  float rez;
+                  if (!constStride ||
+                        ((rez=(((float)ConstantTermOfFormula(_formula-oform))/
+                               ((float)constStride)))<=avgNumIters && rez>=0) )
                   {
-                     // division should be exact
-                     coeff_t dist = diffFact1 / factor1;
-                     if (dist>0)
+                     Edge *ee = addUniqueDependency(nodeB, node, 
+                           negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+                     ee->markIndirect();  // mark dependencies that are created due to
+                     // indirect accesses
+                     ee = addUniqueDependency(node, nodeB, 
+                           posDir, MEMORY_TYPE, 1, 1, 0);
+                     ee->markIndirect();
+                  }
+               }
+            } else  // strides are computed and accesses are not indirect
+               if (refIsScalar || ref2IsScalar)
+               {
+                  if (refIsScalar && ref2IsScalar)
+                  {
+                     if (!IsConstantFormula(_formula-oform, valueNum, valueDen))
                      {
-                        if (dist<avgNumIters)
-                           addUniqueDependency(node, nodeB, 
-                                 posDir, MEMORY_TYPE, dist, 1, 0);
-                     }
+                        if (!optimistic_memory_dep)
+                           addUniqueDependency(nodeB, node, 
+                                 negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+                     } else
+                        if (valueNum==0)
+                        {
+                           // if both accesses are scalars, create only true dependencies.
+                           // Anti- and Output- ones can be eliminated by scalar 
+                           // expansion.
+                           if (refTypes==0)
+                              addUniqueDependency (nodeB, node, 
+                                    negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+                           else if (refTypes==1)
+                              addUniqueDependency (node, nodeB, posDir, MEMORY_TYPE, 
+                                    1, 1, 0);
+                           res = true;
+                        }
+                  } else  // one access is scalar and one is array
+                  {
+                     GFSliceVal stride;
+                     if (refIsScalar)
+                        stride = oiter;
                      else
+                        stride = _iterFormula;
+                     GFSliceVal diffFormula = _formula - oform;
+                     coeff_t factor1 = 0, factor2 = 0;
+                     if ( IsConstantFormula(diffFormula, valueNum, valueDen) &&
+                           valueNum==0)
                      {
-                        assert(dist<0);  // it cannot be zero
-                        if ((-dist)<avgNumIters)
-                           addUniqueDependency(nodeB, node,
-                                 negDir, MEMORY_TYPE, -dist, 1, 0);
-                     }
+#if DEBUG_GRAPH_CONSTRUCTION
+                        DEBUG_GRAPH (2,
+                              std::cerr << "Mem reference at " << std::hex << pc
+                              << " and reference at " << opc << " have memory "
+                              << "dependency caused by first iteration " 
+                              << "(FIXED to most restrictive)." << std::dec << std::endl;
+                              )
+#endif
+                           // I think that even though the dependency is only on the
+                           // first iteration, or it has varying distance, I should not
+                           // mark them as special dependencies, but use the distance
+                           // that is the strictest (smallest) from all the values
+                           // taken.
+                           addUniqueDependency(nodeB, node, 
+                                 negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+                        //            addUniqueDependency(nodeB, node, 
+                        //                    negDir, MEMORY_TYPE, VARYING_DISTANCE, 1, 0);
+                     } else
+                        if (HasIntegerRatio(diffFormula, stride, factor1, factor2)
+                              && (factor2==1 || factor2==(-1)) )
+                        {
+                           factor1 = factor1 / factor2;
+                           int minIter = abs(factor1);
+                           // the existence of this dependency depends on the
+                           // number of iterations. But the number of iterations
+                           // depends on the problem size. I have to parameterize
+                           // this dependency. FIXME
+                           // 10/23/06 mgabi: Well, if the distance is larger than the 
+                           // average number of iterations, then most likely there isn't
+                           // a dependency for larger problem sizes either. This happens
+                           // frequently for statically allocated data (like for a maximum
+                           // problem size set at compile time). If we ever reach a 
+                           // problem size that causes a dependency, then most likely we
+                           // have exceeded the allocated memory and need to recompile 
+                           // with a larger maximum data set.
+                           if ( ((ref2IsScalar && factor1<0) || 
+                                    (refIsScalar && factor1>0)) 
+                                 && minIter<avgNumIters )
+                           {
+#if DEBUG_GRAPH_CONSTRUCTION
+                              DEBUG_GRAPH (2,
+                                    std::cerr << "Mem reference at " << std::hex << pc
+                                    << " and reference at " << opc << " have memory "
+                                    << "dependency caused by iteration " << std::dec
+                                    << minIter << " (FIXED to most restrictive)."
+                                    << std::endl;
+                                    )
+#endif
+                                 // I think that even though the dependency has varying 
+                                 // distance, I should not mark them as special 
+                                 // dependencies, but use the distance that is the strictest 
+                                 // (smallest) from all the values taken.
+                                 addUniqueDependency(nodeB, node, 
+                                       negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+                              if ((minIter+1) < avgNumIters)
+                                 addUniqueDependency (node, nodeB, 
+                                       posDir, MEMORY_TYPE, 1, 1, 0);
+                              //                  addUniqueDependency(nodeB, node, CHANGING_DEPENDENCY, 
+                              //                            MEMORY_TYPE, VARYING_DISTANCE, abs(factor1), 0);
+                           }
+
+                        }
                   }
-               } else   // strides are not equal;
-                        // test for cases when we cannot have dependencies
+               } else  // strides are computed and both accesses are of array type
                {
-                  if (!( (diffFact1>0 && factor1>=0 && factor2<=0) ||
-                         (diffFact1<0 && factor1<=0 && factor2>=0) ))
+                  // instead of treating the equal strides case separately,
+                  // can I generalize for all cases?
+                  // should I check for irregular strides? 
+                  // (these are not accurately computed)
+                  factor1 = factor2 = 0;
+                  if (HasIntegerRatio(_iterFormula, oiter, factor1, factor2))
                   {
-                     float distance = 0;
-                     int dist = 0, ldist = 0;
-                     // if the strides have different signs, then the
-                     // two curves come towards each other (the case 
-                     // when they go away from each other was eliminated
-                     // by the condition of the "if" above) and the
-                     // intersection point represents the minimum
-                     // number of iterations necessary to have a depend
-                     if ( (factor1>0 && factor2<0) || 
-                          (factor1<0 && factor2>0) )
+                     // strides have the same terms; good I guess
+                     GFSliceVal diffFormula = _formula - oform;
+                     if ( IsConstantFormula(diffFormula, valueNum, valueDen) &&
+                           valueNum==0)
                      {
-                        distance = ((float)diffFact1)/(factor2-factor1);
-                        assert (distance > 0);
-                        dist  = ceil  (distance - 0.00001f);
-                        ldist = floor (distance + 0.00001f);
-#if DEBUG_GRAPH_CONSTRUCTION
-                        DEBUG_GRAPH (3,
-                           std::cerr << "--> distance=" << distance << ", dist=" << dist << ", ldist=" << ldist << std::endl;
-                        )
-#endif
-                        if (dist < avgNumIters)
+                        // base formulas are equal; if strides are equal than we 
+                        // have loop independent dependency, otherwise we have
+                        // dependency only in the first iteration
+                        if (factor1 == factor2)
                         {
-                           // compute the minimum distance achievable.
-                           // For this, check what locations are touched by 
-                           // node in iteration numbers ldist and dist 
-                           // respectively. Then compute the iteration
-                           // numbers when nodeB touches the same locations.
-                           coeff_t locF1=0, locF2=0;
-                           GFSliceVal lDifference = diffFormula + 
-                                          _iterFormula * ldist;
-                           if (HasIntegerRatio (lDifference, oiter, locF1,
-                                 locF2) && (locF2==1 || locF2==(-1)) )
+                           addUniqueDependency(nodeB, node, 
+                                 negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+                        } else
+                           // else, if factors have different signs, they go away
+                           // from each other => depend on first iteration only
+                           if ((factor1>0 && factor2<0) || (factor1<0 && factor2>0))
                            {
-                              // I think both locF2 and locF1 should be
-                              // positive for this case
-                              assert (locF2==1 && locF1>0);
-                              // if (locF2<0)
-                              //   // this is actually the iteration number for nodeB
-                              //   locF1 = -locF1;
-                              
-                              if (locF1 < avgNumIters)
-                              {
-                                 if (locF1 == ldist) // same iteration
-                                    addUniqueDependency(nodeB, node, negDir, 
-                                          MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
-                                 else if (locF1 < ldist)
-                                    addUniqueDependency(nodeB, node, negDir, 
-                                          MEMORY_TYPE, ldist-locF1, 1, 0);
-                                 else  // locF1 > ldist
-                                    addUniqueDependency(node, nodeB, posDir, 
-                                          MEMORY_TYPE, locF1-ldist, 1, 0);
-                              }
-                           }
-                           
-                           if (ldist != dist)
-                           {
-                              lDifference = diffFormula + 
-                                              _iterFormula * dist;
-                              if (HasIntegerRatio (lDifference, oiter, locF1,
-                                    locF2) && (locF2==1 || locF2==(-1)) && locF1>0)
-                              {
 #if DEBUG_GRAPH_CONSTRUCTION
-                                 DEBUG_GRAPH (3,
-                                    std::cerr << "DEBUG: pc=" << std::hex << pc << ", opc=" << opc << std::dec
-                                         << ", lDifference=" << lDifference << ", oiter=" << oiter
-                                         << ", locF1=" << locF1 << ", locF2=" << locF2 << std::endl;
-                                 )
+                              DEBUG_GRAPH (2,
+                                    std::cerr << "Mem reference at " << std::hex << pc 
+                                    << " and reference at " << opc << " have memory "
+                                    << "dependency only on the first iteration." 
+                                    << std::dec << std::endl;
+                                    )
 #endif
-                                 // I think both locF2 and locF1 should be
-                                 // positive for this case
-                                 assert (locF2==1 && locF1>0);
-                                 // if (locF2<0)
-                                 //   // this is actually the iteration number for nodeB
-                                 //   locF1 = -locF1;
-                              
-                                 if (locF1 < avgNumIters)
-                                 {
-                                    if (locF1 == dist) // same iteration
-                                       addUniqueDependency(nodeB, node, negDir, 
-                                             MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
-                                    else if (locF1 < dist)
-                                       addUniqueDependency(nodeB, node, negDir, 
-                                             MEMORY_TYPE, dist-locF1, 1, 0);
-                                    else  // locF1 > dist
-                                       addUniqueDependency(node, nodeB, posDir, 
-                                             MEMORY_TYPE, locF1-dist, 1, 0);
-                                 }
+                                 // I think that even though the dependency is only on the
+                                 // first iteration, or it has varying distance, I should not
+                                 // mark them as special dependencies, but use the distance
+                                 // that is the strictest (smallest) from all the values
+                                 // taken.
+                                 addUniqueDependency(nodeB, node, 
+                                       negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+                              //               addUniqueDependency(nodeB, node, 
+                              //                       negDir, MEMORY_TYPE, ONE_ITERATION, 1, 0);
+                           } else  // factors have same sign => varying distance
+                           {
+                              // factors can be only positive
+                              assert(factor1>0 && factor2>0);
+
+#if DEBUG_GRAPH_CONSTRUCTION
+                              DEBUG_GRAPH (2,
+                                    std::cerr << "Mem reference at " << std::hex << pc
+                                    << " and reference at " << opc << " have memory "
+                                    << "dependencies with varying distance starting "
+                                    << "with the first iteration." << std::dec << std::endl;
+                                    )
+#endif
+                                 addUniqueDependency(nodeB, node, 
+                                       negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+                              if (factor1 > factor2)
+                              {
+                                 addUniqueDependency (node, nodeB, 
+                                       posDir, MEMORY_TYPE, 1, 1, 0);
                               }
-                              
-                           }
-                           
 #if 0
-                           std::cerr << "Add varying dist depend (1) from " 
-                                << *nodeB << " to " << *node << " with "
-                                << "f1=" << factor1 << ", f2=" << factor2
-                                << ", diffF1=" << diffFact1 << ", dist="
-                                << dist << std::endl;
-                           addUniqueDependency(nodeB, node, negDir, 
-                                 MEMORY_TYPE, VARYING_DISTANCE, dist, 0);
+                              if (factor1 > factor2)
+                              {
+                                 addUniqueDependency (nodeB, node, 
+                                       negDir, MEMORY_TYPE, ONE_ITERATION, 0, 0);
+                                 addUniqueDependency (node, nodeB, 
+                                       posDir, MEMORY_TYPE, VARYING_DISTANCE, 1, 0);
+                              } else
+                                 addUniqueDependency(nodeB, node,
+                                       negDir, MEMORY_TYPE, VARYING_DISTANCE, 0, 0);
 #endif
-                        }
-                     }
-                     else  // factors have same sign (positive only)
+                           }
+                     } else   // base formulas are not equal
+                        // check if difference and strides have integer ratio
                      {
-                        assert(factor1>0 && factor2>0);
-                        if (diffFact1>0)
-                           distance = ((float)diffFact1)/factor2;
-                        else
-                           distance = ((float)diffFact1)/factor1;
-                        dist = ceil (fabs (distance) - 0.00001f);
-                        if (dist >= avgNumIters)
-                           // the two references cannot access the same location
-                           return (res);
-                        
-                        coeff_t locF1=0, locF2=0;
+                        coeff_t diffFact1 = 0, diffFact2 = 0;
+                        // strides have integer factor, but compute their GCD
+                        // this is equal to stride1/factor1 or stride2/factor2.
+                        // Division should be exact.
 
-                        // if diffFact1>0 && factor1>factor2 
-                        // or diffFact1<0 && factor1<factor2
-                        // then distance is growing. Smaller distance is
-                        // in the first iteration. 
-                        // Dependencies have same direction in this case
-                        // compute the minimum number of iterations required
-                        // to have a dependency
+                        // Both factors cannot be negative at the same time b/c
+                        // the -1 term is reduced in HasIntegerRatio. At most one
+                        // factor is negative
+                        GFSliceVal gcdStride;
+                        if (factor1 < 0)
+                        {
+                           assert(factor2>0);
+                           gcdStride = oiter / factor2;
+                        } else
+                           gcdStride = _iterFormula / factor1;
 
-                        if (diffFact1>0 && factor1>factor2)
-                        {
-                           // distance is growing; compute location accessed
-                           // by node in iteration 0, and compute the 
-                           // iteration number when nodeB accesses that location
-                           
-                           if (HasIntegerRatio (diffFormula, oiter, locF1,
-                                 locF2) && (locF2==1 || locF2==(-1)) )
-                           {
-                              // I think both locF2 and locF1 should be
-                              // positive for this case
-                              assert (locF2==1 && locF1>0);
-                              // if (locF2<0)
-                              //   // this is actually the iteration number for nodeB
-                              //   locF1 = -locF1;
-                              
-                              // since I return is dist>=avgNumIters (above)
-                              // locF1 should always be < avgNumIters
-                              assert (locF1 < avgNumIters);
-                              addUniqueDependency(node, nodeB, posDir, 
-                                       MEMORY_TYPE, locF1, 1, 0);
-                           }
-                        } else if (diffFact1<0 && factor1<factor2)
-                        {
-                           // distance is growing; compute location accessed
-                           // by nodeB in iteration 0, and compute the 
-                           // iteration number when node accesses that location
+#if DEBUG_GRAPH_CONSTRUCTION
+                        DEBUG_GRAPH (2,
+                              std::cerr << "Comparing unequal formulas with integer ratio strides: "
+                              << " _formula=" << _formula << "; _iterFormula=" << _iterFormula
+                              << "; oform=" << oform << "; oiter=" << oiter 
+                              << "; diffFormula=" << diffFormula << "; gcdStride=" << gcdStride
+                              << std::endl;
+                              )
+#endif
 
-                           if (HasIntegerRatio (diffFormula*(-1), _iterFormula, 
-                                locF1, locF2) && (locF2==1 || locF2==(-1)) )
+                           if (HasIntegerRatio(diffFormula, gcdStride, diffFact1,
+                                    diffFact2) && (diffFact2==1 || diffFact2==(-1)) )
                            {
-                              // I think both locF2 and locF1 should be
-                              // positive for this case
-                              assert (locF2==1 && locF1>0);
-                              // if (locF2<0)
-                              //   // this is actually the iteration number for nodeB
-                              //   locF1 = -locF1;
-                              
-                              assert (locF1 < avgNumIters);
-                              addUniqueDependency(nodeB, node, negDir, 
-                                       MEMORY_TYPE, locF1, 1, 0);
-                           }
-                        } else if (diffFact1>0 && factor1<factor2)
-                        {
-                           // distance is shrinking; compute iteration number
-                           // when dependency direction is changing.
-                           // If this number is less than avgNumIters, then
-                           // compute the distances around this point.
-                           // Otherwise, compute the iteration number when
-                           // nodeB touches the location accessed by node in
-                           // first iteration. If this number is < avgNumIters
-                           // compute the location accessed by nodeB at
-                           // iteration avgNumIters, and then compute the 
-                           // iteration number when node accesses the same
-                           // location (should be earlier), and that gives the
-                           // shortest distance.
-                           distance = ((float)diffFact1)/(factor2-factor1);
-                           assert (distance > 0);
-                           dist  = ceil  (distance - 0.00001f);
-                           ldist = floor (distance + 0.00001f);
-                           
-                           if (ldist < avgNumIters)
-                           {
-                              // compute the minimum distance achievable.
-                              // For this, check what locations are touched by 
-                              // nodeB in iteration numbers ldist and dist 
-                              // respectively. Then compute the iteration
-                              // numbers when node touches the same locations.
-                              coeff_t locF1=0, locF2=0;
-                              GFSliceVal lDifference = oiter * ldist - 
-                                               diffFormula;
-                              if (HasIntegerRatio (lDifference, _iterFormula, 
-                                   locF1, locF2) && (locF2==1 || locF2==(-1)))
-                              {
-                                 // I think both locF2 and locF1 should be
-                                 // positive for this case
-                                 assert (locF2==1 && locF1>0);
-                                 // if (locF2<0)
-                                 //   // this is actually the iteration number for nodeB
-                                 //   locF1 = -locF1;
-                                 
-                                 if (locF1 < avgNumIters)
+#if DEBUG_GRAPH_CONSTRUCTION
+                              DEBUG_GRAPH (3,
+                                    std::cerr << "-> diffFact1=" << diffFact1 << ", diffFact2=" << diffFact2 
+                                    << ", factor1=" << factor1 << ", factor2=" << factor2 << std::endl;
+                                    )
+#endif
+                                 if (diffFact2==(-1))
+                                    diffFact1 = -(diffFact1);
+                              // simple case if strides are equal, then distance must
+                              // be an integer
+                              if (factor1==factor2)
+                              { 
+                                 if ((abs(diffFact1)%abs(factor1))==0)
                                  {
-                                    if (locF1 == ldist) // same iteration
-                                       addUniqueDependency(nodeB, node, negDir, 
-                                             MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
-                                    else if (locF1 > ldist)
-                                       addUniqueDependency(nodeB, node, negDir, 
-                                             MEMORY_TYPE, locF1-ldist, 1, 0);
-                                    else  // locF1 < ldist
-                                       addUniqueDependency(node, nodeB, posDir, 
-                                             MEMORY_TYPE, ldist-locF1, 1, 0);
-                                 }
-                              }
-                              
-                              if (ldist!=dist && dist<avgNumIters)
-                              {
-                                 lDifference = oiter * dist - 
-                                                 diffFormula;
-                                 if (HasIntegerRatio (lDifference, _iterFormula, 
-                                     locF1, locF2) && (locF2==1 || locF2==(-1)))
-                                 {
-                                    // I think both locF2 and locF1 should be
-                                    // positive for this case
-                                    assert (locF2==1 && locF1>0);
-                                    // if (locF2<0)
-                                    //   // this is actually the iteration number for nodeB
-                                    //   locF1 = -locF1;
-                                 
-                                    if (locF1 < avgNumIters)
+                                    // division should be exact
+                                    coeff_t dist = diffFact1 / factor1;
+                                    if (dist>0)
                                     {
-                                       if (locF1 == dist) // same iteration
-                                          addUniqueDependency(nodeB, node, negDir, 
-                                                MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
-                                       else if (locF1 > dist)
-                                          addUniqueDependency(nodeB, node, negDir, 
-                                                MEMORY_TYPE, locF1-dist, 1, 0);
-                                       else  // locF1 < dist
-                                          addUniqueDependency(node, nodeB, posDir, 
-                                                MEMORY_TYPE, dist-locF1, 1, 0);
+                                       if (dist<avgNumIters)
+                                          addUniqueDependency(node, nodeB, 
+                                                posDir, MEMORY_TYPE, dist, 1, 0);
+                                    }
+                                    else
+                                    {
+                                       assert(dist<0);  // it cannot be zero
+                                       if ((-dist)<avgNumIters)
+                                          addUniqueDependency(nodeB, node,
+                                                negDir, MEMORY_TYPE, -dist, 1, 0);
                                     }
                                  }
-                              }
-                           } else 
-                           {
-                              // we know there is at least one iteration 
-                              // with dependencies before we reach avgNumIters
-                              // Compute location accessed by nodeB in the
-                              // last iteration
-                              coeff_t locF1=0, locF2=0;
-                              GFSliceVal lDifference = oiter * (avgNumIters-1) - 
-                                               diffFormula;
-                              if (HasIntegerRatio (lDifference, _iterFormula, 
-                                   locF1, locF2) && (locF2==1 || locF2==(-1)))
+                              } else   // strides are not equal;
+                              // test for cases when we cannot have dependencies
                               {
-                                 // I think both locF2 and locF1 should be
-                                 // positive for this case
-                                 assert (locF2==1 && locF1>0);
-                                 // if (locF2<0)
-                                 //   // this is actually the iteration number for nodeB
-                                 //   locF1 = -locF1;
-                                 
-                                 assert (locF1 < avgNumIters);
-                                 addUniqueDependency(node, nodeB, posDir, 
-                                        MEMORY_TYPE, avgNumIters-locF1-1, 1, 0);
-                              }
-                           }
-                        } else // if (diffFact1<0 && factor1>factor2)
-                        {
-                           assert (diffFact1<0 && factor1>factor2);
-                           // distance is shrinking and there is at least one
-                           // iteration with dependencies; 
-                           // compute iteration number when dependency 
-                           // direction is changing.
-                           // If this number is less than avgNumIters, then
-                           // compute the distances around this point.
-                           // Otherwise, compute the location accessed by node 
-                           // at iteration avgNumIters, and then compute the 
-                           // iteration number when nodeB accesses the same
-                           // location (should be earlier), and that gives the
-                           // shortest distance.
-                        
-                           distance = ((float)diffFact1)/(factor2-factor1);
-                           assert (distance > 0);
-                           dist  = ceil  (distance - 0.00001f);
-                           ldist = floor (distance + 0.00001f);
-                           
-                           if (ldist < avgNumIters)
-                           {
-                              // compute the minimum distance achievable.
-                              // For this, check what locations are touched by 
-                              // node in iteration numbers ldist and dist 
-                              // respectively. Then compute the iteration
-                              // numbers when nodeB touches the same locations.
-                              coeff_t locF1=0, locF2=0;
-                              GFSliceVal lDifference = _iterFormula * ldist +
-                                               diffFormula;
-                              if (HasIntegerRatio (lDifference, oiter, 
-                                   locF1, locF2) && (locF2==1 || locF2==(-1)))
-                              {
-                                 // I think both locF2 and locF1 should be
-                                 // positive for this case
-                                 assert (locF2==1 && locF1>0);
-                                 // if (locF2<0)
-                                 //   // this is actually the iteration number for nodeB
-                                 //   locF1 = -locF1;
-                                 
-                                 if (locF1 < avgNumIters)
+                                 if (!( (diffFact1>0 && factor1>=0 && factor2<=0) ||
+                                          (diffFact1<0 && factor1<=0 && factor2>=0) ))
                                  {
-                                    if (locF1 == ldist) // same iteration
-                                       addUniqueDependency(nodeB, node, negDir, 
-                                             MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
-                                    else if (locF1 < ldist)
-                                       addUniqueDependency(nodeB, node, negDir, 
-                                             MEMORY_TYPE, ldist-locF1, 1, 0);
-                                    else  // locF1 > ldist
-                                       addUniqueDependency(node, nodeB, posDir, 
-                                             MEMORY_TYPE, locF1-ldist, 1, 0);
-                                 }
-                              }
-                              
-                              if (ldist!=dist && dist<avgNumIters)
-                              {
-                                 lDifference = _iterFormula * dist + 
-                                                 diffFormula;
-                                 if (HasIntegerRatio (lDifference, oiter, 
-                                     locF1, locF2) && (locF2==1 || locF2==(-1)))
-                                 {
-                                    // I think both locF2 and locF1 should be
-                                    // positive for this case
-                                    assert (locF2==1 && locF1>0);
-                                    // if (locF2<0)
-                                    //   // this is actually the iteration number for nodeB
-                                    //   locF1 = -locF1;
-                                 
-                                    if (locF1 < avgNumIters)
+                                    float distance = 0;
+                                    int dist = 0, ldist = 0;
+                                    // if the strides have different signs, then the
+                                    // two curves come towards each other (the case 
+                                    // when they go away from each other was eliminated
+                                    // by the condition of the "if" above) and the
+                                    // intersection point represents the minimum
+                                    // number of iterations necessary to have a depend
+                                    if ( (factor1>0 && factor2<0) || 
+                                          (factor1<0 && factor2>0) )
                                     {
-                                       if (locF1 == dist) // same iteration
-                                          addUniqueDependency(nodeB, node, negDir, 
-                                                MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
-                                       else if (locF1 < dist)
-                                          addUniqueDependency(nodeB, node, negDir, 
-                                                MEMORY_TYPE, dist-locF1, 1, 0);
-                                       else  // locF1 > dist
-                                          addUniqueDependency(node, nodeB, posDir, 
-                                                MEMORY_TYPE, locF1-dist, 1, 0);
-                                    }
-                                 }
-                              }
-                           } else 
-                           {
-                              // we know there is at least one iteration 
-                              // with dependencies before we reach avgNumIters
-                              // Compute location accessed by node in the
-                              // last iteration
-                              coeff_t locF1=0, locF2=0;
-                              GFSliceVal lDifference = _iterFormula * (avgNumIters-1) +
-                                               diffFormula;
-                              if (HasIntegerRatio (lDifference, oiter, 
-                                   locF1, locF2) && (locF2==1 || locF2==(-1)))
-                              {
-                                 // I think both locF2 and locF1 should be
-                                 // positive for this case
-                                 assert (locF2==1 && locF1>0);
-                                 // if (locF2<0)
-                                 //   // this is actually the iteration number for nodeB
-                                 //   locF1 = -locF1;
-                                 
-                                 assert (locF1 < avgNumIters);
-                                 addUniqueDependency(nodeB, node, negDir, 
-                                        MEMORY_TYPE, avgNumIters-1-locF1, 1, 0);
-                              }
-                           }
-                        }
+                                       distance = ((float)diffFact1)/(factor2-factor1);
+                                       assert (distance > 0);
+                                       dist  = ceil  (distance - 0.00001f);
+                                       ldist = floor (distance + 0.00001f);
+#if DEBUG_GRAPH_CONSTRUCTION
+                                       DEBUG_GRAPH (3,
+                                             std::cerr << "--> distance=" << distance << ", dist=" << dist << ", ldist=" << ldist << std::endl;
+                                             )
+#endif
+                                          if (dist < avgNumIters)
+                                          {
+                                             // compute the minimum distance achievable.
+                                             // For this, check what locations are touched by 
+                                             // node in iteration numbers ldist and dist 
+                                             // respectively. Then compute the iteration
+                                             // numbers when nodeB touches the same locations.
+                                             coeff_t locF1=0, locF2=0;
+                                             GFSliceVal lDifference = diffFormula + 
+                                                _iterFormula * ldist;
+                                             if (HasIntegerRatio (lDifference, oiter, locF1,
+                                                      locF2) && (locF2==1 || locF2==(-1)) )
+                                             {
+                                                // I think both locF2 and locF1 should be
+                                                // positive for this case
+                                                assert (locF2==1 && locF1>0);
+                                                // if (locF2<0)
+                                                //   // this is actually the iteration number for nodeB
+                                                //   locF1 = -locF1;
+
+                                                if (locF1 < avgNumIters)
+                                                {
+                                                   if (locF1 == ldist) // same iteration
+                                                      addUniqueDependency(nodeB, node, negDir, 
+                                                            MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+                                                   else if (locF1 < ldist)
+                                                      addUniqueDependency(nodeB, node, negDir, 
+                                                            MEMORY_TYPE, ldist-locF1, 1, 0);
+                                                   else  // locF1 > ldist
+                                                      addUniqueDependency(node, nodeB, posDir, 
+                                                            MEMORY_TYPE, locF1-ldist, 1, 0);
+                                                }
+                                             }
+
+                                             if (ldist != dist)
+                                             {
+                                                lDifference = diffFormula + 
+                                                   _iterFormula * dist;
+                                                if (HasIntegerRatio (lDifference, oiter, locF1,
+                                                         locF2) && (locF2==1 || locF2==(-1)) && locF1>0)
+                                                {
+#if DEBUG_GRAPH_CONSTRUCTION
+                                                   DEBUG_GRAPH (3,
+                                                         std::cerr << "DEBUG: pc=" << std::hex << pc << ", opc=" << opc << std::dec
+                                                         << ", lDifference=" << lDifference << ", oiter=" << oiter
+                                                         << ", locF1=" << locF1 << ", locF2=" << locF2 << std::endl;
+                                                         )
+#endif
+                                                      // I think both locF2 and locF1 should be
+                                                      // positive for this case
+                                                      assert (locF2==1 && locF1>0);
+                                                   // if (locF2<0)
+                                                   //   // this is actually the iteration number for nodeB
+                                                   //   locF1 = -locF1;
+
+                                                   if (locF1 < avgNumIters)
+                                                   {
+                                                      if (locF1 == dist) // same iteration
+                                                         addUniqueDependency(nodeB, node, negDir, 
+                                                               MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+                                                      else if (locF1 < dist)
+                                                         addUniqueDependency(nodeB, node, negDir, 
+                                                               MEMORY_TYPE, dist-locF1, 1, 0);
+                                                      else  // locF1 > dist
+                                                         addUniqueDependency(node, nodeB, posDir, 
+                                                               MEMORY_TYPE, locF1-dist, 1, 0);
+                                                   }
+                                                }
+
+                                             }
 
 #if 0
-                        if ( (diffFact1>0 && factor1>factor2) ||
-                             (diffFact1<0 && factor1<factor2) )
-                        {  // mode 1
-                           if (distance>0)  // diffFormula>0 && factor1>factor2
-                           {
-                              if (distance < avgNumIters)
-                              {
-                           std::cerr << "Add varying dist depend (2) from " 
-                                << *node << " to " << *nodeB << " with "
-                                << "f1=" << factor1 << ", f2=" << factor2
-                                << ", diffF1=" << diffFact1 << ", dist="
-                                << dist << std::endl;
-                                 addUniqueDependency(node, nodeB, posDir, 
-                                     MEMORY_TYPE, VARYING_DISTANCE, dist, 0);
-                              }
-                           }
-                           else
-                           {
-                              if ((-distance) < avgNumIters)
-                              {
-                           std::cerr << "Add varying dist depend (3) from " 
-                                << *nodeB << " to " << *node << " with "
-                                << "f1=" << factor1 << ", f2=" << factor2
-                                << ", diffF1=" << diffFact1 << ", dist="
-                                << dist << std::endl;
-                                 addUniqueDependency(nodeB, node, negDir, 
-                                     MEMORY_TYPE, VARYING_DISTANCE, dist, 0);
-                              }
-                           }
-                        }
-                        // if diffFact1>0 && factor1<factor2 
-                        // or diffFact1<0 && factor1>factor2
-                        // then distance is shrinking. 
-                        // Dependencies may change direction in this case
-                        // if enough iterations are executed.
-                        // Try to compute the minimum number of iterations 
-                        // required to have a dependency (not to change dir)
-                        else
-                        {  // mode = 2;
-                           if (distance>0)
-                           {
-                              if (distance < avgNumIters)
-                              {
-                           cerr << "Add varying dist depend (4) from " 
-                                << *node << " to " << *nodeB << " with "
-                                << "f1=" << factor1 << ", f2=" << factor2
-                                << ", diffF1=" << diffFact1 << ", dist="
-                                << dist << endl;
-                                 addUniqueDependency(node, nodeB, CHANGING_DEPENDENCY, 
-                                     MEMORY_TYPE, VARYING_DISTANCE, dist, 0);
-                              }
-                           }
-                           else
-                           {
-                              if ((-distance) < avgNumIters)
-                              {
-                           std::cerr << "Add varying dist depend (5) from " 
-                                << *nodeB << " to " << *node << " with "
-                                << "f1=" << factor1 << ", f2=" << factor2
-                                << ", diffF1=" << diffFact1 << ", dist="
-                                << dist << std::endl;
-                                 addUniqueDependency(nodeB, node, CHANGING_DEPENDENCY, 
-                                     MEMORY_TYPE, VARYING_DISTANCE, dist, 0);
-                              }
-                           }
-                        }
+                                             std::cerr << "Add varying dist depend (1) from " 
+                                                << *nodeB << " to " << *node << " with "
+                                                << "f1=" << factor1 << ", f2=" << factor2
+                                                << ", diffF1=" << diffFact1 << ", dist="
+                                                << dist << std::endl;
+                                             addUniqueDependency(nodeB, node, negDir, 
+                                                   MEMORY_TYPE, VARYING_DISTANCE, dist, 0);
 #endif
-                     }  // factors have same sign (positive)
+                                          }
+                                    }
+                                    else  // factors have same sign (positive only)
+                                    {
+                                       assert(factor1>0 && factor2>0);
+                                       if (diffFact1>0)
+                                          distance = ((float)diffFact1)/factor2;
+                                       else
+                                          distance = ((float)diffFact1)/factor1;
+                                       dist = ceil (fabs (distance) - 0.00001f);
+                                       if (dist >= avgNumIters)
+                                          // the two references cannot access the same location
+                                          return (res);
+
+                                       coeff_t locF1=0, locF2=0;
+
+                                       // if diffFact1>0 && factor1>factor2 
+                                       // or diffFact1<0 && factor1<factor2
+                                       // then distance is growing. Smaller distance is
+                                       // in the first iteration. 
+                                       // Dependencies have same direction in this case
+                                       // compute the minimum number of iterations required
+                                       // to have a dependency
+
+                                       if (diffFact1>0 && factor1>factor2)
+                                       {
+                                          // distance is growing; compute location accessed
+                                          // by node in iteration 0, and compute the 
+                                          // iteration number when nodeB accesses that location
+
+                                          if (HasIntegerRatio (diffFormula, oiter, locF1,
+                                                   locF2) && (locF2==1 || locF2==(-1)) )
+                                          {
+                                             // I think both locF2 and locF1 should be
+                                             // positive for this case
+                                             assert (locF2==1 && locF1>0);
+                                             // if (locF2<0)
+                                             //   // this is actually the iteration number for nodeB
+                                             //   locF1 = -locF1;
+
+                                             // since I return is dist>=avgNumIters (above)
+                                             // locF1 should always be < avgNumIters
+                                             assert (locF1 < avgNumIters);
+                                             addUniqueDependency(node, nodeB, posDir, 
+                                                   MEMORY_TYPE, locF1, 1, 0);
+                                          }
+                                       } else if (diffFact1<0 && factor1<factor2)
+                                       {
+                                          // distance is growing; compute location accessed
+                                          // by nodeB in iteration 0, and compute the 
+                                          // iteration number when node accesses that location
+
+                                          if (HasIntegerRatio (diffFormula*(-1), _iterFormula, 
+                                                   locF1, locF2) && (locF2==1 || locF2==(-1)) )
+                                          {
+                                             // I think both locF2 and locF1 should be
+                                             // positive for this case
+                                             assert (locF2==1 && locF1>0);
+                                             // if (locF2<0)
+                                             //   // this is actually the iteration number for nodeB
+                                             //   locF1 = -locF1;
+
+                                             assert (locF1 < avgNumIters);
+                                             addUniqueDependency(nodeB, node, negDir, 
+                                                   MEMORY_TYPE, locF1, 1, 0);
+                                          }
+                                       } else if (diffFact1>0 && factor1<factor2)
+                                       {
+                                          // distance is shrinking; compute iteration number
+                                          // when dependency direction is changing.
+                                          // If this number is less than avgNumIters, then
+                                          // compute the distances around this point.
+                                          // Otherwise, compute the iteration number when
+                                          // nodeB touches the location accessed by node in
+                                          // first iteration. If this number is < avgNumIters
+                                          // compute the location accessed by nodeB at
+                                          // iteration avgNumIters, and then compute the 
+                                          // iteration number when node accesses the same
+                                          // location (should be earlier), and that gives the
+                                          // shortest distance.
+                                          distance = ((float)diffFact1)/(factor2-factor1);
+                                          assert (distance > 0);
+                                          dist  = ceil  (distance - 0.00001f);
+                                          ldist = floor (distance + 0.00001f);
+
+                                          if (ldist < avgNumIters)
+                                          {
+                                             // compute the minimum distance achievable.
+                                             // For this, check what locations are touched by 
+                                             // nodeB in iteration numbers ldist and dist 
+                                             // respectively. Then compute the iteration
+                                             // numbers when node touches the same locations.
+                                             coeff_t locF1=0, locF2=0;
+                                             GFSliceVal lDifference = oiter * ldist - 
+                                                diffFormula;
+                                             if (HasIntegerRatio (lDifference, _iterFormula, 
+                                                      locF1, locF2) && (locF2==1 || locF2==(-1)))
+                                             {
+                                                // I think both locF2 and locF1 should be
+                                                // positive for this case
+                                                assert (locF2==1 && locF1>0);
+                                                // if (locF2<0)
+                                                //   // this is actually the iteration number for nodeB
+                                                //   locF1 = -locF1;
+
+                                                if (locF1 < avgNumIters)
+                                                {
+                                                   if (locF1 == ldist) // same iteration
+                                                      addUniqueDependency(nodeB, node, negDir, 
+                                                            MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+                                                   else if (locF1 > ldist)
+                                                      addUniqueDependency(nodeB, node, negDir, 
+                                                            MEMORY_TYPE, locF1-ldist, 1, 0);
+                                                   else  // locF1 < ldist
+                                                      addUniqueDependency(node, nodeB, posDir, 
+                                                            MEMORY_TYPE, ldist-locF1, 1, 0);
+                                                }
+                                             }
+
+                                             if (ldist!=dist && dist<avgNumIters)
+                                             {
+                                                lDifference = oiter * dist - 
+                                                   diffFormula;
+                                                if (HasIntegerRatio (lDifference, _iterFormula, 
+                                                         locF1, locF2) && (locF2==1 || locF2==(-1)))
+                                                {
+                                                   // I think both locF2 and locF1 should be
+                                                   // positive for this case
+                                                   assert (locF2==1 && locF1>0);
+                                                   // if (locF2<0)
+                                                   //   // this is actually the iteration number for nodeB
+                                                   //   locF1 = -locF1;
+
+                                                   if (locF1 < avgNumIters)
+                                                   {
+                                                      if (locF1 == dist) // same iteration
+                                                         addUniqueDependency(nodeB, node, negDir, 
+                                                               MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+                                                      else if (locF1 > dist)
+                                                         addUniqueDependency(nodeB, node, negDir, 
+                                                               MEMORY_TYPE, locF1-dist, 1, 0);
+                                                      else  // locF1 < dist
+                                                         addUniqueDependency(node, nodeB, posDir, 
+                                                               MEMORY_TYPE, dist-locF1, 1, 0);
+                                                   }
+                                                }
+                                             }
+                                          } else 
+                                          {
+                                             // we know there is at least one iteration 
+                                             // with dependencies before we reach avgNumIters
+                                             // Compute location accessed by nodeB in the
+                                             // last iteration
+                                             coeff_t locF1=0, locF2=0;
+                                             GFSliceVal lDifference = oiter * (avgNumIters-1) - 
+                                                diffFormula;
+                                             if (HasIntegerRatio (lDifference, _iterFormula, 
+                                                      locF1, locF2) && (locF2==1 || locF2==(-1)))
+                                             {
+                                                // I think both locF2 and locF1 should be
+                                                // positive for this case
+                                                assert (locF2==1 && locF1>0);
+                                                // if (locF2<0)
+                                                //   // this is actually the iteration number for nodeB
+                                                //   locF1 = -locF1;
+
+                                                assert (locF1 < avgNumIters);
+                                                addUniqueDependency(node, nodeB, posDir, 
+                                                      MEMORY_TYPE, avgNumIters-locF1-1, 1, 0);
+                                             }
+                                          }
+                                       } else // if (diffFact1<0 && factor1>factor2)
+                                       {
+                                          assert (diffFact1<0 && factor1>factor2);
+                                          // distance is shrinking and there is at least one
+                                          // iteration with dependencies; 
+                                          // compute iteration number when dependency 
+                                          // direction is changing.
+                                          // If this number is less than avgNumIters, then
+                                          // compute the distances around this point.
+                                          // Otherwise, compute the location accessed by node 
+                                          // at iteration avgNumIters, and then compute the 
+                                          // iteration number when nodeB accesses the same
+                                          // location (should be earlier), and that gives the
+                                          // shortest distance.
+
+                                          distance = ((float)diffFact1)/(factor2-factor1);
+                                          assert (distance > 0);
+                                          dist  = ceil  (distance - 0.00001f);
+                                          ldist = floor (distance + 0.00001f);
+
+                                          if (ldist < avgNumIters)
+                                          {
+                                             // compute the minimum distance achievable.
+                                             // For this, check what locations are touched by 
+                                             // node in iteration numbers ldist and dist 
+                                             // respectively. Then compute the iteration
+                                             // numbers when nodeB touches the same locations.
+                                             coeff_t locF1=0, locF2=0;
+                                             GFSliceVal lDifference = _iterFormula * ldist +
+                                                diffFormula;
+                                             if (HasIntegerRatio (lDifference, oiter, 
+                                                      locF1, locF2) && (locF2==1 || locF2==(-1)))
+                                             {
+                                                // I think both locF2 and locF1 should be
+                                                // positive for this case
+                                                assert (locF2==1 && locF1>0);
+                                                // if (locF2<0)
+                                                //   // this is actually the iteration number for nodeB
+                                                //   locF1 = -locF1;
+
+                                                if (locF1 < avgNumIters)
+                                                {
+                                                   if (locF1 == ldist) // same iteration
+                                                      addUniqueDependency(nodeB, node, negDir, 
+                                                            MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+                                                   else if (locF1 < ldist)
+                                                      addUniqueDependency(nodeB, node, negDir, 
+                                                            MEMORY_TYPE, ldist-locF1, 1, 0);
+                                                   else  // locF1 > ldist
+                                                      addUniqueDependency(node, nodeB, posDir, 
+                                                            MEMORY_TYPE, locF1-ldist, 1, 0);
+                                                }
+                                             }
+
+                                             if (ldist!=dist && dist<avgNumIters)
+                                             {
+                                                lDifference = _iterFormula * dist + 
+                                                   diffFormula;
+                                                if (HasIntegerRatio (lDifference, oiter, 
+                                                         locF1, locF2) && (locF2==1 || locF2==(-1)))
+                                                {
+                                                   // I think both locF2 and locF1 should be
+                                                   // positive for this case
+                                                   assert (locF2==1 && locF1>0);
+                                                   // if (locF2<0)
+                                                   //   // this is actually the iteration number for nodeB
+                                                   //   locF1 = -locF1;
+
+                                                   if (locF1 < avgNumIters)
+                                                   {
+                                                      if (locF1 == dist) // same iteration
+                                                         addUniqueDependency(nodeB, node, negDir, 
+                                                               MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
+                                                      else if (locF1 < dist)
+                                                         addUniqueDependency(nodeB, node, negDir, 
+                                                               MEMORY_TYPE, dist-locF1, 1, 0);
+                                                      else  // locF1 > dist
+                                                         addUniqueDependency(node, nodeB, posDir, 
+                                                               MEMORY_TYPE, locF1-dist, 1, 0);
+                                                   }
+                                                }
+                                             }
+                                          } else 
+                                          {
+                                             // we know there is at least one iteration 
+                                             // with dependencies before we reach avgNumIters
+                                             // Compute location accessed by node in the
+                                             // last iteration
+                                             coeff_t locF1=0, locF2=0;
+                                             GFSliceVal lDifference = _iterFormula * (avgNumIters-1) +
+                                                diffFormula;
+                                             if (HasIntegerRatio (lDifference, oiter, 
+                                                      locF1, locF2) && (locF2==1 || locF2==(-1)))
+                                             {
+                                                // I think both locF2 and locF1 should be
+                                                // positive for this case
+                                                assert (locF2==1 && locF1>0);
+                                                // if (locF2<0)
+                                                //   // this is actually the iteration number for nodeB
+                                                //   locF1 = -locF1;
+
+                                                assert (locF1 < avgNumIters);
+                                                addUniqueDependency(nodeB, node, negDir, 
+                                                      MEMORY_TYPE, avgNumIters-1-locF1, 1, 0);
+                                             }
+                                          }
+                                       }
+
+#if 0
+                                       if ( (diffFact1>0 && factor1>factor2) ||
+                                             (diffFact1<0 && factor1<factor2) )
+                                       {  // mode 1
+                                          if (distance>0)  // diffFormula>0 && factor1>factor2
+                                          {
+                                             if (distance < avgNumIters)
+                                             {
+                                                std::cerr << "Add varying dist depend (2) from " 
+                                                   << *node << " to " << *nodeB << " with "
+                                                   << "f1=" << factor1 << ", f2=" << factor2
+                                                   << ", diffF1=" << diffFact1 << ", dist="
+                                                   << dist << std::endl;
+                                                addUniqueDependency(node, nodeB, posDir, 
+                                                      MEMORY_TYPE, VARYING_DISTANCE, dist, 0);
+                                             }
+                                          }
+                                          else
+                                          {
+                                             if ((-distance) < avgNumIters)
+                                             {
+                                                std::cerr << "Add varying dist depend (3) from " 
+                                                   << *nodeB << " to " << *node << " with "
+                                                   << "f1=" << factor1 << ", f2=" << factor2
+                                                   << ", diffF1=" << diffFact1 << ", dist="
+                                                   << dist << std::endl;
+                                                addUniqueDependency(nodeB, node, negDir, 
+                                                      MEMORY_TYPE, VARYING_DISTANCE, dist, 0);
+                                             }
+                                          }
+                                       }
+                                       // if diffFact1>0 && factor1<factor2 
+                                       // or diffFact1<0 && factor1>factor2
+                                       // then distance is shrinking. 
+                                       // Dependencies may change direction in this case
+                                       // if enough iterations are executed.
+                                       // Try to compute the minimum number of iterations 
+                                       // required to have a dependency (not to change dir)
+                                       else
+                                       {  // mode = 2;
+                                          if (distance>0)
+                                          {
+                                             if (distance < avgNumIters)
+                                             {
+                                                cerr << "Add varying dist depend (4) from " 
+                                                   << *node << " to " << *nodeB << " with "
+                                                   << "f1=" << factor1 << ", f2=" << factor2
+                                                   << ", diffF1=" << diffFact1 << ", dist="
+                                                   << dist << endl;
+                                                addUniqueDependency(node, nodeB, CHANGING_DEPENDENCY, 
+                                                      MEMORY_TYPE, VARYING_DISTANCE, dist, 0);
+                                             }
+                                          }
+                                          else
+                                          {
+                                             if ((-distance) < avgNumIters)
+                                             {
+                                                std::cerr << "Add varying dist depend (5) from " 
+                                                   << *nodeB << " to " << *node << " with "
+                                                   << "f1=" << factor1 << ", f2=" << factor2
+                                                   << ", diffF1=" << diffFact1 << ", dist="
+                                                   << dist << std::endl;
+                                                addUniqueDependency(nodeB, node, CHANGING_DEPENDENCY, 
+                                                      MEMORY_TYPE, VARYING_DISTANCE, dist, 0);
+                                             }
+                                          }
+                                       }
+#endif
+                                    }  // factors have same sign (positive)
+                                 }
+                              }
+                           } 
+                     }  // I think I considered all cases
                   }
-               }
-            } 
-         }  // I think I considered all cases
-      }
-   }  // from else - both accesses are of array type
+               }  // from else - both accesses are of array type
    return (res);
 }
 
 void 
 DGBuilder::handle_inner_loop_register_dependencies (SchedDG::Node *node, 
-            RSIList &loopRegs, int firstIteration)
+      RSIList &loopRegs, int firstIteration)
 {
    RSIList::iterator rlit = loopRegs.begin ();
    for ( ; rlit!=loopRegs.end() ; ++rlit)
@@ -2326,16 +2328,16 @@ DGBuilder::handle_inner_loop_register_dependencies (SchedDG::Node *node,
             node->addRegReads (rlit->reg);
       }
    }
-   
+
    // clear the register maps right here
    gpMapper.clear ();
-//   fpMapper.clear ();
+   //   fpMapper.clear ();
    if (crt_stack_tops)
    {
       for (int i=0 ; i<numRegStacks ; ++i)
          crt_stack_tops[i] = max_stack_top_value(i);
    }
-   
+
    // now process the destination registers
    for (rlit=loopRegs.begin() ; rlit!=loopRegs.end() ; ++rlit)
    {
@@ -2350,7 +2352,7 @@ DGBuilder::handle_inner_loop_register_dependencies (SchedDG::Node *node,
 
 void
 DGBuilder::handle_intrinsic_register_dependencies (SchedDG::Node* node, 
-               int firstIteration)
+      int firstIteration)
 {
 #if 0  // do not handle intrinsic Fortran functions yet
    int regNum;
@@ -2376,18 +2378,18 @@ DGBuilder::handle_intrinsic_register_dependencies (SchedDG::Node* node,
 #if 0
          SchedDG::Node* &newNode = builtNodes[newPc];
          if (newNode == NULL)  // newNode could exist if we have the same
-                               // ref register on both input and output
+            // ref register on both input and output
          {
             newNode = new Node (newPc, IB_load_fp, this);
             add (newNode);
             node->setInOrderIndex(nextUopIndex++);
             // connect also the newNode to node using a control dependence
             addUniqueDependency (newNode, node, TRUE_DEPENDENCY,
-                      CONTROL_TYPE, 0, 0, 0, 0.0);
+                  CONTROL_TYPE, 0, 0, 0, 0.0);
          }
 #endif
          memory_dependencies_for_node (node, newPc, 0, 
-                          stackStores, stackLoads, true);
+               stackStores, stackLoads, true);
          ++ i;
          regNum = entryVal->spec_inst_ref_src (i);
       }
@@ -2404,24 +2406,24 @@ DGBuilder::handle_intrinsic_register_dependencies (SchedDG::Node* node,
          // However, I will create a newNode for output ref registers.
          SchedDG::Node* &newNode = builtNodes[newPc];
          if (newNode == NULL)  // newNode could exist if we have the same
-                               // ref register on both input and output
+            // ref register on both input and output
          {
             newNode = new Node (newPc, IB_store_fp, this);
             add (newNode);
             node->setInOrderIndex(nextUopIndex++);
             // connect also the newNode to node using a control dependence
             addUniqueDependency (node, newNode, TRUE_DEPENDENCY,
-                      CONTROL_TYPE, 0, 0, 0, 0.0);
+                  CONTROL_TYPE, 0, 0, 0, 0.0);
          }
 
          memory_dependencies_for_node (newNode, newPc, 1, 
-                          stackStores, stackLoads, true);
+               stackStores, stackLoads, true);
          stackStores.push_back (newNode);
          ++ i;
          regNum = entryVal->spec_inst_ref_dest (i);
       }
    }
-   
+
    i = 0;
    regNum = entryVal->spec_inst_src (i);
    while(regNum != NO_REG)
@@ -2465,7 +2467,7 @@ DGBuilder::handle_intrinsic_register_dependencies (SchedDG::Node* node,
       ++ i;
       regNum = entryVal->spec_inst_dest (i);
    }
-   
+
    i = 0;
    regNum = entryVal->spec_inst_fp_dest (i);
    while (regNum != NO_REG)
@@ -2481,21 +2483,21 @@ DGBuilder::handle_intrinsic_register_dependencies (SchedDG::Node* node,
 
 void
 DGBuilder::handle_register_dependencies(MIAMI::DecodedInstruction *dInst,
-     MIAMI::instruction_info& iiobj, SchedDG::Node* node, 
-     MIAMI::CFG::Node* b, int firstIteration)
+      MIAMI::instruction_info& iiobj, SchedDG::Node* node, 
+      MIAMI::CFG::Node* b, int firstIteration)
 {
-   
+
    if (prev_inst_may_have_delay_slot)
    {
       if (b->is_delay_block())
       {
          gpRegs = &prevGpMapper;
-//         fpRegs = &prevFpMapper;
+         //         fpRegs = &prevFpMapper;
          stack_tops = prev_stack_tops;
       } else
          prev_inst_may_have_delay_slot = false;
    }
-   
+
    // iterate over all source registers first
    MIAMI::RInfoList regs;
    // fetch all source registers in the regs list
@@ -2511,7 +2513,7 @@ DGBuilder::handle_register_dependencies(MIAMI::DecodedInstruction *dInst,
          // Do not create dependencies on the instruction pointer register.
          rlit->name = register_name_actual(rlit->name);
          if (*rlit!=MIAMI::MIAMI_NO_REG && rlit->type!=RegisterClass_PSEUDO &&
-                !is_instruction_pointer_register(*rlit))
+               !is_instruction_pointer_register(*rlit))
          {
             if (rlit->type == RegisterClass_STACK_OPERATION)
             {
@@ -2524,14 +2526,14 @@ DGBuilder::handle_register_dependencies(MIAMI::DecodedInstruction *dInst,
                   readsStackRegister(*rlit, node, firstIteration);
                else
                   readsGpRegister(*rlit, node, firstIteration);
-               
+
                if (firstIteration)
                   node->addRegReads(*rlit);
             }
          }
       }
    }
-   
+
    // separately, I need to iterate over internal operands to create
    // the needed dependencies between micro-ops
    // I only need to do this for the first iteration pass; 
@@ -2546,33 +2548,33 @@ DGBuilder::handle_register_dependencies(MIAMI::DecodedInstruction *dInst,
          switch (extract_op_type(iiobj.src_opd[i]))
          {
             case OperandType_INTERNAL:
-            {
-               // for internal operands, the operand number 
-               // defines the register name
-               int rwidth = iiobj.width;
-               if (iiobj.exec_unit==ExecUnit_VECTOR)
+               {
+                  // for internal operands, the operand number 
+                  // defines the register name
+                  int rwidth = iiobj.width;
+                  if (iiobj.exec_unit==ExecUnit_VECTOR)
                      rwidth *= iiobj.vec_len;
-               register_info ri(op_num, RegisterClass_TEMP_REG, 0, rwidth-1);
-               readsTemporaryRegister(ri, node);
-               // internal registers are not actual machine registers on x86,
-               // but they could be actual register on RISC architectures.
-               // They live only inside one x86 instruction to represent 
-               // data movement between micro-ops, thus, they cannot create
-               // carried dependencies.
-               node->addRegReads(ri);
-               break;
-            }
-            
-            // add also immediate values, for pretty drawing dependency graphs
+                  register_info ri(op_num, RegisterClass_TEMP_REG, 0, rwidth-1);
+                  readsTemporaryRegister(ri, node);
+                  // internal registers are not actual machine registers on x86,
+                  // but they could be actual register on RISC architectures.
+                  // They live only inside one x86 instruction to represent 
+                  // data movement between micro-ops, thus, they cannot create
+                  // carried dependencies.
+                  node->addRegReads(ri);
+                  break;
+               }
+
+               // add also immediate values, for pretty drawing dependency graphs
             case OperandType_IMMED:
-            {
-               node->addImmValue(iiobj.imm_values[op_num]);
-               break;
-            }
+               {
+                  node->addImmValue(iiobj.imm_values[op_num]);
+                  break;
+               }
          }
       }
    }
-   
+
    // I need to somehow consider dependencies created by stack
    // push and pop operations. How do they work for x87 operations?
    // TODO, FIXME???
@@ -2586,7 +2588,7 @@ DGBuilder::handle_register_dependencies(MIAMI::DecodedInstruction *dInst,
       {
          rlit->name = register_name_actual(rlit->name);
          if (*rlit!=MIAMI::MIAMI_NO_REG && rlit->type!=RegisterClass_PSEUDO &&
-                !is_instruction_pointer_register(*rlit))
+               !is_instruction_pointer_register(*rlit))
          {
             if (rlit->type == RegisterClass_STACK_OPERATION)
             {
@@ -2607,7 +2609,7 @@ DGBuilder::handle_register_dependencies(MIAMI::DecodedInstruction *dInst,
          }
       }
    }
-   
+
    // separately, I need to iterate over internal operands to create
    // the needed dependencies between micro-ops
    // I only need to do this for the first iteration pass; 
@@ -2621,24 +2623,24 @@ DGBuilder::handle_register_dependencies(MIAMI::DecodedInstruction *dInst,
          switch (extract_op_type(iiobj.dest_opd[i]))
          {
             case OperandType_INTERNAL:
-            {
-               // for internal operands, the operand number 
-               // defines the register name
-               int rwidth = iiobj.width;
-               if (iiobj.exec_unit==ExecUnit_VECTOR)
+               {
+                  // for internal operands, the operand number 
+                  // defines the register name
+                  int rwidth = iiobj.width;
+                  if (iiobj.exec_unit==ExecUnit_VECTOR)
                      rwidth *= iiobj.vec_len;
-               register_info ri(op_num, RegisterClass_TEMP_REG, 0, rwidth-1);
-               writesTemporaryRegister(ri, node);
-               // internal registers are not actual machine registers
-               // They live only inside one x86 instruction to represent 
-               // data movement between micro-ops.
-               node->addRegWrites(ri);
-               break;
-            }
+                  register_info ri(op_num, RegisterClass_TEMP_REG, 0, rwidth-1);
+                  writesTemporaryRegister(ri, node);
+                  // internal registers are not actual machine registers
+                  // They live only inside one x86 instruction to represent 
+                  // data movement between micro-ops.
+                  node->addRegWrites(ri);
+                  break;
+               }
          }
       }
    }
-   
+
    // I need to somehow consider dependencies created by FPU stack
    // push and pop operations. How do they work for x87 operations?
    // Will this work?
@@ -2660,7 +2662,7 @@ DGBuilder::handle_register_dependencies(MIAMI::DecodedInstruction *dInst,
          // I expect not to have a call in the delay slot of another call
          assert (!prev_inst_may_have_delay_slot);
          prevGpMapper = gpMapper;
-//         prevFpMapper = fpMapper;
+         //         prevFpMapper = fpMapper;
          prev_inst_may_have_delay_slot = true;
          if (crt_stack_tops)
             memcpy(prev_stack_tops, crt_stack_tops, sizeof(int)*numRegStacks);
@@ -2671,13 +2673,13 @@ DGBuilder::handle_register_dependencies(MIAMI::DecodedInstruction *dInst,
          for (i=0 ; i<numRegStacks ; ++i)
             crt_stack_tops[i] = max_stack_top_value(i);
       }
-//      fpMapper.clear ();
+      //      fpMapper.clear ();
    }
 }
 
 unsigned int
 DGBuilder::readsGpRegister(register_info& ri, SchedDG::Node* node,
-       int firstIteration, int cycle)
+      int firstIteration, int cycle)
 {
    RI2RDMultiMap::iterator it;
    std::pair<RI2RDMultiMap::iterator,RI2RDMultiMap::iterator> match = gpRegs->equal_range(ri);
@@ -2705,12 +2707,12 @@ DGBuilder::readsGpRegister(register_info& ri, SchedDG::Node* node,
                   TRUE_DEPENDENCY, dtype, 1, 1,
                   it->second.overlapped+cycle);
          }
-      
+
       }
    }
-   
+
    if (cnt==0 && ri.stack==0)  // no match found; register was defined before this scope 
-   // it means no dependency
+      // it means no dependency
    {
       // collect all uses of registers that were defined before this loop
       // into a separate map; once scheduling is over, compute the minimum
@@ -2731,7 +2733,7 @@ DGBuilder::readsGpRegister(register_info& ri, SchedDG::Node* node,
       if (! found)   // first use of this register
       {
          RI2RDMultiMap::iterator res = externalGpReg.insert (
-                RI2RDMultiMap::value_type (ri, RegData (ri.name, NULL, 0)) );
+               RI2RDMultiMap::value_type (ri, RegData (ri.name, NULL, 0)) );
          res->second.usedBy.push_back (node);
       }
    }
@@ -2740,7 +2742,7 @@ DGBuilder::readsGpRegister(register_info& ri, SchedDG::Node* node,
 
 unsigned int
 DGBuilder::readsStackRegister(register_info& ri, SchedDG::Node* node,
-       int firstIteration, int cycle)
+      int firstIteration, int cycle)
 {
    // for stack registers I have to translate the relative register name
    // to an absolute register name using the stack_tops value;
@@ -2768,9 +2770,9 @@ DGBuilder::readsTemporaryRegister(register_info& ri, SchedDG::Node* node)
    {
       it->second.usedBy.push_back (node);
       addUniqueDependency (it->second.definedAt, node, 
-             TRUE_DEPENDENCY, GP_REGISTER_TYPE, LOOP_INDEPENDENT, 0,
-             it->second.overlapped);
-      
+            TRUE_DEPENDENCY, GP_REGISTER_TYPE, LOOP_INDEPENDENT, 0,
+            it->second.overlapped);
+
       return (it->second.newName);
    }
    else  // not found; register was not defined before
@@ -2785,7 +2787,7 @@ DGBuilder::readsTemporaryRegister(register_info& ri, SchedDG::Node* node)
 
 unsigned int
 DGBuilder::writesGpRegister(register_info& ri, SchedDG::Node* node,
-       int firstIteration, int cycle)
+      int firstIteration, int cycle)
 {
    RI2RDMultiMap::iterator it;
    std::pair<RI2RDMultiMap::iterator,RI2RDMultiMap::iterator> match = gpRegs->equal_range(ri);
@@ -2806,36 +2808,36 @@ DGBuilder::writesGpRegister(register_info& ri, SchedDG::Node* node,
             // ADDRESS registers can only be read. So any register
             // output dependencies are marked as GP_REGISTER_TYPE
             depE = addUniqueDependency(rit->second.definedAt, node, 
-                     OUTPUT_DEPENDENCY, GP_REGISTER_TYPE, LOOP_INDEPENDENT, 0,
-                     rit->second.overlapped);
+                  OUTPUT_DEPENDENCY, GP_REGISTER_TYPE, LOOP_INDEPENDENT, 0,
+                  rit->second.overlapped);
             depE->MarkRemoved();
             NodeList::iterator nit = rit->second.usedBy.begin();
             for( ; nit!=rit->second.usedBy.end() ; ++nit )
             {
                depE = addUniqueDependency(*nit, node, 
-                      ANTI_DEPENDENCY, GP_REGISTER_TYPE, LOOP_INDEPENDENT, 0, 0);
+                     ANTI_DEPENDENCY, GP_REGISTER_TYPE, LOOP_INDEPENDENT, 0, 0);
                depE->MarkRemoved();
             }
          } else
             if (node->getId() <= rit->second.definedAt->getId())
             {
                depE = addUniqueDependency(rit->second.definedAt, node, 
-                        OUTPUT_DEPENDENCY, GP_REGISTER_TYPE, 1, 1,
-                        rit->second.overlapped);
+                     OUTPUT_DEPENDENCY, GP_REGISTER_TYPE, 1, 1,
+                     rit->second.overlapped);
                depE->MarkRemoved();
                NodeList::iterator nit = rit->second.usedBy.begin();
                for( ; nit!=rit->second.usedBy.end() ; ++nit )
                   if (node->getId() != (*nit)->getId())
                   {
                      depE = addUniqueDependency(*nit, node, 
-                            ANTI_DEPENDENCY, GP_REGISTER_TYPE, 1, 1, 0);
+                           ANTI_DEPENDENCY, GP_REGISTER_TYPE, 1, 1, 0);
                      depE->MarkRemoved();
                   }
             }
 #endif
       }
       if (ri.IncludesRange(it->first) ||  // I fully overlap the bit range of the old definition, replace it
-          ! can_have_unmodified_register_range(ri, it->first))
+            ! can_have_unmodified_register_range(ri, it->first))
       {
          cntin += 1;
          // we will delete all matches where current ri more the overlaps 
@@ -2844,27 +2846,27 @@ DGBuilder::writesGpRegister(register_info& ri, SchedDG::Node* node,
          RI2RDMultiMap::iterator tmp = it++;
          gpRegs->erase(tmp);
       } else
-      if (overlaps)
-      {
-         // subtract the bit range of our new definition from the range of this map entry
-         register_info treg(it->first);
-         treg.SubtractRange(ri.lsb, ri.msb);
-         gpRegs->insert(RI2RDMultiMap::value_type(treg, it->second));
-         RI2RDMultiMap::iterator tmp = it++;
-         gpRegs->erase(tmp);
-      } else
-         ++it;
+         if (overlaps)
+         {
+            // subtract the bit range of our new definition from the range of this map entry
+            register_info treg(it->first);
+            treg.SubtractRange(ri.lsb, ri.msb);
+            gpRegs->insert(RI2RDMultiMap::value_type(treg, it->second));
+            RI2RDMultiMap::iterator tmp = it++;
+            gpRegs->erase(tmp);
+         } else
+            ++it;
    }
-   
+
    // now add a new entry
    gpRegs->insert(RI2RDMultiMap::value_type(ri, 
-                RegData(nextGpReg++, node, cycle)) );
+            RegData(nextGpReg++, node, cycle)) );
    return (nextGpReg-1);
 }
 
 unsigned int
 DGBuilder::writesStackRegister(register_info& ri, SchedDG::Node* node,
-       int firstIteration, int cycle)
+      int firstIteration, int cycle)
 {
    // for stack registers I have to translate the relative register name
    // to an absolute register name using the stack_tops value;
@@ -2890,7 +2892,7 @@ DGBuilder::writesTemporaryRegister(register_info& ri, SchedDG::Node* node)
    if (rit == inMapper.end())
    {
       inMapper.insert(RegMap::value_type(ri.name, 
-                RegData(nextInReg++, node, 0)) );
+               RegData(nextInReg++, node, 0)) );
    } else
    {
       // I should not encounter such a case with internal
@@ -2906,7 +2908,7 @@ DGBuilder::computeRegisterScheduleInfo (RSIList &reglist)
 {
    RI2RDMultiMap::iterator rit;
    reg_sched_info elem;
-   
+
    for (rit=externalGpReg.begin() ; rit!=externalGpReg.end() ; ++rit)
    {
       elem.reg = rit->first;
@@ -2927,7 +2929,7 @@ DGBuilder::computeRegisterScheduleInfo (RSIList &reglist)
       elem.dest = true;
       SchedDG::Node *tNode = rit->second.definedAt;
       if (tNode && tNode->IsRemoved())  // node was removed, most likely as part of 
-                               // a replacement pattern
+         // a replacement pattern
          tNode = tNode->getReplacementNode ();
 
       if (tNode != NULL)
@@ -2941,16 +2943,16 @@ DGBuilder::computeRegisterScheduleInfo (RSIList &reglist)
    }
 #if DEBUG_GRAPH_CONSTRUCTION
    DEBUG_GRAPH (3,
-      fprintf (stderr, "DGBuilder::computeRegisterScheduleInfo: register map has %ld registers overall.\n",
-                reglist.size ());
-   )
+         fprintf (stderr, "DGBuilder::computeRegisterScheduleInfo: register map has %ld registers overall.\n",
+            reglist.size ());
+         )
 #endif
 }
 
 
 void
 DGBuilder::computeMemoryInformationForPath (/*HashMapUI &refsTable, */
-         RGList &globalRGs, CliqueList &allCliques, HashMapUI &refsDist2Use)
+      RGList &globalRGs, CliqueList &allCliques, HashMapUI &refsDist2Use)
 {
    UiNLMap liveRefs;
    addrtype reloc = img->RelocationOffset();
@@ -2974,7 +2976,7 @@ DGBuilder::computeMemoryInformationForPath (/*HashMapUI &refsTable, */
             if (usit == liveRefs.end ())  // first ref from this set
             {
                usit = liveRefs.insert (liveRefs.begin(),
-                    UiNLMap::value_type (setIdx, NodeList()) );
+                     UiNLMap::value_type (setIdx, NodeList()) );
             }
             usit->second.push_back(nn);
          } else   // did not find it
@@ -2986,18 +2988,18 @@ DGBuilder::computeMemoryInformationForPath (/*HashMapUI &refsTable, */
             // just ignore them.
 #if DEBUG_GRAPH_CONSTRUCTION
             DEBUG_GRAPH (7,
-               std::cerr << "WARNING: We do not hava set index for " 
-                    << *nn << " No idea why."
-                    << std::endl;
-            )
+                  std::cerr << "WARNING: We do not hava set index for " 
+                  << *nn << " No idea why."
+                  << std::endl;
+                  )
 #endif
          }
       }
       ++ nit;
    }
-   
-//   RGList globalRGs;
-   
+
+   //   RGList globalRGs;
+
    // At this point we have all the live refs in this path organized on sets
    UiNLMap::iterator nlit = liveRefs.begin ();
    for ( ; nlit!=liveRefs.end() ; ++nlit )
@@ -3005,7 +3007,7 @@ DGBuilder::computeMemoryInformationForPath (/*HashMapUI &refsTable, */
       NodeList &nlist = nlit->second;
       computeRefsReuseGroups (nlit->first, nlist, globalRGs);
    }
-   
+
    // compute also all cliques
    find_memory_parallelism (allCliques, refsDist2Use);
 }
@@ -3015,7 +3017,7 @@ DGBuilder::computeMemoryInformationForPath (/*HashMapUI &refsTable, */
 // loop levels.
 void
 DGBuilder::computeRefsReuseGroups (unsigned int setIndex, NodeList &nlist,
-       RGList &globalRGs)
+      RGList &globalRGs)
 {
    // I need a local list of reuse groups, for refs from this set.
    // Once I process the entire set, I can merge it into a global list
@@ -3028,23 +3030,23 @@ DGBuilder::computeRefsReuseGroups (unsigned int setIndex, NodeList &nlist,
    // than the cache line size or so).
    // Actually, I need to keep a minimum and maximum spatial distance for a 
    // group. It seems very unclear how it should be.
-   
+
    RGList localRGs;    // groups for references from this set
    RGList undefRGs;    // groups for references with uninitialized formulas
 
 #if DEBUG_GRAPH_CONSTRUCTION
    DEBUG_GRAPH (6,
-      std::cerr << "Compute reuse groups for setId " << setIndex << std::endl;
-   )
+         std::cerr << "Compute reuse groups for setId " << setIndex << std::endl;
+         )
 #endif
 
-   NodeList::iterator nit = nlist.begin ();
+      NodeList::iterator nit = nlist.begin ();
    for ( ; nit!=nlist.end() ; ++nit )
    {
       Node *node = *nit;
       findReuseGroupForNode (node, setIndex, localRGs, undefRGs);
    }
-   
+
    // at the end, add all local reuse groups to the global list
    globalRGs.splice (globalRGs.end(), localRGs);
    globalRGs.splice (globalRGs.end(), undefRGs);
@@ -3052,7 +3054,7 @@ DGBuilder::computeRefsReuseGroups (unsigned int setIndex, NodeList &nlist,
 
 void
 DGBuilder::findReuseGroupForNode (Node *node, unsigned int setIndex, 
-             RGList &listRGs, RGList &undefRGs)
+      RGList &listRGs, RGList &undefRGs)
 {
    bool found = false;
    RGList::iterator rit = listRGs.begin ();
@@ -3068,38 +3070,38 @@ DGBuilder::findReuseGroupForNode (Node *node, unsigned int setIndex,
    {
 #if DEBUG_GRAPH_CONSTRUCTION
       DEBUG_GRAPH (5,
-         fprintf(stderr, "WARNING: findReuseGroupForNode: Did not find any formulas for memory instruction at address %" PRIxaddr ", opidx %d\n",
-                    pc, opidx);
-      )
+            fprintf(stderr, "WARNING: findReuseGroupForNode: Did not find any formulas for memory instruction at address %" PRIxaddr ", opidx %d\n",
+               pc, opidx);
+            )
 #endif
-      // if formula is uninitialized, the reference makes a group by itself
-      undefRGs.push_back (new ReuseGroup (pc, opidx,
-                             node->getScheduleTime(), setIndex) );
+         // if formula is uninitialized, the reference makes a group by itself
+         undefRGs.push_back (new ReuseGroup (pc, opidx,
+                  node->getScheduleTime(), setIndex) );
       return;
    }
-   
+
    GFSliceVal& _formula = refF->base;
 
 #if DEBUG_GRAPH_CONSTRUCTION
    DEBUG_GRAPH (6,
-      std::cerr << "Find reuse group for node " << *node << " with base formula "
-           << _formula << std::endl;
-   )
+         std::cerr << "Find reuse group for node " << *node << " with base formula "
+         << _formula << std::endl;
+         )
 #endif
 
-   if (_formula.is_uninitialized())
-   {
+      if (_formula.is_uninitialized())
+      {
 #if DEBUG_GRAPH_CONSTRUCTION
-      DEBUG_GRAPH (5,
-         fprintf(stderr, "WARNING: findReuseGroupForNode: Did not find base formula for memory instruction at address %" PRIxaddr "\n",
-                    pc);
-      )
+         DEBUG_GRAPH (5,
+               fprintf(stderr, "WARNING: findReuseGroupForNode: Did not find base formula for memory instruction at address %" PRIxaddr "\n",
+                  pc);
+               )
 #endif
-      // if formula is uninitialized, the reference makes a group by itself
-      undefRGs.push_back (new ReuseGroup (pc, opidx, 
-                             node->getScheduleTime(), setIndex) );
-      return;
-   }
+            // if formula is uninitialized, the reference makes a group by itself
+            undefRGs.push_back (new ReuseGroup (pc, opidx, 
+                     node->getScheduleTime(), setIndex) );
+         return;
+      }
    int refIsScalar = 0;
    bool constantStride = false;
    coeff_t valueStride = 0;
@@ -3118,17 +3120,17 @@ DGBuilder::findReuseGroupForNode (Node *node, unsigned int setIndex,
       {
 #if DEBUG_GRAPH_CONSTRUCTION
          DEBUG_GRAPH (5,
-            fprintf(stderr, "WARNING: findReuseGroupForNode: Did not find stride formula for memory instruction at address %" PRIxaddr "\n",
-                      pc);
-         )
+               fprintf(stderr, "WARNING: findReuseGroupForNode: Did not find stride formula for memory instruction at address %" PRIxaddr "\n",
+                  pc);
+               )
 #endif
-         undefRGs.push_back (new ReuseGroup (pc, opidx, 
-                                node->getScheduleTime(), setIndex) );
+            undefRGs.push_back (new ReuseGroup (pc, opidx, 
+                     node->getScheduleTime(), setIndex) );
          return;
       }
       coeff_t valueNum;
       ucoeff_t valueDen;
-      
+
       if (IsConstantFormula(_iterFormula, valueNum, valueDen))
       {
          constantStride = true;
@@ -3139,7 +3141,7 @@ DGBuilder::findReuseGroupForNode (Node *node, unsigned int setIndex,
       }
    }  // multiple iterations executed
 
-   
+
    for ( ; rit!=listRGs.end() ; ++rit)
    {
       // get the pc of the ledear and its base formula
@@ -3153,7 +3155,7 @@ DGBuilder::findReuseGroupForNode (Node *node, unsigned int setIndex,
       RefFormulas *orefF = refFormulas.hasFormulasFor(opc,oopidx);
       assert (orefF);
       GFSliceVal &_Oformula = orefF->base;
-      
+
       // _Oformula must be initialized or it would have been placed in the 
       // undefRGs list
       coeff_t valueNum;
@@ -3170,40 +3172,40 @@ DGBuilder::findReuseGroupForNode (Node *node, unsigned int setIndex,
       }
       else
          if (!refIsScalar && HasIntegerRatioAndRemainder (diffFormula, 
-                   _iterFormula, ratio, remainder) )
+                  _iterFormula, ratio, remainder) )
          {
             found = true;
          }
-         
+
       if (found)
       {
          // the spatial offset is the inverse of the one computed
          remainder = - remainder;
 #if DEBUG_GRAPH_CONSTRUCTION
          DEBUG_GRAPH (6,
-            std::cerr << "Reference " << *node << " is " << ratio << " iterations and "
-                 << remainder << " bytes after current leader, reference at pc "
-                 << std::hex << opc << std::dec << " scheduled at " 
-                 << (*rit)->leaderSchedTime() << std::endl;
-         )
+               std::cerr << "Reference " << *node << " is " << ratio << " iterations and "
+               << remainder << " bytes after current leader, reference at pc "
+               << std::hex << opc << std::dec << " scheduled at " 
+               << (*rit)->leaderSchedTime() << std::endl;
+               )
 #endif
-         // I do not include the ratio (which is the difference in iteration
-         // numbers, or distance) in the delay info. Think if I should include
-         // it separately, or merge it with the scheduling delay info?
-         // I merge it now.
-         (*rit)->addMember (pc, opidx,
-                 node->getScheduleTime() % ratio - (*rit)->leaderSchedTime(),
-                 remainder);
+            // I do not include the ratio (which is the difference in iteration
+            // numbers, or distance) in the delay info. Think if I should include
+            // it separately, or merge it with the scheduling delay info?
+            // I merge it now.
+            (*rit)->addMember (pc, opidx,
+                  node->getScheduleTime() % ratio - (*rit)->leaderSchedTime(),
+                  remainder);
          break; 
       }
    }
-   
+
    if (! found)   // I could not find a match with any of the existing groups
    {
       // create a new reuse group
       listRGs.push_back (new ReuseGroup (pc, opidx, 
-                             node->getScheduleTime(), setIndex, 
-                             constantStride, valueStride) );
+               node->getScheduleTime(), setIndex, 
+               constantStride, valueStride) );
    }
 }
 
@@ -3222,11 +3224,11 @@ DGBuilder::pruneTrivialMemoryDependencies ()
 
 #if DEBUG_GRAPH_CONSTRUCTION
    DEBUG_GRAPH (1, 
-      std::cerr << "PruneTrivialMemoryDep: removed " << res << " dependencies." << std::endl;
-      fflush (stderr);
-   )
+         std::cerr << "PruneTrivialMemoryDep: removed " << res << " dependencies." << std::endl;
+         fflush (stderr);
+         )
 #endif
-//   setCfgFlags (CFG_GRAPH_PRUNED);
+      //   setCfgFlags (CFG_GRAPH_PRUNED);
 }
 
 

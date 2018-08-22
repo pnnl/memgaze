@@ -79,8 +79,10 @@ public:
    virtual ~LoadModule();
    
    int loadFromFile(FILE *fd, bool parse_routines=false);
+   int palmLoadFromFile(const MiamiOptions *mo);
 
    int analyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo);
+   int palmAnalyzeRoutines( ProgScope *prog, const MiamiOptions *mo);
    
    GroupScope* GetDefaultScope() {
       if (! undefScope)
@@ -154,7 +156,9 @@ private:
    BucketMapInt scopeMapper;
    
    int loadRoutineData(FILE *fd);
+   int palmLoadRoutineData(const MiamiOptions *mo);
    Routine* loadOneRoutine(FILE *fd, uint32_t r);
+   Routine* palmLoadOneRoutine(const MiamiOptions *mo, uint32_t r);
    
    addrtype cfg_base_addr;
    addrtype reloc_offset;

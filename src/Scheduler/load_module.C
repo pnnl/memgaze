@@ -90,6 +90,238 @@ LoadModule::~LoadModule()
 }
 
 int 
+LoadModule::palmLoadFromFile( const MiamiOptions *mo)
+{
+   std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
+
+// TODO reloc offset ??
+   reloc_offset = base_addr;
+//   // check that the offset of the low address is the same
+//   // print a WARNING and use the old offset if they are different
+//   if (low_addr_offset != old_low_offset)
+//   {
+//      reloc_offset += low_addr_offset - old_low_offset;
+//   }
+//   
+
+   return 0;
+}
+
+int 
+LoadModule::palmAnalyzeRoutines( ProgScope *prog, const MiamiOptions *mo)
+{
+   std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
+   //if (mo->palm_cfg_file.length()>1){ //OzgurS adding palm cfg
+   //   std::ifstream palm_fd;
+   //   palm_fd.open(mo->palm_cfg_file.c_str());
+ 
+   //   if (!palm_fd.is_open()){    
+   //      fprintf (stderr, "Cannot access palm cfg file %s\n", mo->cfg_file.c_str());
+   //      return (-2); 
+   //   }       
+   //   std::string line;
+   //   std::string bin_path;
+   //   while (! palm_fd.eof()){
+   //      std::getline(palm_fd , line);
+   //      std::cout<<line<<std::endl; 
+   //      if (line.find("binary-path") != std::string::npos){
+   //         std::cout<<"I found it :D \n"; 
+   //         bin_path =line.substr(line.find(": ")+2, -1);
+   //         std::cout<<" binary path is "<<bin_path<<std::endl;
+   //         break;
+   //      }       
+   //   }       
+   //}
+
+   int ires;
+
+// next get the number of routines
+//   TODO if CFG will send more than one routine handle this otherwise it is always1
+   uint32_t numRoutines = 1;
+   
+   /* create program scope for this load module */   
+   std::cout<<"Image name: "<<img_name<<" id:"<<img_id<<std::endl;
+   img_scope = new ImageScope(prog, img_name, img_id);
+   for (uint32_t r=0 ; r<numRoutines ; ++r)
+   {
+   std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
+      Routine *rout = palmLoadOneRoutine(mo, r);
+      if (rout == NULL)
+      {
+   std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
+         if (mo->do_linemap)
+            FinalizeSourceFileInfo();
+         return (-1);
+      }
+      if (rout->Name().find(mo->func_name)!=std::string::npos){
+   std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
+         std::cerr << "[INFO]LoadModule::analyzeRoutines(): '" << rout->Name() << "'\n";
+         addrtype rstart = rout->Start();
+        
+         if (rout->is_valid_for_analysis())
+         {
+   std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
+            ires = rout->main_analysis(img_scope, mo);
+            if (ires < 0)
+            {
+   std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
+               fprintf (stderr, "Error while analyzing routine %s\n", rout->Name().c_str());
+               if (mo->do_linemap)
+                  FinalizeSourceFileInfo();
+               return (-1);
+            }
+         }
+      
+      }
+      
+      delete (rout);
+   }
+
+   /* clean up any memory used by the debug info for this image */
+   if (mo->do_linemap)
+      FinalizeSourceFileInfo();
+   
+   return (0);
+}
+
+int 
+LoadModule::palmLoadRoutineData(const MiamiOptions *mo )
+{
+//#undef CHECK_COND
+//#undef CHECK_COND0
+//
+//#define CHECK_COND(cond, err, ...) if (cond) \
+//   {fprintf(stderr, "ERROR: " err "\n", __VA_ARGS__); goto load_error; }
+//#define CHECK_COND0(cond, err) if (cond) \
+//   {fprintf(stderr, "ERROR: " err "\n"); goto load_error; }
+//
+//   size_t res;
+//   int ires;
+//   ires = fseek(fd, file_offset, SEEK_SET);
+//   if (ires < 0)  // error
+//   {
+//      perror ("Changing offset to start of routine area failed");
+//      return (-1);
+//   }
+//   
+//   // next get the number of routines
+//   uint32_t numRoutines = 0;
+//   res = fread(&numRoutines, 4, 1, fd);
+//   CHECK_COND(res!=1 || numRoutines>1024*1024, "reading routine count res=%ld, numRoutines=%u", 
+//            res, numRoutines)
+//      
+//   for (uint32_t r=0 ; r<numRoutines ; ++r)
+//   {
+//      Routine *rout = loadOneRoutine(fd, r);
+//      if (rout == NULL)
+//         return (-1);
+//
+//      // add routines to a list
+//      // Later I will iterate over the list and process them
+//      //funcMap[_offset] = rout;  // add it to the function map
+//      funcList.push_back(rout);  // add it to the function list
+//   }
+//   return (0);
+//   
+//load_error:
+   return (-1);
+}
+
+Routine* 
+LoadModule::palmLoadOneRoutine(const MiamiOptions *mo, uint32_t r)
+{
+   std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
+   size_t res;
+   Routine *rout = NULL;
+   std::ifstream palm_fd;
+//   
+   addrtype _offset, _start, _end;
+
+   if (mo->palm_cfg_file.length()>1){ //OzgurS adding palm cfg
+      palm_fd.open(mo->palm_cfg_file.c_str());
+ 
+      if (!palm_fd.is_open()){    
+         fprintf (stderr, "Cannot access palm cfg file %s\n", mo->cfg_file.c_str());
+         return (NULL); 
+      }       
+      std::string line;
+      std::string func_name;
+      std::string funcStartAddr;
+      while (! palm_fd.eof()){
+         std::getline(palm_fd , line);
+         std::cout<<line<<std::endl; 
+         if (line.find("func") != std::string::npos){
+            std::cout<<"I found it :D \n"; 
+            funcStartAddr =line.substr(line.find(":")+1, -1);
+            std::cout<<"start address "<<funcStartAddr<<std::endl;
+            break;
+         }       
+      }       
+   }
+
+
+//   size_t _size = 0;
+//   char *_name = 0;
+//   // save start/end addresses and name in prefix format (len followed by name)
+//   res = fread(&_offset, sizeof(addrtype), 1, fd);
+//   CHECK_COND(res!=1, "reading offset for routine %u", r);
+//   res = fread(&_start, sizeof(addrtype), 1, fd);
+//   CHECK_COND(res!=1, "reading start addr for routine %u", r);
+//   res = fread(&_end, sizeof(addrtype), 1, fd);
+//   CHECK_COND(res!=1, "reading end addr for routine %u", r);
+//   _size = _end - _start;
+//   
+//   // now read the routine name
+//   uint32_t len;
+//   res = fread(&len, 4, 1, fd);
+//   CHECK_COND(res!=1 || len<1 || len>1024, "reading name length for routine %u, res=%ld, len=%u", r, res, len);
+//   _name = new char[len+1];
+//   
+//   res = fread(_name, 1, len, fd);
+//   
+//   CHECK_COND(res!=len, "reading name for routine %u", r);
+//   _name[len] = 0;
+//#if VERBOSE_DEBUG_LOAD_MODULE
+//   DEBUG_LOAD_MODULE(4,
+//      fprintf (stderr, "Creating Routine %s w/ start %p, end %p, offset %p, img_base+offset %p\n",
+//          _name, (void*)_start, (void*)_end, (void*)_offset, (void*)(base_addr+_offset));
+//   );
+//#endif
+//   rout = new Routine(this, _start, _size, string(_name), _offset, reloc_offset);
+//   CHECK_COND(rout==NULL, "allocating object for routine %u", r);
+//   
+//#if DEBUG_CFG_COUNTS
+//   DEBUG_CFG(3,
+//      fprintf (stderr, "Loading CFG for routine %s\n", _name);
+//   )
+//#endif
+//   // next parse the entries and the cfg
+//#if DEBUG_CFG_COUNTS
+//   ires = 
+//#endif
+//      rout->loadCFGFromFile(fd);
+//#if DEBUG_CFG_COUNTS
+//   DEBUG_CFG(3,
+//      fprintf (stderr, "CFG loaded with result %d\n", ires);
+//   )
+//#endif
+////   if (ires < 0) 
+////      return (ires);
+//   if (_name) delete[] _name;
+//   
+//   return (rout);
+//   
+//load_error:
+//   if (_name) delete[] _name;
+   palm_fd.close();
+   return (NULL);
+   
+}
+
+
+
+
+int 
 LoadModule::loadFromFile(FILE *fd, bool parse_routines)
 {
 #define CHECK_COND(cond, err, ...) if (cond) \
@@ -797,12 +1029,12 @@ int LoadModule::loadFPfile(string routName, ProgScope *prog, const MiamiOptions 
    reloc_offset=base_addr;
    low_addr_offset = (MIAMI::addrtype)codeSrc->offset();
 
-   if (mo->dla_path.size() > 0){
-      ifstream dlaFile;
-      dlaFile.open(mo->dla_path);
+   if (mo->fp_path.size() > 0){
+      ifstream fpFile;
+      fpFile.open(mo->fp_path);
       addrtype insn;
-      std::string dlaFuncNm;
-      std::string dlaDso;
+      std::string fpFuncNm;
+      std::string fpDso;
 //ozgurS
       std::string dso = "dso:";
       std::string funcName = "func:"+mo->func_name;
@@ -812,7 +1044,7 @@ int LoadModule::loadFPfile(string routName, ProgScope *prog, const MiamiOptions 
       emptyMemStruct.level = 0;
       emptyMemStruct.hitCount = 0;
       emptyMemStruct.latency = 0;
-      std::getline(dlaFile , line);
+      std::getline(fpFile , line);
       std::istringstream in(line);
       int totalLVLs = 0;
       in >> std::dec >> totalLVLs ;
@@ -820,7 +1052,7 @@ int LoadModule::loadFPfile(string routName, ProgScope *prog, const MiamiOptions 
       for(int i= 0; i<totalLVLs; i++){
          emptyLevelMap[i]=emptyMemStruct;
       }
-      while (std::getline(dlaFile , line)) {
+      while (std::getline(fpFile , line)) {
             if (line == funcName){
                inFunction = true;
                continue;
@@ -844,7 +1076,7 @@ int LoadModule::loadFPfile(string routName, ProgScope *prog, const MiamiOptions 
                std::cout<<" 1OZGURDEBUG inst " << std::hex << insn << " real addres: "<<start+insn << " lvl: "<< std::dec << instMemMap[start+insn][0].level <<" hit:" <<instMemMap[start+insn][0].hitCount  << " missRatio lvl0: " << miss << std::endl;
             }
       }
-      dlaFile.close(); 
+      fpFile.close(); 
    }
 
    return 0;
@@ -946,12 +1178,12 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
       latFile.close(); 
    }
 
-   if (mo->dla_path.size() > 0){
-      ifstream dlaFile;
-      dlaFile.open(mo->dla_path);
+   if (mo->fp_path.size() > 0){
+      ifstream fpFile;
+      fpFile.open(mo->fp_path);
       addrtype insn;
-      std::string dlaFuncNm;
-      std::string dlaDso;
+      std::string fpFuncNm;
+      std::string fpDso;
 //ozgurS
       std::string dso = "dso:";
       std::string funcName = "func:"+mo->func_name;
@@ -961,7 +1193,7 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
       emptyMemStruct.level = 0;
       emptyMemStruct.hitCount = 0;
       emptyMemStruct.latency = 0;
-      std::getline(dlaFile , line);
+      std::getline(fpFile , line);
       std::istringstream in(line);
       int totalLVLs = 0;
       in >> std::dec >> totalLVLs ;
@@ -969,7 +1201,7 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
       for(int i= 0; i<totalLVLs; i++){
          emptyLevelMap[i]=emptyMemStruct;
       }
-      while (std::getline(dlaFile , line)) {
+      while (std::getline(fpFile , line)) {
             if (line == funcName){
                inFunction = true;
                continue;
@@ -1000,7 +1232,7 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
             instLats[low_addr_offset+insn]=lat;
          }
       }*/
-      dlaFile.close(); 
+      fpFile.close(); 
    }
 
 

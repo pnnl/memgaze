@@ -11387,197 +11387,7 @@ SchedDG::minSchedulingLengthDueToDependencies()
       return (maxPathRootToLeaf);
    }
 }
-//ozgurS
-void computeMemory( MIAMI::MemListPerInst * memData, MIAMI::MemDataPerLvlList * mdplList ){
-//   std::cerr<<"DEBUG CAN I CALL"<<__func__<<std::endl;
-   struct Mem{
-      int level;
-      int hits;
-      int miss;
-      float windowSize;
-   };
-   int memoryHits = 0;
-   std::vector<Mem> memVector;            //TODO find a better  way to loop for each level
-   int total_lds = 10; //TODO find this from miami
-   int frame_lds = 8; //TODO find this from miami
-   int strided_lds = 1; //TODO find this from miami
-   int indirect_lds = 1; //TODO find this from miami
-// initializing collected data variables
-   int all_loads = 0;   //lvl 0
-   int l1_hits = 0 ;    //lvl 1
-   int l2_hits = 0 ;    //lvl 2
-   int fb_hits = 0 ;    //lvl 3
-   int l3_hits = 0 ;    //lvl 4
-   int llc_miss = 0 ;   //lvl 5
-   int l2_pf_miss = 0 ; //lvl 6
-// initializing other vaiables
-   float l1 = 0;
-   float l2 = 0;
-   float l3 = 0;
-   float mem = 0;
-   float pf = 0;
-   float mem_hits = 0;
-   float pf_wpl = 0;
-   float mem_wpl = 0;
-   float l1_strided_lds = 0;
-   float fp = 0;
-   for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){
-      all_loads += (*it)->find(0)->second.hitCount;
-      l1_hits += (*it)->find(1)->second.hitCount;
-      l2_hits += (*it)->find(2)->second.hitCount;
-      fb_hits += (*it)->find(3)->second.hitCount;
-      l3_hits += (*it)->find(4)->second.hitCount;
-      llc_miss += (*it)->find(5)->second.hitCount;
-      l2_pf_miss += (*it)->find(6)->second.hitCount;
-   }
-   if (total_lds){
-      l1_strided_lds = (l1_hits / total_lds) * strided_lds; //TODO check div0
-   } else {
-      l1_strided_lds = -1;
-   }
-   if (total_lds && llc_miss){
-      mem_wpl = (float)(((l1_hits+l2_hits+l3_hits)/total_lds) *
-            indirect_lds) /llc_miss; //TODO check div0
-   } else {
-     mem_wpl = -1;  
-   }
-   if (l2_pf_miss){
-      pf_wpl = l1_strided_lds / l2_pf_miss ; //TODO check div0
-   } else {
-      pf_wpl = -1;
-   }
-   mem_hits = llc_miss * mem_wpl;
-   pf = l2_pf_miss * pf_wpl;
-   mem = mem_hits + pf;
-   l3 = l3_hits;
-   l2 = l2_hits + fb_hits;
-   l1 = all_loads -(pf+l2+l3+mem_hits);
-   fp = mem * 4; //TODO find better way
-   std::cout<<"PALM FP on the Path:"<<all_loads<<std::endl;
-   std::cout<<"ALL_loads:"<<all_loads<<std::endl;
-   std::cout<<"l1_hits:"<<l1_hits<<std::endl;
-   std::cout<<"l2_hits:"<<l2_hits<<std::endl;
-   std::cout<<"fb_hits:"<<fb_hits<<std::endl;
-   std::cout<<"l3_hits:"<<l3_hits<<std::endl;
-   std::cout<<"llc_miss:"<<llc_miss<<std::endl;
-   std::cout<<"l2_pf_miss:"<<l2_pf_miss<<std::endl;
-   std::cout<<"l1_strided_lds:"<<l1_strided_lds<<std::endl;
-   std::cout<<"mem_wpl:"<<mem_wpl<<std::endl;
-   std::cout<<"pf_wpl:"<<pf_wpl<<std::endl;
-   std::cout<<"mem_hits:"<<mem_hits<<std::endl;
-   std::cout<<"pf:"<<pf<<std::endl;
-   std::cout<<"mem:"<<mem<<std::endl;
-   std::cout<<"l3:"<<l3<<std::endl;
-   std::cout<<"l2:"<<l2<<std::endl;
-   std::cout<<"l1:"<<l1<<std::endl;
-   std::cout<<"FP:"<<fp<<std::endl<<std::endl;
-} 
-//void computeMemory( MIAMI::MemListPerInst * memData, MIAMI::MemDataPerLvlList * mdplList ){
-//   struct Mem{
-//      int level;
-//      int hits;
-//      int miss;
-//      float windowSize;
-//   };
-//   int memoryHits = 0;
-//   std::vector<Mem> memVector;            //TODO find a better  way to loop for each level
-//   std::vector<Mem> memVectorEx;            //TODO find a better  way to loop for each level
-//   for (int lvl =0 ; lvl < 10 ; lvl++){   //or just try to ask MAX_LEVEL from user
-//      Mem mem;
-//      mem.level = lvl; 
-//      mem.hits = 0; 
-//      mem.miss = 0; 
-//      mem.windowSize = 0.0;
-//      Mem memEx;
-//      memEx.level = lvl; 
-//      memEx.hits = 0; 
-//      memEx.miss = 0; 
-//      memEx.windowSize = 0.0;
-//   
-//      for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){  
-//         for (int prevlvl =0 ; prevlvl <= lvl ; prevlvl++){
-//            if (lvl == 4){
-//               mem.level = lvl;
-//               mem.hits = (*it)->find(lvl)->second.hitCount;
-//               break;
-//            }
-//            mem.hits += (*it)->find(prevlvl)->second.hitCount;
-//            std::cout<<"OZGUR MEM HITS: "<<mem.hits<<std::endl;
-//         }    
-//         for (int nextlvl =lvl+1 ; nextlvl < 15 ; nextlvl++){
-//            mem.miss += (*it)->find(nextlvl)->second.hitCount;
-////            std::cout<<"OZGUR MEM MISS: "<<mem.miss<<std::endl;
-//         }
-//         memEx.hits=(*it)->find(lvl)->second.hitCount;
-////         for (int xx = 0 ; xx <5 ;xx++){ 
-////         std::cerr<<"computeMemory->OZGUR  exclusive mem data at lvl: "<<std::dec<< xx <<" hits: "<<(*it)->find(xx)->second.hitCount<< std::endl;
-////         }
-//      }
-////      if (lvl == 0){
-////         mem.miss = mem.hits - mem.miss;
-////         memoryHits = mem.miss;
-////      } else {
-////         mem.miss = mem.miss + memoryHits;
-////      }    
-//      if (mem.miss){
-//         mem.windowSize = (float)mem.hits/ (float)mem.miss;
-//      } else {
-//         mem.windowSize = -1.0;
-//      }
-//      memVector.push_back(mem);
-//      memVectorEx.push_back(memEx);
-//   }
-//
-//
-//   for (int lvl =0 ; lvl < 6 ; lvl++){   //or just try to ask MAX_LEVEL from user
-//      Mem mem;
-//      mem.level = lvl; 
-//      mem.hits = 0; 
-//      mem.miss = 0; 
-//      mem.windowSize = 0.0;
-//      Mem memEx;
-//      memEx.level = lvl; 
-//      memEx.hits = 0; 
-//      memEx.miss = 0; 
-//      memEx.windowSize = 0.0;
-//   
-//      for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){  
-//         for (int prevlvl =0 ; prevlvl <= lvl  ; prevlvl++){
-//            if (lvl != 0 && prevlvl ==0){
-//               continue;
-//            }
-//            mem.hits += (*it)->find(prevlvl)->second.hitCount;
-//         }    
-//         for (int nextlvl =lvl+1 ; nextlvl < 6 ; nextlvl++){
-//            mem.miss += (*it)->find(nextlvl)->second.hitCount;
-//         }
-//         memEx.hits=(*it)->find(lvl)->second.hitCount;
-////         for (int xx = 0 ; xx <5 ;xx++){ 
-////         std::cerr<<"computeMemory->OZGUR  exclusive mem data at lvl: "<<std::dec<< xx <<" hits: "<<(*it)->find(xx)->second.hitCount<< std::endl;
-////         }
-//      }
-//      if (lvl == 0){
-//         mem.miss = mem.hits - mem.miss;
-//         memoryHits = mem.miss;
-//      } else {
-//         mem.miss = mem.miss + memoryHits;
-//      }    
-//      if (mem.miss){
-//         mem.windowSize = (float)mem.hits/ (float)mem.miss;
-//      } else {
-//         mem.windowSize = -1.0;
-//      }
-//      memVector.push_back(mem);
-//      memVectorEx.push_back(memEx);
-//   }
-//   for( std::vector<Mem>::iterator dit=memVector.begin() ; dit!=memVector.end() ; dit++){
-//      MIAMI::MemoryDataPerLevel md = MemoryDataPerLevel((*dit).level, (*dit).hits, (*dit).miss, (*dit).windowSize);
-//      mdplList->push_back(md);
-//      std::cout<<"computeMemory->OZGUR  mem data at lvl: "<<std::dec<< (*dit).level<<" inclusive hits: "<<(*dit).hits<<" miss: "<<(*dit).miss<<" windowSize: "<<(*dit).windowSize<< std::endl;
-//   }
-//   for( std::vector<Mem>::iterator dit=memVectorEx.begin() ; dit!=memVectorEx.end() ; dit++){
-//      std::cout<<"computeMemory->OZGUR  mem data at lvl: "<<std::dec<< (*dit).level<<" exclusive hits: "<<(*dit).hits<< std::endl;
-//   }
+
 
 //}
 //creating my minschedulinglengthduetodependencies function
@@ -11607,26 +11417,11 @@ SchedDG::myMinSchedulingLengthDueToDependencies(float &memLatency, float &cpuLat
    OutgoingEdgesIterator teit(cfg_top);
    unsigned int mm = new_marker();
    unsigned int maxPathToLeaf = 0;
-   MIAMI::MemDataPerLvlList * mdplList = new vector<MemoryDataPerLevel>;
    MIAMI::MemListPerInst * memData = new vector<MIAMI::InstlvlMap *>;
    while ((bool)teit)
    {
       retValues ret = 
             teit->sink()->myComputePathToLeaf(mm, manyBarriers, ds, memLatency, cpuLatency, memData);
-//ozgurS test
-//      std::cout<<"PATH ID IS :"<<pathId<<std::endl;
-//      computeMemory(memData , mdplList);
-//      for (std::vector<MIAMI::InstlvlMap *>::iterator it=memData->begin() ; it!=memData->end() ; it++){
-//         for(int i=0 ; i<7 ; i++){
-//            if ((*it)->find(i)->second.hitCount){
-//               std::cout<<"MemHit lvl :"<<i<<" Hit: "<<(*it)->find(i)->second.hitCount<<std::endl;
-//            }
-//         }
-//      }
-//      if (teit->sink()->is_load_instruction()){
-//         std::cout<<"HOTPATH OZGUR TEST: "<<teit->sink()->getLvlMap()->find(0)->second.hitCount<<std::endl;
-//      }
-//ozgurE
       unsigned int pathLen = ret.ret;
       int memLatencyTemp = ret.memret;
       int cpuLatencyTemp = ret.cpuret;
@@ -12604,13 +12399,8 @@ SchedDG::Node::is_strided_reference()
 }
 
 bool SchedDG::Node::is_registers_set_in_level(sliceVal in_val, Node* nn ,Node* firstNode ,int level){ 
-   std::cout<<__func__<<std::endl;
-//   if(nn->getLoopIndex() != index)
-//      return false;
-   std::cout<<std::hex<<"nn:"<<nn->getAddress()<<std::dec<<std::endl;
    bool ret = false;
    if(firstNode != NULL){
-   std::cout<<std::hex<<"nn:"<<nn->getAddress()<< " firstNode"<<firstNode->getAddress()<<std::dec<<std::endl;
       if(nn->getLevel() > level)
          return false;
       if(nn->getAddress()!=firstNode->getAddress())
@@ -12621,12 +12411,10 @@ bool SchedDG::Node::is_registers_set_in_level(sliceVal in_val, Node* nn ,Node* f
    while(ieit){
       Node * nextNode = ieit->sink();
       ++ieit;
-   std::cout<<"nextNode:"<<nextNode->getId()<<" Address:"<<std::hex<<nextNode->getAddress()<<std::dec<<std::endl;
       if (nextNode->getLevel() > level ){
          continue;
       }
       if (nextNode->getLevel() < level ){
- //        nextNode->is_registers_set_in_loop(in_val, nextNode ,firstNode ,level, index);
          continue; 
       }
       if(firstNode == NULL){
@@ -12645,11 +12433,8 @@ bool SchedDG::Node::is_registers_set_in_level(sliceVal in_val, Node* nn ,Node* f
                      val =*slit;
                   }
                   if( val.ValueNum() == in_val.ValueNum()){
-                     std::cout<<"AM I returning here ??\n";
                      return true;
-                  } /*else {
-                     nextNode->is_registers_set_in_loop(in_val, nextNode ,firstNode ,level, index);
-                  }*/
+                  } 
                }
             }
          } else {
@@ -12660,47 +12445,14 @@ bool SchedDG::Node::is_registers_set_in_level(sliceVal in_val, Node* nn ,Node* f
       }
       firstNode = NULL;
    }
-   std::cout<<__func__<<" Iam done"<<std::endl;
 
-//   SchedDG* this_cfg = this->in_cfg();
-//   NodesIterator nit(*this_cfg);
-//   while ((bool)nit) {
-//      Node *nn = nit;
-//      if (nn->isInstructionNode()){
-//         if (nn->is_store_instruction()){
-//            int opidx = nn->memoryOpIndex();
-//            if (opidx >=0){
-//               RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
-//               if(refF != NULL){
-//                  GFSliceVal oform = refF->base;
-//                  GFSliceVal::iterator slit = oform.begin(); 
-//                  sliceVal val = *slit;
-//                  for (; slit !=oform.end();slit++){
-//                     val =*slit;
-//                  }
-//                  std::cout<<"Node: "<<nn->getId()<<" sliceVal="<<val<<"checing sliceVal="<<in_val<<std::endl;
-//                  if( val.ValueNum() == in_val.ValueNum()){
-//                     std::cout<<"YEAAAAAAYYYY I found it\n";
-//                     return true;
-//                  }
-//               }
-//            }  
-//         }
-//      }
-//      ++nit;
-//   }
    return ret;
 }
    
 
 bool SchedDG::Node::is_registers_set_in_loop(sliceVal in_val, Node* nn ,Node* firstNode ,int level, int index){ 
-   std::cout<<__func__<<std::endl;
-//   if(nn->getLoopIndex() != index)
-//      return false;
-   std::cout<<std::hex<<"nn:"<<nn->getAddress()<<std::dec<<std::endl;
    bool ret = false;
    if(firstNode != NULL){
-   std::cout<<std::hex<<"nn:"<<nn->getAddress()<< " firstNode"<<firstNode->getAddress()<<std::dec<<std::endl;
       if(nn->getLevel() == level && nn->getLoopIndex() != index)
          return false;
       if(nn->getLevel() > level)
@@ -12713,7 +12465,6 @@ bool SchedDG::Node::is_registers_set_in_loop(sliceVal in_val, Node* nn ,Node* fi
    while(ieit){
       Node * nextNode = ieit->sink();
       ++ieit;
-   std::cout<<"nextNode:"<<nextNode->getId()<<" Address:"<<std::hex<<nextNode->getAddress()<<std::dec<<std::endl;
       if (nextNode->getLevel() == level && nextNode->getLoopIndex() != index){
          continue;
       }
@@ -12721,7 +12472,6 @@ bool SchedDG::Node::is_registers_set_in_loop(sliceVal in_val, Node* nn ,Node* fi
          continue;
       }
       if (nextNode->getLevel() < level ){
- //        nextNode->is_registers_set_in_loop(in_val, nextNode ,firstNode ,level, index);
          continue; 
       }
       if(firstNode == NULL){
@@ -12740,11 +12490,8 @@ bool SchedDG::Node::is_registers_set_in_loop(sliceVal in_val, Node* nn ,Node* fi
                      val =*slit;
                   }
                   if( val.ValueNum() == in_val.ValueNum()){
-                     std::cout<<"AM I returning here ??\n";
                      return true;
-                  } /*else {
-                     nextNode->is_registers_set_in_loop(in_val, nextNode ,firstNode ,level, index);
-                  }*/
+                  } 
                }
             }
          } else {
@@ -12755,35 +12502,6 @@ bool SchedDG::Node::is_registers_set_in_loop(sliceVal in_val, Node* nn ,Node* fi
       }
       firstNode = NULL;
    }
-   std::cout<<__func__<<" Iam done"<<std::endl;
-
-//   SchedDG* this_cfg = this->in_cfg();
-//   NodesIterator nit(*this_cfg);
-//   while ((bool)nit) {
-//      Node *nn = nit;
-//      if (nn->isInstructionNode()){
-//         if (nn->is_store_instruction()){
-//            int opidx = nn->memoryOpIndex();
-//            if (opidx >=0){
-//               RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
-//               if(refF != NULL){
-//                  GFSliceVal oform = refF->base;
-//                  GFSliceVal::iterator slit = oform.begin(); 
-//                  sliceVal val = *slit;
-//                  for (; slit !=oform.end();slit++){
-//                     val =*slit;
-//                  }
-//                  std::cout<<"Node: "<<nn->getId()<<" sliceVal="<<val<<"checing sliceVal="<<in_val<<std::endl;
-//                  if( val.ValueNum() == in_val.ValueNum()){
-//                     std::cout<<"YEAAAAAAYYYY I found it\n";
-//                     return true;
-//                  }
-//               }
-//            }  
-//         }
-//      }
-//      ++nit;
-//   }
    return ret;
 }
 
@@ -12791,11 +12509,8 @@ bool SchedDG::Node::is_registers_set_in_loop(sliceVal in_val, Node* nn ,Node* fi
 
 bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Node *nn, int level,
                      int index , std::list<depOffset> *depLevels){
-   std::cout<<__func__<<std::endl;
    RInfoList nnSrcRegs = nn->srcRegs;
-//   RInfoList::iterator it = nnSrcRegs.begin();
    int opidx = nn->memoryOpIndex();
-   std::cout<<"Node:"<<nn->getId()<<" Address:"<<std::hex<<nn->getAddress()<<std::dec<<" Level:"<<nn->getLevel()<<std::endl;   
  
    if (nn->is_store_instruction()){
       if (level==nn->getLevel()){
@@ -12811,12 +12526,8 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
                }
                depOffset newDep;
                newDep.level = level;
-               //newDep.offset = val;
                newDep.offset = offset;
-               std::cout<<"offset "<<offset<<" val:"<<val<<std::endl;
-               //depLevels->push_back(level);
                depLevels->push_back(newDep);
-               std::cout<<__func__<<"Store is in my level"<<std::endl;
                return true;
             }
          }
@@ -12833,39 +12544,26 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
                      val = *slit;
                   }
                   if (nn->is_registers_set_in_loop(val, nn, NULL, level, index)){
-                     std::cout<<"Level is "<<level<<" index is "<<index<<std::endl;
                      depOffset newDep;
                      newDep.level = level;
-                     //newDep.offset = val;
                      newDep.offset = offset;
                      depLevels->push_back(newDep);
-               std::cout<<"offset "<<offset<<" val:"<<val<<std::endl;
-                     //depLevels->push_back(level);
                      return true;
                   } else {
                      for (int i  = level-1 ; i>0 ; i--){
                         if (nn->is_registers_set_in_level(val, nn, NULL, i)){
-                           std::cout<<"Level is "<<i<<" index is "<<index<<std::endl;
                            depOffset newDep;
                            newDep.level = i;
-                           //newDep.offset = val;
                            newDep.offset = offset;
-               std::cout<<"offset "<<offset<<" val:"<<val<<std::endl;
                            depLevels->push_back(newDep);
-
-                          // depLevels->push_back(i);
                            return false;
                         }
                      }   
                      depOffset newDep;
                      newDep.level = nn->getLevel();
-                     //newDep.offset = val;
                      newDep.offset = offset;
                      depLevels->push_back(newDep);
-               std::cout<<"offset "<<offset<<" val:"<<val<<std::endl;
 
-                     //depLevels->push_back(nn->getLevel());
-                     std::cout<<"Level is "<<nn->getLevel()<<" index is "<<nn->getLoopIndex()<<std::endl;
                      return false;
                   }
                }
@@ -12875,24 +12573,20 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
    }
 
   
-   std::cout<<__func__<<" calling next node"<<std::endl;
    bool ret = false;
    RInfoList nnDestRegs = nn->destRegs;
    RInfoList::iterator irit = nnDestRegs.begin();
    for( ; irit!=nnDestRegs.end() ; ++irit ) {
       if (inSrcReg.name == irit->name){//TODO if no match still go back on dependencieis
                                        //FIXME is it possible to not have a match ??
-         std::cout<<"reg names are matching\n";
          RInfoList::iterator nnrit = nnSrcRegs.begin();
          for( ; nnrit!=nnSrcRegs.end() ; ++nnrit ) {
-            std::cout<<"Node: "<<nn->getId()<<" register"<<*nnrit<<std::endl;
             IncomingEdgesIterator ieit(nn);
             while ((bool)ieit){
                Node *inn = ieit->source();
                if(inn->getType() == IB_ret)
                   return false;
                ++ieit;
-               std::cout<<"srcNode: "<<inn->getId()<<" register"<<*nnrit<<std::endl;
                if(recursive_check_dep_to_this_loop(*nnrit ,inn, level, index , depLevels)){
                   return (true);
                }
@@ -12901,7 +12595,6 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
          }
       }
    }   
-   std::cout<<__func__<<" Iam done"<<std::endl;
    return (ret);
 }
 
@@ -12911,7 +12604,6 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
  */
 int
 SchedDG::Node::checkDependencies(std::map<Node* ,std::list<depOffset>> *depMap ,int level, int index){
-   std::cout<<__func__<<std::endl;
    RInfoList _srcRegs = srcRegs;
    RInfoList::iterator rit = _srcRegs.begin();
    //std::list<int> depLevels;
@@ -12926,7 +12618,6 @@ SchedDG::Node::checkDependencies(std::map<Node* ,std::list<depOffset>> *depMap ,
    }
    
    depMap->insert(std::map<Node* ,std::list<depOffset>>::value_type(this, depLevels));
-   std::cout<<__func__<<" I am done"<<std::endl;
    
    return (1);
 }
