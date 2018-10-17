@@ -1,6 +1,11 @@
 -*-Mode: markdown;-*- [outline]
 =============================================================================
 
+http://www.agner.org/optimize/
+http://www.agner.org/optimize/microarchitecture.pdf
+
+https://www.7-cpu.com/
+
 =============================================================================
 Intel Xeon Phi
 =============================================================================
@@ -28,9 +33,16 @@ SkyLake Server:
   - Process: 14 nm
   - AVX-512
   - 6 channels DDR4
-  - Non-inclusive L3
+  - Cache structure
+	- Change ratio of L2 and L3:
+	  - more high-speed private cache; less slow shared/contended cache
+      - 4x increase size for L2, double L2 bandwidth
+	  - reduce size of L3
+    - L2 remains non-inclusive (e.g., prefetch data into L1 that is not in L2)
+    - L3 is non-inclusive (which is distinct from strict exclusive)
+	  Something in L1 or L2 may/may not be in L3
   - Sub-NUMA clustering
-  - UPI
+  - UPI (mesh interconnect vs. prior ring interconnect)
   - Optane, Omni-Path
   
   32 cores/64 threads
@@ -43,7 +55,6 @@ Broadwell EP ()
   - Process: 14 nm
   - AVX (256)
   - 4 channels DDR4
-
 - https://en.wikipedia.org/wiki/Broadwell_(microarchitecture)
 - http://www.tomshardware.com/reviews/intel-xeon-e5-2600-v4-broadwell-ep,4514.html
 
@@ -72,6 +83,12 @@ SandyBridge (arch): Intel x86-64 Core Gen2
 - http://www.tomshardware.com/reviews/xeon-e5-2687w-benchmark-review,3149.html
 
 - AVX (128 bits)
+
+- Cache: (Intel manual 2.4.5)
+    L2 is *non*-inclusive
+	L3 is inclusive (contains all data in L1 and L2)
+
+
 
 
 Nehalem (arch) / Westmere (shrink): Intel x86-64 Core Gen1
