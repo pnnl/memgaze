@@ -12399,8 +12399,10 @@ SchedDG::Node::is_strided_reference()
 }
 
 bool SchedDG::Node::is_registers_set_in_level(sliceVal in_val, Node* nn ,Node* firstNode ,int level){ 
+   std::cout<<__func__<<" Line"<<__LINE__<<" nNode id:"<<nn->getId()<<" nNode Lvl:"<<nn->getLevel()<<" INLVL:"<<level<<std::endl;
    bool ret = false;
    if(firstNode != NULL){
+   std::cout<<__func__<<" Line"<<__LINE__<<" nNode id:"<<nn->getId()<<" nNode Lvl:"<<nn->getLevel()<<" INLVL:"<<level<<" fNode:"<<firstNode->getId()<<" fLVL:"<<firstNode->getLevel()<<std::endl;
       if(nn->getLevel() > level)
          return false;
       if(nn->getAddress()!=firstNode->getAddress())
@@ -12420,8 +12422,11 @@ bool SchedDG::Node::is_registers_set_in_level(sliceVal in_val, Node* nn ,Node* f
       if(firstNode == NULL){
          firstNode = nextNode;
       }
+   std::cout<<__func__<<" Line"<<__LINE__<<" nNode id:"<<nn->getId()<<" nNode Lvl:"<<nn->getLevel()<<" fNode:"<<firstNode->getId()<<" fLVL:"<<firstNode->getLevel()<<" NextNode:"<<nextNode->getId()<<" NextLVL"<<nextNode->getLevel()<<std::endl;
       if (nextNode->isInstructionNode()){
+   std::cout<<__func__<<" Line"<<__LINE__<<" 1 nNode id:"<<nn->getId()<<" nNode Lvl:"<<nn->getLevel()<<" fNode:"<<firstNode->getId()<<" fLVL:"<<firstNode->getLevel()<<" NextNode:"<<nextNode->getId()<<" NextLVL"<<nextNode->getLevel()<<std::endl;
          if (nextNode->is_store_instruction()){
+   std::cout<<__func__<<" Line"<<__LINE__<<" 2 nNode id:"<<nn->getId()<<" nNode Lvl:"<<nn->getLevel()<<" fNode:"<<firstNode->getId()<<" fLVL:"<<firstNode->getLevel()<<" NextNode:"<<nextNode->getId()<<" NextLVL"<<nextNode->getLevel()<<std::endl;
             int opidx = nextNode->memoryOpIndex();
             if (opidx >=0){
                RefFormulas *refF = nextNode->in_cfg()->refFormulas.hasFormulasFor(nextNode->getAddress(), opidx);
@@ -12433,12 +12438,15 @@ bool SchedDG::Node::is_registers_set_in_level(sliceVal in_val, Node* nn ,Node* f
                      val =*slit;
                   }
                   if( val.ValueNum() == in_val.ValueNum()){
+      std::cout<<"Ret true 1 Node ID: "<<nextNode->getId()<<std::endl;
                      return true;
                   } 
                }
             }
          } else {
+      std::cout<<"call again irsilvl Node ID: "<<nextNode->getId()<<std::endl;
             if(nextNode->is_registers_set_in_level(in_val, nextNode ,firstNode ,level)){
+      std::cout<<"Ret true 2 Node ID: "<<nextNode->getId()<<std::endl;
                ret = true;
             }
          }
@@ -12446,19 +12454,25 @@ bool SchedDG::Node::is_registers_set_in_level(sliceVal in_val, Node* nn ,Node* f
       firstNode = NULL;
    }
 
+   std::cout<<"End I am returning : "<<ret<<std::endl;
    return ret;
 }
    
 
 bool SchedDG::Node::is_registers_set_in_loop(sliceVal in_val, Node* nn ,Node* firstNode ,int level, int index){ 
+   std::cout<<__func__<<" Line"<<__LINE__<<" nNode id:"<<nn->getId()<<" nNode Lvl:"<<nn->getLevel()<<" INLVL:"<<level<<std::endl;
    bool ret = false;
    if(firstNode != NULL){
-      if(nn->getLevel() == level && nn->getLoopIndex() != index)
+   std::cout<<__func__<<" Line"<<__LINE__<<" nNode id:"<<nn->getId()<<" nNode Lvl:"<<nn->getLevel()<<" INLVL:"<<level<<" fNode:"<<firstNode->getId()<<" fLVL:"<<firstNode->getLevel()<<std::endl;
+      if(nn->getLevel() == level && nn->getLoopIndex() != index){
          return false;
-      if(nn->getLevel() > level)
+      }
+      if(nn->getLevel() > level){
          return false;
-      if(nn->getAddress()!=firstNode->getAddress())
+      }
+      if(nn->getAddress()!=firstNode->getAddress()){
          return false;
+      }
    }
 
    OutgoingEdgesIterator ieit(nn);
@@ -12477,8 +12491,11 @@ bool SchedDG::Node::is_registers_set_in_loop(sliceVal in_val, Node* nn ,Node* fi
       if(firstNode == NULL){
          firstNode = nextNode;
       }
+   std::cout<<__func__<<" Line"<<__LINE__<<" nNode id:"<<nn->getId()<<" nNode Lvl:"<<nn->getLevel()<<" fNode:"<<firstNode->getId()<<" fLVL:"<<firstNode->getLevel()<<" NextNode:"<<nextNode->getId()<<" NextLVL"<<nextNode->getLevel()<<std::endl;
       if (nextNode->isInstructionNode()){
+   std::cout<<__func__<<" Line"<<__LINE__<<" 1 nNode id:"<<nn->getId()<<" nNode Lvl:"<<nn->getLevel()<<" fNode:"<<firstNode->getId()<<" fLVL:"<<firstNode->getLevel()<<" NextNode:"<<nextNode->getId()<<" NextLVL"<<nextNode->getLevel()<<std::endl;
          if (nextNode->is_store_instruction()){
+   std::cout<<__func__<<" Line"<<__LINE__<<" 2 nNode id:"<<nn->getId()<<" nNode Lvl:"<<nn->getLevel()<<" fNode:"<<firstNode->getId()<<" fLVL:"<<firstNode->getLevel()<<" NextNode:"<<nextNode->getId()<<" NextLVL"<<nextNode->getLevel()<<std::endl;
             int opidx = nextNode->memoryOpIndex();
             if (opidx >=0){
                RefFormulas *refF = nextNode->in_cfg()->refFormulas.hasFormulasFor(nextNode->getAddress(), opidx);
@@ -12490,29 +12507,38 @@ bool SchedDG::Node::is_registers_set_in_loop(sliceVal in_val, Node* nn ,Node* fi
                      val =*slit;
                   }
                   if( val.ValueNum() == in_val.ValueNum()){
+                     ret =true;
+      std::cout<<"Ret true 1 Node ID: "<<nextNode->getId()<<std::endl;
                      return true;
                   } 
                }
             }
          } else {
+      std::cout<<"call again irsiloop Node ID: "<<nextNode->getId()<<std::endl;
             if(nextNode->is_registers_set_in_loop(in_val, nextNode ,firstNode ,level, index)){
+      std::cout<<"Ret true 2 Node ID: "<<nextNode->getId()<<std::endl;
                ret = true;
             }
          }
       }
       firstNode = NULL;
    }
+   std::cout<<"End I am returning : "<<ret<<std::endl;
    return ret;
 }
 
+/*
+ *This function is recuresively checks the of the node nn is dependent to level of loop
+ *
+ */
 
-
-bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Node *nn, int level,
-                     int index , std::list<depOffset> *depLevels){
+bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Node *nn, int level, int index , std::list<depOffset> *depLevels){
    RInfoList nnSrcRegs = nn->srcRegs;
    int opidx = nn->memoryOpIndex();
  
+   std::cout<<__func__<<" Line"<<__LINE__<<" Node id:"<<nn->getId()<<" Node Lvl:"<<nn->getLevel()<<std::endl;
    if (nn->is_store_instruction()){
+      // If it is dependent current level
       if (level==nn->getLevel()){
          RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
          if(refF != NULL){
@@ -12528,10 +12554,31 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
                newDep.level = level;
                newDep.offset = offset;
                depLevels->push_back(newDep);
+               std::cout<<__func__<<" Line"<<__LINE__<<" 1 Node id:"<<nn->getId()<<" Node Lvl:"<<nn->getLevel()<<" ADDED lvl"<<newDep.level<<" Offset:"<<newDep.offset<<std::endl;
+               //TEST
+               coeff_t testOffset = offset;
+               ucoeff_t valueDen;
+               if(nnSrcRegs.size()>1 && nn->getLevel() !=0){
+                  std::cout<<"Go Again!! Node: "<<nn->getId()<<" has more then 1 src registers and has dep to offset: "<<offset<<" and level: "<<level<<std::endl;
+                  goto AGAIN;
+                  //TODO check previous level for the same offset some how
+                  //do the for loop from previous level or call previous level function.
+                  IncomingEdgesIterator ieit(nn);
+                  while ((bool)ieit){
+                     Node *inn = ieit->source();
+                    // recursive_check_dep_to_this_loop(*nnrit ,inn, level, index , depLevels)
+                    // recursive_check_dep_to_this_loop(nnSrcRegs , inn, inn->getLevel(), inn->getLoopIndex() , depLevels);
+                     ++ieit;
+                  }
+
+               } else {
+                  return true;
+               }
+               //END
                return true;
             }
          }
-      } else {
+      } else { // if it is not dependent current level
          if (opidx >=0){
             RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
             if(refF != NULL){
@@ -12543,12 +12590,34 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
                   for (; slit !=oform.end();slit++){
                      val = *slit;
                   }
+                  //Here I am checking if  there is any store in current level for this registers. 
                   if (nn->is_registers_set_in_loop(val, nn, NULL, level, index)){
                      depOffset newDep;
                      newDep.level = level;
                      newDep.offset = offset;
                      depLevels->push_back(newDep);
-                     return true;
+                     std::cout<<__func__<<" Line"<<__LINE__<<" 2 Node id:"<<nn->getId()<<" Node Lvl:"<<nn->getLevel()<<" ADDED lvl"<<newDep.level<<" Offset:"<<newDep.offset<<std::endl;
+                     
+                     //TEST
+                     coeff_t testOffset = offset;
+                     ucoeff_t valueDen;
+                     if(nnSrcRegs.size()>1 && nn->getLevel() !=0){
+                        std::cout<<"GO AGAIN! 2 Node: "<<nn->getId()<<" has more then 1 src registers and has dep to offset: "<<offset<<" and level: "<<level<<std::endl;
+                        goto AGAIN;
+                        //TODO check previous level for the same offset some how
+                        //do the for loop from previous level or call previous level function.
+                        IncomingEdgesIterator ieit(nn);
+                        while ((bool)ieit){
+                           Node *inn = ieit->source();
+                           //recursive_check_dep_to_this_loop(nnSrcRegs , inn, inn->getLevel(), inn->getLoopIndex() , depLevels);
+                           ++ieit;
+                        }
+
+                     } else {
+                        return true;
+                     }
+                     //END
+                     return false;
                   } else {
                      for (int i  = level-1 ; i>0 ; i--){
                         if (nn->is_registers_set_in_level(val, nn, NULL, i)){
@@ -12556,6 +12625,27 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
                            newDep.level = i;
                            newDep.offset = offset;
                            depLevels->push_back(newDep);
+                           std::cout<<__func__<<" Line"<<__LINE__<<" 3 Node id:"<<nn->getId()<<" Node Lvl:"<<nn->getLevel()<<" ADDED lvl"<<newDep.level<<" Offset:"<<newDep.offset<<std::endl;
+              
+                           //TEST
+                           coeff_t testOffset = offset;
+                           ucoeff_t valueDen;
+                           if(nnSrcRegs.size()>1 && nn->getLevel() !=0){
+                              std::cout<<"GO AGIAN! 3 Node: "<<nn->getId()<<" has more then 1 src registers and has dep to offset: "<<offset<<" and level: "<<i<<std::endl;
+                              goto AGAIN;
+                              //TODO check previous level for the same offset some how
+                              //do the for loop from previous level or call previous level function.
+                              IncomingEdgesIterator ieit(nn);
+                              while ((bool)ieit){
+                                 Node *inn = ieit->source();
+                                // recursive_check_dep_to_this_loop(nnSrcRegs , inn, inn->getLevel(), inn->getLoopIndex() , depLevels);
+                                 ++ieit;
+                              }
+
+                           } else {
+                              return true;
+                           }
+                           //END
                            return false;
                         }
                      }   
@@ -12563,7 +12653,27 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
                      newDep.level = nn->getLevel();
                      newDep.offset = offset;
                      depLevels->push_back(newDep);
+                     std::cout<<__func__<<" Line"<<__LINE__<<" 4 Node id:"<<nn->getId()<<" Node Lvl:"<<nn->getLevel()<<" ADDED lvl"<<newDep.level<<" Offset:"<<newDep.offset<<std::endl;
+                     
+                     //TEST
+                     coeff_t testOffset = offset;
+                     ucoeff_t valueDen;
+                     if(nnSrcRegs.size()>1 && nn->getLevel() !=0){
+                        std::cout<<"GO AGAIN! 4 Node: "<<nn->getId()<<" has more then 1 src registers and has dep to offset: "<<offset<<" and level: "<<nn->getLevel()<<std::endl;
+                        goto AGAIN;
+                        //TODO check previous level for the same offset some how
+                        //do the for loop from previous level or call previous level function.
+                        IncomingEdgesIterator ieit(nn);
+                        while ((bool)ieit){
+                           Node *inn = ieit->source();
+                        //   recursive_check_dep_to_this_loop(nnSrcRegs , inn, inn->getLevel(), inn->getLoopIndex() , depLevels);
+                           ++ieit;
+                        }
 
+                     } else {
+                        return true;
+                     }
+                     //END
                      return false;
                   }
                }
@@ -12571,8 +12681,7 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
          }
       }
    }
-
-  
+   {
    bool ret = false;
    RInfoList nnDestRegs = nn->destRegs;
    RInfoList::iterator irit = nnDestRegs.begin();
@@ -12584,18 +12693,60 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
             IncomingEdgesIterator ieit(nn);
             while ((bool)ieit){
                Node *inn = ieit->source();
+               std::cout<<__func__<<" Line"<<__LINE__<<" in while Node id:"<<inn->getId()<<" Node Lvl:"<<inn->getLevel()<<std::endl;
                if(inn->getType() == IB_ret)
                   return false;
                ++ieit;
+               std::cout<<__func__<<" Line"<<__LINE__<<" Call back rcdttl Node id:"<<inn->getId()<<" Node Lvl:"<<inn->getLevel()<<std::endl;
                if(recursive_check_dep_to_this_loop(*nnrit ,inn, level, index , depLevels)){
-                  return (true);
+                  //return (true);
+                  ret = true;
                }
-               //++ieit;
             }
          }
       }
    }   
    return (ret);
+   }
+
+AGAIN:
+   std::cout<<"Am I trying again at all??\n";
+   std::cout<<__func__<<" Line"<<__LINE__<<" Going Again Node id:"<<nn->getId()<<" Node Lvl:"<<nn->getLevel()<<std::endl;
+   bool ret = false;
+   RInfoList nnDestRegs = nn->destRegs;
+   RInfoList::iterator irit = nnDestRegs.begin();
+//   for( ; irit!=nnDestRegs.end() ; ++irit ) {
+   std::cout<<"_____1_____\n";
+//      if (inSrcReg.name == irit->name){//TODO if no match still go back on dependencieis
+   std::cout<<"_____2_____\n";
+                                       //FIXME is it possible to not have a match ??
+         RInfoList::iterator nnrit = nnSrcRegs.begin();
+         for( ; nnrit!=nnSrcRegs.end() ; ++nnrit ) {
+   std::cout<<"_____3_____\n";
+   std::cout<<"Printing Reg info: "<<nnrit->ToString()<<std::endl;
+            IncomingEdgesIterator ieit(nn);
+            while ((bool)ieit){
+   std::cout<<"_____4_____\n";
+               Node *inn = ieit->source();
+               if(inn->getType() == IB_ret)
+                  return false;
+   std::cout<<"_____5_____\n";
+               ++ieit;
+               if(level-1>0){
+                  std::cout<<__func__<<" Line"<<__LINE__<<" Going Again Node id:"<<nn->getId()<<" Node Lvl:"<<nn->getLevel()<<std::endl;
+                  if(recursive_check_dep_to_this_loop(*nnrit ,inn, level, index , depLevels)){
+   std::cout<<"_____6_____\n";
+                     ret = true;
+                     //return (true);
+                  }
+               }
+            }
+         }
+      //}
+   //}   
+   return (ret);
+
+
 }
 
 /*
@@ -12604,14 +12755,17 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
  */
 int
 SchedDG::Node::checkDependencies(std::map<Node* ,std::list<depOffset>> *depMap ,int level, int index){
+   std::cout<<__func__<<" Line"<<__LINE__<<" ThisNode id:"<<this->getId()<<" Lvl:"<<level<<std::endl;
    RInfoList _srcRegs = srcRegs;
    RInfoList::iterator rit = _srcRegs.begin();
-   //std::list<int> depLevels;
    std::list<depOffset> depLevels;
+   // Here we itarate over incoming edges to check each source nodes dependencies.
    for( ; rit!=_srcRegs.end() ; ++rit ) {
       IncomingEdgesIterator ieit(this);
       while ((bool)ieit){
          Node *inn = ieit->source();
+   std::cout<<__func__<<" Line"<<__LINE__<<" calling rcdttl with Node id:"<<inn->getId()<<" Lvl:"<<inn->getLevel()<<std::endl;
+//std::cout<<"ZGRDBG Checking Dependency for Node: "<<inn->getId()<<" Reg:"<<rit->RegNameToString()<<" Reg info:"<<rit->ToString()<<std::endl;
          inn->recursive_check_dep_to_this_loop(*rit, inn , level , index, &depLevels);
          ++ieit;
       }

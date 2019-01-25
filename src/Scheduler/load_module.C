@@ -1042,17 +1042,19 @@ int LoadModule::loadFPfile(string routName, ProgScope *prog, const MiamiOptions 
       bool inFunction =false;
       memStruct emptyMemStruct;
       emptyMemStruct.level = 0;
-      emptyMemStruct.hitCount = 0;
-      emptyMemStruct.latency = 0;
+      emptyMemStruct.hitCount = 0.0;
+      emptyMemStruct.latency = 0.0;
       std::getline(fpFile , line);
       std::istringstream in(line);
       int totalLVLs = 0;
       in >> std::dec >> totalLVLs ;
       std::cout<<"OZGUR XTRW totallvl "<<totalLVLs<<std::endl;
+      std::cout<<"LINE: "<<line<<std::endl;
       for(int i= 0; i<totalLVLs; i++){
          emptyLevelMap[i]=emptyMemStruct;
       }
       while (std::getline(fpFile , line)) {
+      std::cout<<"LINE: "<<line<<std::endl;
             if (line == funcName){
                inFunction = true;
                continue;

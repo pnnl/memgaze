@@ -494,6 +494,8 @@ public:
     
     bool is_scalar_stack_reference();
 //OZGURS
+    RInfoList getSrcReg(){return srcRegs;}
+    RInfoList getDestReg(){return destRegs;}
     bool is_strided_reference();
     int checkDependencies(std::map<Node* ,std::list<depOffset>> *depMap ,int level, int index);
     bool recursive_check_dep_to_this_loop(register_info inSrcReg ,Node *nn, int level, 
