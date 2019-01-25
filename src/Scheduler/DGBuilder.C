@@ -248,11 +248,11 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
    std::map<unsigned long ,  int> seen;
    std::list<coeff_t> stackOffsetsOffLoops;
    std::list<int> dependOnList;
-   float total_lds = 0;
-   float frame_lds = 0;
-   float strided_lds = 0;
-   float indirect_lds = 0;
-   float execRatio= 0.0;
+   double total_lds = 0;
+   double frame_lds = 0;
+   double strided_lds = 0;
+   double indirect_lds = 0;
+   double execRatio= 0.0;
    std::map<Node* ,std::list<depOffset>> dependencyMap;
 
    while ((bool)fnit) {
@@ -260,23 +260,23 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
       if(fnn->getLevel()==level && fnn->getLoopIndex()==index){
          if (fnn->isInstructionNode()){
             seen[(unsigned long)fnn->getAddress()] = 5;
-//            std::cout<<std::endl<<std::endl; 
-//            std::cout<<"inst address:"<<std::hex<<fnn->getAddress()<<std::dec<<std::endl;
-//            std::cout<<"lvl is:"<<fnn->getLevel()<<std::endl;
-//            std::cout<<"is_scalar_stack_reference :"<<fnn->is_scalar_stack_reference()<<std::endl;
-//            std::cout<<"is_strided_reference :"<<fnn->is_strided_reference()<<std::endl;
-//            std::cout<<"type:"<<fnn->getType()<<" IB_inner_loop :"<<IB_inner_loop <<std::endl;
-//            std::cout<<std::endl;
-//            std::cout<<"Node Dump :\n";
-//            fnn->longdump(this,std::cout);  
-//            int opidx = fnn->memoryOpIndex();
-//            if (opidx >=0){
-//               RefFormulas *refF = fnn->in_cfg()->refFormulas.hasFormulasFor(fnn->getAddress(), opidx);
-//               if(refF != NULL){
-//                  GFSliceVal oform = refF->base;
-//                  std::cout<<"oform is: "<<oform<<std::endl;
-//               }
-//            }
+            std::cout<<std::endl<<std::endl; 
+            std::cout<<"inst address:"<<std::hex<<fnn->getAddress()<<std::dec<<std::endl;
+            std::cout<<"lvl is:"<<fnn->getLevel()<<std::endl;
+            std::cout<<"is_scalar_stack_reference :"<<fnn->is_scalar_stack_reference()<<std::endl;
+            std::cout<<"is_strided_reference :"<<fnn->is_strided_reference()<<std::endl;
+            std::cout<<"type:"<<fnn->getType()<<" IB_inner_loop :"<<IB_inner_loop <<std::endl;
+            std::cout<<std::endl;
+            std::cout<<"Node Dump :\n";
+            fnn->longdump(this,std::cout);  
+            int opidx = fnn->memoryOpIndex();
+            if (opidx >=0){
+               RefFormulas *refF = fnn->in_cfg()->refFormulas.hasFormulasFor(fnn->getAddress(), opidx);
+               if(refF != NULL){
+                  GFSliceVal oform = refF->base;
+                  std::cout<<"oform is: "<<oform<<std::endl;
+               }
+            }
 
             if(fnn->is_load_instruction()){
                execRatio = (double)fnn->getExecCount() / (double)loopsExecs.find(fnn->getLevel())->second;
@@ -309,12 +309,67 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
       ++fnit;
    }
 
-//   std::cout<<std::endl; 
-//   std::cout<<"Testing mem Instructions Final:\nTotal loads:"<<total_lds<<"\tframe:"<<frame_lds<<"\tstrided:"<<strided_lds<<"\tindirect:"<<indirect_lds<<std::endl;
-//   std::cout<<std::endl<<std::endl; 
+   std::cout<<std::endl; 
+   std::cout<<"Testing mem Instructions Final:\nTotal loads:"<<total_lds<<"\tframe:"<<frame_lds<<"\tstrided:"<<strided_lds<<"\tindirect:"<<indirect_lds<<std::endl;
+   std::cout<<std::endl<<std::endl; 
+
+   std::cout<<"\t\t___XXXXXSTART HEREXXXXX___\n\n";
 
    while ((bool)nit) {
       Node *nn = nit;
+   //Start debug
+//   RInfoList _srcRegs = nn->srcRegs;
+//   RInfoList::iterator rit = _srcRegs.begin();
+//      std::cout<<"Print registers of node: "<<nn->getId()<<std::endl;
+//   for( ; rit!=_srcRegs.end() ; ++rit ) {
+//      std::cout<<rit->ToString()<<std::endl;
+//   }
+            nn->longdump(this,std::cout);  
+            int opidx = nn->memoryOpIndex();
+            if (opidx >=0){
+               RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
+               //std::cout<<"Size of Formula: "<<refF->size()<<std::endl;
+               if(refF != NULL){
+                  GFSliceVal oform = refF->base;
+                  coeff_t valueNum;
+                  ucoeff_t valueDen;
+                  std::cout<<"oform is: "<<oform<<std::endl;
+                  std::cout<<"Loop Level: "<<nn->getLevel()<<std::endl;
+                  if(IsConstantFormula(oform, valueNum, valueDen))
+                     std::cout<<"This is constant formula\n";
+                  else
+                     std::cout<<"This is not constant formula\n";
+                  if (FormulaContainsRegister(oform))
+                     std::cout<<"This formula contains register\n";
+                  else
+                     std::cout<<"This formola does not contains registers\n";
+                   if (nn->is_memory_reference())
+                     std::cout<<"Node is memory reference\n";
+                  else
+                     std::cout<<"Node is not memory reference\n";
+                   if (nn->is_data_movement())
+                     std::cout<<"Node has data movement\n";
+                  else
+                     std::cout<<"Node has not a data movement\n";
+                  RInfoList srcreg = nn->getSrcReg();
+                  RInfoList destreg = nn->getDestReg();
+                  std::cout<<"Node has "<<srcreg.size()<<" src regs\n";
+                  std::cout<<"Node has "<<destreg.size()<<" dest regs\n";
+                  RInfoList::iterator nnrit = srcreg.begin();
+                  for( ; nnrit!=srcreg.end() ; ++nnrit ) {
+                     std::cout<<"Print Src reg info\n"<<nnrit->ToString()<<std::endl;
+                  }
+                  nnrit = destreg.begin();
+                  for( ; nnrit!=destreg.end() ; ++nnrit ) {
+                     std::cout<<"Print Dest reg info\n"<<nnrit->ToString()<<std::endl;
+                  }
+               }
+            }
+
+   std::cout<<std::endl<<std::endl; 
+//End
+
+
       if (nn->isInstructionNode()){
          if(seen.find((unsigned long)nn->getAddress())->second==5){
             if (nn->getLvlMap()){
@@ -329,43 +384,106 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
    //   std::cerr<<"DEBUG CAN I CALL"<<__func__<<std::endl;
    struct Mem{
       int level;
-      long int hits;
-      long int miss;
+      long long int hits;
+      long long int miss;
       float windowSize;
    };
 
    std::vector<Mem> memVector;            
 
    // initializing collected data variables
-   long int all_loads = 0;   //lvl 0
-   long int l1_hits = 0 ;    //lvl 1
-   long int l2_hits = 0 ;    //lvl 2
-   long int fb_hits = 0 ;    //lvl 3
-   long int l3_hits = 0 ;    //lvl 4
-   long int llc_miss = 0 ;   //lvl 5
-   long int l2_pf_miss = 0 ; //lvl 6
+   double all_loads = 0;   //lvl 0
+   double l1_hits = 0 ;    //lvl 1
+   double l2_hits = 0 ;    //lvl 2
+   double fb_hits = 0 ;    //lvl 3
+   double l3_hits = 0 ;    //lvl 4
+   double llc_miss = 0 ;   //lvl 5
+   double l2_pf_miss = 0 ; //lvl 6
 
    // initializing other vaiables
-   float l1 = 0;
-   float l2 = 0;
-   float l3 = 0;
-   float mem = 0;
-   float pf = 0;
-   float mem_hits = 0;
-   float pf_wpl = 0;
-   float mem_wpl = 0;
-   float l1_strided_lds = 0;
-   float fp = 0;
-
+   double l1 = 0;
+   double l2 = 0;
+   double l3 = 0;
+   double mem = 0;
+   double pf = 0;
+   double mem_hits = 0;
+   double pf_wpl = 0;
+   double mem_wpl = 0;
+   double l1_strided_lds = 0;
+   double fp = 0;
+///_________________________-
+//this is testting before assigning
+   std::cout<<std::endl<<std::endl;
+   std::cout<<"DEBUG- this is testting before assigning"<<std::endl<<std::endl; 
+   std::cout<<"PALM FOOTPRINT OUTPUT FOR ALL MEMORY NODES"<<std::endl;
+   std::cout<<"ALL_loads:"<<all_loads<<std::endl;
+   std::cout<<"l1_hits:"<<l1_hits<<std::endl;
+   std::cout<<"l2_hits:"<<l2_hits<<std::endl;
+   std::cout<<"fb_hits:"<<fb_hits<<std::endl;
+   std::cout<<"l3_hits:"<<l3_hits<<std::endl;
+   std::cout<<"llc_miss:"<<llc_miss<<std::endl;
+   std::cout<<"l2_pf_miss:"<<l2_pf_miss<<std::endl;
+   std::cout<<"l1_strided_lds:"<<l1_strided_lds<<std::endl;
+   std::cout<<"mem_wpl:"<<mem_wpl<<std::endl;
+   std::cout<<"pf_wpl:"<<pf_wpl<<std::endl;
+   std::cout<<"mem_hits:"<<mem_hits<<std::endl;
+   std::cout<<"pf:"<<pf<<std::endl;
+   std::cout<<"mem:"<<mem<<std::endl;
+   std::cout<<"l3:"<<l3<<std::endl;
+   std::cout<<"l2:"<<l2<<std::endl;
+   std::cout<<"l1:"<<l1<<std::endl;
+   std::cout<<"FP:"<<fp<<std::endl<<std::endl;
+   std::cout<<"End OF DEBUG- this is testting before assigning"<<std::endl<<std::endl; 
+//End of debug
+//___________________-
+int demi =0 ;
    for (std::vector<MIAMI::InstlvlMap *>::iterator it=imemData->begin() ; it!=imemData->end() ; it++){      
       all_loads += (*it)->find(0)->second.hitCount;
       l1_hits += (*it)->find(1)->second.hitCount;
+      demi++;
       l2_hits += (*it)->find(2)->second.hitCount;
+      std::cout<<"in iterarion "<<demi<<" l2_hits:"<<l2_hits<<std::endl;
+      std::cout<<" l2_hits:"<<(*it)->find(2)->second.hitCount<<std::endl;
       fb_hits += (*it)->find(3)->second.hitCount;
       l3_hits += (*it)->find(4)->second.hitCount;
       llc_miss += (*it)->find(5)->second.hitCount;
       l2_pf_miss += (*it)->find(6)->second.hitCount;
    }
+   //Check if it is smaller then 1 but bigger then 0 then set them 0
+      if (all_loads<1 && all_loads >0) all_loads=0;
+      if (l1_hits <1 && l1_hits >0 ) l1_hits = 0;
+      if (l2_hits<1 && l2_hits>0) l2_hits = 0;
+      if (fb_hits <1 && fb_hits>0) fb_hits = 0;
+      if (l3_hits<1 && l3_hits>0) l3_hits=0 ;
+      if (llc_miss <1  && llc_miss>0) llc_miss=0 ;
+      if (l2_pf_miss <1 && l2_pf_miss >0) l2_pf_miss = 0;
+
+///_________________________-
+//this is testting after assigning
+   std::cout<<std::endl<<std::endl;
+   std::cout<<"DEBUG- this is testting after assigning"<<std::endl<<std::endl; 
+   std::cout<<"PALM FOOTPRINT OUTPUT FOR ALL MEMORY NODES"<<std::endl;
+   std::cout<<"ALL_loads:"<<all_loads<<std::endl;
+   std::cout<<"l1_hits:"<<l1_hits<<std::endl;
+   std::cout<<"l2_hits:"<<l2_hits<<std::endl;
+   std::cout<<"fb_hits:"<<fb_hits<<std::endl;
+   std::cout<<"l3_hits:"<<l3_hits<<std::endl;
+   std::cout<<"llc_miss:"<<llc_miss<<std::endl;
+   std::cout<<"l2_pf_miss:"<<l2_pf_miss<<std::endl;
+   std::cout<<"l1_strided_lds:"<<l1_strided_lds<<std::endl;
+   std::cout<<"mem_wpl:"<<mem_wpl<<std::endl;
+   std::cout<<"pf_wpl:"<<pf_wpl<<std::endl;
+   std::cout<<"mem_hits:"<<mem_hits<<std::endl;
+   std::cout<<"pf:"<<pf<<std::endl;
+   std::cout<<"mem:"<<mem<<std::endl;
+   std::cout<<"l3:"<<l3<<std::endl;
+   std::cout<<"l2:"<<l2<<std::endl;
+   std::cout<<"l1:"<<l1<<std::endl;
+   std::cout<<"FP:"<<fp<<std::endl<<std::endl;
+   std::cout<<"End OF DEBUG- this is testting after assigning"<<std::endl<<std::endl; 
+//End of debug
+//___________________-
+
 
    if (total_lds){
       l1_strided_lds = ((l1_hits) / total_lds) * strided_lds; 
@@ -374,7 +492,7 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
    }
 
    if (total_lds && llc_miss){
-      mem_wpl = (float)((((l1_hits+l2_hits+l3_hits))/total_lds) *
+      mem_wpl = (double)((((l1_hits+l2_hits+l3_hits))/total_lds) *
             indirect_lds) /(llc_miss); 
    } else {
       mem_wpl = -1; 
@@ -403,8 +521,8 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
       levelExecCounts.find(i)->second = levelExecCounts.find(i)->second / levelExecCounts.find(i-1)->second; 
    }
    levelExecCounts.find(1)->second = levelExecCounts.find(1)->second - 1;
-   float totLoads = strided_lds + indirect_lds;
-   float adjusted_fp=0;
+   double totLoads = strided_lds + indirect_lds;
+   double adjusted_fp=0;
    std::list<std::list<depOffset>> baseOffsets;
    std::list<depOffset> indirectBaseOffsets;
    std::map<Node* ,std::list<depOffset>>::iterator it =  dependencyMap.begin();
@@ -413,11 +531,12 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
       std::list<depOffset>::iterator dit;
       std::list<depOffset>::iterator lit;
       std::list<depOffset>::iterator bit;
+      std::list<depOffset>::iterator tit;
 
-//      std::cout<<"Looking Node:"<<it->first->getId()<<" at address:"<<std::hex<<it->first->getAddress()<<std::dec<<" size:"<<it->second.size()<<std::endl;
-//      for (; tit!=it->second.end(); ++tit){
-//         std::cout<<"This node dep level:"<<tit->level<<" offset:"<<tit->offset<<std::endl;
-//      }
+      std::cout<<"Looking Node:"<<it->first->getId()<<" at address:"<<std::hex<<it->first->getAddress()<<std::dec<<" size:"<<it->second.size()<<std::endl;
+      for (tit=it->second.begin(); tit!=it->second.end(); ++tit){
+         std::cout<<"This node dep level:"<<tit->level<<" offset:"<<tit->offset<<std::endl;
+      }
       if(!it->first->is_strided_reference()){
          //This block helps to eliminate mulple access but I am not sure
          //if it is correct thing to do.
@@ -436,22 +555,22 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
                         for (sliceit=oform.begin() ; sliceit!=oform.end() ; ++sliceit){
                            if (sliceit->TermType() == TY_CONSTANT){
                               offset1 = sliceit->ValueNum();
-//                              std::cout<<"Slice valnum:"<<offset1<<std::endl;
+                              std::cout<<"Slice valnum:"<<offset1<<std::endl;
                            }
                         }
                         if(bit->offset == offset1){
-//                           std::cout<<"Skip  linked ds node:"<<it->first->getId()<<std::endl;
-//                           std::cout<<"baseoffset:"<<bit->level<<" offset:"<<bit->offset<<std::endl;
-//                           std::cout<<" others baseoffset:"<<dit->offset<<" offset:"<<offset1<<std::endl;
-//                           std::cout<<"Formula: "<<oform<<std::endl;
+                           std::cout<<"Skip  linked ds node:"<<it->first->getId()<<std::endl;
+                           std::cout<<"baseoffset:"<<bit->level<<" offset:"<<bit->offset<<std::endl;
+                           std::cout<<" others baseoffset:"<<dit->offset<<" offset:"<<offset1<<std::endl;
+                           std::cout<<"Formula: "<<oform<<std::endl;
                            continue;
                         }
                         depOffset depLinked;
                         depLinked.level = dit->offset;
                         depLinked.offset = offset1;
                         indirectBaseOffsets.push_back(depLinked);
-//                        std::cout<<"adding  linked ds node:"<<it->first->getId()<<std::endl;
-//                        std::cout<<"baseoffset:"<<depLinked.level<<" offset:"<<depLinked.offset<<std::endl;
+                        std::cout<<"adding  linked ds node:"<<it->first->getId()<<std::endl;
+                        std::cout<<"baseoffset:"<<depLinked.level<<" offset:"<<depLinked.offset<<std::endl;
                      }
                   }
                }
@@ -472,9 +591,9 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
                      depLinked.level = dit->offset;
                      depLinked.offset = offset2;
                      indirectBaseOffsets.push_back(depLinked);
-//                     std::cout<<"adding  linked ds node:"<<it->first->getId()<<std::endl;
-//                     std::cout<<"baseoffset:"<<depLinked.level<<" offset:"<<depLinked.offset<<std::endl;
-//                     std::cout<<"Formula: "<<oform<<std::endl;
+                     std::cout<<"adding  linked ds node:"<<it->first->getId()<<std::endl;
+                     std::cout<<"baseoffset:"<<depLinked.level<<" offset:"<<depLinked.offset<<std::endl;
+                     std::cout<<"Formula: "<<oform<<std::endl;
                   }
                }
 
@@ -485,9 +604,9 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
             double fp_of_load = (((fp *size1) / totLoads)*execRatio);///2; TODO why this works??
 
             adjusted_fp+=fp_of_load;
-//            std::cout<<"Added linked ds node:"<<it->first->getId()<<std::endl;
-//            std::cout<<"this loads fp="<<fp_of_load<<" Size="<<size1<<" Ratio="<<execRatio<<std::endl;
-//            std::cout<<std::endl;
+            std::cout<<"Added linked ds node:"<<it->first->getId()<<std::endl;
+            std::cout<<"this loads fp="<<fp_of_load<<" Size="<<size1<<" Ratio="<<execRatio<<std::endl;
+            std::cout<<std::endl;
             levels.clear();
             continue;
          }
@@ -501,37 +620,37 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
       for ( ; baseit!=baseOffsets.end(); ++baseit){
          skip = false;
          for (bit = baseit->begin(), dit = it->second.begin() ; bit!=baseit->end(); ++bit, ++dit){ 
-//            std::cout<<"base level:"<<bit->level<<" offset:"<<bit->offset<<std::endl;
-//            std::cout<<"depMap level:"<<dit->level<<" offset:"<<dit->offset<<std::endl;
+            std::cout<<"base level:"<<bit->level<<" offset:"<<bit->offset<<std::endl;
+            std::cout<<"depMap level:"<<dit->level<<" offset:"<<dit->offset<<std::endl;
             if (bit->offset == dit->offset ){
-//               std::cout<<"offsets are same\n";
+               std::cout<<"offsets are same\n";
                if ( dit->level == 0 && bit->level == 0){
-//                  std::cout<<"skip is setted true\n";
+                  std::cout<<"skip is setted true\n";
                   skip = true;
                }
             }
          }
          if(dit != it->second.end()){
-//            std::cout<<"not same lenght\n";
+            std::cout<<"not same lenght\n";
             skip =false;
          }
          if(skip){
-//            std::cout<<"I am skipping\n";
+            std::cout<<"I am skipping\n";
             break;
          }
 
-//         std::cout<<"go next iter\n";
+         std::cout<<"go next iter\n";
       }
       if(skip){
-//         std::cout<<"I found same array\n";
+         std::cout<<"I found same array\n";
          for (lit = it->second.begin() ; lit!=it->second.end(); ++lit){
-//            std::cout<<"this is in level:"<<lit->level<<" offset:"<<lit->offset<<std::endl;
+            std::cout<<"this is in level:"<<lit->level<<" offset:"<<lit->offset<<std::endl;
          }
          continue;
       } else {
-//         std::cout<<"This is not same array\n";
+         std::cout<<"This is not same array\n";
          for (lit = it->second.begin() ; lit!=it->second.end(); ++lit){
-//            std::cout<<"this is in level:"<<lit->level<<" offset:"<<lit->offset<<std::endl;
+            std::cout<<"this is in level:"<<lit->level<<" offset:"<<lit->offset<<std::endl;
          }
          baseOffsets.push_back(it->second);
       }
@@ -539,13 +658,13 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
          int lvl = lit->level;
          //sliceVal sval = lit->offset;
          levels.find(lvl)->second = 1;
-//         std::cout<<" Level: "<<lvl;
+         std::cout<<" Level: "<<lvl;
       }
       for(int i =0 ; i <=level; i++){
-//         std::cout<<" level:"<<i<<" count:"<<levelExecCounts.find(i)->second<<std::endl;
+         std::cout<<" level:"<<i<<" count:"<<levelExecCounts.find(i)->second<<std::endl;
          if (levels.find(i)->second ==0){
             divider *=levelExecCounts.find(i)->second;
-//            std::cout<<"divider: "<<divider<<" level:"<<i<<" count:"<<levelExecCounts.find(i)->second<<std::endl;
+            std::cout<<"divider: "<<divider<<" level:"<<i<<" count:"<<levelExecCounts.find(i)->second<<std::endl;
          }
       }
       int size = it->first->getBitWidth()/8;
@@ -553,12 +672,12 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
       double fp_of_load = (((fp *size) / totLoads)/divider)*execRatio;
 
       adjusted_fp+=fp_of_load;
-//      std::cout<<"this loads fp="<<fp_of_load<<" Divider="<<divider<<" Size="<<size<<" Ratio="<<execRatio<<std::endl;
+      std::cout<<"this loads fp="<<fp_of_load<<" Divider="<<divider<<" Size="<<size<<" Ratio="<<execRatio<<std::endl;
       levels.clear();
    }
-   fp = fp *4;//this is not correct is just there to check results with excel 
+   //fp = fp *4;//this is not correct is just there to check results with excel 
    std::cout<<"PALM FOOTPRINT OUTPUT FOR ALL MEMORY NODES"<<std::endl;
-   std::cout<<"ALL_loads:"<<all_loads<<std::endl;
+   std::cout<<"_ALL_loads:"<<all_loads<<std::endl;
    std::cout<<"l1_hits:"<<l1_hits<<std::endl;
    std::cout<<"l2_hits:"<<l2_hits<<std::endl;
    std::cout<<"fb_hits:"<<fb_hits<<std::endl;
@@ -574,7 +693,7 @@ float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double
    std::cout<<"l3:"<<l3<<std::endl;
    std::cout<<"l2:"<<l2<<std::endl;
    std::cout<<"l1:"<<l1<<std::endl;
-   std::cout<<"FP:"<<fp<<std::endl<<std::endl;
+   std::cout<<"Raw_FP:"<<fp<<std::endl<<std::endl;
    std::cout<<"Adjusted FP:"<<adjusted_fp<<std::endl<<std::endl;
    //return fp; 
    return adjusted_fp;
