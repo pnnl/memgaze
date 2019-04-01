@@ -109,6 +109,8 @@ std::string KnobDumpFile = ""; //dump_file, "", "file name to dwar scheduling du
 
 /*
  * Compute an application's instruction execution cost by re-scheduling
+ * its native instructions on a model of the target architecture.
+ * The tool receives as input an application's control flow (.cfg) file, 
  * and a machine description file (.mdf).
  */
 
