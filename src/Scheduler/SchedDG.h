@@ -1436,8 +1436,7 @@ private:
    int lowerPathDistances (Node* node, unsigned int m, unsigned int m2,
               Node *finalN, int sId, int toLower, bool superEntry);
    void correctEdgeDistances (Edge *ee, int &dist, EdgeList &finishedEdges, 
-        int &oldDist, unsigned int m, Node *finalN, int sId)
-        throw (RecomputePathsToExit);
+	      int &oldDist, unsigned int m, Node *finalN, int sId);
 //   int findStructPaths (Node* node, unsigned int m, EdgeList& _edges, 
 //              Node *finalN, int sId, CycleMap *all_cycles);
 
@@ -1478,11 +1477,9 @@ private:
          int numIters, int latency, int barriers, int backEdges, 
          Edge** inEdges, int toRemove, bool loadToReg);
 
-   void patternSearch (PatternGraph::Node* findNode, MIAMIU::UIList& iterCrossed) 
-         throw (PatternFoundException);
+   void patternSearch (PatternGraph::Node* findNode, MIAMIU::UIList& iterCrossed);
    void recursivePatternSearch (Node* node, PatternGraph::Node* findNode,
-               MIAMIU::UIList& iterCrossed, int maxLevel, int backedges) 
-         throw (PatternFoundException);
+	       MIAMIU::UIList& iterCrossed, int maxLevel, int backedges);
    void replacePattern(ReplacementRule* rule, unsigned int replacementIndex,
                MIAMIU::UIList& iterCrossed);
 
@@ -1504,15 +1501,12 @@ private:
    
    bool create_schedule_main(int& unit, Node* &fNode, Edge* &fEdge, 
           int& extra_length, int& numTries, int& segmentId);
-   bool create_schedule() 
-       throw (UnsuccessfulSchedulingException, SuccessfulSchedulingException);
-   int processIncidentEdges(Node *newNode, int templIdx, int i, int unit)
-       throw (UnsuccessfulSchedulingException);
+   bool create_schedule();
+   int processIncidentEdges(Node *newNode, int templIdx, int i, int unit);
    int computeBoundsForNode(Node *newNode, Edge *e, int &ss, int &pp, 
           bool &concentric, int &numTries, ScheduleTime &newTime, 
           int &maxExtraLength, int &unit, int &trycase, bool isSrcNode, 
-          bool relaxed = false)
-       throw (UnsuccessfulSchedulingException);
+	  bool relaxed = false);
 
 
    void undo_schedule(Node* newNode, bool aggressive);  // Node* oldNode);

@@ -2564,7 +2564,6 @@ SchedDG::lowerPathDistances (Node* node, unsigned int m, unsigned int m2,
 void
 SchedDG::correctEdgeDistances (Edge *ee, int &dist, EdgeList &finishedEdges, 
        int &oldDist, unsigned int m, Node *finalN, int sId)
-        throw (RecomputePathsToExit)
 {
    bool throwException = false;
    int res;
@@ -5998,7 +5997,6 @@ SchedDG::replacePattern(ReplacementRule* rule, unsigned int replacementIndex,
 
 void
 SchedDG::patternSearch (PatternGraph::Node* findNode, UIList& iterCrossed)
-      throw (PatternFoundException)
 {
    NodesIterator nit(*this);
 
@@ -6037,7 +6035,6 @@ SchedDG::patternSearch (PatternGraph::Node* findNode, UIList& iterCrossed)
 void
 SchedDG::recursivePatternSearch (Node* node, PatternGraph::Node* findNode, 
              UIList& iterCrossed, int maxLevel, int backedges)
-      throw (PatternFoundException)
 {
    // test if this node fits the pattern
    const InstructionClass &pic = findNode->getIClass();
@@ -7110,7 +7107,6 @@ SchedDG::undo_schedule (Node* newNode, bool aggressive)
 // create_schedule() is the meat and potatoes of the scheduling algorithm
 bool
 SchedDG::create_schedule ()
-       throw (UnsuccessfulSchedulingException, SuccessfulSchedulingException)
 {
    int i;
    bool repeatNode = false;
@@ -7998,7 +7994,6 @@ SchedDG::computeBoundsForNode (Node *newNode, Edge *e, int &ss, int &pp,
           bool &concentric, int &numTries, ScheduleTime &newTime, 
           int &maxExtraLength, int &unit, int &trycase, bool isSrcNode, 
           bool relaxed)
-       throw (UnsuccessfulSchedulingException)
 {
    // if we are here, it means we have an unscheduled node in newNode
    // compute a lower time bound using its incoming edges, and an
@@ -8435,7 +8430,6 @@ SchedDG::computeBoundsForNode (Node *newNode, Edge *e, int &ss, int &pp,
  */
 int
 SchedDG::processIncidentEdges (Node *newNode, int templIdx, int i, int unit)
-       throw (UnsuccessfulSchedulingException)
 {
    UISet::iterator sit;
    EdgeList newEdges;
