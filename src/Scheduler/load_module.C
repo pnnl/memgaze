@@ -142,39 +142,35 @@ LoadModule::palmAnalyzeRoutines( ProgScope *prog, const MiamiOptions *mo)
    /* create program scope for this load module */   
    std::cout<<"Image name: "<<img_name<<" id:"<<img_id<<std::endl;
    img_scope = new ImageScope(prog, img_name, img_id);
-   for (uint32_t r=0 ; r<numRoutines ; ++r)
-   {
-   std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
-      Routine *rout = palmLoadOneRoutine(mo, r);
-      if (rout == NULL)
-      {
-   std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
-         if (mo->do_linemap)
-            FinalizeSourceFileInfo();
-         return (-1);
-      }
-      if (rout->Name().find(mo->func_name)!=std::string::npos){
-   std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
-         std::cerr << "[INFO]LoadModule::analyzeRoutines(): '" << rout->Name() << "'\n";
-         addrtype rstart = rout->Start();
+   for (uint32_t r=0 ; r<numRoutines ; ++r)  {
+     std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
+     Routine *rout = palmLoadOneRoutine(mo, r);
+     if (rout == NULL) {
+       std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
+       if (mo->do_linemap)
+	 FinalizeSourceFileInfo();
+       return (-1);
+     }
+     if (rout->Name().find(mo->func_name)!=std::string::npos){
+       std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
+       std::cerr << "[INFO]LoadModule::analyzeRoutines(): '" << rout->Name() << "'\n";
+       //addrtype rstart = rout->Start();
         
-         if (rout->is_valid_for_analysis())
-         {
-   std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
-            ires = rout->main_analysis(img_scope, mo);
-            if (ires < 0)
-            {
-   std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
-               fprintf (stderr, "Error while analyzing routine %s\n", rout->Name().c_str());
-               if (mo->do_linemap)
-                  FinalizeSourceFileInfo();
-               return (-1);
-            }
-         }
+       if (rout->is_valid_for_analysis()) {
+	 std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
+	 ires = rout->main_analysis(img_scope, mo);
+	 if (ires < 0) {
+	   std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
+	   fprintf (stderr, "Error while analyzing routine %s\n", rout->Name().c_str());
+	   if (mo->do_linemap)
+	     FinalizeSourceFileInfo();
+	   return (-1);
+	 }
+       }
+       
+     }
       
-      }
-      
-      delete (rout);
+     delete (rout);
    }
 
    /* clean up any memory used by the debug info for this image */
@@ -190,9 +186,9 @@ LoadModule::palmLoadRoutineData(const MiamiOptions *mo )
 //#undef CHECK_COND
 //#undef CHECK_COND0
 //
-//#define CHECK_COND(cond, err, ...) if (cond) \
+//#define CHECK_COND(cond, err, ...) if (cond)
 //   {fprintf(stderr, "ERROR: " err "\n", __VA_ARGS__); goto load_error; }
-//#define CHECK_COND0(cond, err) if (cond) \
+//#define CHECK_COND0(cond, err) if (cond)
 //   {fprintf(stderr, "ERROR: " err "\n"); goto load_error; }
 //
 //   size_t res;
@@ -231,11 +227,11 @@ Routine*
 LoadModule::palmLoadOneRoutine(const MiamiOptions *mo, uint32_t r)
 {
    std::cout<<__func__<<" line:"<<__LINE__<<std::endl;
-   size_t res;
-   Routine *rout = NULL;
+   //size_t res;
+   //Routine *rout = NULL;
    std::ifstream palm_fd;
-//   
-   addrtype _offset, _start, _end;
+
+   //addrtype _offset, _start, _end;
 
    if (mo->palm_cfg_file.length()>1){ //OzgurS adding palm cfg
       palm_fd.open(mo->palm_cfg_file.c_str());
