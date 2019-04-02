@@ -638,6 +638,7 @@
         return IB_move;
 
     case XED_ICLASS_ADD:                // BINARY
+    case XED_ICLASS_TZCNT:                // BINARY
     case XED_ICLASS_DEC:                // BINARY
     case XED_ICLASS_INC:                // BINARY
         return IB_add;
@@ -812,6 +813,7 @@
     case XED_ICLASS_VMOVD:              // DATAXFER
     case XED_ICLASS_VMOVQ:              // DATAXFER
     case XED_ICLASS_VMOVDQA:            // DATAXFER
+    case XED_ICLASS_VMOVDQA64:            // DATAXFER
     case XED_ICLASS_VMOVDQU:            // DATAXFER
     case XED_ICLASS_MOVNTDQ:            // DATAXFER
     case XED_ICLASS_MOVNTI:             // DATAXFER
@@ -970,6 +972,14 @@
     case XED_ICLASS_LFENCE:             // MISC
     case XED_ICLASS_MFENCE:             // MISC
     case XED_ICLASS_SFENCE:             // MISC
+    case XED_ICLASS_ADD_LOCK:             // MISC
+    case XED_ICLASS_XADD_LOCK:             // MISC
+    case XED_ICLASS_BTS_LOCK:             // MISC
+    case XED_ICLASS_SUB_LOCK:             // MISC
+    case XED_ICLASS_CMPXCHG_LOCK:             // MISC
+    case XED_ICLASS_DEC_LOCK:             // MISC
+    case XED_ICLASS_INC_LOCK:             // MISC
+    case XED_ICLASS_OR_LOCK:             // MISC
         return IB_mem_fence;
 
     case XED_ICLASS_MONITOR:            // MISC
@@ -1060,6 +1070,7 @@
         return IB_shift;
 
     case XED_ICLASS_CMPSB:              // STRINGOP
+    case XED_ICLASS_REPE_CMPSB:              // STRINGOP
     case XED_ICLASS_CMPSD:              // STRINGOP
     case XED_ICLASS_CMPSQ:              // STRINGOP
     case XED_ICLASS_CMPSW:              // STRINGOP
@@ -1072,21 +1083,30 @@
         return IB_load;
 
     case XED_ICLASS_MOVSB:              // STRINGOP
+    case XED_ICLASS_REP_MOVSB:              // STRINGOP
     case XED_ICLASS_MOVSD:              // STRINGOP
+    case XED_ICLASS_REP_MOVSD:              // STRINGOP
     case XED_ICLASS_MOVSQ:              // STRINGOP
+    case XED_ICLASS_REP_MOVSQ:              // STRINGOP
     case XED_ICLASS_MOVSW:              // STRINGOP
+    case XED_ICLASS_REP_MOVSW:              // STRINGOP
         return IB_move;
 
     case XED_ICLASS_SCASB:              // STRINGOP
+    case XED_ICLASS_REPNE_SCASB:              // STRINGOP
     case XED_ICLASS_SCASD:              // STRINGOP
     case XED_ICLASS_SCASQ:              // STRINGOP
     case XED_ICLASS_SCASW:              // STRINGOP
         return IB_cmp;
 
     case XED_ICLASS_STOSB:              // STRINGOP
+    case XED_ICLASS_REP_STOSB:              // STRINGOP
     case XED_ICLASS_STOSD:              // STRINGOP
+    case XED_ICLASS_REP_STOSD:              // STRINGOP
     case XED_ICLASS_STOSQ:              // STRINGOP
+    case XED_ICLASS_REP_STOSQ:              // STRINGOP
     case XED_ICLASS_STOSW:              // STRINGOP
+    case XED_ICLASS_REP_STOSW:              // STRINGOP
         return IB_store;
         
     case XED_ICLASS_VPCMPESTRI:         // STTNI
