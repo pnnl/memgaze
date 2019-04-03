@@ -3204,7 +3204,7 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
    for (BPMap::iterator bpit=bpmtemp->begin() ; bpit!=bpmtemp->end() ; 
                 ++bpit, ++loopIdx)
    {
-      for (int i=0; i < bpit->first->size ; i++){
+      for (unsigned int i=0; i < bpit->first->size ; i++) {
          std::cout<<"loopIDX: "<<loopIdx<<" block start addres:"<<std::hex<<bpit->first->blocks[i]->getStartAddress()<<std::dec<<std::endl;
       }
       std::cout<<__func__<<"Line 2387 do I have LOOPS\n"; 
