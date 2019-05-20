@@ -27,6 +27,7 @@ Kaby Lake (shrink of SkyLake)
 SkyLake Server (arch): Intel x86-64 Core Gen6
 ----------------------------------------
 
+- https://en.wikichip.org/wiki/intel/microarchitectures/skylake_(server)
 - https://en.wikipedia.org/wiki/Skylake_(microarchitecture)
 
 SkyLake Server:
