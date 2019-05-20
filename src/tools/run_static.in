@@ -8,16 +8,24 @@ while [ -h "$SOURCE" ]; do
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-if [ -f ${DIR}/../etc/vars/XTOOLVARX ]
-then
+if [ -f ${DIR}/../etc/vars/XTOOLVARX ] ; then
    source ${DIR}/../etc/vars/XTOOLVARX
-elif [ -f ${DIR}/../etc/miami_vars ]
-then
+elif [ -f ${DIR}/../etc/miami_vars ] ; then
    source ${DIR}/../etc/miami_vars
 else
    echo "ERROR: Found neither global nor tool specific settings. Aborting."
    exit
 fi
+
+if [ -n "${MIAMI_DEBUG}" ] ; then
+   echo "*** Debug: Miami libs: '${MIAMI_LIBRARY_PATHS}'"
+fi
+
 export LD_LIBRARY_PATH=${MIAMI_LIBRARY_PATHS}:${LD_LIBRARY_PATH}
+
+
+if [ -n "${MIAMI_DEBUG}" ] ; then
+  echo "*** Debug: Executing: ${DIR}/libexec/XTOOLLIBX $@"
+fi
 
 ${DIR}/libexec/XTOOLLIBX $@
