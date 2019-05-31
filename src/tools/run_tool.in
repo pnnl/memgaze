@@ -8,16 +8,18 @@ while [ -h "$SOURCE" ]; do
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-if [ -f ${DIR}/../etc/vars/XTOOLVARX ]
-then
+if [ -f ${DIR}/../etc/vars/XTOOLVARX ] ; then
    source ${DIR}/../etc/vars/XTOOLVARX
-elif [ -f ${DIR}/../etc/miami_vars ]
-then
+elif [ -f ${DIR}/../etc/miami_vars ] ; then
    source ${DIR}/../etc/miami_vars
 else
    echo "ERROR: Found neither global nor tool specific settings. Aborting."
    exit
 fi
 #source ${DIR}/../etc/pin_config
+
+if [ -n "${MIAMI_DEBUG}" ] ; then
+  echo "*** Debug: Executing: ${PIN_HOME}/pin ${MIAMI_PIN_ARGS} -t ${DIR}/libexec/XTOOLLIBX $@"
+fi
 
 ${PIN_ROOT}/pin ${MIAMI_PIN_ARGS} -t ${DIR}/libexec/XTOOLLIBX $@
