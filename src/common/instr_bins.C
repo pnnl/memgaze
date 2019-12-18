@@ -11,6 +11,7 @@
 
 #include <assert.h>
 #include "instr_bins.H"
+#include <iostream>
 
 namespace MIAMI
 {
@@ -86,6 +87,7 @@ Convert_InstrBin_to_string(InstrBin ibin)
 int
 InstrBinIsMemoryType(InstrBin type)
 {
+//std::cout<<"OZGUR DBG Instruction type: "<<type<<std::endl;
    switch (type) 
    {
       case IB_load:
@@ -138,6 +140,9 @@ InstrBinIsMemoryType(InstrBin type)
       case IB_rotate_cc:
       case IB_fn:
       case IB_unknown:
+      case IB_dg_exit: //OZGUR do not throw assertion  for entry exit and invalid type just return 0
+      case IB_dg_entry:
+      case IB_INVALID:
          return (0);
       default:               assert(!"unknown Instruction Bin");
    };
@@ -260,7 +265,10 @@ InstrBinIsStoreType(InstrBin type)
       case IB_rotate_cc:
       case IB_fn:
       case IB_unknown:
-         return (0);
+       case IB_dg_exit: //OZGUR do not throw assertion  for entry exit and invalid type just return 0
+      case IB_dg_entry:
+      case IB_INVALID:
+        return (0);
       default:                assert(!"unknown Instruction Bin");
    };
    return (0);

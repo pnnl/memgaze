@@ -127,6 +127,7 @@ public:
 
 //ozgurS
    float calculateMemoryData(int level, int index , std::map<int,double> levelExecCounts);
+   float printLoadClassifications();
 //ozgurE
 
 private:

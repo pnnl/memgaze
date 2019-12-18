@@ -611,6 +611,7 @@ ResolveBranchTargetFormula(const GFSliceVal& targetF, PrivateCFG *cfg,
    {
       int tt = sit->TermType();
       addrtype tpc = sit->Address();
+      std::cout<<"OZGURDBG sliceVal: "<<sit->toString()<<std::endl;
 #if DEBUG_INDIRECT_TRANSFER
       DEBUG_INDIRECT(3,
          int uop_idx = sit->UopIndex();

@@ -62,17 +62,17 @@ InstructionDecoder::decode_dbg(unsigned long pc, int len,
 
   void* pc_ptr = (void*)pc;
 
-  cerr << "**********************************************************\n"
-       << ctxt_str << "InstructionDecoder::decode(" << pc_ptr << ")\n\n";
+  //cerr << "**********************************************************\n"
+  //     << ctxt_str << "InstructionDecoder::decode(" << pc_ptr << ")\n\n";
 
-  MIAMI::dump_instruction_at_pc(pc_ptr, len);
-  std::cout << "\n";
+  //MIAMI::dump_instruction_at_pc(pc_ptr, len);
+  //std::cout << "\n";
 
   int ret = MIAMI::decode_instruction_at_pc(pc_ptr, len, dInst);
   if (ret < 0) { } // error while decoding
   
-  DumpInstrList(dInst);
-  cerr << "\n";
+  //DumpInstrList(dInst);
+  //cerr << "\n";
 
   return ret;
 }

@@ -22,8 +22,27 @@
 #include "CRCHash.h"
 #include "miami_utils.h"
 
-//#include "dyninst-insn-xlate.hpp"
+//***************************************************************************
+// DynInst includes
+//***************************************************************************
 
+#include <CodeObject.h>
+#include <CodeSource.h>
+
+#include <BPatch.h>
+#include <BPatch_object.h>
+#include <BPatch_addressSpace.h>
+#include <BPatch_function.h>
+#include <BPatch_flowGraph.h>
+
+#include <Function.h>
+#include <Instruction.h>
+
+#include <Symtab.h>
+
+//#include "dyninst-insn-xlate.hpp"
+//***************************************************************************
+//
 namespace MIAMI
 {
 
@@ -565,8 +584,41 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
          newimg->createDyninstImage(bpatch);
          newimg->loadFPfile(mo->func_name, prog, mo);
          newimg->palmAnalyzeRoutines(prog, mo);
-      } else { 
-         std::cout<<"out do fp:"<<mo->do_fp<<" file size:"<< mo->palm_cfg_file.length()<<std::endl;
+      } else if(mo->load_classes){
+         std::cout<<"OZGURDBG in load_classes"<<std::endl;
+         newimg->loadFromFile(fd, false);  // do not parse routines now
+         newimg->createDyninstImage(bpatch);
+//         newimg->loadFPfile(mo->func_name, prog, mo);
+//         newimg->analyzeRoutines(fd, prog, mo);
+//From here I planing to follow v1 path to create routines vy using dyninst.  
+         newimg->dyninstAnalyzeRoutines(fd,prog, mo);
+
+//After here We were using palm way to create each routine
+//      /*OZGURS trying to loop in routines This is DBG turn this off when you are done*/
+//         std::vector<BPatch_function *> funcs;
+//         newimg->getDyninstImage()->getProcedures(funcs);
+//         Dyninst::Address start, end;
+//         for (auto func : funcs){
+//            func->getAddressRange((start), end);
+//            Dyninst::ParseAPI::CodeSource* codeSrc = Dyninst::ParseAPI::convert(func)->obj()->cs();
+//            addrtype base_addr = (MIAMI::addrtype)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-start);
+//            addrtype low_addr_offset = (MIAMI::addrtype)codeSrc->offset();
+////  //          BPatch_module * module =  func->getModule();
+////  //          BPatch_object * obj = module->getObject();
+////
+//            std::cout<<"\nXOZGURDBG func name: "<<func->getName()<<" baseAddr:"<<std::hex<<base_addr<<" Start Addr=0x"<<start<<" End Addr=0x"<<end<<" low_addr_offset:"<<low_addr_offset<<std::dec<<std::endl;
+//            if (func->getName().find("targ")== std::string::npos){
+//               std::cout<<"-----> I am doing func:"<< func->getName()<<std::endl;
+//               newimg->dyninstAnalyzeRoutine(fd, func->getName(), prog, mo);
+//            } else {
+//               std::cout<<"-----> I am NOT doing func:"<< func->getName()<<std::endl;
+////            std::cout<<"OZGURDBG func name: "<<func->getName()<<" baseAddr:"<<std::hex<<func->getBaseAddr()<<" Start Addr=0x"<<start<<" End Addr=0x"<<end<<" func baseAddr:"<<base_addr<<" low_addr_offset:"<<low_addr_offset<<" pathname: "<</*obj->pathName()<<*/std::dec<<std::endl;
+//            }
+//         }
+////      /*OZGURE*/
+      }
+      else { 
+         std::cout<<"old cfg do fp:"<<mo->do_fp<<" fp file size:"<< mo->fp_path.length()<<std::endl;
          newimg->loadFromFile(fd, false);  // do not parse routines now
          newimg->createDyninstImage(bpatch);
         //FIXME TODO 
