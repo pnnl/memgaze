@@ -81,7 +81,8 @@ namespace MIAMI
       string func_name;
       string lat_path;
       string fp_path; //footprint profile
-      
+      bool load_classes; //load classification
+
       MiamiOptions() {
          do_scheduling = false;
          do_fp = false;
@@ -115,6 +116,7 @@ namespace MIAMI
          exec_name = "unknown-binary";
 
          do_mycfgpaths = false;
+         load_classes = false;
       }
       
       bool CheckDependencies() {
@@ -146,7 +148,11 @@ namespace MIAMI
             fprintf(stderr, "We were asked to compute reference and scope indecies, but instruction decoding is required for this.\n");
             is_good = false;
          }
-         
+         if(load_classes && !((palm_cfg_file.length() || cfg_file.length()))){
+             fprintf(stderr, "Some of the specified options require a CFG file. Repeat run with a valid CFG file.\n");
+             is_good =false;
+         }
+
          // Assert that we set correctly other dependencies
          if (is_good)
          {
@@ -260,6 +266,10 @@ namespace MIAMI
       
       void setNoScopeTree(bool nst) {
          do_scopetree = !nst;
+      }
+       
+      void setLoadClasses(bool lcs) {
+         load_classes = lcs;
       }
       
       void addDebugRoutine(const string& dname) {

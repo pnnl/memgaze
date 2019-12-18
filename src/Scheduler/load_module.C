@@ -445,11 +445,137 @@ load_error:
 }
 
 Routine* 
+LoadModule::dyninstLoadOneRoutine(FILE *fd, uint32_t r, BPatch_image* dyn_image) 
+{
+#undef CHECK_COND
+#undef CHECK_COND0
+     cout<<__func__<<" "<<__LINE__<<std::endl; 
+
+#define CHECK_COND(cond, err, ...) if (cond) \
+   {fprintf(stderr, "ERROR: " err "\n", __VA_ARGS__); goto load_error; }
+#define CHECK_COND0(cond, err) if (cond) \
+   {fprintf(stderr, "ERROR: " err "\n"); goto load_error; }
+
+   size_t res;
+#if DEBUG_CFG_COUNTS
+   int ires = 0;
+#endif
+   Routine *rout = NULL;
+   
+   addrtype _offset, _start, _end;
+   size_t _size = 0;
+   char *_name = 0;
+   
+   std::vector<BPatch_function*> tfunctions;
+   BPatch_flowGraph *fg; 
+   std::set<BPatch_basicBlock*> blks;
+   Dyninst::SymtabAPI::Symtab* symtab; 
+   Dyninst::SymtabAPI::Function* tf;
+   Dyninst::SymtabAPI::InlineCollection inlines;
+   unsigned int f;
+   Dyninst::SymtabAPI::InlineCollection::iterator it;
+   Dyninst::SymtabAPI::FunctionBase* inFunc ;
+   std::pair<std::string, Dyninst::Offset> callSite;
+   Dyninst::Address start,end;
+   Dyninst::ParseAPI::CodeSource* codeSrc;
+
+
+   // save start/end addresses and name in prefix format (len followed by name)
+   res = fread(&_offset, sizeof(addrtype), 1, fd);
+   CHECK_COND(res!=1, "reading offset for routine %u", r);
+   res = fread(&_start, sizeof(addrtype), 1, fd);
+   CHECK_COND(res!=1, "reading start addr for routine %u", r);
+   res = fread(&_end, sizeof(addrtype), 1, fd);
+   CHECK_COND(res!=1, "reading end addr for routine %u", r);
+   _size = _end - _start;
+   
+   // now read the routine name
+   uint32_t len;
+   res = fread(&len, 4, 1, fd);
+   CHECK_COND(res!=1 || len<1 || len>1024, "reading name length for routine %u, res=%ld, len=%u", r, res, len);
+   _name = new char[len+1];
+   
+   res = fread(_name, 1, len, fd);
+   
+   CHECK_COND(res!=len, "reading name for routine %u", r);
+   _name[len] = 0;
+#if VERBOSE_DEBUG_LOAD_MODULE
+   DEBUG_LOAD_MODULE(4,
+      fprintf (stderr, "Creating Routine %s w/ start %p, end %p, offset %p, img_base+offset %p\n",
+          _name, (void*)_start, (void*)_end, (void*)_offset, (void*)(base_addr+_offset));
+   );
+#endif
+//OZGUR Reading from dyninst
+   //dyn_image->findFunction(_name, tfunctions,false,true,false);
+   dyn_image->findFunction((unsigned long)_start, tfunctions);
+   for(f = 0; f < tfunctions.size(); f++) { //search for inlined functions (possibly do special analysis in inlined function found)
+//      cout<<tfunctions[f]->getName()<<" "<<tfunctions[f]->getMangledName()<<" inst: "<<tfunctions[f]->isInstrumentable()<<" "<<(unsigned int*)tfunctions[f]->getBaseAddr()<<std::endl;
+      fg =tfunctions[f]->getCFG();
+      fg->getAllBasicBlocks(blks);
+//      cout<<"num basic blocks: "<<blks.size()<<std::endl;
+      symtab = Dyninst::SymtabAPI::convert(tfunctions[f]->getModule()->getObject());
+//      cout<<(symtab == NULL)<<std::endl;
+      if (symtab!=NULL){
+         if(symtab->findFuncByEntryOffset(tf,(Dyninst::Offset)tfunctions[f]->getBaseAddr())){
+            inlines = tf->getInlines();
+//            cout<<"inlined: "<<inlines.size()<<std::endl;
+            for(it = inlines.begin();it != inlines.end(); ++it){
+               inFunc = (*it);
+//               cout<<"\t"<<inFunc->getName()<<std::endl;
+               callSite = dynamic_cast<Dyninst::SymtabAPI::InlinedFunction*>(inFunc)->getCallsite();
+//               cout<<callSite.first<<" "<<callSite.second<<std::endl;
+            }
+         }
+      }
+   }
+     cout<<__func__<<" "<<__LINE__<<" OZGURDBG Before Routine: "<<_name<<" Start:0x"<<std::hex<<_start<<" reloc:0x"<<reloc_offset<<" offset:0x"<<_offset<<std::endl; 
+   if (tfunctions.size()){
+      tfunctions[0]->getAddressRange(start,end);
+      codeSrc = Dyninst::ParseAPI::convert(tfunctions[0])->obj()->cs();
+      base_addr = (MIAMI::addrtype)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-start);
+      reloc_offset=base_addr;
+      low_addr_offset = (MIAMI::addrtype)codeSrc->offset();
+      _start = (addrtype)start;
+      _offset = _start; 
+   }
+     cout<<__func__<<" "<<__LINE__<<" OZGURDBG AFTER Routine: "<<_name<<" Start:0x"<<std::hex<<_start<<" reloc:0x"<<reloc_offset<<" offset:0x"<<_offset<<std::endl; 
+//OZGURE
+   rout = new Routine(this, _start, _size, string(_name), _offset, reloc_offset);
+   CHECK_COND(rout==NULL, "allocating object for routine %u", r);
+   
+#if DEBUG_CFG_COUNTS
+   DEBUG_CFG(3,
+      fprintf (stderr, "Loading CFG for routine %s\n", _name);
+   )
+#endif
+   // next parse the entries and the cfg
+#if DEBUG_CFG_COUNTS
+   ires = 
+#endif
+      rout->loadCFGFromFile(fd);
+#if DEBUG_CFG_COUNTS
+   DEBUG_CFG(3,
+      fprintf (stderr, "CFG loaded with result %d\n", ires);
+   )
+#endif
+//   if (ires < 0) 
+//      return (ires);
+   if (_name) delete[] _name;
+   
+   return (rout);
+   
+load_error:
+   if (_name) delete[] _name;
+   return (NULL);
+   
+}
+
+Routine* 
 LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
 {
 #undef CHECK_COND
 #undef CHECK_COND0
-     cout<<__func__<<"Line 224\n"; 
+     cout<<__func__<<" "<<__LINE__<<std::endl; 
 
 #define CHECK_COND(cond, err, ...) if (cond) \
    {fprintf(stderr, "ERROR: " err "\n", __VA_ARGS__); goto load_error; }
@@ -988,121 +1114,227 @@ LoadModule::createDyninstImage(BPatch& bpatch)
          delete[] buf;
       }
    }
+
+   //OZGURS trying to loop in routines
+//   vector<BPatch_function *> funcs;
+//   dyn_image->getProcedures(funcs);
+//   Dyninst::Address start, end;
+//   for (auto func : funcs){
+//      func->getAddressRange((start), end);
+//      Dyninst::ParseAPI::CodeSource* codeSrc = Dyninst::ParseAPI::convert(func)->obj()->cs();
+//      addrtype base_addr = (MIAMI::addrtype)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-start);
+//      addrtype low_addr_offset = (MIAMI::addrtype)codeSrc->offset();
+//      BPatch_module * module =  func->getModule();
+//      BPatch_object * obj = module->getObject();
+//
+//      cout<<"OZGURDBG func name: "<<func->getName()<<" baseAddr:"<<std::hex<<func->getBaseAddr()<<" Start Addr=0x"<<start<<" End Addr=0x"<<end<<" func baseAddr:"<<base_addr<<" low_addr_offset:"<<low_addr_offset<<" pathname: "<<obj->pathName()<<std::dec<<std::endl;
+//   }
+   //OZGURE
+
+
 }
 
 int LoadModule::loadFPfile(string routName, ProgScope *prog, const MiamiOptions *mo){
    cout<<__func__<<endl;
    std::vector<BPatch_function*> tfunctions;
    dyn_image->findFunction(routName.c_str(), tfunctions,false,true,false);
-   for(unsigned int f = 0; f < tfunctions.size(); f++) { //search for inlined functions (possibly do special analysis in inlined function found)
-      cout<<tfunctions[f]->getName()<<" "<<tfunctions[f]->getMangledName()<<" inst: "<<tfunctions[f]->isInstrumentable()<<" "<<(unsigned int*)tfunctions[f]->getBaseAddr()<<std::endl;
-      BPatch_flowGraph *fg =tfunctions[f]->getCFG();
-      std::set<BPatch_basicBlock*> blks;
-      fg->getAllBasicBlocks(blks);
-      cout<<"num basic blocks: "<<blks.size()<<std::endl;
-      Dyninst::SymtabAPI::Symtab* symtab = Dyninst::SymtabAPI::convert(tfunctions[f]->getModule()->getObject());
-      cout<<(symtab == NULL)<<std::endl;
-      if (symtab!=NULL){
-         Dyninst::SymtabAPI::Function* tf;
-         if(symtab->findFuncByEntryOffset(tf,(Dyninst::Offset)tfunctions[f]->getBaseAddr())){
-            Dyninst::SymtabAPI::InlineCollection inlines = tf->getInlines();
-            cout<<"inlined: "<<inlines.size()<<std::endl;
-            for(Dyninst::SymtabAPI::InlineCollection::iterator it = inlines.begin();it != inlines.end(); ++it){
-               Dyninst::SymtabAPI::FunctionBase* inFunc = (*it);
-               cout<<"\t"<<inFunc->getName()<<std::endl;
-               std::pair<std::string, Dyninst::Offset> callSite = dynamic_cast<Dyninst::SymtabAPI::InlinedFunction*>(inFunc)->getCallsite();
-               cout<<callSite.first<<" "<<callSite.second<<std::endl;
+   if(tfunctions.size()){
+      for(unsigned int f = 0; f < tfunctions.size(); f++) { //search for inlined functions (possibly do special analysis in inlined function found)
+         cout<<tfunctions[f]->getName()<<" "<<tfunctions[f]->getMangledName()<<" inst: "<<tfunctions[f]->isInstrumentable()<<" "<<(unsigned int*)tfunctions[f]->getBaseAddr()<<std::endl;
+         BPatch_flowGraph *fg =tfunctions[f]->getCFG();
+         std::set<BPatch_basicBlock*> blks;
+         fg->getAllBasicBlocks(blks);
+         cout<<"num basic blocks: "<<blks.size()<<std::endl;
+         Dyninst::SymtabAPI::Symtab* symtab = Dyninst::SymtabAPI::convert(tfunctions[f]->getModule()->getObject());
+         cout<<(symtab == NULL)<<std::endl;
+         if (symtab!=NULL){
+            Dyninst::SymtabAPI::Function* tf;
+            if(symtab->findFuncByEntryOffset(tf,(Dyninst::Offset)tfunctions[f]->getBaseAddr())){
+               Dyninst::SymtabAPI::InlineCollection inlines = tf->getInlines();
+               cout<<"inlined: "<<inlines.size()<<std::endl;
+               for(Dyninst::SymtabAPI::InlineCollection::iterator it = inlines.begin();it != inlines.end(); ++it){
+                  Dyninst::SymtabAPI::FunctionBase* inFunc = (*it);
+                  cout<<"\t"<<inFunc->getName()<<std::endl;
+                  std::pair<std::string, Dyninst::Offset> callSite = dynamic_cast<Dyninst::SymtabAPI::InlinedFunction*>(inFunc)->getCallsite();
+                  cout<<callSite.first<<" "<<callSite.second<<std::endl;
+               }
             }
          }
       }
-   }
 
 
-   Dyninst::Address start,end;
-   tfunctions[0]->getAddressRange(start,end);
-   Dyninst::ParseAPI::CodeSource* codeSrc = Dyninst::ParseAPI::convert(tfunctions[0])->obj()->cs();
-   base_addr = (MIAMI::addrtype)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-start);
-   reloc_offset=base_addr;
-   low_addr_offset = (MIAMI::addrtype)codeSrc->offset();
+      Dyninst::Address start,end;
+      tfunctions[0]->getAddressRange(start,end);
+      Dyninst::ParseAPI::CodeSource* codeSrc = Dyninst::ParseAPI::convert(tfunctions[0])->obj()->cs();
+      base_addr = (MIAMI::addrtype)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-start);
+      reloc_offset=base_addr;
+      low_addr_offset = (MIAMI::addrtype)codeSrc->offset();
 
-   if (mo->fp_path.size() > 0){
-      ifstream fpFile;
-      fpFile.open(mo->fp_path);
-      addrtype insn;
-      std::string fpFuncNm;
-      std::string fpDso;
-//ozgurS
-      std::string dso = "dso:";
-      std::string funcName = "func:"+mo->func_name;
-      std::string line;
-      bool inFunction =false;
-      memStruct emptyMemStruct;
-      emptyMemStruct.level = 0;
-      emptyMemStruct.hitCount = 0.0;
-      emptyMemStruct.latency = 0.0;
-      std::getline(fpFile , line);
-      std::istringstream in(line);
-      int totalLVLs = 0;
-      in >> std::dec >> totalLVLs ;
-      std::cout<<"OZGUR XTRW totallvl "<<totalLVLs<<std::endl;
-      std::cout<<"LINE: "<<line<<std::endl;
-      for(int i= 0; i<totalLVLs; i++){
-         emptyLevelMap[i]=emptyMemStruct;
-      }
-      while (std::getline(fpFile , line)) {
-      std::cout<<"LINE: "<<line<<std::endl;
-            if (line == funcName){
-               inFunction = true;
-               continue;
-            } else if (line.length() < 2){
-               inFunction = false;
-            }
-            if (inFunction){
-               int numLevel = 0;
-//               std::cout<<" OZGURXDEBUG line: " << line << std::endl;
-               std::istringstream in(line);
-               in  >> std::hex >> insn >> numLevel;
-               memStruct tempMemStruct;
-               InstlvlMap lvlMap; 
-               for (int i=0; i <numLevel; i++){
-                  in >> std::dec >> tempMemStruct.level >> tempMemStruct.hitCount;
-//                  std::cout<<"OZGURDATACOLLECTION lvl:"<<tempMemStruct.level<<" hit:"<<tempMemStruct.hitCount<<std::endl;
-                  lvlMap[tempMemStruct.level] = tempMemStruct;
+      if (mo->fp_path.size() > 0){
+         ifstream fpFile;
+         fpFile.open(mo->fp_path);
+         addrtype insn;
+         std::string fpFuncNm;
+         std::string fpDso;
+   //ozgurS
+         std::string dso = "dso:";
+         std::string funcName = "func:"+mo->func_name;
+         std::string line;
+         bool inFunction =false;
+         memStruct emptyMemStruct;
+         emptyMemStruct.level = 0;
+         emptyMemStruct.hitCount = 0.0;
+         emptyMemStruct.latency = 0.0;
+         std::getline(fpFile , line);
+         std::istringstream in(line);
+         int totalLVLs = 0;
+         in >> std::dec >> totalLVLs ;
+         std::cout<<"OZGUR XTRW totallvl "<<totalLVLs<<std::endl;
+         std::cout<<"LINE: "<<line<<std::endl;
+         for(int i= 0; i<totalLVLs; i++){
+            emptyLevelMap[i]=emptyMemStruct;
+         }
+         while (std::getline(fpFile , line)) {
+         std::cout<<"LINE: "<<line<<std::endl;
+               if (line == funcName){
+                  inFunction = true;
+                  continue;
+               } else if (line.length() < 2){
+                  inFunction = false;
                }
-               double miss = calculateMissRatio(lvlMap ,  0);
-               instMemMap[start+insn] = lvlMap;
-               std::cout<<" 1OZGURDEBUG inst " << std::hex << insn << " real addres: "<<start+insn << " lvl: "<< std::dec << instMemMap[start+insn][0].level <<" hit:" <<instMemMap[start+insn][0].hitCount  << " missRatio lvl0: " << miss << std::endl;
-            }
+               if (inFunction){
+                  int numLevel = 0;
+   //               std::cout<<" OZGURXDEBUG line: " << line << std::endl;
+                  std::istringstream in(line);
+                  in  >> std::hex >> insn >> numLevel;
+                  memStruct tempMemStruct;
+                  InstlvlMap lvlMap; 
+                  for (int i=0; i <numLevel; i++){
+                     in >> std::dec >> tempMemStruct.level >> tempMemStruct.hitCount;
+   //                  std::cout<<"OZGURDATACOLLECTION lvl:"<<tempMemStruct.level<<" hit:"<<tempMemStruct.hitCount<<std::endl;
+                     lvlMap[tempMemStruct.level] = tempMemStruct;
+                  }
+                  double miss = calculateMissRatio(lvlMap ,  0);
+                  instMemMap[start+insn] = lvlMap;
+                  std::cout<<" 1OZGURDEBUG inst " << std::hex << insn << " real addres: "<<start+insn << " lvl: "<< std::dec << instMemMap[start+insn][0].level <<" hit:" <<instMemMap[start+insn][0].hitCount  << " missRatio lvl0: " << miss << std::endl;
+               }
+         }
+         fpFile.close(); 
       }
-      fpFile.close(); 
+   }
+   return 0;
+}
+
+int LoadModule::dyninstAnalyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo){
+     std::cout<<__func__<<" "<<__LINE__<<std::endl; 
+   size_t res;
+   int ires;
+   if (ires < 0)  // error
+   {
+      perror ("Changing offset to start of routine area failed");
+      return (-1);
    }
 
+   // next get the number of routines
+   uint32_t numRoutines = 0;
+   res = fread(&numRoutines, 4, 1, fd);
+   if (res!=1 || numRoutines>1024*1024)
+      fprintf(stderr, "ERROR while reading routine count res=%ld, numRoutines=%u\n",
+            res, numRoutines);
+      
+   for (uint32_t r=0 ; r<numRoutines ; ++r)
+   {
+      Routine *rout = dyninstLoadOneRoutine(fd, r , dyn_image);
+      if (rout == NULL)
+      {
+         if (mo->do_linemap)
+            FinalizeSourceFileInfo();
+         return (-1);
+      }
+      addrtype rstart = rout->Start();
+      std::vector<BPatch_function*> tfunctions;
+      //dyn_image->findFunction(rout->Name().c_str(), tfunctions,false,true,false);
+      dyn_image->findFunction((unsigned long)rstart, tfunctions);
+      for(unsigned int f = 0; f < tfunctions.size(); f++) { //search for inlined functions (possibly do special analysis in inlined function found)
+   //      cout<<tfunctions[f]->getName()<<" "<<tfunctions[f]->getMangledName()<<" inst: "<<tfunctions[f]->isInstrumentable()<<" "<<(unsigned int*)tfunctions[f]->getBaseAddr()<<std::endl;
+         BPatch_flowGraph *fg =tfunctions[f]->getCFG();
+         std::set<BPatch_basicBlock*> blks;
+         fg->getAllBasicBlocks(blks);
+   //      cout<<"num basic blocks: "<<blks.size()<<std::endl;
+         Dyninst::SymtabAPI::Symtab* symtab = Dyninst::SymtabAPI::convert(tfunctions[f]->getModule()->getObject());
+   //      cout<<(symtab == NULL)<<std::endl;
+         if (symtab!=NULL){
+            Dyninst::SymtabAPI::Function* tf;
+            if(symtab->findFuncByEntryOffset(tf,(Dyninst::Offset)tfunctions[f]->getBaseAddr())){
+               Dyninst::SymtabAPI::InlineCollection inlines = tf->getInlines();
+   //            cout<<"inlined: "<<inlines.size()<<std::endl;
+               for(Dyninst::SymtabAPI::InlineCollection::iterator it = inlines.begin();it != inlines.end(); ++it){
+                  Dyninst::SymtabAPI::FunctionBase* inFunc = (*it);
+   //               cout<<"\t"<<inFunc->getName()<<std::endl;
+                  std::pair<std::string, Dyninst::Offset> callSite = dynamic_cast<Dyninst::SymtabAPI::InlinedFunction*>(inFunc)->getCallsite();
+   //               cout<<callSite.first<<" "<<callSite.second<<std::endl;
+               }
+            }
+         }
+      }
+
+      if(tfunctions.size()){
+         Dyninst::Address start,end;
+         tfunctions[0]->getAddressRange(start,end);
+         Dyninst::ParseAPI::CodeSource* codeSrc = Dyninst::ParseAPI::convert(tfunctions[0])->obj()->cs();
+         base_addr = (MIAMI::addrtype)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-start);
+         reloc_offset=base_addr;
+         low_addr_offset = (MIAMI::addrtype)codeSrc->offset();
+      }
+  //    rout->discover_CFG(rstart);
+      
+      /* create program scope for this load module */
+      img_scope = new ImageScope(prog, img_name, img_id);
+
+      if (rout->is_valid_for_analysis())
+      {
+#if VERBOSE_DEBUG_LOAD_MODULE
+         DEBUG_LOAD_MODULE(1,
+            fprintf (stderr, "Starting analysis for routine %s\n", rout->Name().c_str());
+         )
+#endif
+         ires = rout->main_analysis(img_scope, mo);
+         if (ires < 0)
+         {
+            fprintf (stderr, "Error while analyzing routine %s\n", rout->Name().c_str());
+            if (mo->do_linemap)
+               FinalizeSourceFileInfo();
+            return (-1);
+         }
+      }
+
+      delete (rout);
+   }
    return 0;
 }
 
 int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const MiamiOptions *mo){
-     std::cout<<__func__<<"Line 766\n"; 
-   cout<<"dyninstAnalyzeRoutine"<<endl;
+     std::cout<<__func__<<__LINE__<<std::endl; 
    std::vector<BPatch_function*> tfunctions;
    dyn_image->findFunction(routName.c_str(), tfunctions,false,true,false);
    for(unsigned int f = 0; f < tfunctions.size(); f++) { //search for inlined functions (possibly do special analysis in inlined function found)
-      cout<<tfunctions[f]->getName()<<" "<<tfunctions[f]->getMangledName()<<" inst: "<<tfunctions[f]->isInstrumentable()<<" "<<(unsigned int*)tfunctions[f]->getBaseAddr()<<std::endl;
+//      cout<<tfunctions[f]->getName()<<" "<<tfunctions[f]->getMangledName()<<" inst: "<<tfunctions[f]->isInstrumentable()<<" "<<(unsigned int*)tfunctions[f]->getBaseAddr()<<std::endl;
       BPatch_flowGraph *fg =tfunctions[f]->getCFG();
       std::set<BPatch_basicBlock*> blks;
       fg->getAllBasicBlocks(blks);
-      cout<<"num basic blocks: "<<blks.size()<<std::endl;
+//      cout<<"num basic blocks: "<<blks.size()<<std::endl;
       Dyninst::SymtabAPI::Symtab* symtab = Dyninst::SymtabAPI::convert(tfunctions[f]->getModule()->getObject());
-      cout<<(symtab == NULL)<<std::endl;
+//      cout<<(symtab == NULL)<<std::endl;
       if (symtab!=NULL){
          Dyninst::SymtabAPI::Function* tf;
          if(symtab->findFuncByEntryOffset(tf,(Dyninst::Offset)tfunctions[f]->getBaseAddr())){
             Dyninst::SymtabAPI::InlineCollection inlines = tf->getInlines();
-            cout<<"inlined: "<<inlines.size()<<std::endl;
+//            cout<<"inlined: "<<inlines.size()<<std::endl;
             for(Dyninst::SymtabAPI::InlineCollection::iterator it = inlines.begin();it != inlines.end(); ++it){
                Dyninst::SymtabAPI::FunctionBase* inFunc = (*it);
-               cout<<"\t"<<inFunc->getName()<<std::endl;
+//               cout<<"\t"<<inFunc->getName()<<std::endl;
                std::pair<std::string, Dyninst::Offset> callSite = dynamic_cast<Dyninst::SymtabAPI::InlinedFunction*>(inFunc)->getCallsite();
-               cout<<callSite.first<<" "<<callSite.second<<std::endl;
+//               cout<<callSite.first<<" "<<callSite.second<<std::endl;
             }
          }
       }
@@ -1118,8 +1350,8 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
    base_addr = (MIAMI::addrtype)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-start);
    reloc_offset=base_addr;
    low_addr_offset = (MIAMI::addrtype)codeSrc->offset();
-   cout << (unsigned int*)codeSrc->getPtrToInstruction(start) <<" BU mu: "<<(unsigned int*)start<<" "<<(unsigned int*)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-(Dyninst::Address)start)<<endl;
-   cout << (unsigned int*)codeSrc->offset()<<" "<<(unsigned int*)codeSrc->length()<<" "<<(unsigned int*)codeSrc->baseAddress()<<" "<<(unsigned int*)codeSrc->loadAddress()<<endl;
+   //cout << (unsigned int*)codeSrc->getPtrToInstruction(start) <<" BU mu: "<<(unsigned int*)start<<" "<<(unsigned int*)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-(Dyninst::Address)start)<<endl;
+   //cout << (unsigned int*)codeSrc->offset()<<" "<<(unsigned int*)codeSrc->length()<<" "<<(unsigned int*)codeSrc->baseAddress()<<" "<<(unsigned int*)codeSrc->loadAddress()<<endl;
    if (mo->lat_path.size() > 0){
       ifstream latFile;
       latFile.open(mo->lat_path);
@@ -1240,6 +1472,7 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
    std::cerr << "[INFO]LoadModule::dynInstAnalyzeRoutines(): '" << rout->Name() <<" "<<(unsigned int*)reloc_offset<< "'\n";
    addrtype rstart = rout->Start();
    rout->discover_CFG(rstart);
+   //rout->dyninst_discover_CFG(rstart);
    int ires;
 
    img_scope = new ImageScope(prog, img_name, img_id);

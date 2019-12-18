@@ -57,7 +57,7 @@ Routine::Routine(LoadModule *_img, addrtype _start, usize_t _size,
         const std::string& _name, addrtype _offset, addrtype _reloc)
     : PrivateRoutine(_img, _start, _size, _name, _offset)
 {
-   cout <<"routine: "<<_name<<" "<< (unsigned int*)_start<<" "<<(unsigned int*)_offset<<" "<<(unsigned int*)_reloc<<endl;
+   cout <<"OZGURDBG routine: "<<_name<<" start: "<< (unsigned int*)_start<<" offset: "<<(unsigned int*)_offset<<" reloc: "<<(unsigned int*)_reloc<<endl;
    reloc_offset = _reloc;
    valid_for_analysis = 0;
    validity_computed = 0;
@@ -818,7 +818,7 @@ Routine::computeStrideFormulasForRoutine(RIFGNodeId node, TarjanIntervals *tarj,
 int
 Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
 {
-     std::cout<<__func__<<"Line 821\n"; 
+   std::cout<<__func__<<__LINE__<<std::endl;
    int ires;
    // compute execution frequency of every edge and block
    CFG *cfg = ControlFlowGraph();
@@ -1081,17 +1081,19 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
 #endif
       }
       //OZGURS
-      build_loops_for_interval (rscope, root, &tarj, &mCfg, tarj.LoopIndex(root), 0,
+      if(mo->load_classes){
+         build_loops_for_interval (rscope, root, &tarj, &mCfg, tarj.LoopIndex(root), 0,
                 1 /*no_fpga_acc */, entryEdges, callEntryEdges);
+      } else {
       //OZGURE
-      // pass level info as well.
-      if (build_paths_for_interval (rscope, root, &tarj, &mCfg, tarj.LoopIndex(root), 0,
-                1 /*no_fpga_acc */, entryEdges, callEntryEdges))
-      {
-          fprintf (stderr, "==>>> ERROR: ROUTINE_SCOPE has been deleted by build_path_for_intervals, but program continues with bad pointer!!! <<<==\n");
-          fflush (stderr);
+         // pass level info as well.
+         if (build_paths_for_interval (rscope, root, &tarj, &mCfg, tarj.LoopIndex(root), 0,
+                   1 /*no_fpga_acc */, entryEdges, callEntryEdges))
+         {
+             fprintf (stderr, "==>>> ERROR: ROUTINE_SCOPE has been deleted by build_path_for_intervals, but program continues with bad pointer!!! <<<==\n");
+             fflush (stderr);
+         }
       }
-         
 #if BUILD_PATHS
 
 #if NOT_NOW  /* cannot do this until I have static analysis of memory references */
@@ -1178,12 +1180,11 @@ Routine::build_loops_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
             TarjanIntervals *tarj, MiamiRIFG* mCfg, int marker, int level, 
             int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges)
 {
-     std::cout<<__func__<<"Line 1181\n"; 
    CFG::Node* b;
    int kid;
    int is_zero = 1;
    
-   std::cerr << __func__<<" "<< name << "'\n";
+   std::cerr << __func__<<" routine: "<< name << "'\n";
    b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(node));
    b->markWith(marker);
    
@@ -1236,12 +1237,12 @@ Routine::build_loops_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
 //      if (tarj->IntervalType(kid) == RI_TARJ_ACYCLIC)   // not a loop head
         CFG::Node* nn  = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
         nn->setLoopIndex(tarj->LoopIndex(kid));
-      std::cout<<"for level:"<<level<<" Kid:"<<kid<<" Address:"<<std::hex<<nn->getStartAddress()<<std::dec<<std::endl;
-      std::cout<<"ExecCount="<<nn->ExecCount()<<std::endl;
+//      std::cout<<"for level:"<<level<<" Kid:"<<kid<<" Address:"<<std::hex<<nn->getStartAddress()<<std::dec<<std::endl;
+//      std::cout<<"ExecCount="<<nn->ExecCount()<<std::endl;
       if (! tarj->NodeIsLoopHeader(kid))
       {
          //OZGURS
-         std::cout<<"kid is not header"<<std::endl;
+//         std::cout<<"kid is not header"<<std::endl;
          //E
          b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
          // nothing to do here
@@ -1285,8 +1286,8 @@ Routine::build_loops_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
       if (tarj->NodeIsLoopHeader(kid))
       { //OZGURS
          CFG::Node *nn = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
-         std::cout<<"kid is header starts:"<<std::hex<<nn->getStartAddress()<<std::dec<<std::endl;
-         std::cout<<"Loop index:"<<tarj->LoopIndex(kid)<<" Level:"<<tarj->GetLevel(kid)<<std::endl; 
+//        std::cout<<"kid is header starts:"<<std::hex<<nn->getStartAddress()<<std::dec<<std::endl;
+//        std::cout<<"Loop index:"<<tarj->LoopIndex(kid)<<" Level:"<<tarj->GetLevel(kid)<<std::endl; 
          //E
          int tmarker = tarj->LoopIndex(kid);
          LoopScope *lscope = new LoopScope (pscope, tarj->GetLevel(kid), 
@@ -1318,12 +1319,12 @@ Routine::build_loops_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
    if (!is_zero || mo->do_ref_scope_index)
    { 
 //OZGURS
-std::cout<<"!is_zero1"<<std::endl;
+//std::cout<<"!is_zero1"<<std::endl;
 //E 
       if (mo->do_streams || mo->do_idecode || mo->do_ref_scope_index)
       {
  //OZGURS
-std::cout<<"!is_zero2"<<std::endl;
+//std::cout<<"!is_zero2"<<std::endl;
 //E        
          AddrIntSet scopeMemRefs;
          RefIClassMap refClasses;
@@ -2739,11 +2740,21 @@ Routine::constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
          std::map<int , float> fpPerLoop;
          float totalFP=0;
          std::map<int,double> levelExecCounts;
-         calculateFP(sch, root, mCfg, tarj, 0, &fpPerLoop, &totalFP, levelExecCounts);
-         std::cout<<"TOTAL Footprint is "<<totalFP<<std::endl;
-         std::map<int , float>::iterator it;
-         for (it= fpPerLoop.begin(); it != fpPerLoop.end() ; it++){
-            std::cout<<"Footprint of Loop at index "<<it->first<<" is "<<it->second<<std::endl; 
+         if(mo->load_classes){
+            std::cout<<"Sniper Routine: "<<this->name<<std::endl;
+            sch->printLoadClassifications();
+         }
+         if(mo->fp_path.length()>0){
+            std::string p=mo->fp_path;
+            int d=mo->do_fp;
+            std::cout<<"OZGURDBG I am doing FP while do_fp:"<<d<<" and fp path:"<<p<<std::endl;
+            calculateFP(sch, root, mCfg, tarj, 0, &fpPerLoop, &totalFP, levelExecCounts);
+            
+            std::cout<<"TOTAL Footprint is "<<totalFP<<std::endl;
+            std::map<int , float>::iterator it;
+            for (it= fpPerLoop.begin(); it != fpPerLoop.end() ; it++){
+               std::cout<<"Footprint of Loop at index "<<it->first<<" is "<<it->second<<std::endl; 
+            }
          }
 
          if (sch)
@@ -2764,6 +2775,7 @@ Routine::calculateFP(SchedDG *sch, RIFGNodeId node,
    int kid ;
    float tempFP = 0;
    MIAMI_DG::DGBuilder * thisSch = static_cast<DGBuilder*>(sch);
+   MIAMI_DG::DGBuilder * loadSch = static_cast<DGBuilder*>(sch);
    CFG::Node *b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(node));
    
    if(tarj->GetLevel(node) == 0){
@@ -2774,6 +2786,7 @@ Routine::calculateFP(SchedDG *sch, RIFGNodeId node,
          b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
          levelExecCounts.insert(std::map<int,long int>::value_type(tarj->GetLevel(kid),  b->ExecCount()));
          calculateFP(sch, kid, mCfg, tarj, tarj->GetLevel(kid), fpPerLoop, totalFP , levelExecCounts);
+         //tempFP = loadSch->printLoadClassifications();
          tempFP = thisSch->calculateMemoryData(tarj->GetLevel(kid), tarj->LoopIndex(kid) , levelExecCounts);
          fpPerLoop->insert(std::map<int , float>::value_type(tarj->LoopIndex(kid), tempFP));
          *totalFP += tempFP;
@@ -3546,7 +3559,7 @@ Routine::simpleAddBlock(RIFGNodeId node, CFG::NodeList& ba,  MIAMIU::FloatArray&
    thisb->markWith(marker);
    for (kid = tarj->TarjInners(node) ; kid != RIFG_NIL ;kid = tarj->TarjNext(kid)){
       CFG::Node* nn  = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
-      std::cout<<"kid id:"<<kid<<" Node:"<<std::hex<<nn->getStartAddress()<<std::dec<<std::endl;
+//      std::cout<<"kid id:"<<kid<<" Node:"<<std::hex<<nn->getStartAddress()<<std::dec<<std::endl;
       if (! tarj->NodeIsLoopHeader(kid)){
          ba.push_back(nn);
          fa.push_back(1.0);
@@ -4318,7 +4331,7 @@ Routine::createDyninstFunction() // todo: better error checking
       fg->getAllBasicBlocks(blks);
       int blkCnt = 0;
       for (auto blk : blks){
-         cout<<blkCnt<<" "<< (unsigned int*)blk->getStartAddress()<<" "<<(unsigned int*)blk->getEndAddress()<<" "<< (unsigned int*)codeSrc->getPtrToInstruction(blk->getStartAddress())<<endl;
+//         cout<<blkCnt<<" "<< (unsigned int*)blk->getStartAddress()<<" "<<(unsigned int*)blk->getEndAddress()<<" "<< (unsigned int*)codeSrc->getPtrToInstruction(blk->getStartAddress())<<endl;
          (*dyn_addrToBlock)[std::make_pair(blk->getStartAddress(),blk->getEndAddress())]=blk;
          (*dyn_addrToBlkNo)[std::make_pair(blk->getStartAddress(),blk->getEndAddress())]=blkCnt++;
 
@@ -4326,11 +4339,11 @@ Routine::createDyninstFunction() // todo: better error checking
          int i =0;
          while ((unsigned int*)(blk->getStartAddress() + i) < (unsigned int*)blk->getEndAddress()){
             int len = 15;
-            cout<<(unsigned int*)(blk->getStartAddress() + i)<<" "<<(unsigned int*)blk->getEndAddress()<<" "<<(unsigned int*)(addr+i)<<" "<<endl;
+//            cout<<(unsigned int*)(blk->getStartAddress() + i)<<" "<<(unsigned int*)blk->getEndAddress()<<" "<<(unsigned int*)(addr+i)<<" "<<endl;
             //len = dump_instruction_at_pc((void*)(addr+i),len);
-            cout<<i<<" "<<len<<endl;
+//            cout<<i<<" "<<len<<endl;
             i+= len; 
-            cout<<(unsigned int*)(blk->getStartAddress() + i)<<" "<<(unsigned int*)blk->getEndAddress()<<" "<<(unsigned int*)(addr+i)<<" "<<endl;
+//            cout<<(unsigned int*)(blk->getStartAddress() + i)<<" "<<(unsigned int*)blk->getEndAddress()<<" "<<(unsigned int*)(addr+i)<<" "<<endl;
          }         
       }
    }
@@ -4340,7 +4353,7 @@ Routine::createDyninstFunction() // todo: better error checking
 void Routine::createBlkNoToMiamiBlkMap(CFG* cfg){
    for (auto it = dyn_addrToBlkNo->begin();it!= dyn_addrToBlkNo->end(); ++it){
       (*dyn_blkNoToMiamiBlk)[it->second] = cfg->findNodeContainingAddress(it->first.first);
-      std::cout<<it->second<<" "<<cfg->findNodeContainingAddress(it->first.first)<<" "<<(unsigned int*)it->first.first<<" "<<(unsigned int*)it->first.second<<std::endl;
+//      std::cout<<it->second<<" "<<cfg->findNodeContainingAddress(it->first.first)<<" "<<(unsigned int*)it->first.first<<" "<<(unsigned int*)it->first.second<<std::endl;
    }
          
 }
@@ -4372,7 +4385,6 @@ Routine::getDynFunction(){
 }
 
 int Routine::dyninst_discover_CFG(addrtype pc){
-   
    // check if we have a block created for pc already
    BBMap::iterator mits = _blocks.upper_bound(pc);
    BBMap::iterator mite;  // = _blocks.upper_bound(_end-1);

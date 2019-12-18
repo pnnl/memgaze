@@ -156,10 +156,10 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
    nextGpReg = 1;
    nextInReg = 1;
    nextUopIndex = 1;
-   std::cout<<"blkPath: "<<routine->getBlockNoFromAddr(ba[0]->getStartAddress(),ba[0]->getEndAddress())<<":"<<ba[0]->getType()<<std::endl;
+//   std::cout<<"blkPath: "<<routine->getBlockNoFromAddr(ba[0]->getStartAddress(),ba[0]->getEndAddress())<<":"<<ba[0]->getType()<<std::endl;
    minPathAddress = ba[0]->getStartAddress();
    maxPathAddress = ba[0]->getEndAddress();
-   std::cout<<"MinAddr: "<<minPathAddress<<" MaxAddr: "<<maxPathAddress<<std::endl;
+//   std::cout<<"MinAddr: "<<minPathAddress<<" MaxAddr: "<<maxPathAddress<<std::endl;
    // gmarin, 09/11/2013: The first block can be an inner loop, and
    // inner loop nodes do not have an associated CFG, so the reloc_offset
    // is always zero. Can all the blocks of a path be inner loops?
@@ -168,19 +168,19 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
 
    for( int i=1 ; i<numBlocks ; ++i )
    {
-      std::cout<<"->"<<routine->getBlockNoFromAddr(ba[i]->getStartAddress(),ba[i]->getEndAddress())<<":"<<ba[i]->getType();
+//      std::cout<<"->"<<routine->getBlockNoFromAddr(ba[i]->getStartAddress(),ba[i]->getEndAddress())<<":"<<ba[i]->getType();
       if (minPathAddress > ba[i]->getStartAddress())
          minPathAddress = ba[i]->getStartAddress();
       if (maxPathAddress < ba[i]->getEndAddress())
          maxPathAddress = ba[i]->getEndAddress();
    }
-   std::cout<<std::endl;
-   std::cout<<"probs: "<<endl;
-   for( int i=1 ; i<numBlocks ; ++i ){
-      std::cout<<fa[i]<<endl;
-   }
-   std::cout<<std::endl;
-   std::cout<<"_pathFreq: "<<_pathFreq<<" avgNumIters: "<<_avgNumIters<<endl;
+//   std::cout<<std::endl;
+//   std::cout<<"probs: "<<endl;
+//   for( int i=1 ; i<numBlocks ; ++i ){
+//      std::cout<<fa[i]<<endl;
+//   }
+//   std::cout<<std::endl;
+//   std::cout<<"_pathFreq: "<<_pathFreq<<" avgNumIters: "<<_avgNumIters<<endl;
    prev_inst_may_have_delay_slot = false;
    instruction_has_stack_operation = false;
    gpRegs = &gpMapper;
@@ -231,6 +231,88 @@ DGBuilder::~DGBuilder()
    // builtNodes is emptied at the end of the constructor now.
 }
 
+//ozgurS
+float DGBuilder::printLoadClassifications(){
+   NodesIterator fnit(*this);
+   double total_lds = 0;
+   double frame_lds = 0;
+   double strided_lds = 0;
+   double indirect_lds = 0;
+   double total_sts = 0;
+   double frame_sts = 0;
+   double strided_sts = 0;
+   double indirect_sts = 0;
+//std::cout<<"\n\nSNIPPER-PIN START\n";
+std::cout<<"Address\ttype\tclass\n";
+   while ((bool)fnit) {
+      Node *fnn = fnit;
+      if (fnn->isInstructionNode() && fnn->getType() >0){
+         if(fnn->is_load_instruction()){
+            bool flag_stride = true;
+            total_lds+=1;
+            if (fnn->is_scalar_stack_reference()){
+               frame_lds+=1;
+               std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tframe"<<std::endl;
+            } else if (fnn->is_strided_reference()){
+               IncomingEdgesIterator ieit(fnn);
+               while ((bool)ieit){
+                  Node *nn = ieit->source();
+                  if(nn->getType() <=0){
+                     ++ieit;
+                  } else { 
+                  if (nn->is_scalar_stack_reference()){
+                     frame_lds+=1;
+                     std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tconstant"<<std::endl;
+                     flag_stride = false;
+                  }
+                  ++ieit;}
+               }
+               if (flag_stride){
+                  strided_lds+=1;
+                  std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tstrided"<<std::endl;
+               }
+            } else {
+               indirect_lds+=1;
+               std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tindirect"<<std::endl;
+            }
+         }
+         if(fnn->is_store_instruction()){
+            bool flag_stride_store = true;
+            total_sts+=1;
+            if (fnn->is_scalar_stack_reference()){
+               frame_sts+=1;
+               std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tstore"<<"\tframe"<<std::endl;
+            } else if (fnn->is_strided_reference()){
+               IncomingEdgesIterator ieit(fnn);
+               while ((bool)ieit){
+                  Node *nn = ieit->source();
+                  if(nn->getType() <=0){
+                     ++ieit;
+                  } else { 
+                  if (nn->is_scalar_stack_reference()){
+                     frame_sts+=1;
+                     std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tstore"<<"\tconstant"<<std::endl;
+                     flag_stride_store = false;
+                  }
+                  ++ieit;}
+               }
+               if (flag_stride_store){
+                  strided_sts+=1;
+                  std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tstore"<<"\tstrided"<<std::endl;
+               }
+            } else {
+               indirect_sts+=1;
+               std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tstore"<<"\tindirect"<<std::endl;
+            }
+         }
+      }
+      ++fnit;
+   }
+//   std::cout<<"\n\nSNIPPER-PIN END\n";
+   std::cout<<"Testing mem Instructions Final:\nTotal loads:"<<total_lds<<"\tframe:"<<frame_lds<<"\tstrided:"<<strided_lds<<"\tindirect:"<<indirect_lds<<std::endl;
+   std::cout<<"Total stores:"<<total_sts<<"\tframe:"<<frame_sts<<"\tstrided:"<<strided_sts<<"\tindirect:"<<indirect_sts<<std::endl;
+//   std::cout<<std::endl<<std::endl; 
+}
 
 //ozgurS
 float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double> levelExecCounts){
@@ -744,7 +826,7 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
                else{
                   lastInsnNOP = false;
                }
-               std::cout <<"here "<< primary_uop.type <<" " << MIAMI::InstrBin::IB_nop<<std::endl;
+//               std::cout <<"here "<< primary_uop.type <<" " << MIAMI::InstrBin::IB_nop<<std::endl;
                num_instructions += 1;
                if (ba[i]->is_delay_block())
                {
@@ -788,9 +870,9 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
          node->setInOrderIndex(nextUopIndex++);
          //ozgurS TODO are we sure that only load inst has FP data ???
          if (node->is_load_instruction()){
-            std::cout<<" OzgurDebuging lvlMap hit count = "<<img->getMemLoadData(node->getAddress())->find(0)->second.hitCount<<std::endl;
+ //           std::cout<<" OzgurDebuging lvlMap hit count = "<<img->getMemLoadData(node->getAddress())->find(0)->second.hitCount<<std::endl;
             node->setLvlMap(img->getMemLoadData(node->getAddress()));
-            std::cout<<__func__<<" ozgur test total hit at lvl 0 is "<<node->getLvlMap()->find(0)->second.hitCount<<std::endl; 
+//            std::cout<<__func__<<" ozgur test total hit at lvl 0 is "<<node->getLvlMap()->find(0)->second.hitCount<<std::endl; 
             assert(false && "Impossible!!");// why this is impossible ??
          }
          //ozgurE
@@ -819,7 +901,7 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
       }
    }
 
-   std::cout<<"hmm 1"<<std::endl;
+//   std::cout<<"hmm 1"<<std::endl;
 
    // compute the top nodes here. Register carried dependencies are not 
    // taken into account anyway
@@ -865,7 +947,7 @@ DGBuilder::build_graph(int numBlocks, CFG::Node** ba, float* fa,
    // I should disable SWP. This is what most compilers do.
    // if (hasBarrierNodes())
    //    avgNumIters = 1.0;
-   std::cout <<"lastInsnNOP "<<lastInsnNOP<<std::endl;
+//   std::cout <<"lastInsnNOP "<<lastInsnNOP<<std::endl;
    if (avgNumIters <= ONE_ITERATION_EPSILON)  // no SWP for this path
    {
       if (lastBranch && !lastBranch->isBarrierNode()) // it was not added before
@@ -1059,7 +1141,7 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
       //      if (node->is_load_instruction()){
       //TODO findMe and FIXME
       node->setLvlMap(img->getMemLoadData(node->getAddress()));
-      std::cout<<"DEBUG OZGUR instadd: "<< std::hex <<node->getAddress()<< std::dec<<" lvl0:"<<node->getLvlMap()->find(0)->second.hitCount<<" lvl-1:"<<node->getLvlMap()->find(-1)->second.hitCount<<std::endl; //segfault FIXME
+//      std::cout<<"DEBUG OZGUR instadd: "<< std::hex <<node->getAddress()<< std::dec<<" lvl0:"<<node->getLvlMap()->find(0)->second.hitCount<<" lvl-1:"<<node->getLvlMap()->find(-1)->second.hitCount<<std::endl; //segfault FIXME
       //std::cout<<"DEBUG OZGUR instadd: "<< std::hex <<node->getAddress()<< std::dec<<" lvl5:"<<node->getLvlMap()->find(5)->second.hitCount<<std::endl; //segfault FIXME
       //std::cerr<<__func__<<" ozgur testing img total hit at lvl 0 is "<<node->getLvlMap()->find(0)->second.hitCount<<std::endl; 
       //      }

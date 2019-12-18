@@ -138,6 +138,7 @@ public:
 
    void createDyninstImage(BPatch& bpatch);
    int dyninstAnalyzeRoutine(std::string name, ProgScope *prog, const MiamiOptions *mo);
+   int dyninstAnalyzeRoutines(FILE *fd , ProgScope *prog, const MiamiOptions *mo);
    int loadFPfile(std::string name, ProgScope *prog, const MiamiOptions *mo);
    BPatch_image* getDyninstImage()
    {
@@ -158,6 +159,7 @@ private:
    int loadRoutineData(FILE *fd);
    int palmLoadRoutineData(const MiamiOptions *mo);
    Routine* loadOneRoutine(FILE *fd, uint32_t r);
+   Routine* dyninstLoadOneRoutine(FILE *fd, uint32_t r, BPatch_image* dyn_image);
    Routine* palmLoadOneRoutine(const MiamiOptions *mo, uint32_t r);
    
    addrtype cfg_base_addr;

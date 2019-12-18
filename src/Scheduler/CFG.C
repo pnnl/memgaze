@@ -463,7 +463,7 @@ CFG::addBBAndEdgeCounts()
 int
 CFG::computeBBAndEdgeCounts()
 {
-     std::cout<<__func__<<"Line 441\n"; 
+   std::cout<<__func__<<__LINE__<<std::endl;
    // traverse all nodes
    // - for each node check how many incoming and outgoing edges have counts
    // - if node has counts on all edges on one side, we can compute the node frequency

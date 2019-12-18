@@ -71,6 +71,7 @@ const int latPath = 913; //"lat_path", "", "path containing instruction level lo
 const int dumpFile = 914; //"dump_file", ""
 const int fpPath = 915; //"lat_path", "", "path containing instruction level data access levels");
 const int palm_cfgFile = 916; //"palm_cfg", "", "read palm CFG information from specified file (required)");
+const int load_classes = 917; //"load_class", "", "does load classification for every function if --func not specified"
 
 
  
@@ -98,6 +99,7 @@ bool   KnobInstructionMix = 0; //"imix", "0", "compute/report instruction mix in
 bool   KnobInstructionWidthMix = 0; //"iwmix", "0", "compute/report instruction/width mix information");
 std::string KnobScopeName = ""; //"s", "", "specify scope name for which to dump imix data in CSV format, default: all");
 bool   KnobGenerateXML = 0; //"xml", "0", "generate XML output in hpcviewer format. Enabled by default only if a machine file is provided and scheduling is performed.");
+bool KnobLoad_classes = 0; //"load_class", "", "does load classification for every function if --func not specified"
 
 
 std::string KnobBinaryPath = ""; //"bin_path", "", "binary to analyze (required).");
@@ -298,6 +300,10 @@ static int parse_opt (int key, char *arg, struct argp_state *state)
             KnobDumpFile.assign(arg);
         }
         
+        case load_classes:
+        {
+            KnobLoad_classes = true;
+        }
         default :
         {
             break; 
@@ -337,6 +343,7 @@ int parse_args(int argc , char * argv[]){
         { "lat_path", latPath, "STRING", 0, "path containing instruction level load latency"},
         { "fp_path", fpPath, "STRING", 0, "path containing instruction footprint profile"},
         { "dump_file", dumpFile, "STRING", 0, "file name to draw scheduling dump"},
+        { "load_classes", load_classes, "STRING", 0, "Does load classification for every function if --func is not defined"},
         {0}
      };
 
@@ -397,6 +404,7 @@ main (int argc, char *argv[])
     mo->addLatPath(KnobLatPath);
     mo->addFpPath(KnobFpPath);
     mo->addDumpFile(KnobDumpFile);
+    mo->setLoadClasses(KnobLoad_classes);
   
     if (! mo->CheckDependencies())
        return 0;
@@ -411,7 +419,7 @@ main (int argc, char *argv[])
    MIAMI::mdriver.ParseIncludeExcludeFiles(KnobIncludeFile, KnobExcludeFile);
     
     int nImgs = MIAMI::mdriver.NumberOfImages();
-    nImgs=1;//TODO FIXME this is a hack delete it for full run
+    //nImgs=1;//TODO FIXME this is a hack delete it for full run
     const std::string* iNames = MIAMI::mdriver.getImageNames();
     for (int i=0 ; i<nImgs ; ++i)
     {
