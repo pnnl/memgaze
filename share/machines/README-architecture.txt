@@ -20,8 +20,16 @@ Intel Xeon
 =============================================================================
 
 
-Kaby Lake (shrink of SkyLake)
+Ice Lake (shrink of SkyLake)
 ----------------------------------------
+
+IceLake Server:
+  - Process: 10 nm
+  
+
+Cascade Lake (optimization): 
+----------------------------------------
+- https://en.wikichip.org/wiki/intel/microarchitectures/cascade_lake
 
 
 SkyLake Server (arch): Intel x86-64 Core Gen6
@@ -37,8 +45,9 @@ SkyLake Server:
   - Cache structure
 	- Change ratio of L2 and L3:
 	  - more high-speed private cache; less slow shared/contended cache
+      - L1 and L2 are core-private
       - 4x increase size for L2, double L2 bandwidth
-	  - reduce size of L3
+	  - reduce size of L3 (shared)
     - L2 remains non-inclusive (e.g., prefetch data into L1 that is not in L2)
     - L3 is non-inclusive (which is distinct from strict exclusive)
 	  Something in L1 or L2 may/may not be in L3
