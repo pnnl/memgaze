@@ -1,3 +1,6 @@
 *~
 *.[oa]
 install/
+tags
+*.swp
+cscope.out
