@@ -1,2 +1,4 @@
 # Do not enable 'ident' without copying the old Id values (to preserve heritage).
 # * ident
+
+*.md ident
