@@ -67,6 +67,7 @@ Routine::Routine(LoadModule *_img, addrtype _start, usize_t _size,
    dyn_addrToBlock = new DynBlkMap;
    dyn_blkNoToMiamiBlk = new BlkNoMap;
    dyn_addrToBlkNo = new BlkAddrMap;
+std::cout<<std::dec<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
    createDyninstFunction();
 }
 
@@ -822,6 +823,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
    int ires;
    // compute execution frequency of every edge and block
    CFG *cfg = ControlFlowGraph();
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
 //   computeSchedule = _computeSchedule;
    mo = _mo;
    
@@ -845,8 +847,10 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
 //TODO FIXME I need to check if I build the cfg by file or dyninst.
 //   ires = cfg->addBBAndEdgeCounts();
 
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
 
    createBlkNoToMiamiBlkMap(cfg);
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
    
    MiamiRIFG mCfg(cfg);
    TarjanIntervals tarj(mCfg);  // computes tarjan intervals
@@ -963,8 +967,10 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
    }
 #endif // end debug3
    
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
    if (mo->do_scopetree)
    {
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
       // call mark_loop_back_edges after computing the tarjan intervals
       CFG::AddrEdgeMMap *entryEdges = new CFG::AddrEdgeMMap ();
       CFG::AddrEdgeMMap *callEntryEdges = new CFG::AddrEdgeMMap ();
@@ -1082,9 +1088,12 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
       }
       //OZGURS
       if(mo->load_classes){
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
          build_loops_for_interval (rscope, root, &tarj, &mCfg, tarj.LoopIndex(root), 0,
                 1 /*no_fpga_acc */, entryEdges, callEntryEdges);
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
       } else {
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
       //OZGURE
          // pass level info as well.
          if (build_paths_for_interval (rscope, root, &tarj, &mCfg, tarj.LoopIndex(root), 0,
@@ -1223,6 +1232,7 @@ Routine::build_loops_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
       is_zero = 0;
    if (mo->do_linemap && b->Size()>0 && (b->ExecCount()>0 || b->Size()>5))
       compute_lineinfo_for_block(pscope, b);
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
       
    // I need to iterate over the nodes twice. First time process only acyclic
    // blocks. Mark them with current marker and compute line info, but do not 
@@ -1280,6 +1290,7 @@ Routine::build_loops_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
       }
    }
 
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
    for (kid = tarj->TarjInners(node) ; kid != RIFG_NIL ; 
                 kid = tarj->TarjNext(kid))
    {
@@ -1314,6 +1325,7 @@ Routine::build_loops_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
          }
       }
    }
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
    
    CFG::Node *root_b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(node));
    if (!is_zero || mo->do_ref_scope_index)
@@ -1478,12 +1490,16 @@ Routine::build_loops_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
       }
       
       if (mo->do_cfgpaths && !level){
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
          constructLoops(pscope, root_b, marker, no_fpga_acc, entryEdges,
 			callEntryEdges,
                         tarj, mCfg);//TODO mayneed to fix this
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
       }
       if(mo->do_mycfgpaths){
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
          myConstructPaths(pscope,no_fpga_acc,mo->block_path);
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
       }
 
       return (0);
@@ -2666,6 +2682,7 @@ Routine::constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
 			CFG::AddrEdgeMMap *callEntryEdges,
                         TarjanIntervals *tarj, MiamiRIFG* mCfg)
 {
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
    std::cerr << "[INFO]Routine::constructLoops(): '" << name << "'\n";
    CFG::NodeList ba;
    CFG::EdgeList ea;
@@ -2693,6 +2710,7 @@ Routine::constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
    for (BPMap::iterator bpit=bpmtemp->begin() ; bpit!=bpmtemp->end() ; 
                 ++bpit, ++loopIdx)
    {
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
 //      for (int i=0; i < bpit->first->size ; i++){
 //         std::cout<<"loopIDX: "<<loopIdx<<" block start addres:"<<std::hex<<bpit->first->blocks[i]->getStartAddress()<<std::dec<<std::endl;
 //      }
@@ -2741,8 +2759,10 @@ Routine::constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
          float totalFP=0;
          std::map<int,double> levelExecCounts;
          if(mo->load_classes){
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
             std::cout<<"Sniper Routine: "<<this->name<<std::endl;
             sch->printLoadClassifications();
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
          }
          if(mo->fp_path.length()>0){
             std::string p=mo->fp_path;
@@ -4294,10 +4314,13 @@ void
 Routine::createDyninstFunction() // todo: better error checking
 {
    cout << "createDyninstFunction"<<endl;
+std::cout<<std::dec<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
    dyn_func = NULL;
    BPatch_image* dyn_img = InLoadModule()->getDyninstImage();
    std::vector<BPatch_function*> funcs;
+std::cout<<std::dec<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
    bool found = dyn_img->findFunction(start_addr,funcs);
+std::cout<<std::dec<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
    if (!found){
       fprintf(stderr, "Unable find dyninst function from address 0x%lx, searching based on name: %s \n",start_addr,name.c_str());
       dyn_img->findFunction(name.c_str(),funcs,true,true,true); 

@@ -33,25 +33,43 @@
 // DynInst includes
 //***************************************************************************
 
+#include <BPatch.h>
+
 #include <CodeObject.h>
 #include <CodeSource.h>
-
-#include <BPatch.h>
-#include <BPatch_object.h>
-#include <BPatch_addressSpace.h>
-#include <BPatch_function.h>
-#include <BPatch_flowGraph.h>
 
 #include <Function.h>
 #include <Instruction.h>
 
 #include <Symtab.h>
+#include <ParseCallback.h>
 
+#include <BPatch_object.h>
+#include <BPatch_addressSpace.h>
+#include <BPatch_function.h>
+#include <BPatch_flowGraph.h>
+#include "BPatch_image.h"
+
+#include "BPatch_process.h" 
+#include "BPatch_binaryEdit.h" 
+#include "BPatch_point.h" 
+#include "BPatch_function.h"
+
+#include <fnmatch.h>
+
+#include "Snippet.h"
+#include "Instruction.h"
+
+#include "PatchMgr.h"
+#include "PatchModifier.h"
+#include "Point.h"
 
 //***************************************************************************
 // 
 //***************************************************************************
-
+using namespace Dyninst;
+using namespace Dyninst::PatchAPI;
+using namespace Dyninst::InstructionAPI;
 
 using namespace MIAMI;
 using namespace std;
@@ -447,6 +465,7 @@ load_error:
 Routine* 
 LoadModule::dyninstLoadOneRoutine(FILE *fd, uint32_t r, BPatch_image* dyn_image) 
 {
+std::cout<<std::dec<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
 #undef CHECK_COND
 #undef CHECK_COND0
      cout<<__func__<<" "<<__LINE__<<std::endl; 
@@ -479,6 +498,7 @@ LoadModule::dyninstLoadOneRoutine(FILE *fd, uint32_t r, BPatch_image* dyn_image)
    Dyninst::Address start,end;
    Dyninst::ParseAPI::CodeSource* codeSrc;
 
+std::cout<<std::dec<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
 
    // save start/end addresses and name in prefix format (len followed by name)
    res = fread(&_offset, sizeof(addrtype), 1, fd);
@@ -1098,8 +1118,12 @@ LoadModule::SetHasIrregularAccessAtDistance(int32_t setId, int dist)
 void 
 LoadModule::createDyninstImage(BPatch& bpatch)
 {
+std::cout<<std::dec<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
    BPatch_addressSpace* app = bpatch.openBinary(img_name.c_str(),false);
-   dyn_image = app->getImage();
+   //BPatch_binaryEdit* app = bpatch.openBinary(img_name.c_str(),false);
+   dyn_app = bpatch.openBinary(img_name.c_str(),false);
+//   dyn_image = app->getImage();
+   dyn_image = dyn_app->getImage();
    vector<BPatch_object*> objs;
    dyn_image->getObjects(objs);
    for (auto obj : objs){
@@ -1114,24 +1138,7 @@ LoadModule::createDyninstImage(BPatch& bpatch)
          delete[] buf;
       }
    }
-
-   //OZGURS trying to loop in routines
-//   vector<BPatch_function *> funcs;
-//   dyn_image->getProcedures(funcs);
-//   Dyninst::Address start, end;
-//   for (auto func : funcs){
-//      func->getAddressRange((start), end);
-//      Dyninst::ParseAPI::CodeSource* codeSrc = Dyninst::ParseAPI::convert(func)->obj()->cs();
-//      addrtype base_addr = (MIAMI::addrtype)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-start);
-//      addrtype low_addr_offset = (MIAMI::addrtype)codeSrc->offset();
-//      BPatch_module * module =  func->getModule();
-//      BPatch_object * obj = module->getObject();
-//
-//      cout<<"OZGURDBG func name: "<<func->getName()<<" baseAddr:"<<std::hex<<func->getBaseAddr()<<" Start Addr=0x"<<start<<" End Addr=0x"<<end<<" func baseAddr:"<<base_addr<<" low_addr_offset:"<<low_addr_offset<<" pathname: "<<obj->pathName()<<std::dec<<std::endl;
-//   }
-   //OZGURE
-
-
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
 }
 
 int LoadModule::loadFPfile(string routName, ProgScope *prog, const MiamiOptions *mo){
@@ -1226,7 +1233,7 @@ int LoadModule::loadFPfile(string routName, ProgScope *prog, const MiamiOptions 
 }
 
 int LoadModule::dyninstAnalyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo){
-     std::cout<<__func__<<" "<<__LINE__<<std::endl; 
+     std::cout<<std::dec<<__func__<<" "<<__LINE__<<std::endl; 
    size_t res;
    int ires;
    if (ires < 0)  // error
@@ -1244,6 +1251,7 @@ int LoadModule::dyninstAnalyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOpt
       
    for (uint32_t r=0 ; r<numRoutines ; ++r)
    {
+std::cout<<std::dec<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
       Routine *rout = dyninstLoadOneRoutine(fd, r , dyn_image);
       if (rout == NULL)
       {
@@ -1298,7 +1306,9 @@ int LoadModule::dyninstAnalyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOpt
             fprintf (stderr, "Starting analysis for routine %s\n", rout->Name().c_str());
          )
 #endif
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
          ires = rout->main_analysis(img_scope, mo);
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
          if (ires < 0)
          {
             fprintf (stderr, "Error while analyzing routine %s\n", rout->Name().c_str());

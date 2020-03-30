@@ -38,9 +38,179 @@
 #include "miami_containers.h"
 #include "routine.h"
 
+#include "BPatch.h"
+#include "BPatch_function.h"
+#include "BPatch_object.h"
+#include "BPatch_image.h"
+#include "BPatch_point.h"
+
+#include "PatchMgr.h"
+#include "PatchModifier.h"
+#include "Point.h"
+#include "Snippet.h"
+
 namespace MIAMI_DG
 {
-
+class PTWriteSnippetEAX : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetEAX() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[4] = {0xf3,0x0f,0xae,0xe0};
+        buf.copy(ptwrite_example, 4);
+    }
+};
+class PTWriteSnippetEBX : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetEBX() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[4] = {0xf3, 0x0f, 0xae, 0xe3}; 
+        buf.copy(ptwrite_example, 4);
+    }
+};
+class PTWriteSnippetECX : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetECX() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[4] = {0xf3,0x0f,0xae,0xe1};
+        buf.copy(ptwrite_example, 4);
+    }
+};
+class PTWriteSnippetEDX : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetEDX() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[4] = {0xf3,0x0f,0xae,0xe2};
+        buf.copy(ptwrite_example, 4);
+    }
+};
+class PTWriteSnippetRAX : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetRAX() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[5] = {0xf3, 0x48, 0x0f, 0xae, 0xe0};
+        buf.copy(ptwrite_example, 5);
+    }
+};
+class PTWriteSnippetRBX : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetRBX() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[5] = {0xf3, 0x48, 0x0f, 0xae, 0xe3};
+        buf.copy(ptwrite_example, 5);
+    }
+};
+class PTWriteSnippetRCX : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetRCX() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[5] = {0xf3, 0x48, 0x0f, 0xae, 0xe1};
+        buf.copy(ptwrite_example, 5);
+    }
+};
+class PTWriteSnippetRDX : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetRDX() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[5] = {0xf3, 0x48, 0x0f, 0xae, 0xe2};
+        buf.copy(ptwrite_example, 5);
+    }
+};
+class PTWriteSnippetRBP : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetRBP() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[5] = {0xf3, 0x48, 0x0f, 0xae, 0xe5};
+        buf.copy(ptwrite_example, 5);
+    }
+};
+class PTWriteSnippetRSP : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetRSP() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[5] = {0xf3, 0x48, 0x0f, 0xae, 0xe4};
+        buf.copy(ptwrite_example, 5);
+    }
+};
+class PTWriteSnippetRSI : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetRSI() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[5] = {0xf3, 0x48, 0x0f, 0xae, 0xe6} ;
+        buf.copy(ptwrite_example, 5);
+    }
+};
+class PTWriteSnippetRDI : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetRDI() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[5] = {0xf3, 0x48, 0x0f, 0xae, 0xe7};
+        buf.copy(ptwrite_example, 5);
+    }
+};
+class PTWriteSnippetR8 : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetR8() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[5] = {0xf3, 0x49, 0x0f, 0xae, 0xe0};
+        buf.copy(ptwrite_example, 5);
+    }
+};
+class PTWriteSnippetR9 : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetR9() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[5] = {0xf3, 0x49, 0x0f, 0xae, 0xe1};
+        buf.copy(ptwrite_example, 5);
+    }
+};
+class PTWriteSnippetR10 : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetR10() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[5] = {0xf3, 0x49, 0x0f, 0xae, 0xe2}; 
+        buf.copy(ptwrite_example, 5);
+    }
+};
+class PTWriteSnippetR11 : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetR11() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[5] = {0xf3, 0x49, 0x0f, 0xae, 0xe3};
+        buf.copy(ptwrite_example, 5);
+    }
+};
+class PTWriteSnippetR12 : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetR12() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[5] = {0xf3, 0x49, 0x0f, 0xae, 0xe4};
+        buf.copy(ptwrite_example, 5);
+    }
+};
+class PTWriteSnippetR13 : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetR13() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[5] = {0xf3, 0x49, 0x0f, 0xae, 0xe5};
+        buf.copy(ptwrite_example, 5);
+    }
+};
+class PTWriteSnippetR14 : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetR14() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[5] = {0xf3, 0x49, 0x0f, 0xae, 0xe6};
+        buf.copy(ptwrite_example, 5);
+    }
+};
+class PTWriteSnippetR15 : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetR15() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[5] = {0xf3, 0x49, 0x0f, 0xae, 0xe7};
+        buf.copy(ptwrite_example, 5);
+    }
+};
 typedef std::list<SchedDG::Node*> NodeList;
 typedef std::vector<SchedDG::Node*> UNPArray;
 typedef std::map<unsigned int, NodeList> UiNLMap;
@@ -128,6 +298,7 @@ public:
 //ozgurS
    float calculateMemoryData(int level, int index , std::map<int,double> levelExecCounts);
    float printLoadClassifications();
+   void addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::PatchAPI::Point* new_point, Node *nn);
 //ozgurE
 
 private:

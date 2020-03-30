@@ -140,7 +140,15 @@ public:
    int dyninstAnalyzeRoutine(std::string name, ProgScope *prog, const MiamiOptions *mo);
    int dyninstAnalyzeRoutines(FILE *fd , ProgScope *prog, const MiamiOptions *mo);
    int loadFPfile(std::string name, ProgScope *prog, const MiamiOptions *mo);
-   BPatch_image* getDyninstImage()
+   BPatch_binaryEdit* getDyninstBinEdit(){
+      return static_cast<BPatch_binaryEdit*>(dyn_app);
+   }
+   BPatch_addressSpace* getDyninstApp()
+   {
+      return dyn_app;
+   }
+
+  BPatch_image* getDyninstImage()
    {
       return dyn_image;
    }
@@ -191,7 +199,8 @@ private:
    GroupScope *undefScope;
    ImageScope *img_scope;
 
-   
+   //BPatch_binaryEdit* dyn_app;   
+   BPatch_addressSpace* dyn_app;   
    BPatch_image* dyn_image;
    InstLatMap instLats;
   

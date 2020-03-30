@@ -591,7 +591,25 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
 //         newimg->loadFPfile(mo->func_name, prog, mo);
 //         newimg->analyzeRoutines(fd, prog, mo);
 //From here I planing to follow v1 path to create routines vy using dyninst.  
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
          newimg->dyninstAnalyzeRoutines(fd,prog, mo);
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
+   //write this image back to a file
+         //BPatch_addressSpace * BPaddrSpace = newimg->getDyninstImage()->getAddressSpace();
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
+         BPatch_binaryEdit* BPapp = static_cast<BPatch_binaryEdit*>(newimg->getDyninstApp());
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
+         std::string newName = iname+"_PTW";
+std::cout<<"OZGURDBG::segfault image: "<<iname<< " func:"<<__func__<<" line"<<__LINE__<<std::endl;
+         //BPapp->writeFile(newName.c_str());
+//         if (iname.find(".so")==std::string::npos){
+            BPapp->writeFile(newName.c_str());
+            //BPapp->writeFile("Finel.out");
+  //       }
+
+//            newimg->getDyninstApp()->writeFile("testing.out");
+std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
+
 
 //After here We were using palm way to create each routine
 //      /*OZGURS trying to loop in routines This is DBG turn this off when you are done*/
