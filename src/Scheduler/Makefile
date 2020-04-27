@@ -6,7 +6,7 @@ include ../../miami.config
 
 # GNU compiler
 DBG ?= -g
-OPT ?= -O3
+OPT ?= -O0
 
 WFLAGS = \
 	-Wall \

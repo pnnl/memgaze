@@ -82,6 +82,11 @@ namespace MIAMI
       string lat_path;
       string fp_path; //footprint profile
       bool load_classes; //load classification
+      bool inst_loads; //instrument loads 
+      bool inst_stores; //instrument stores 
+      bool inst_strided; //instrument strided
+      bool inst_indirect; //instrument indirect 
+      bool inst_frame; //instrument frame
 
       MiamiOptions() {
          do_scheduling = false;
@@ -117,6 +122,11 @@ namespace MIAMI
 
          do_mycfgpaths = false;
          load_classes = false;
+         inst_loads = true;
+         inst_stores = true;
+         inst_strided = true;
+         inst_indirect = true;
+         inst_frame = false;
       }
       
       bool CheckDependencies() {
@@ -267,9 +277,29 @@ namespace MIAMI
       void setNoScopeTree(bool nst) {
          do_scopetree = !nst;
       }
-       
+      
       void setLoadClasses(bool lcs) {
          load_classes = lcs;
+      }
+       
+      void setInstLoads(bool opt) {
+         inst_loads = opt;
+      }
+           
+      void setInstStores(bool opt) {
+         inst_stores = opt;
+      }
+       
+      void setInstStrided(bool opt) {
+         inst_strided = opt;
+      }
+       
+      void setInstIndirect(bool opt) {
+         inst_indirect = opt;
+      }
+       
+      void setInstFrame(bool opt) {
+         inst_frame = opt;
       }
       
       void addDebugRoutine(const string& dname) {

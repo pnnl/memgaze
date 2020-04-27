@@ -72,6 +72,11 @@ const int dumpFile = 914; //"dump_file", ""
 const int fpPath = 915; //"lat_path", "", "path containing instruction level data access levels");
 const int palm_cfgFile = 916; //"palm_cfg", "", "read palm CFG information from specified file (required)");
 const int load_classes = 917; //"load_class", "", "does load classification for every function if --func not specified"
+const int inst_loads = 918; //"inst_loads", "", "instrument only load instructions Default = 1"
+const int inst_stores = 919; //"inst_stores", "", "instrument only store instructions Default = 1"
+const int inst_strided = 920; //"inst_strided", "", "instrument only strided instructions Default = 1"
+const int inst_indirect = 921; //"inst_indirect", "", "instrument only indirect instructions Default = 1"
+const int inst_frame = 922; //"inst_frame", "", "instrument only frame/constant instructions Default = 0"
 
 
  
@@ -100,7 +105,11 @@ bool   KnobInstructionWidthMix = 0; //"iwmix", "0", "compute/report instruction/
 std::string KnobScopeName = ""; //"s", "", "specify scope name for which to dump imix data in CSV format, default: all");
 bool   KnobGenerateXML = 0; //"xml", "0", "generate XML output in hpcviewer format. Enabled by default only if a machine file is provided and scheduling is performed.");
 bool KnobLoad_classes = 0; //"load_class", "", "does load classification for every function if --func not specified"
-
+bool KnobInst_loads = 1; //"inst_loads", "", "instrument only load instructions Default = 1"
+bool KnobInst_stores = 1; //"inst_stores", "", "instrument only store instructions Default = 1"
+bool KnobInst_strided = 1; //"inst_strided", "", "instrument only strided instructions Default = 1"
+bool KnobInst_indirect = 1; //"inst_indirect", "", "instrument only indirect instructions Default = 1"
+bool KnobInst_frame = 0; //"inst_frame", "", "instrument only frame/constant instructions Default = 0"
 
 std::string KnobBinaryPath = ""; //"bin_path", "", "binary to analyze (required).");
 std::string KnobFuncName = ""; //"func", "", "function to analyze (required).");
@@ -298,11 +307,32 @@ static int parse_opt (int key, char *arg, struct argp_state *state)
         case dumpFile:
         {
             KnobDumpFile.assign(arg);
+            break;
         }
         
         case load_classes:
         {
             KnobLoad_classes = true;
+        }
+        case inst_loads:
+        {
+            KnobInst_loads = atoi(arg);
+        }
+        case inst_stores:
+        {
+            KnobInst_stores = atoi(arg);
+        }
+        case inst_strided:
+        {
+            KnobInst_strided = atoi(arg);
+        }
+        case inst_indirect:
+        {
+            KnobInst_indirect = atoi(arg);
+        }
+        case inst_frame:
+        {
+            KnobInst_frame = atoi(arg);
         }
         default :
         {
@@ -344,6 +374,11 @@ int parse_args(int argc , char * argv[]){
         { "fp_path", fpPath, "STRING", 0, "path containing instruction footprint profile"},
         { "dump_file", dumpFile, "STRING", 0, "file name to draw scheduling dump"},
         { "load_classes", load_classes, "STRING", 0, "Does load classification for every function if --func is not defined"},
+        { "inst_loads", inst_loads, "BOOL", 1, "Instrument Loads (Default=1)"},
+        { "inst_stores", inst_stores, "BOOL", 1, "Instrument stores (Default=1)"},
+        { "inst_strided", inst_strided, "BOOL", 1, "Instrument Strided Load/Stores (Default=1)"},
+        { "inst_indirect", inst_indirect, "BOOL", 1, "Instrument Indirect Load/Stores (Default=1)"},
+        { "inst_frame", inst_frame, "BOOL", 1, "Instrument Frame/Constant Load/Stores (Default=0)"},
         {0}
      };
 
@@ -405,6 +440,11 @@ main (int argc, char *argv[])
     mo->addFpPath(KnobFpPath);
     mo->addDumpFile(KnobDumpFile);
     mo->setLoadClasses(KnobLoad_classes);
+    mo->setInstLoads(KnobInst_loads);
+    mo->setInstStores(KnobInst_stores);
+    mo->setInstStrided(KnobInst_strided);
+    mo->setInstIndirect(KnobInst_indirect);
+    mo->setInstFrame(KnobInst_frame);
   
     if (! mo->CheckDependencies())
        return 0;
@@ -417,7 +457,7 @@ main (int argc, char *argv[])
        return 0 ; //(Usage());
  
    MIAMI::mdriver.ParseIncludeExcludeFiles(KnobIncludeFile, KnobExcludeFile);
-    
+   std::cout<<"Inst loads="<<mo->inst_loads<<" Stores="<<mo->inst_stores<<" Strided="<<mo->inst_strided<<" Indirect="<<mo->inst_indirect<<" Frame/Constant="<<mo->inst_frame<<std::endl;
     int nImgs = MIAMI::mdriver.NumberOfImages();
     //nImgs=1;//TODO FIXME this is a hack delete it for full run
     const std::string* iNames = MIAMI::mdriver.getImageNames();

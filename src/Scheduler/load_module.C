@@ -465,7 +465,6 @@ load_error:
 Routine* 
 LoadModule::dyninstLoadOneRoutine(FILE *fd, uint32_t r, BPatch_image* dyn_image) 
 {
-std::cout<<std::dec<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
 #undef CHECK_COND
 #undef CHECK_COND0
      cout<<__func__<<" "<<__LINE__<<std::endl; 
@@ -498,7 +497,6 @@ std::cout<<std::dec<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<st
    Dyninst::Address start,end;
    Dyninst::ParseAPI::CodeSource* codeSrc;
 
-std::cout<<std::dec<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
 
    // save start/end addresses and name in prefix format (len followed by name)
    res = fread(&_offset, sizeof(addrtype), 1, fd);
@@ -1118,7 +1116,6 @@ LoadModule::SetHasIrregularAccessAtDistance(int32_t setId, int dist)
 void 
 LoadModule::createDyninstImage(BPatch& bpatch)
 {
-std::cout<<std::dec<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
    BPatch_addressSpace* app = bpatch.openBinary(img_name.c_str(),false);
    //BPatch_binaryEdit* app = bpatch.openBinary(img_name.c_str(),false);
    dyn_app = bpatch.openBinary(img_name.c_str(),false);
@@ -1138,7 +1135,6 @@ std::cout<<std::dec<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<st
          delete[] buf;
       }
    }
-std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
 }
 
 int LoadModule::loadFPfile(string routName, ProgScope *prog, const MiamiOptions *mo){
@@ -1251,7 +1247,6 @@ int LoadModule::dyninstAnalyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOpt
       
    for (uint32_t r=0 ; r<numRoutines ; ++r)
    {
-std::cout<<std::dec<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
       Routine *rout = dyninstLoadOneRoutine(fd, r , dyn_image);
       if (rout == NULL)
       {
@@ -1306,9 +1301,7 @@ std::cout<<std::dec<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<st
             fprintf (stderr, "Starting analysis for routine %s\n", rout->Name().c_str());
          )
 #endif
-std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
          ires = rout->main_analysis(img_scope, mo);
-std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
          if (ires < 0)
          {
             fprintf (stderr, "Error while analyzing routine %s\n", rout->Name().c_str());

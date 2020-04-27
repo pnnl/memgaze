@@ -16,7 +16,7 @@ ifneq ($(MIAMI_TARGET),$(PALM_MIAMI_ROOT))
 	@echo "Installing out of tree"
 	mkdir -p $(MIAMI_TARGET)
 	@echo "Copying documentation"
-	@cp -r doc README LICENSE ACKNOWLEDGEMENTS $(MIAMI_TARGET)
+#	@cp -r doc README LICENSE ACKNOWLEDGEMENTS $(MIAMI_TARGET)
 	@echo "Copying utilities"
 	@cp -r share ExtractSourceFiles $(MIAMI_TARGET)
 	@echo "Copying Viewer"

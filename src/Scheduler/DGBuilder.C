@@ -598,147 +598,206 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
    RInfoList destreg = nn->getDestReg();
    std::cout<<"Node has "<<srcreg.size()<<" src regs\n";
    std::cout<<"Node has "<<destreg.size()<<" dest regs\n";
-   RInfoList::iterator nnrit = destreg.begin();
-   for( ; nnrit!=destreg.end() ; ++nnrit ) {
-      std::cout<<"Print Dest reg info\n"<<nnrit->ToString()<<std::endl;
+   RInfoList::iterator nnrit;
+   if (nn->is_store_instruction()) {
+      nnrit = destreg.begin();
+      for( ; nnrit!=destreg.end() ; ++nnrit ) {
+         std::cout<<"Print Dest reg info\n"<<nnrit->ToString()<<std::endl;
+         std::cout<<"Print Src reg Name: "<<nnrit->name<<std::endl;
+         reg = nnrit->name;  
+         if(new_point){
+            switch (reg){
+               case  XED_REG_EAX:
+                  cerr << "PTW eax  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrEAX));
+                  break;	    		
+               case XED_REG_EBX:
+                  cerr << "PTW ebx  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrEBX));
+                  break;	    		
+               case XED_REG_ECX:
+                  cerr << "PTW ecx  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrECX));
+                  break;	    		
+               case XED_REG_EDX:
+                  cerr << "PTW edx  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrEDX));
+                  break;	    		
+               case XED_REG_RAX:
+                  cerr << "PTW rax  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRAX));
+                  break;	    		
+               case XED_REG_RBX:
+                  cerr << "PTW rbx  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRBX));
+                  break;	    		
+               case XED_REG_RCX:
+                  cerr << "PTW rcx  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRCX));
+                  break;	    		
+               case XED_REG_RDX:
+                  cerr << "PTW rdx  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRDX));
+                  break;	    		
+               case XED_REG_RBP:
+                  cerr << "PTW rbp  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRBP));
+                  break;	    		
+               case XED_REG_RSP:
+                  cerr << "PTW rsp  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRSP));
+                  break;	    		
+               case XED_REG_RSI:
+                  cerr << "PTW rsi  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRSI));
+                  break;	    		
+               case XED_REG_RDI:
+                  cerr << "PTW rdi  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRDI));
+                  break;	    		
+               case XED_REG_R8:
+                  cerr << "PTW r8  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR8));
+                  break;	    		
+               case XED_REG_R9:
+                  cerr << "PTW r9  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR9));
+                  break;	    		
+               case XED_REG_R10:
+                  cerr << "PTW r10  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR10));
+                  break;	    		
+               case XED_REG_R11:
+                  cerr << "PTW r11  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR11));
+                  break;	    		
+               case XED_REG_R12:
+                  cerr << "PTW r12  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR12));
+                  break;	    		
+               case XED_REG_R13:
+                  cerr << "PTW r13  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR13));
+                  break;	    		
+               case XED_REG_R14:
+                  cerr << "PTW r14  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR14));
+                  break;	    		
+               case XED_REG_R15:
+                  cerr << "PTW r15  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR15)); 
+                  break;	    		
+               default:
+                  cerr << "Register could not found\n"; 
+                  break;	    		
+            }
+         }  
+      }
    }
-
-
-   nnrit = srcreg.begin();
-   for( ; nnrit!=srcreg.end() ; ++nnrit ) {
-      std::cout<<"Print Src reg info\n"<<nnrit->ToString()<<std::endl;
-      std::cout<<"Print Src reg Name: "<<nnrit->name<<std::endl;
-      reg = nnrit->name;  
-
-      if(new_point){
-         switch (reg){
-            case  XED_REG_EAX:
-               cerr << "PTW eax  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrEAX));
-               break;	    		
-            case XED_REG_EBX:
-               cerr << "PTW ebx  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrEBX));
-               break;	    		
-            case XED_REG_ECX:
-               cerr << "PTW ecx  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrECX));
-               break;	    		
-            case XED_REG_EDX:
-               cerr << "PTW edx  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrEDX));
-               break;	    		
-            case XED_REG_RAX:
-               cerr << "PTW rax  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRAX));
-               break;	    		
-            case XED_REG_RBX:
-               cerr << "PTW rbx  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRBX));
-               break;	    		
-            case XED_REG_RCX:
-               cerr << "PTW rcx  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRCX));
-               break;	    		
-            case XED_REG_RDX:
-               cerr << "PTW rdx  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRDX));
-               break;	    		
-            case XED_REG_RBP:
-               cerr << "PTW rbp  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRBP));
-               break;	    		
-            case XED_REG_RSP:
-               cerr << "PTW rsp  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRSP));
-               break;	    		
-            case XED_REG_RSI:
-               cerr << "PTW rsi  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRSI));
-               break;	    		
-            case XED_REG_RDI:
-               cerr << "PTW rdi  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRDI));
-               break;	    		
-            case XED_REG_R8:
-               cerr << "PTW r8  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR8));
-               break;	    		
-            case XED_REG_R9:
-               cerr << "PTW r9  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR9));
-               break;	    		
-            case XED_REG_R10:
-               cerr << "PTW r10  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR10));
-               break;	    		
-            case XED_REG_R11:
-               cerr << "PTW r11  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR11));
-               break;	    		
-            case XED_REG_R12:
-               cerr << "PTW r12  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR12));
-               break;	    		
-            case XED_REG_R13:
-               cerr << "PTW r13  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR13));
-               break;	    		
-            case XED_REG_R14:
-               cerr << "PTW r14  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR14));
-               break;	    		
-            case XED_REG_R15:
-               cerr << "PTW r15  @ " << new_point << endl;
-               patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR15)); 
-               break;	    		
-            default:
-               cerr << "Register could not found\n"; 
-               break;	    		
+   
+   if (nn->is_load_instruction()){
+      nnrit = srcreg.begin();
+      for( ; nnrit!=srcreg.end() ; ++nnrit ) {
+         std::cout<<"Print Src reg info\n"<<nnrit->ToString()<<std::endl;
+         std::cout<<"Print Src reg Name: "<<nnrit->name<<std::endl;
+         reg = nnrit->name;  
+         if(new_point){
+            switch (reg){
+               case  XED_REG_EAX:
+                  cerr << "PTW eax  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrEAX));
+                  break;	    		
+               case XED_REG_EBX:
+                  cerr << "PTW ebx  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrEBX));
+                  break;	    		
+               case XED_REG_ECX:
+                  cerr << "PTW ecx  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrECX));
+                  break;	    		
+               case XED_REG_EDX:
+                  cerr << "PTW edx  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrEDX));
+                  break;	    		
+               case XED_REG_RAX:
+                  cerr << "PTW rax  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRAX));
+                  break;	    		
+               case XED_REG_RBX:
+                  cerr << "PTW rbx  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRBX));
+                  break;	    		
+               case XED_REG_RCX:
+                  cerr << "PTW rcx  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRCX));
+                  break;	    		
+               case XED_REG_RDX:
+                  cerr << "PTW rdx  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRDX));
+                  break;	    		
+               case XED_REG_RBP:
+                  cerr << "PTW rbp  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRBP));
+                  break;	    		
+               case XED_REG_RSP:
+                  cerr << "PTW rsp  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRSP));
+                  break;	    		
+               case XED_REG_RSI:
+                  cerr << "PTW rsi  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRSI));
+                  break;	    		
+               case XED_REG_RDI:
+                  cerr << "PTW rdi  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRDI));
+                  break;	    		
+               case XED_REG_R8:
+                  cerr << "PTW r8  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR8));
+                  break;	    		
+               case XED_REG_R9:
+                  cerr << "PTW r9  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR9));
+                  break;	    		
+               case XED_REG_R10:
+                  cerr << "PTW r10  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR10));
+                  break;	    		
+               case XED_REG_R11:
+                  cerr << "PTW r11  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR11));
+                  break;	    		
+               case XED_REG_R12:
+                  cerr << "PTW r12  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR12));
+                  break;	    		
+               case XED_REG_R13:
+                  cerr << "PTW r13  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR13));
+                  break;	    		
+               case XED_REG_R14:
+                  cerr << "PTW r14  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR14));
+                  break;	    		
+               case XED_REG_R15:
+                  cerr << "PTW r15  @ " << new_point << endl;
+                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR15)); 
+                  break;	    		
+               default:
+                  cerr << "Register could not found\n"; 
+                  break;	    		
+            }
          }
       }
    }
 
-
 }
 
 
-float DGBuilder::printLoadClassifications(){
+float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
    NodesIterator fnit(*this);
-std::cout<<std::dec<< "OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
-
-//// Extend PatchAPI::Snippet to emit arbitrary instructions
-//class PTWriteSnippet : public Dyninst::PatchAPI::Snippet {
-//
-//public:
-//    PTWriteSnippet() {}
-//
-//    // This the interface function that Dyninst will invoke during instruction code generation
-//    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
-//
-//        // Bytes for instruction PTWRITE %rax
-//        static unsigned char ptwrite_example[4] = {0xf3,0x0f,0xae,0xe0};
-//
-//        /* What should actually happen here:
-//         * 1. Use the Dyninst::PatchAPI::Point to retrieve the memory access instruction
-//         * 2. Use InstructionAPI to examine the addressing mode of the memory access instruction
-//         * 3. Use Intel Xed to find the actual bytes representing the data to record
-//         *    For this step, we can either invoke the xed command line by passing a assembly string
-//         *    or include intel xec library to use its encoder interface to emit the bytes
-//         */
-//
-//        // Dyninst::Buffer is the representation of code buffer for storing instrumentation
-//        // In this case, we copy the four bytes that represent "PTWRITE %rax" into the buffer.
-//        buf.copy(ptwrite_example, 4);
-//    }
-//};
-//
-  
    LoadModule *img =this->img;
    Routine *rout = this->routine;
-   //BPatch bpatchx;
-   //BPatch_binaryEdit* appx = bpatchx.openBinary("/home/kili337/Projects/Fallacy/Experiments/instumentation_test/Miami_implementation/array_original", false);
-   //BPatch_image* image = appx->getImage();
 
    BPatch_image* image =  img->getDyninstImage();
    BPatch_Vector<BPatch_function*> funcs;
@@ -757,14 +816,11 @@ std::cout<<std::dec<< "OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<s
                      /* incUninstrumentable */ true) == nullptr ||
                      !funcs.size() || funcs[0] == nullptr) {
       func_exist = false;
+// TODO add a if switch to enable and disable based on load/store
    }
    BPatch_binaryEdit *DynApp = img->getDyninstBinEdit();
-   //Dyninst::PatchAPI::PatchMgrPtr patchMgr = Dyninst::PatchAPI::convert(appx);
    Dyninst::PatchAPI::PatchMgrPtr patchMgr = Dyninst::PatchAPI::convert(DynApp);
    Dyninst::PatchAPI::Patcher patcher(patchMgr);
-//   if (func_exist){
-//      patcher->findPoint(Scope(Dyninst::PatchAPI::convert(funcs[0])),Dyninst::PatchAPI::Point::PostInsn, back_inserter(points);
-//   }
 
    double total_lds = 0;
    double frame_lds = 0;
@@ -774,60 +830,38 @@ std::cout<<std::dec<< "OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<s
    double frame_sts = 0;
    double strided_sts = 0;
    double indirect_sts = 0;
-//std::cout<<"\n\nSNIPPER-PIN START\n";
-std::cout<<"Address\ttype\tclass\n";
+   std::cout<<"Address\ttype\tclass\n";
    while ((bool)fnit) {
             Node *nn = fnit;
-//            nn->longdump(this,std::cout);  
             int opidx = nn->memoryOpIndex();
             if (opidx >=0){
                RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
-               //std::cout<<"Size of Formula: "<<refF->size()<<std::endl;
                if(refF != NULL){
                   GFSliceVal oform = refF->base;
                   coeff_t valueNum;
                   ucoeff_t valueDen;
-//                  std::cout<<"oform is: "<<oform<<std::endl;
-//                  std::cout<<"Loop Level: "<<nn->getLevel()<<std::endl;
-//                  if(IsConstantFormula(oform, valueNum, valueDen))
-//                     std::cout<<"This is constant formula\n";
-//                  else
-//                     std::cout<<"This is not constant formula\n";
-//                  if (FormulaContainsRegister(oform))
-//                     std::cout<<"This formula contains register\n";
-//                  else
-//                     std::cout<<"This formola does not contains registers\n";
-//                   if (nn->is_memory_reference())
-//                     std::cout<<"Node is memory reference\n";
-//                  else
-//                     std::cout<<"Node is not memory reference\n";
-//                   if (nn->is_data_movement())
-//                     std::cout<<"Node has data movement\n";
-//                  else
-//                     std::cout<<"Node has not a data movement\n";
-//                  RInfoList srcreg = nn->getSrcReg();
-//                  RInfoList destreg = nn->getDestReg();
-//                  std::cout<<"Node has "<<srcreg.size()<<" src regs\n";
-//                  std::cout<<"Node has "<<destreg.size()<<" dest regs\n";
-//                  RInfoList::iterator nnrit = srcreg.begin();
-//                  for( ; nnrit!=srcreg.end() ; ++nnrit ) {
-//                     std::cout<<"Print Src reg info\n"<<nnrit->ToString()<<std::endl;
-//                  }
-//                  nnrit = destreg.begin();
-//                  for( ; nnrit!=destreg.end() ; ++nnrit ) {
-//                     std::cout<<"Print Dest reg info\n"<<nnrit->ToString()<<std::endl;
-//                  }
                }
             }
 
       Node *fnn = fnit;
       if (fnn->isInstructionNode() && fnn->getType() >0){
-         if(fnn->is_load_instruction()){
+         if(fnn->is_load_instruction() && mo->inst_loads){
             bool flag_stride = true;
             total_lds+=1;
             if (fnn->is_scalar_stack_reference()){
                frame_lds+=1;
                std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tframe"<<std::endl;
+               if(mo->inst_frame){
+                  std::cout<<"OZGURDBG Instrumenting Frame Load\n";
+                  if (func_exist){
+                     daddr= fnn->getAddress();
+                     loadPtr = funcs[0]->findPoint(daddr);
+                     if (loadPtr){
+                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                        addPTWSnippet(&patcher, lps , fnn);
+                     }
+                  }
+               }
             } else if (fnn->is_strided_reference()){
                IncomingEdgesIterator ieit(fnn);
                while ((bool)ieit){
@@ -839,46 +873,67 @@ std::cout<<"Address\ttype\tclass\n";
                      frame_lds+=1;
                      std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tconstant"<<std::endl;
                      flag_stride = false;
+                     if(mo->inst_frame){
+                  std::cout<<"OZGURDBG Instrumenting Constant Load\n";
+                        if (func_exist){
+                           daddr= fnn->getAddress();
+                           loadPtr = funcs[0]->findPoint(daddr);
+                           if (loadPtr){
+                              lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                              addPTWSnippet(&patcher, lps , fnn);
+                           }
+                        }
+                     }
                   }
                   ++ieit;}
                }
                if (flag_stride){
                   strided_lds+=1;
                   std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tstrided"<<std::endl;
-                  if (func_exist){
-                     std::cout<<"Func exist\n";
-                     daddr= fnn->getAddress();
-                     loadPtr = funcs[0]->findPoint(daddr);
-                     if (loadPtr){
-                        std::cout<<"I found the point\n";
-                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
-                        addPTWSnippet(&patcher, lps , fnn);
-//                        points.push_back(lps);
+                  if (mo->inst_strided){
+                  std::cout<<"OZGURDBG Instrumenting Strided Load\n";
+                     if (func_exist){
+                        daddr= fnn->getAddress();
+                        loadPtr = funcs[0]->findPoint(daddr);
+                        if (loadPtr){
+                           lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                           addPTWSnippet(&patcher, lps , fnn);
+                        }
                      }
                   }
                }
             } else {
                indirect_lds+=1;
                std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tindirect"<<std::endl;
-               if (func_exist){
-                     std::cout<<"Func exist\n";
-                  daddr= fnn->getAddress();
-                  loadPtr = funcs[0]->findPoint(daddr);
-                  if (loadPtr){
-                        std::cout<<"I found the point\n";
-                     lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
-                        addPTWSnippet(&patcher, lps , fnn);
-//                     points.push_back(lps);
+               if (mo->inst_indirect){
+                  std::cout<<"OZGURDBG Instrumenting Indirect Load\n";
+                  if (func_exist){
+                     daddr= fnn->getAddress();
+                     loadPtr = funcs[0]->findPoint(daddr);
+                     if (loadPtr){
+                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                           addPTWSnippet(&patcher, lps , fnn);
+                     }
                   }
                }
             }
          }
-         if(fnn->is_store_instruction()){
+         if(fnn->is_store_instruction() && mo->inst_stores ){
             bool flag_stride_store = true;
             total_sts+=1;
             if (fnn->is_scalar_stack_reference()){
                frame_sts+=1;
                std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tstore"<<"\tframe"<<std::endl;
+               if(mo->inst_frame){
+                  if (func_exist){
+                     daddr= fnn->getAddress();
+                     loadPtr = funcs[0]->findPoint(daddr);
+                     if (loadPtr){
+                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                        addPTWSnippet(&patcher, lps , fnn);
+                     }
+               }
+               }
             } else if (fnn->is_strided_reference()){
                IncomingEdgesIterator ieit(fnn);
                while ((bool)ieit){
@@ -890,38 +945,44 @@ std::cout<<"Address\ttype\tclass\n";
                      frame_sts+=1;
                      std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tstore"<<"\tconstant"<<std::endl;
                      flag_stride_store = false;
+                     if(mo->inst_frame){
+                        if (func_exist){
+                           daddr= fnn->getAddress();
+                           loadPtr = funcs[0]->findPoint(daddr);
+                           if (loadPtr){
+                              lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                              addPTWSnippet(&patcher, lps , fnn);
+                           }
+                        }
+                     }
                   }
                   ++ieit;}
                }
                if (flag_stride_store){
                   strided_sts+=1;
                   std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tstore"<<"\tstrided"<<std::endl;
-                  if (func_exist){
-                     std::cout<<"Func exist\n";
-                     daddr= fnn->getAddress();
-                     loadPtr = funcs[0]->findPoint(daddr);
-                     if (loadPtr){
-                        std::cout<<"I found the point\n";
-                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
-                        addPTWSnippet(&patcher, lps , fnn);
-//                        points.push_back(lps);
+                  if (mo->inst_strided){
+                     if (func_exist){
+                        daddr= fnn->getAddress();
+                        loadPtr = funcs[0]->findPoint(daddr);
+                        if (loadPtr){
+                           lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                           addPTWSnippet(&patcher, lps , fnn);
+                        }
                      }
                   }
-                 
                }
             } else {
                indirect_sts+=1;
                std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tstore"<<"\tindirect"<<std::endl;
-               //std::cout<<"trying to print the source registers reg:"<<<<std::endl;
-               if (func_exist){
-                     std::cout<<"Func exist\n";
-                  daddr= fnn->getAddress();
-                  loadPtr = funcs[0]->findPoint(daddr);
-                  if (loadPtr){
-                        std::cout<<"I found the point\n";
-                     lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
-                        addPTWSnippet(&patcher, lps , fnn);
-//                     points.push_back(lps);
+               if (mo->inst_indirect){
+                  if (func_exist){
+                     daddr= fnn->getAddress();
+                     loadPtr = funcs[0]->findPoint(daddr);
+                     if (loadPtr){
+                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                           addPTWSnippet(&patcher, lps , fnn);
+                     }
                   }
                }
             }
@@ -929,23 +990,10 @@ std::cout<<"Address\ttype\tclass\n";
       }
       ++fnit;
    }
-   // Construct our snippet that will emit PTWRITE instruction
-//   Dyninst::PatchAPI::Snippet::Ptr codeBufferSnippet = PTWriteSnippetRAX::create(new PTWriteSnippetRAX());
-//   for(vector<Dyninst::PatchAPI::Point*>::iterator pointIter = points.begin(); pointIter!= points.end(); pointIter++){
-//      Dyninst::PatchAPI::Point* new_point = *pointIter;
-//      if(new_point){
-//         cerr << "Patching @ " << new_point << endl;
-//         patcher.add(Dyninst::PatchAPI::PushBackCommand::create(new_point, codeBufferSnippet));
-//      }
-//   }
    patcher.commit();
 
-
-//   std::cout<<"\n\nSNIPPER-PIN END\n";
    std::cout<<"Testing mem Instructions Final:\nTotal loads:"<<total_lds<<"\tframe:"<<frame_lds<<"\tstrided:"<<strided_lds<<"\tindirect:"<<indirect_lds<<std::endl;
    std::cout<<"Total stores:"<<total_sts<<"\tframe:"<<frame_sts<<"\tstrided:"<<strided_sts<<"\tindirect:"<<indirect_sts<<std::endl;
-std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
-//   std::cout<<std::endl<<std::endl; 
    return 0;
 }
 
