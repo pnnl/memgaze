@@ -87,6 +87,9 @@ namespace MIAMI
       bool inst_strided; //instrument strided
       bool inst_indirect; //instrument indirect 
       bool inst_frame; //instrument frame
+      
+      bool printLinemap; //print linemap 
+      string linemapFile; //path of  instrumented binary as input file 
 
       MiamiOptions() {
          do_scheduling = false;
@@ -127,11 +130,15 @@ namespace MIAMI
          inst_strided = true;
          inst_indirect = true;
          inst_frame = false;
+
+         printLinemap = false; 
       }
       
       bool CheckDependencies() {
          bool is_good = true;
-         if (do_cfgcounts && !((palm_cfg_file.length() || cfg_file.length()) || (binary_path.length() && func_name.length()))) {
+         
+         
+         if ( !printLinemap && do_cfgcounts && !((palm_cfg_file.length() || cfg_file.length()) || (binary_path.length() && func_name.length()))) {
             // we do not have a cfg file
             fprintf(stderr, "Some of the specified options require a CFG file. Repeat run with a valid CFG file.\n");
             is_good = false;
@@ -158,16 +165,18 @@ namespace MIAMI
             fprintf(stderr, "We were asked to compute reference and scope indecies, but instruction decoding is required for this.\n");
             is_good = false;
          }
-         if(load_classes && !((palm_cfg_file.length() || cfg_file.length()))){
+         if(load_classes && !((palm_cfg_file.length() || cfg_file.length())  || binary_path.length() )){
              fprintf(stderr, "Some of the specified options require a CFG file. Repeat run with a valid CFG file.\n");
              is_good =false;
          }
-
+         if (printLinemap && linemapFile.length()){
+            is_good = true;
+         }
          // Assert that we set correctly other dependencies
          if (is_good)
          {
             assert((!do_scheduling && !do_ideal_sched) || do_build_dg);
-            assert(!do_build_dg || (do_cfgpaths || do_mycfgpaths));
+            assert(!do_build_dg || (do_cfgpaths || do_mycfgpaths) || printLinemap);
             assert(!do_cfgpaths || do_scopetree);
             assert(!do_staticmem || do_scopetree);
          }
@@ -207,10 +216,12 @@ namespace MIAMI
       // I must set this flag first
       void setNoScheduling(bool no_sched) {
          no_scheduling = no_sched;
+         printLinemap = false;
       }
 
       void addScopeName(const string& sname) {
          scope_name = sname;
+         printLinemap = false;
       }
       
       const string& getScopeName() const {
@@ -280,6 +291,7 @@ namespace MIAMI
       
       void setLoadClasses(bool lcs) {
          load_classes = lcs;
+         do_cfgcounts=false;
       }
        
       void setInstLoads(bool opt) {
@@ -328,11 +340,13 @@ namespace MIAMI
             do_idecode = true;
             do_build_dg = true;
             do_staticmem = true;
+            printLinemap = false;
          }
       }
       
       void addMrdFile(const string& mfile)
       {
+         printLinemap = false;
          if (mfile.length()) {
             // Open it and try to read the virst 3 fields
             FILE *fd = fopen(mfile.c_str(), "rt");
@@ -432,7 +446,6 @@ namespace MIAMI
             do_idecode = true;
             dump_xml = true;
          }
-
       }
    
      void addDumpFile(const string& dfile)
@@ -448,7 +461,18 @@ namespace MIAMI
     
      std::string getDumpFile() {return palm_dump_file;}
      bool isDumpFlagSet() {return palm_dump_flag_set;}
-      void addBlockPath(const string& blkPath){
+     
+     void addLinemap(const string& linemap){
+      if (linemap.length()>1){
+         std::cout<<"line map size is "<<linemap.length()<<std::endl;
+         linemapFile = linemap;
+         do_mycfgpaths=false;
+         do_cfgpaths=false;
+         printLinemap = true;
+      }
+     }
+     
+     void addBlockPath(const string& blkPath){
          if (blkPath.length()){
             block_path = blkPath;
             do_mycfgpaths=true;

@@ -34,6 +34,7 @@
 #include <BPatch_addressSpace.h>
 #include <BPatch_function.h>
 #include <BPatch_flowGraph.h>
+#include "LineInformation.h"
 
 #include <Function.h>
 #include <Instruction.h>
@@ -167,7 +168,7 @@ MIAMI_Driver::Initialize(MiamiOptions *_mo, int _pid)
     mo = _mo;
     
     pid = _pid;
-    if (mo->cfg_file.length()<1 && mo->binary_path.length() < 1 && mo->palm_cfg_file.length()<1)  // required argument is missing
+    if (mo->cfg_file.length()<1 && mo->binary_path.length() < 1 && mo->palm_cfg_file.length()<1 && !mo->printLinemap)  // required argument is missing
     {
        fprintf(stderr, "Required CFG_file_name is missing.\n");
        return (-1);
@@ -280,7 +281,9 @@ MIAMI_Driver::Initialize(MiamiOptions *_mo, int _pid)
       palm_fd.close();
       std::cout <<imgNames[0]<<" debuug "<<(imgNames[0].find("a.out") != std::string::npos)<<std::endl;
 //OzguE
-    } else { // a binary file was specified instead of a cfg
+    } else if (mo->printLinemap){
+      std::cout << "Nothing needs to initilize for Readin Linemap\n"; 
+    }else { // a binary file was specified instead of a cfg
       maxImgs = 1;
       allImgs = (LoadModule**) malloc ((maxImgs+1) * sizeof (LoadModule*));
       for (uint32_t i=0 ; i<=maxImgs ; ++i)
@@ -373,6 +376,8 @@ MIAMI_Driver::Finalize(const std::string& outFile)
    // print results into the specified output file
    std::string fname = mo->output_file_prefix;
    char tmp[32] = {""};
+   if (mo->printLinemap)
+      return ;
    if (fname.length()<1)  // output file name not specified, use default
    {
       LoadModule *img1 = allImgs [1];
@@ -518,6 +523,33 @@ MIAMI_Driver::Finalize(const std::string& outFile)
    }
 }
 
+void MIAMI_Driver::printLinemapInfo(){
+        std::cout<<"PrintLinemap= "<<mo->printLinemap<<std::endl;
+     	std::string file = mo->linemapFile;
+       	std::cout<<"Starting to Pring Line map for "<<file<<std::endl;
+       	Dyninst::SymtabAPI::Symtab *obj = NULL;
+      	bool err = Dyninst::SymtabAPI::Symtab::openFile(obj, file);
+       	Dyninst::SymtabAPI::Module mod;
+       	vector<Dyninst::SymtabAPI::Module *> ret;
+       	//obj->findModuleByName(mod, "");
+       	obj->getAllModules(ret);
+       	Dyninst::SymtabAPI::LineInformation * lineInformation = NULL;
+       	//Dyninst::SymtabAPI::StringTablePtr * strptr;
+       	for (std::vector<Dyninst::SymtabAPI::Module *>::iterator it = ret.begin() ; it != ret.end(); ++it){
+		std::cout<<"LINEINFO: "<<(*it)->parseLineInformation()<<std::endl;//OZGURDBG LINEMAP TEST
+          	lineInformation = (*it)->parseLineInformation();
+          	lineInformation->dump();
+ //         lineInformation->getSize();
+ //         Dyninst::SymtabAPI::LineInformation::dump();
+ //         strptr = lineInformation->getStrings();
+       	}
+       	std::cout<<"Exiting the Program!!! "<<std::endl; 
+  //    }
+      return;
+}
+
+
+
 void
 MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, addrtype low_offset)
 {
@@ -530,6 +562,7 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
       fflush(stderr);
    )
 #endif
+
    if (id>maxImgs)  // I need to extend my array
    {
       uint32_t oldSize = maxImgs;
@@ -596,8 +629,8 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
 //write this image back to a file
          BPatch_binaryEdit* BPapp = static_cast<BPatch_binaryEdit*>(newimg->getDyninstApp());
          std::string newName = iname+"_PTW";
-std::cout<<"OZGURDBG::segfault image: "<<iname<< " func:"<<__func__<<" line"<<__LINE__<<std::endl;
-            BPapp->writeFile(newName.c_str());
+         BPapp->writeFile(newName.c_str());
+std::cout<<"I wrote to a file named "<<newName<<" image: "<<iname<<std::endl;
       }
       else { 
          std::cout<<"old cfg do fp:"<<mo->do_fp<<" fp file size:"<< mo->fp_path.length()<<std::endl;
@@ -640,6 +673,30 @@ std::cout<<"OZGURDBG::segfault image: "<<iname<< " func:"<<__func__<<" line"<<__
          newimg->createDyninstImage(bpatch);
          newimg->loadFPfile(mo->func_name, prog, mo);
          newimg->palmAnalyzeRoutines(prog, mo);
+      } else if(mo->load_classes){
+std::cout<<"OZGURDBG in load_classes"<<std::endl;
+         //newimg->loadFromFile(fd, false);  // do not parse routines now
+         newimg->createDyninstImage(bpatch);
+//After here We were using palm way to create each routine
+//      /*OZGURS trying to loop in routines This is DBG turn this off when you are done*/
+         std::vector<BPatch_function *> funcs;
+         newimg->getDyninstImage()->getProcedures(funcs);
+         Dyninst::Address start, end;
+         for (auto func : funcs){
+            if (func->getName().find("targ")== std::string::npos){
+               std::cout<<"-----> I am instrumenting func:"<< func->getName()<<std::endl;
+               newimg->dyninstAnalyzeRoutine(func->getName(), prog, mo);
+            } else {
+               std::cout<<"-----> I am NOT instrumenting func:"<< func->getName()<<std::endl;
+//            std::cout<<"OZGURDBG func name: "<<func->getName()<<" baseAddr:"<<std::hex<<func->getBaseAddr()<<" Start Addr=0x"<<start<<" End Addr=0x"<<end<<" func baseAddr:"<<base_addr<<" low_addr_offset:"<<low_addr_offset<<" pathname: "<</*obj->pathName()<<*/std::dec<<std::endl;
+            }
+         }
+
+//write this image back to a file
+         BPatch_binaryEdit* BPapp = static_cast<BPatch_binaryEdit*>(newimg->getDyninstApp());
+         std::string newName = iname+"_PTW";
+         BPapp->writeFile(newName.c_str());
+std::cout<<"OZGURDBG::I Wrote to a file named "<<newName<<" image: "<<iname<<std::endl;
       } else {
          newimg->createDyninstImage(bpatch);
          newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);

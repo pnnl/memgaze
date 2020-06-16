@@ -112,6 +112,7 @@ public:
 
    int Initialize(MiamiOptions *_mo, int _pid);
    
+   void printLinemapInfo();
    void Finalize(const std::string& outFile);
    void LoadImage(uint32_t id, std::string& iname, addrtype start_addr, addrtype low_offset);
    int NumberOfImages() const  { return (maxImgs); }

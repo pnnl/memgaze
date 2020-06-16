@@ -64,6 +64,9 @@
 #include "PatchModifier.h"
 #include "Point.h"
 
+#include "LineInformation.h"
+
+
 //***************************************************************************
 // 
 //***************************************************************************
@@ -1116,6 +1119,29 @@ LoadModule::SetHasIrregularAccessAtDistance(int32_t setId, int dist)
 void 
 LoadModule::createDyninstImage(BPatch& bpatch)
 {
+//   if (mo->printLinemap){
+//      std::string file = mo->linemapFile;
+//      std::cout<<"Starting to Pring Line map for "<<file<<std::endl;
+////      std::string file = "array_PTW";
+//      Dyninst::SymtabAPI::Symtab *obj = NULL;
+//      bool err = Dyninst::SymtabAPI::Symtab::openFile(obj, file);
+//      Dyninst::SymtabAPI::Module mod;
+//      vector<Dyninst::SymtabAPI::Module *> ret;
+//      //obj->findModuleByName(mod, "");
+//      obj->getAllModules(ret);
+//      Dyninst::SymtabAPI::LineInformation * lineInformation = NULL;
+//      //Dyninst::SymtabAPI::StringTablePtr * strptr;
+//      for (std::vector<Dyninst::SymtabAPI::Module *>::iterator it = ret.begin() ; it != ret.end(); ++it){
+//         std::cout<<"OZGURDBG LINEINFO: "<<(*it)->parseLineInformation()<<std::endl;//OZGURDBG LINEMAP TEST
+//         lineInformation = (*it)->parseLineInformation();
+//         lineInformation->dump();
+////         lineInformation->getSize();
+////         Dyninst::SymtabAPI::LineInformation::dump();
+////         strptr = lineInformation->getStrings();
+//      }
+//      std::cout<<"Exiting the Program!!! "<<std::endl;
+//      exit(0)
+//   }
    BPatch_addressSpace* app = bpatch.openBinary(img_name.c_str(),false);
    //BPatch_binaryEdit* app = bpatch.openBinary(img_name.c_str(),false);
    dyn_app = bpatch.openBinary(img_name.c_str(),false);
@@ -1132,6 +1158,12 @@ LoadModule::createDyninstImage(BPatch& bpatch)
          if(mod->getName(buf,100)!=NULL){
             cout<<"\t"<<buf<<" "<<mod->getSize()<<std::endl;
          }
+//EDITED FROM HERE         Dyninst::SymtabAPI::Symtab *symtab = Dyninst::SymtabAPI::convert(tfunctions[f]->getModule()->getObject());
+//         Dyninst::SymtabAPI::Symtab *symtab = Dyninst::SymtabAPI::convert(mod->getObject());
+//         Dyninst::SymtabAPI::Module *module;
+//         symtab->findModuleByName(module, buf);
+//        std::cout<<"OZGURDBG LINEINFO: "<<module->parseLineInformation()<<std::endl;//OZGURDBG LINEMAP TEST
+//EDIT END HERE
          delete[] buf;
       }
    }
@@ -1319,6 +1351,7 @@ int LoadModule::dyninstAnalyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOpt
 int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const MiamiOptions *mo){
      std::cout<<__func__<<__LINE__<<std::endl; 
    std::vector<BPatch_function*> tfunctions;
+   std::cerr<<"Name of the routine is: "<<routName.c_str()<<std::endl;
    dyn_image->findFunction(routName.c_str(), tfunctions,false,true,false);
    for(unsigned int f = 0; f < tfunctions.size(); f++) { //search for inlined functions (possibly do special analysis in inlined function found)
 //      cout<<tfunctions[f]->getName()<<" "<<tfunctions[f]->getMangledName()<<" inst: "<<tfunctions[f]->isInstrumentable()<<" "<<(unsigned int*)tfunctions[f]->getBaseAddr()<<std::endl;
@@ -1342,10 +1375,6 @@ int LoadModule::dyninstAnalyzeRoutine(string routName, ProgScope *prog, const Mi
          }
       }
    }
-
-   
-
-
 
    Dyninst::Address start,end;
    tfunctions[0]->getAddressRange(start,end);

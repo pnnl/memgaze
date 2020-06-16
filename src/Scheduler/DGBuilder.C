@@ -600,10 +600,17 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
    std::cout<<"Node has "<<destreg.size()<<" dest regs\n";
    RInfoList::iterator nnrit;
    if (nn->is_store_instruction()) {
-      nnrit = destreg.begin();
-      for( ; nnrit!=destreg.end() ; ++nnrit ) {
-         std::cout<<"Print Dest reg info\n"<<nnrit->ToString()<<std::endl;
+      int skip =1;
+      //nnrit = destreg.begin();
+      nnrit = srcreg.begin();
+      //for( ; nnrit!=destreg.end() ; ++nnrit ) {
+      for( ; nnrit!=srcreg.end() ; ++nnrit ) {
+         std::cout<<"Print Src reg info\n"<<nnrit->ToString()<<std::endl;
          std::cout<<"Print Src reg Name: "<<nnrit->name<<std::endl;
+         if (skip){
+            skip =0;
+            continue;
+         }
          reg = nnrit->name;  
          if(new_point){
             switch (reg){
@@ -806,7 +813,15 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
    Dyninst::PatchAPI::Point* lps;
    std::vector<Dyninst::PatchAPI::Point*> points ; 
    bool func_exist = true;   
-      std::cout<<"OZGURDBG::func name is : "<<rout->Name()<<std::endl;
+//   std::cout<<"OZGURDBG::func name is : "<<rout->Name()<<std::endl;
+   if(mo->func_name.length()){
+      if (mo->func_name == rout->Name()){
+         std::cout<<"Printing Load Classification for function: "<<mo->func_name<<std::endl;
+      } else {
+         std::cout<<"This is wrong function\n I was looking for "<<mo->func_name<<std::endl;
+         return 0;
+      }
+   }
    if(rout->Name().find("@") != std::string::npos){
       std::cout<<"OZGURDBG::func name has @ : "<<rout->Name()<<std::endl;
       func_exist  = false;
@@ -816,9 +831,49 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
                      /* incUninstrumentable */ true) == nullptr ||
                      !funcs.size() || funcs[0] == nullptr) {
       func_exist = false;
-// TODO add a if switch to enable and disable based on load/store
    }
    BPatch_binaryEdit *DynApp = img->getDyninstBinEdit();
+//Adding support for strided loads //Original code stops here
+//Only instrument first 5 iteration and last iteration
+//First add necessary variables and funtions
+//   BPatch_addressSpace *app = DynApp;
+//   BPatch_image *appImage = app->getImage();
+//Lookup the handle to the entry point for target procedure 
+//   BPatch_Vector<BPatch_point*> *entry_pts = funcs[0]->findPoint(BPatch_locEntry);
+//Create a new integer variable in the address space of the application 
+//   BPatch_variableExpr *intCounter = app->malloc(*(appImage->findType("int"))); 
+
+//Construct a simple increment of an integer variable 
+//   BPatch_arithExpr addOne(BPatch_assign, *intCounter,BPatch_arithExpr(BPatch_plus, *intCounter, BPatch_constExpr(1)));
+
+//Insert the increment statement at the desired point in the program 
+//   app->insertSnippet(addOne, *entry_pts);
+
+////Allocate memory for the two counters
+//   BPatch_variableExpr *fooCnt = appThread->malloc(appImage->findType("int")); 
+//   BPatch_variableExpr *bytes = appThread->malloc(appImage->findType("int"));
+//   int zero = 0; 
+//   fooCnt.writeValue(&zero); 
+//   bytes.writeValue(&zero);
+////Create a snippet that will increment fooCnt
+//   BPatch_arithExpr fooCntPlusOne(BPatch_plus, *fooCnt, BPatch_constExpr(1)); 
+//   BPatch_arithExpr addCounter(BPatch_assign, *fooCnt, fooCntPlusOne);
+////Create a subCounter snippet
+//   BPatch_arithExpr fooCntMinusOne(BPatch_minus, *fooCnt, BPatch_constExpr(1)); 
+//   BPatch_assign subCounter(BPatch_assign, *fooCnt, fooCntMinusOne);
+////Build the snippet that will be inserted into sengMsg BPatch_paramExpr cntParam(2), sizeParam(3);
+//   BPatch_arithExpr calcBytes(BPatch_times, cntParam, sizeParam); 
+//   BPatch_arithExpr addBytes(BPatch_plus, *bytes, calcBytes); 
+//   BPatch_arithExpr addCounter(BPatch_assign, *bytes, addBytes);
+////Create the conditional statement
+//   BPatch_boolExpr fooCntCheck(BPatch_gt, *fooCnt, BPatch_constExpr(0)); 
+//   BPatch_ifExpr addCounterIfInFoo(fooCntCheck, addCounter);
+   RInfoList srcreg ;
+   RInfoList destreg ;
+   RInfoList::iterator nnrits, nnritd;
+   int before = 1;
+
+//Original Code continues from here
    Dyninst::PatchAPI::PatchMgrPtr patchMgr = Dyninst::PatchAPI::convert(DynApp);
    Dyninst::PatchAPI::Patcher patcher(patchMgr);
 
@@ -846,6 +901,24 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
       Node *fnn = fnit;
       if (fnn->isInstructionNode() && fnn->getType() >0){
          if(fnn->is_load_instruction() && mo->inst_loads){
+            srcreg = fnn->getSrcReg();
+            destreg = fnn->getDestReg();
+            nnrits = srcreg.begin();
+            nnritd = destreg.begin();
+           // if (srcreg.size() !=1 || destreg.size()!=1){
+           //    before=1;
+           // } else if (nnrits->name == nnritd->name){
+           //    before=0;
+           // } else {
+           //    before=1;
+           // }
+           // std::cout<<"\nNode has "<<srcreg.size()<<" src regs\n";
+           // std::cout<<"Node has "<<destreg.size()<<" dest regs\n";
+           // std::cout<<"Print Src reg info\n"<<nnrits->ToString()<<std::endl;
+           // std::cout<<"Print Src reg Name: "<<nnrits->name<<std::endl;
+           // std::cout<<"Print Dest reg info\n"<<nnritd->ToString()<<std::endl;
+           // std::cout<<"Print Dest reg Name: "<<nnritd->name<<std::endl<<std::endl;
+            
             bool flag_stride = true;
             total_lds+=1;
             if (fnn->is_scalar_stack_reference()){
@@ -857,7 +930,11 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
                      daddr= fnn->getAddress();
                      loadPtr = funcs[0]->findPoint(daddr);
                      if (loadPtr){
-                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                        if (before){
+                           lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callBefore);
+                        } else {
+                           lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                        }
                         addPTWSnippet(&patcher, lps , fnn);
                      }
                   }
@@ -879,7 +956,11 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
                            daddr= fnn->getAddress();
                            loadPtr = funcs[0]->findPoint(daddr);
                            if (loadPtr){
-                              lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                              if (before){
+                                 lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callBefore);
+                              } else {
+                                 lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                              }
                               addPTWSnippet(&patcher, lps , fnn);
                            }
                         }
@@ -896,7 +977,13 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
                         daddr= fnn->getAddress();
                         loadPtr = funcs[0]->findPoint(daddr);
                         if (loadPtr){
-                           lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                           if (before){
+                              std::cout<<"OZGURDBG Instrumenting Strided Load >>> Before<<<\n";
+                              lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callBefore);
+                           } else {
+                              std::cout<<"OZGURDBG Instrumenting Strided Load >>> After<<<\n";
+                              lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                           }
                            addPTWSnippet(&patcher, lps , fnn);
                         }
                      }
@@ -911,8 +998,12 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
                      daddr= fnn->getAddress();
                      loadPtr = funcs[0]->findPoint(daddr);
                      if (loadPtr){
-                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
-                           addPTWSnippet(&patcher, lps , fnn);
+                        if (before){
+                           lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callBefore);
+                        } else {
+                           lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                        }
+                        addPTWSnippet(&patcher, lps , fnn);
                      }
                   }
                }

@@ -77,6 +77,7 @@ const int inst_stores = 919; //"inst_stores", "", "instrument only store instruc
 const int inst_strided = 920; //"inst_strided", "", "instrument only strided instructions Default = 1"
 const int inst_indirect = 921; //"inst_indirect", "", "instrument only indirect instructions Default = 1"
 const int inst_frame = 922; //"inst_frame", "", "instrument only frame/constant instructions Default = 0"
+const int linemap = 923; //"linemap", "", "specify instumented binary to print linemap.");
 
 
  
@@ -117,6 +118,7 @@ std::string KnobBlkPath = ""; //"blk_path", "", "specify basic blocks to analyze
 std::string KnobLatPath = ""; //"lat_path", "", "path containing instruction level load latency");
 std::string KnobFpPath = ""; //"fp_path", "", "path containing instruction footprint profile");
 std::string KnobDumpFile = ""; //dump_file, "", "file name to dwar scheduling dump""
+std::string KnobLinemap = ""; //"linemap", "", "specify instrumented binary to print linemap.");
 
 /*
  * Compute an application's instruction execution cost by re-scheduling
@@ -334,6 +336,13 @@ static int parse_opt (int key, char *arg, struct argp_state *state)
         {
             KnobInst_frame = atoi(arg);
         }
+        case linemap:
+        {
+            KnobLinemap.assign(arg);
+            break;
+        }
+
+
         default :
         {
             break; 
@@ -379,6 +388,7 @@ int parse_args(int argc , char * argv[]){
         { "inst_strided", inst_strided, "BOOL", 1, "Instrument Strided Load/Stores (Default=1)"},
         { "inst_indirect", inst_indirect, "BOOL", 1, "Instrument Indirect Load/Stores (Default=1)"},
         { "inst_frame", inst_frame, "BOOL", 1, "Instrument Frame/Constant Load/Stores (Default=0)"},
+        { "linemap", linemap, "STRING", 0, "specify an instrumented binary to print Linemap."},
         {0}
      };
 
@@ -445,19 +455,30 @@ main (int argc, char *argv[])
     mo->setInstStrided(KnobInst_strided);
     mo->setInstIndirect(KnobInst_indirect);
     mo->setInstFrame(KnobInst_frame);
+    std::cout<<"CALLIng to add line map.\n";
+    mo->addLinemap(KnobLinemap);
   
     if (! mo->CheckDependencies())
        return 0;
 
-   
+  
     // This tool is compiled both as a standalone tool
     // and as a dynamic object pintool. getpid is safe in the standalone
     // case, but it may return a wrong pid when running under PIN.
    if (MIAMI::mdriver.Initialize(mo, 0) < 0)
        return 0 ; //(Usage());
+    if (mo->printLinemap){
+      MIAMI::mdriver.printLinemapInfo();
+      return 0;
+   }
  
    MIAMI::mdriver.ParseIncludeExcludeFiles(KnobIncludeFile, KnobExcludeFile);
    std::cout<<"Inst loads="<<mo->inst_loads<<" Stores="<<mo->inst_stores<<" Strided="<<mo->inst_strided<<" Indirect="<<mo->inst_indirect<<" Frame/Constant="<<mo->inst_frame<<std::endl;
+   if(mo->func_name.length()){
+      std::cout<<"Function Name is "<<mo->func_name<<std::endl;
+   } else {
+      std::cout<<"Function Name is "<<mo->func_name<<std::endl;
+   }
     int nImgs = MIAMI::mdriver.NumberOfImages();
     //nImgs=1;//TODO FIXME this is a hack delete it for full run
     const std::string* iNames = MIAMI::mdriver.getImageNames();
