@@ -174,7 +174,16 @@ public:
               << opType << " (" << Convert_InstrBin_to_string(opType) << ")" << endl;
       )
 #endif
-      assert(_start_pc>=b->getStartAddress() && _start_pc<b->getEndAddress());
+      //assert(_start_pc >= b->getStartAddress() && _start_pc < b->getEndAddress());//Original
+      if(!(_start_pc >= b->getStartAddress() && _start_pc < b->getEndAddress())){
+         std::cout<<"OZGURERROR:: in func StartSLice pc is:0x"<<std::hex<<_start_pc<<" block start:0x"<< b->getStartAddress()<<" b end:0x"<< b->getEndAddress()<<std::dec<<std::endl;
+         cerr << "PartialCFGSlice::StartSlice, block [0x" << hex << b->getStartAddress()
+              << ",0x" << b->getEndAddress() << dec << "]" << ", on reg " << reg 
+              << ", start_pc=0x" << hex << _start_pc << dec << " micro-op type "
+              << opType << " (" << Convert_InstrBin_to_string(opType) << ")" << endl;
+
+         return;
+      }
       
       // test if we have a precomputed acyclic path that includes the starting block
       // if we do not, then we must clear the current one and compute a new path

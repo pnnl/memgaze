@@ -138,7 +138,9 @@ public:
 
    void createDyninstImage(BPatch& bpatch);
    int dyninstAnalyzeRoutine(std::string name, ProgScope *prog, const MiamiOptions *mo);
+//   int dyninstAnalyzeRoutine(BPatch_function func, ProgScope *prog, const MiamiOptions *mo);
    int dyninstAnalyzeRoutines(FILE *fd , ProgScope *prog, const MiamiOptions *mo);
+   int dyninstAnalyzeRoutines(ProgScope *prog, const MiamiOptions *mo);
    int loadFPfile(std::string name, ProgScope *prog, const MiamiOptions *mo);
    BPatch_binaryEdit* getDyninstBinEdit(){
       return static_cast<BPatch_binaryEdit*>(dyn_app);

@@ -677,20 +677,22 @@ std::cout<<"I wrote to a file named "<<newName<<" image: "<<iname<<std::endl;
 std::cout<<"OZGURDBG in load_classes"<<std::endl;
          //newimg->loadFromFile(fd, false);  // do not parse routines now
          newimg->createDyninstImage(bpatch);
+         newimg->dyninstAnalyzeRoutines(prog, mo);
 //After here We were using palm way to create each routine
 //      /*OZGURS trying to loop in routines This is DBG turn this off when you are done*/
-         std::vector<BPatch_function *> funcs;
-         newimg->getDyninstImage()->getProcedures(funcs);
-         Dyninst::Address start, end;
-         for (auto func : funcs){
-            if (func->getName().find("targ")== std::string::npos){
-               std::cout<<"-----> I am instrumenting func:"<< func->getName()<<std::endl;
-               newimg->dyninstAnalyzeRoutine(func->getName(), prog, mo);
-            } else {
-               std::cout<<"-----> I am NOT instrumenting func:"<< func->getName()<<std::endl;
-//            std::cout<<"OZGURDBG func name: "<<func->getName()<<" baseAddr:"<<std::hex<<func->getBaseAddr()<<" Start Addr=0x"<<start<<" End Addr=0x"<<end<<" func baseAddr:"<<base_addr<<" low_addr_offset:"<<low_addr_offset<<" pathname: "<</*obj->pathName()<<*/std::dec<<std::endl;
-            }
-         }
+//         std::vector<BPatch_function *> funcs;
+//         newimg->getDyninstImage()->getProcedures(funcs);
+//         Dyninst::Address start, end;
+//         for (auto func : funcs){
+//            if (func->getName().find("targ")== std::string::npos){
+//               std::cout<<"-----> I am instrumenting func:"<< func->getName()<<std::endl;
+//               newimg->dyninstAnalyzeRoutine(func->getName(), prog, mo);
+//               //newimg->dyninstAnalyzeRoutine(func, prog, mo);
+//            } else {
+//               std::cout<<"-----> I am NOT instrumenting func:"<< func->getName()<<std::endl;
+////            std::cout<<"OZGURDBG func name: "<<func->getName()<<" baseAddr:"<<std::hex<<func->getBaseAddr()<<" Start Addr=0x"<<start<<" End Addr=0x"<<end<<" func baseAddr:"<<base_addr<<" low_addr_offset:"<<low_addr_offset<<" pathname: "<</*obj->pathName()<<*/std::dec<<std::endl;
+//            }
+//         }
 
 //write this image back to a file
          BPatch_binaryEdit* BPapp = static_cast<BPatch_binaryEdit*>(newimg->getDyninstApp());
