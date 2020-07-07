@@ -12788,8 +12788,10 @@ bool SchedDG::Node::is_dependent_to_upper_loops(){
 bool 
 SchedDG::Node::is_scalar_stack_reference()
 {
+   std::cout<<__func__<<" Line"<<__LINE__<<std::endl;
    if (! is_memory_reference())
       return (false);
+   std::cout<<__func__<<" Line"<<__LINE__<<std::endl;
 
    int opidx = memoryOpIndex();
    if (opidx < 0) {
@@ -12797,21 +12799,25 @@ SchedDG::Node::is_scalar_stack_reference()
             address, Convert_InstrBin_to_string((MIAMI::InstrBin)type), opidx);
       assert(!"Negative memopidx. Why??");
    }
+   std::cout<<__func__<<" Line"<<__LINE__<<std::endl;
 
    RefFormulas *refF = in_cfg()->refFormulas.hasFormulasFor(address, opidx);
    if (refF == NULL)
       return (false);
+   std::cout<<__func__<<" Line"<<__LINE__<<std::endl;
    
    GFSliceVal oform = refF->base;
    coeff_t soffset;
    if (oform.is_uninitialized() || !FormulaIsStackReference(oform, soffset))
       return (false);
+   std::cout<<__func__<<" Line"<<__LINE__<<std::endl;
    
    // is stack reference. Now check that all strides are zero and are not 
    // marked as indirect or irregular
    int numStrides = refF->NumberOfStrides();
    for (int i=0 ; i<numStrides ; ++i)
    {
+   std::cout<<__func__<<" Line"<<__LINE__<<std::endl;
       GFSliceVal& stride = refF->strides[i];
       if (stride.is_uninitialized() || stride.has_irregular_access() || stride.has_indirect_access())
          return (false);
@@ -12820,6 +12826,7 @@ SchedDG::Node::is_scalar_stack_reference()
       if (!IsConstantFormula(stride, valueNum, valueDen) || valueNum!=0)
          return (false);
    }
+   std::cout<<__func__<<" Line"<<__LINE__<<std::endl;
    return (true);
 }
 

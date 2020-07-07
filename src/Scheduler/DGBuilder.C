@@ -889,12 +889,14 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
    while ((bool)fnit) {
             Node *nn = fnit;
             int opidx = nn->memoryOpIndex();
+            nn->longdump(this,std::cout);
             if (opidx >=0){
                RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
                if(refF != NULL){
                   GFSliceVal oform = refF->base;
                   coeff_t valueNum;
                   ucoeff_t valueDen;
+                  std::cout<<"ref->base: "<<oform<<std::endl;
                }
             }
 
@@ -1936,6 +1938,7 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
             assert(!"I cannot find memory operand for micro-op!!!");
          }
          node->setMemoryOpIndex(opidx);
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
          handle_memory_dependencies (node, pc, opidx, type, stackAccess);
 
          // store all the PCs corresponding to memory references
@@ -2211,6 +2214,7 @@ void
 DGBuilder::handle_memory_dependencies(SchedDG::Node* node, addrtype pc, int opidx,
       int type, int stackAccess)
 {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
    int is_store =  node->is_store_instruction();
 
    // we do not differentiate between stack, fp and int memory ops anymore
@@ -2227,10 +2231,12 @@ void
 DGBuilder::memory_dependencies_for_node(SchedDG::Node* node, addrtype pc, int opidx,
       int is_store, UNPArray& stores, UNPArray& loads)
 {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
    RefFormulas *refF = refFormulas.hasFormulasFor(pc,opidx);
    GFSliceVal _formula;
    if (refF == NULL)
    {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 #if DEBUG_GRAPH_CONSTRUCTION
       DEBUG_GRAPH (1,
             fprintf(stderr, "WARNING: Did not find any formulas for memory instruction at address 0x%" PRIxaddr ", opidx %d\n",
@@ -2245,6 +2251,7 @@ DGBuilder::memory_dependencies_for_node(SchedDG::Node* node, addrtype pc, int op
       //      return;
    } else
    {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       _formula = refF->base;
       if (_formula.is_uninitialized())
       {
@@ -2272,6 +2279,7 @@ DGBuilder::memory_dependencies_for_node(SchedDG::Node* node, addrtype pc, int op
    // stack location could be used.
    if (avgNumIters<=ONE_ITERATION_EPSILON || is_stack)
    {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       // only one iteration, do not compute loop-carried dependencies
       //
       int depDir = TRUE_DEPENDENCY;
@@ -2322,6 +2330,7 @@ DGBuilder::memory_dependencies_for_node(SchedDG::Node* node, addrtype pc, int op
       }
    } else  // multiple iterations; compute loop-carried depend also
    {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       GFSliceVal _iterFormula;
       if (refF && refF->strides.size()>0)
          _iterFormula = refF->strides[0];
@@ -2393,11 +2402,13 @@ bool
 DGBuilder::computeMemoryDependenciesForOneIter(SchedDG::Node *node, 
       GFSliceVal& _formula, SchedDG::Node *nodeB, int depDir)
 {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
    coeff_t valueNum;
    ucoeff_t valueDen;
    addrtype opc = nodeB->getAddress();  // pc of the Other instruction
    int oopidx = nodeB->memoryOpIndex();
    if (oopidx < 0) {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       fprintf(stderr, "Error: DGBuilder::computeMemoryDependenciesForOneIter: Instruction at 0x%" PRIxaddr ", uop of type %s, hash memory opidx %d\n",
             opc, Convert_InstrBin_to_string((MIAMI::InstrBin)nodeB->getType()), oopidx);
       assert(!"Negative memopidx. Why??");
@@ -2406,6 +2417,7 @@ DGBuilder::computeMemoryDependenciesForOneIter(SchedDG::Node *node,
    RefFormulas *refF = refFormulas.hasFormulasFor(opc,oopidx);
    if (refF == NULL)
    {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       if (!pessimistic_memory_dep)
          return (false);
    }
@@ -2414,12 +2426,14 @@ DGBuilder::computeMemoryDependenciesForOneIter(SchedDG::Node *node,
    if (oform.is_uninitialized() || _formula.is_uninitialized() ||
          !IsConstantFormula(_formula-oform, valueNum, valueDen))
    {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       if (!optimistic_memory_dep)
          addUniqueDependency(nodeB, node, 
                depDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
    } else
       if (valueNum==0)
       {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
          addUniqueDependency(nodeB, node, 
                depDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
          return (true);
@@ -2434,6 +2448,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
       int refIsIndirect, SchedDG::Node *nodeB, int negDir, int posDir,
       int refTypes)
 {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
    coeff_t valueNum;
    ucoeff_t valueDen;
    bool res = false;
@@ -2443,6 +2458,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
    addrtype opc = nodeB->getAddress();  // pc of the Other instruction
    int oopidx = nodeB->memoryOpIndex();
    if (oopidx < 0) {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       fprintf(stderr, "Error: DGBuilder::computeMemoryDependenciesForManyIter: Instruction at 0x%" PRIxaddr ", uop of type %s, hash memory opidx %d\n",
             opc, Convert_InstrBin_to_string((MIAMI::InstrBin)nodeB->getType()), oopidx);
       assert(!"Negative memopidx. Why??");
@@ -2459,8 +2475,10 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
    RefFormulas *refF = refFormulas.hasFormulasFor(opc,oopidx);
    if (refF == NULL)
    {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       if (pessimistic_memory_dep)
       {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
          addUniqueDependency(nodeB, node, 
                negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
          addUniqueDependency(node, nodeB, 
@@ -2492,8 +2510,10 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
       if (oform.is_uninitialized() || oiter.is_uninitialized() || 
             _formula.is_uninitialized() || _iterFormula.is_uninitialized())
       {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
          if (!optimistic_memory_dep)
          {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
             addUniqueDependency(nodeB, node, 
                   negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
             addUniqueDependency(node, nodeB, 
@@ -2534,6 +2554,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
          else
             if (refIsIndirect || oiter.has_indirect_access())
             {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                // check array names
                int32_t iidx = img->GetIndexForInstPC(pc+reloc, node->memoryOpIndex());
                assert (iidx > 0);
@@ -2561,6 +2582,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                        !FormulaContainsReferenceTerm (diffFormula))
                      ) )
                {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                   // My only hope is to have a large constant term difference
                   int constStride = 0;
                   if (!refIsScalar && !refIsIndirect && 
@@ -2581,6 +2603,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                         ((rez=(((float)ConstantTermOfFormula(_formula-oform))/
                                ((float)constStride)))<=avgNumIters && rez>=0) )
                   {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                      Edge *ee = addUniqueDependency(nodeB, node, 
                            negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
                      ee->markIndirect();  // mark dependencies that are created due to
@@ -2593,16 +2616,20 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
             } else  // strides are computed and accesses are not indirect
                if (refIsScalar || ref2IsScalar)
                {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                   if (refIsScalar && ref2IsScalar)
                   {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                      if (!IsConstantFormula(_formula-oform, valueNum, valueDen))
                      {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                         if (!optimistic_memory_dep)
                            addUniqueDependency(nodeB, node, 
                                  negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
                      } else
                         if (valueNum==0)
                         {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                            // if both accesses are scalars, create only true dependencies.
                            // Anti- and Output- ones can be eliminated by scalar 
                            // expansion.
@@ -2616,6 +2643,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                         }
                   } else  // one access is scalar and one is array
                   {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                      GFSliceVal stride;
                      if (refIsScalar)
                         stride = oiter;
@@ -2626,6 +2654,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                      if ( IsConstantFormula(diffFormula, valueNum, valueDen) &&
                            valueNum==0)
                      {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 #if DEBUG_GRAPH_CONSTRUCTION
                         DEBUG_GRAPH (2,
                               std::cerr << "Mem reference at " << std::hex << pc
@@ -2647,6 +2676,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                         if (HasIntegerRatio(diffFormula, stride, factor1, factor2)
                               && (factor2==1 || factor2==(-1)) )
                         {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                            factor1 = factor1 / factor2;
                            int minIter = abs(factor1);
                            // the existence of this dependency depends on the
@@ -2665,6 +2695,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                     (refIsScalar && factor1>0)) 
                                  && minIter<avgNumIters )
                            {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 #if DEBUG_GRAPH_CONSTRUCTION
                               DEBUG_GRAPH (2,
                                     std::cerr << "Mem reference at " << std::hex << pc
@@ -2691,6 +2722,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                   }
                } else  // strides are computed and both accesses are of array type
                {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                   // instead of treating the equal strides case separately,
                   // can I generalize for all cases?
                   // should I check for irregular strides? 
@@ -2698,16 +2730,19 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                   factor1 = factor2 = 0;
                   if (HasIntegerRatio(_iterFormula, oiter, factor1, factor2))
                   {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                      // strides have the same terms; good I guess
                      GFSliceVal diffFormula = _formula - oform;
                      if ( IsConstantFormula(diffFormula, valueNum, valueDen) &&
                            valueNum==0)
                      {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                         // base formulas are equal; if strides are equal than we 
                         // have loop independent dependency, otherwise we have
                         // dependency only in the first iteration
                         if (factor1 == factor2)
                         {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                            addUniqueDependency(nodeB, node, 
                                  negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
                         } else
@@ -2715,6 +2750,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                            // from each other => depend on first iteration only
                            if ((factor1>0 && factor2<0) || (factor1<0 && factor2>0))
                            {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 #if DEBUG_GRAPH_CONSTRUCTION
                               DEBUG_GRAPH (2,
                                     std::cerr << "Mem reference at " << std::hex << pc 
@@ -2734,6 +2770,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                               //                       negDir, MEMORY_TYPE, ONE_ITERATION, 1, 0);
                            } else  // factors have same sign => varying distance
                            {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                               // factors can be only positive
                               assert(factor1>0 && factor2>0);
 
@@ -2749,6 +2786,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                        negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
                               if (factor1 > factor2)
                               {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                  addUniqueDependency (node, nodeB, 
                                        posDir, MEMORY_TYPE, 1, 1, 0);
                               }
@@ -2767,6 +2805,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                      } else   // base formulas are not equal
                         // check if difference and strides have integer ratio
                      {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                         coeff_t diffFact1 = 0, diffFact2 = 0;
                         // strides have integer factor, but compute their GCD
                         // this is equal to stride1/factor1 or stride2/factor2.
@@ -2778,6 +2817,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                         GFSliceVal gcdStride;
                         if (factor1 < 0)
                         {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                            assert(factor2>0);
                            gcdStride = oiter / factor2;
                         } else
@@ -2796,6 +2836,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                            if (HasIntegerRatio(diffFormula, gcdStride, diffFact1,
                                     diffFact2) && (diffFact2==1 || diffFact2==(-1)) )
                            {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 #if DEBUG_GRAPH_CONSTRUCTION
                               DEBUG_GRAPH (3,
                                     std::cerr << "-> diffFact1=" << diffFact1 << ", diffFact2=" << diffFact2 
@@ -2808,18 +2849,22 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                               // be an integer
                               if (factor1==factor2)
                               { 
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                  if ((abs(diffFact1)%abs(factor1))==0)
                                  {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                     // division should be exact
                                     coeff_t dist = diffFact1 / factor1;
                                     if (dist>0)
                                     {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                        if (dist<avgNumIters)
                                           addUniqueDependency(node, nodeB, 
                                                 posDir, MEMORY_TYPE, dist, 1, 0);
                                     }
                                     else
                                     {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                        assert(dist<0);  // it cannot be zero
                                        if ((-dist)<avgNumIters)
                                           addUniqueDependency(nodeB, node,
@@ -2829,9 +2874,11 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                               } else   // strides are not equal;
                               // test for cases when we cannot have dependencies
                               {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                  if (!( (diffFact1>0 && factor1>=0 && factor2<=0) ||
                                           (diffFact1<0 && factor1<=0 && factor2>=0) ))
                                  {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                     float distance = 0;
                                     int dist = 0, ldist = 0;
                                     // if the strides have different signs, then the
@@ -2843,6 +2890,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                     if ( (factor1>0 && factor2<0) || 
                                           (factor1<0 && factor2>0) )
                                     {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                        distance = ((float)diffFact1)/(factor2-factor1);
                                        assert (distance > 0);
                                        dist  = ceil  (distance - 0.00001f);
@@ -2854,6 +2902,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
 #endif
                                           if (dist < avgNumIters)
                                           {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              // compute the minimum distance achievable.
                                              // For this, check what locations are touched by 
                                              // node in iteration numbers ldist and dist 
@@ -2865,6 +2914,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                              if (HasIntegerRatio (lDifference, oiter, locF1,
                                                       locF2) && (locF2==1 || locF2==(-1)) )
                                              {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                 // I think both locF2 and locF1 should be
                                                 // positive for this case
                                                 assert (locF2==1 && locF1>0);
@@ -2874,6 +2924,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
 
                                                 if (locF1 < avgNumIters)
                                                 {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                    if (locF1 == ldist) // same iteration
                                                       addUniqueDependency(nodeB, node, negDir, 
                                                             MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
@@ -2888,11 +2939,13 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
 
                                              if (ldist != dist)
                                              {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                 lDifference = diffFormula + 
                                                    _iterFormula * dist;
                                                 if (HasIntegerRatio (lDifference, oiter, locF1,
                                                          locF2) && (locF2==1 || locF2==(-1)) && locF1>0)
                                                 {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 #if DEBUG_GRAPH_CONSTRUCTION
                                                    DEBUG_GRAPH (3,
                                                          std::cerr << "DEBUG: pc=" << std::hex << pc << ", opc=" << opc << std::dec
@@ -2909,6 +2962,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
 
                                                    if (locF1 < avgNumIters)
                                                    {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                       if (locF1 == dist) // same iteration
                                                          addUniqueDependency(nodeB, node, negDir, 
                                                                MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
@@ -2936,6 +2990,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                     }
                                     else  // factors have same sign (positive only)
                                     {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                        assert(factor1>0 && factor2>0);
                                        if (diffFact1>0)
                                           distance = ((float)diffFact1)/factor2;
@@ -2958,6 +3013,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
 
                                        if (diffFact1>0 && factor1>factor2)
                                        {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                           // distance is growing; compute location accessed
                                           // by node in iteration 0, and compute the 
                                           // iteration number when nodeB accesses that location
@@ -2965,6 +3021,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                           if (HasIntegerRatio (diffFormula, oiter, locF1,
                                                    locF2) && (locF2==1 || locF2==(-1)) )
                                           {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              // I think both locF2 and locF1 should be
                                              // positive for this case
                                              assert (locF2==1 && locF1>0);
@@ -2980,6 +3037,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                           }
                                        } else if (diffFact1<0 && factor1<factor2)
                                        {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                           // distance is growing; compute location accessed
                                           // by nodeB in iteration 0, and compute the 
                                           // iteration number when node accesses that location
@@ -2987,6 +3045,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                           if (HasIntegerRatio (diffFormula*(-1), _iterFormula, 
                                                    locF1, locF2) && (locF2==1 || locF2==(-1)) )
                                           {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              // I think both locF2 and locF1 should be
                                              // positive for this case
                                              assert (locF2==1 && locF1>0);
@@ -3000,6 +3059,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                           }
                                        } else if (diffFact1>0 && factor1<factor2)
                                        {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                           // distance is shrinking; compute iteration number
                                           // when dependency direction is changing.
                                           // If this number is less than avgNumIters, then
@@ -3019,6 +3079,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
 
                                           if (ldist < avgNumIters)
                                           {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              // compute the minimum distance achievable.
                                              // For this, check what locations are touched by 
                                              // nodeB in iteration numbers ldist and dist 
@@ -3030,6 +3091,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                              if (HasIntegerRatio (lDifference, _iterFormula, 
                                                       locF1, locF2) && (locF2==1 || locF2==(-1)))
                                              {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                 // I think both locF2 and locF1 should be
                                                 // positive for this case
                                                 assert (locF2==1 && locF1>0);
@@ -3039,6 +3101,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
 
                                                 if (locF1 < avgNumIters)
                                                 {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                    if (locF1 == ldist) // same iteration
                                                       addUniqueDependency(nodeB, node, negDir, 
                                                             MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
@@ -3053,11 +3116,13 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
 
                                              if (ldist!=dist && dist<avgNumIters)
                                              {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                 lDifference = oiter * dist - 
                                                    diffFormula;
                                                 if (HasIntegerRatio (lDifference, _iterFormula, 
                                                          locF1, locF2) && (locF2==1 || locF2==(-1)))
                                                 {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                    // I think both locF2 and locF1 should be
                                                    // positive for this case
                                                    assert (locF2==1 && locF1>0);
@@ -3067,6 +3132,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
 
                                                    if (locF1 < avgNumIters)
                                                    {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                       if (locF1 == dist) // same iteration
                                                          addUniqueDependency(nodeB, node, negDir, 
                                                                MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
@@ -3081,6 +3147,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                              }
                                           } else 
                                           {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              // we know there is at least one iteration 
                                              // with dependencies before we reach avgNumIters
                                              // Compute location accessed by nodeB in the
@@ -3091,6 +3158,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                              if (HasIntegerRatio (lDifference, _iterFormula, 
                                                       locF1, locF2) && (locF2==1 || locF2==(-1)))
                                              {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                 // I think both locF2 and locF1 should be
                                                 // positive for this case
                                                 assert (locF2==1 && locF1>0);
@@ -3105,6 +3173,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                           }
                                        } else // if (diffFact1<0 && factor1>factor2)
                                        {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                           assert (diffFact1<0 && factor1>factor2);
                                           // distance is shrinking and there is at least one
                                           // iteration with dependencies; 
@@ -3125,6 +3194,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
 
                                           if (ldist < avgNumIters)
                                           {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              // compute the minimum distance achievable.
                                              // For this, check what locations are touched by 
                                              // node in iteration numbers ldist and dist 
@@ -3136,6 +3206,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                              if (HasIntegerRatio (lDifference, oiter, 
                                                       locF1, locF2) && (locF2==1 || locF2==(-1)))
                                              {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                 // I think both locF2 and locF1 should be
                                                 // positive for this case
                                                 assert (locF2==1 && locF1>0);
@@ -3145,6 +3216,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
 
                                                 if (locF1 < avgNumIters)
                                                 {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                    if (locF1 == ldist) // same iteration
                                                       addUniqueDependency(nodeB, node, negDir, 
                                                             MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
@@ -3159,11 +3231,13 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
 
                                              if (ldist!=dist && dist<avgNumIters)
                                              {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                 lDifference = _iterFormula * dist + 
                                                    diffFormula;
                                                 if (HasIntegerRatio (lDifference, oiter, 
                                                          locF1, locF2) && (locF2==1 || locF2==(-1)))
                                                 {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                    // I think both locF2 and locF1 should be
                                                    // positive for this case
                                                    assert (locF2==1 && locF1>0);
@@ -3173,6 +3247,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
 
                                                    if (locF1 < avgNumIters)
                                                    {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                       if (locF1 == dist) // same iteration
                                                          addUniqueDependency(nodeB, node, negDir, 
                                                                MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
@@ -3187,6 +3262,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                              }
                                           } else 
                                           {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              // we know there is at least one iteration 
                                              // with dependencies before we reach avgNumIters
                                              // Compute location accessed by node in the
@@ -3197,6 +3273,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                              if (HasIntegerRatio (lDifference, oiter, 
                                                       locF1, locF2) && (locF2==1 || locF2==(-1)))
                                              {
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                 // I think both locF2 and locF1 should be
                                                 // positive for this case
                                                 assert (locF2==1 && locF1>0);
@@ -3286,6 +3363,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                      }  // I think I considered all cases
                   }
                }  // from else - both accesses are of array type
+std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
    return (res);
 }
 

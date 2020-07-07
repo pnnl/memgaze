@@ -658,7 +658,10 @@ protected:
 //            iMarkers = iMarkersHi;
          StrideInst *si = (*iMarkers)(def_pc, idx);
          assert(si || !"Could not find a cached value for specified register");
-         assert(si->is_strideF != 1);
+         assert(si->is_strideF != 1);//OZGURFIXME{
+         //if(si->is_strideF != 1)
+         //   std::cout<<"OZGURERROR:: sii->is_strideF != 1\n";
+         //}
          if (si->is_strideF == 0) // does not depend on an
                    // index var. Return 0, but check if it is indirect access
          {

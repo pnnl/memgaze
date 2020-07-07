@@ -390,7 +390,13 @@ BaseSlice::SliceEffect(const PrivateCFG::Node *b, const uOp_t& uop, const regist
    if (count>0)
       return (SliceEffect_NORMAL);
    else
-   {
+   { 
+      //OZGURFIXME new code{
+    //  if(InstrBinIsRegisterMove(uop.iinfo->type))
+    //     return (SliceEffect_EASY);
+    //  else
+    //     return (SliceEffect_NORMAL);
+    //}
       return (SliceEffect_EASY);
    }
 }

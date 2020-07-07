@@ -516,7 +516,7 @@ PrivateRoutine::MayFollowCallSite(addrtype pc, bool strict)
 int 
 PrivateRoutine::discover_CFG(addrtype pc)
 {
-   cout<<"OZGURDBG discover_CFG: "<<(unsigned int*)pc<<" "<<(unsigned int*)Start()<<" "<<(unsigned int*)End()<<endl;
+//   cout<<"OZGURDBG discover_CFG: "<<(unsigned int*)pc<<" "<<(unsigned int*)Start()<<" "<<(unsigned int*)End()<<endl;
    if (pc<Start() || pc>=End())
    {
 #if DEBUG_BBLs
@@ -552,10 +552,11 @@ PrivateRoutine::discover_CFG(addrtype pc)
       addrtype reloc = InLoadModule()->RelocationOffset();
       while (pc<eaddr && !res && !res2)
       {
-         cout<<"YY "<<name<<" pc: "<<(unsigned int*)pc<<" "<<(unsigned int*)reloc<<" "<<(unsigned int*)(pc+reloc)<<" "<<(unsigned int*)saddr<<" "<<(unsigned int*)eaddr<<endl;
+         //OZGUROPEN
+         //cout<<"YY "<<name<<" pc: "<<(unsigned int*)pc<<" "<<(unsigned int*)reloc<<" "<<(unsigned int*)(pc+reloc)<<" "<<(unsigned int*)saddr<<" "<<(unsigned int*)eaddr<<endl;
          // check if instruction is a branch
          res = instruction_at_pc_transfers_control((void*)(pc+reloc), eaddr-pc, len);
-         dump_instruction_at_pc((void*)(pc+reloc),15);
+         //dump_instruction_at_pc((void*)(pc+reloc),15);
          
          if (res<0)  // error while decoding
          {

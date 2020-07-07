@@ -292,6 +292,7 @@ namespace MIAMI
       void setLoadClasses(bool lcs) {
          load_classes = lcs;
          do_cfgcounts=false;
+         do_build_dg=true;
       }
        
       void setInstLoads(bool opt) {

@@ -2164,7 +2164,7 @@ StrideSlice::SliceOut(PrivateCFG::Node* b, int uop_idx, const register_info& reg
 
          // some of the instructions that are possible, are: Move, Jump, Branch, PriviledgedOp, NOP
          // Only Move is a plausible operation while slicing address registers
-         if (ii->type==IB_move || ii->type==IB_copy)
+         if (ii->type==IB_move || ii->type==IB_copy) 
          {
             assert (ii->num_imm_values == 1);
             si->formula = new GFSliceVal(sliceVal(ii->imm_values[0].value.s, TY_CONSTANT));
