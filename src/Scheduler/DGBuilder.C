@@ -569,6 +569,7 @@ typedef enum {
   XED_REG_ZMM_LAST=XED_REG_ZMM31 //<PSEUDO
 } xed_reg_enum_t;
 
+int tryCount = 0;
 void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::PatchAPI::Point* new_point, Node *nn){
 
    // Construct our snippet that will emit PTWRITE instruction
@@ -592,6 +593,15 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
    Dyninst::PatchAPI::Snippet::Ptr ptrR13 = PTWriteSnippetR13::create(new PTWriteSnippetR13());
    Dyninst::PatchAPI::Snippet::Ptr ptrR14 = PTWriteSnippetR14::create(new PTWriteSnippetR14());
    Dyninst::PatchAPI::Snippet::Ptr ptrR15 = PTWriteSnippetR15::create(new PTWriteSnippetR15());
+   Dyninst::PatchAPI::Snippet::Ptr nop5 = NOPSnippet5::create(new NOPSnippet5());
+   Dyninst::PatchAPI::Snippet::Ptr nop1 = NOPSnippet1::create(new NOPSnippet1());
+
+//TESTING nop for error
+//patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, nop1));
+//new_point->pushBack(ptrR15);
+//TESTING nop5 for error
+//patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, nop5));
+
 
    int reg;
    RInfoList srcreg = nn->getSrcReg();
@@ -616,83 +626,84 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
             switch (reg){
                case  XED_REG_EAX:
                   cerr << "PTW eax  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrEAX));
+//                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrEAX));
+                  new_point->pushBack(ptrEAX);
                   break;	    		
                case XED_REG_EBX:
                   cerr << "PTW ebx  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrEBX));
+                  new_point->pushBack(ptrEBX);
                   break;	    		
                case XED_REG_ECX:
                   cerr << "PTW ecx  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrECX));
+                  new_point->pushBack(ptrECX);
                   break;	    		
                case XED_REG_EDX:
                   cerr << "PTW edx  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrEDX));
+                  new_point->pushBack(ptrEDX);
                   break;	    		
                case XED_REG_RAX:
                   cerr << "PTW rax  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRAX));
+                  new_point->pushBack(ptrRAX);
                   break;	    		
                case XED_REG_RBX:
                   cerr << "PTW rbx  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRBX));
+                  new_point->pushBack(ptrRBX);
                   break;	    		
                case XED_REG_RCX:
                   cerr << "PTW rcx  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRCX));
+                  new_point->pushBack(ptrRCX);
                   break;	    		
                case XED_REG_RDX:
                   cerr << "PTW rdx  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRDX));
+                  new_point->pushBack(ptrRDX);
                   break;	    		
                case XED_REG_RBP:
                   cerr << "PTW rbp  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRBP));
+                  new_point->pushBack(ptrRBP);
                   break;	    		
                case XED_REG_RSP:
                   cerr << "PTW rsp  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRSP));
+                  new_point->pushBack(ptrRSP);
                   break;	    		
                case XED_REG_RSI:
                   cerr << "PTW rsi  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRSI));
+                  new_point->pushBack(ptrRSI);
                   break;	    		
                case XED_REG_RDI:
                   cerr << "PTW rdi  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRDI));
+                  new_point->pushBack(ptrRDI);
                   break;	    		
                case XED_REG_R8:
                   cerr << "PTW r8  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR8));
+                  new_point->pushBack(ptrR8);
                   break;	    		
                case XED_REG_R9:
                   cerr << "PTW r9  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR9));
+                  new_point->pushBack(ptrR9);
                   break;	    		
                case XED_REG_R10:
                   cerr << "PTW r10  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR10));
+                  new_point->pushBack(ptrR10);
                   break;	    		
                case XED_REG_R11:
                   cerr << "PTW r11  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR11));
+                  new_point->pushBack(ptrR11);
                   break;	    		
                case XED_REG_R12:
                   cerr << "PTW r12  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR12));
+                  new_point->pushBack(ptrR12);
                   break;	    		
                case XED_REG_R13:
                   cerr << "PTW r13  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR13));
+                  new_point->pushBack(ptrR13);
                   break;	    		
                case XED_REG_R14:
                   cerr << "PTW r14  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR14));
+                  new_point->pushBack(ptrR14);
                   break;	    		
                case XED_REG_R15:
                   cerr << "PTW r15  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR15)); 
+                  new_point->pushBack(ptrR15);
                   break;	    		
                default:
                   cerr << "Register could not found\n"; 
@@ -712,83 +723,83 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
             switch (reg){
                case  XED_REG_EAX:
                   cerr << "PTW eax  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrEAX));
+                  new_point->pushBack(ptrEAX);
                   break;	    		
                case XED_REG_EBX:
                   cerr << "PTW ebx  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrEBX));
+                  new_point->pushBack(ptrEBX);
                   break;	    		
                case XED_REG_ECX:
                   cerr << "PTW ecx  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrECX));
+                  new_point->pushBack(ptrECX);
                   break;	    		
                case XED_REG_EDX:
                   cerr << "PTW edx  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrEDX));
+                  new_point->pushBack(ptrEDX);
                   break;	    		
                case XED_REG_RAX:
                   cerr << "PTW rax  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRAX));
+                  new_point->pushBack(ptrRAX);
                   break;	    		
                case XED_REG_RBX:
                   cerr << "PTW rbx  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRBX));
+                  new_point->pushBack(ptrRBX);
                   break;	    		
                case XED_REG_RCX:
                   cerr << "PTW rcx  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRCX));
+                  new_point->pushBack(ptrRCX);
                   break;	    		
                case XED_REG_RDX:
                   cerr << "PTW rdx  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRDX));
+                  new_point->pushBack(ptrRDX);
                   break;	    		
                case XED_REG_RBP:
                   cerr << "PTW rbp  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRBP));
+                  new_point->pushBack(ptrRBP);
                   break;	    		
                case XED_REG_RSP:
                   cerr << "PTW rsp  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRSP));
+                  new_point->pushBack(ptrRSP);
                   break;	    		
                case XED_REG_RSI:
                   cerr << "PTW rsi  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRSI));
+                  new_point->pushBack(ptrRSI);
                   break;	    		
                case XED_REG_RDI:
                   cerr << "PTW rdi  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrRDI));
+                  new_point->pushBack(ptrRDI);
                   break;	    		
                case XED_REG_R8:
                   cerr << "PTW r8  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR8));
+                  new_point->pushBack(ptrR8);
                   break;	    		
                case XED_REG_R9:
                   cerr << "PTW r9  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR9));
+                  new_point->pushBack(ptrR9);
                   break;	    		
                case XED_REG_R10:
                   cerr << "PTW r10  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR10));
+                  new_point->pushBack(ptrR10);
                   break;	    		
                case XED_REG_R11:
                   cerr << "PTW r11  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR11));
+                  new_point->pushBack(ptrR11);
                   break;	    		
                case XED_REG_R12:
                   cerr << "PTW r12  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR12));
+                  new_point->pushBack(ptrR12);
                   break;	    		
                case XED_REG_R13:
                   cerr << "PTW r13  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR13));
+                  new_point->pushBack(ptrR13);
                   break;	    		
                case XED_REG_R14:
                   cerr << "PTW r14  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR14));
+                  new_point->pushBack(ptrR14);
                   break;	    		
                case XED_REG_R15:
                   cerr << "PTW r15  @ " << new_point << endl;
-                  patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, ptrR15)); 
+                  new_point->pushBack(ptrR15);
                   break;	    		
                default:
                   cerr << "Register could not found\n"; 
@@ -798,6 +809,14 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
       }
    }
 
+//std::cout<<"OZGURDEBUG::InsertSniplet try: "<< tryCount <<std::endl;
+//   bool cmt = patcher->commit();
+//   if (!cmt && tryCount < 10){
+//      std::cout<<"OZGURERROR::commit try: "<< tryCount <<std::endl;
+//      tryCount++;
+//      addPTWSnippet(patcher, new_point, nn);
+//   }
+//  return cmt;
 }
 
 
@@ -805,6 +824,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
    NodesIterator fnit(*this);
    LoadModule *img =this->img;
    Routine *rout = this->routine;
+    
 
    BPatch_image* image =  img->getDyninstImage();
    BPatch_Vector<BPatch_function*> funcs;
@@ -876,6 +896,41 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
 //Original Code continues from here
    Dyninst::PatchAPI::PatchMgrPtr patchMgr = Dyninst::PatchAPI::convert(DynApp);
    Dyninst::PatchAPI::Patcher patcher(patchMgr);
+//Adding ptwrite 0 to entry and exit points of the fuction.
+   if(func_exist){
+     //std::vector<Dyninst::PatchAPI::Point*> entry_points ; 
+     std::vector<BPatch_point*> *entry_points ; 
+     //std::vector<Dyninst::PatchAPI::Point*> exit_points ; 
+     std::vector<BPatch_point*> *exit_points ; 
+//     Dyninst::PatchAPI::Snippet::Ptr ptrZERO = PTWriteSnippetZERO::create(new PTWriteSnippetZERO());
+     Dyninst::PatchAPI::Snippet::Ptr ptrZERO = PTWriteSnippetZERO::create(new PTWriteSnippetR15());
+//     Dyninst::PatchAPI::Snippet::Ptr ptrZERO = NOPSnippet1::create(new NOPSnippet1());
+     //First insert ptw zero after entry point
+     entry_points = funcs[0]->findPoint(BPatch_locEntry);
+//     entry_points = funcs[0]->findPoint(BPatch_allLocations);
+     std::vector<BPatch_point*>::iterator pit;
+     for (pit = entry_points->begin(); pit != entry_points->end(); pit++){
+//       pit = entry_points->begin();
+       loadPtr = *pit;
+      std::cout<<"ALL OLD Instrumenting entry point at address 0x" << std::hex<< loadPtr->getAddress() << std::dec <<std::endl;
+       lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+      lps->pushBack(ptrZERO);
+      std::cout<<"Instrumenting entry point at address 0x" << std::hex<< lps->addr() << std::dec <<std::endl;
+     }
+     //second insert ptw zero before exit point
+     //exit_points = funcs[0]->findPoint(BPatch_exit);
+     exit_points = funcs[0]->findPoint(BPatch_locExit);
+     for (pit = exit_points->begin(); pit != exit_points->end(); pit++){
+//        pit = entry_points->begin();
+       loadPtr = *pit;
+      std::cout<<"OLD Instrumenting exit point at address 0x" << std::hex<< loadPtr->getAddress() << std::dec <<std::endl;
+       lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callBefore);
+      lps->pushBack(ptrZERO);
+      std::cout<<"Instrumenting exit point at address 0x" << std::hex<< lps->addr() << std::dec <<std::endl;
+     }
+   }
+//   patcher.commit();
+
 
    double total_lds = 0;
    double frame_lds = 0;
@@ -889,18 +944,20 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
    while ((bool)fnit) {
             Node *nn = fnit;
             int opidx = nn->memoryOpIndex();
-            nn->longdump(this,std::cout);
+//            nn->longdump(this,std::cout);
             if (opidx >=0){
                RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
                if(refF != NULL){
                   GFSliceVal oform = refF->base;
                   coeff_t valueNum;
                   ucoeff_t valueDen;
-                  std::cout<<"ref->base: "<<oform<<std::endl;
+//                  std::cout<<"ref->base: "<<oform<<std::endl;
                }
             }
 
       Node *fnn = fnit;
+tryagain:
+      std::cout<<"OZGURDBG::instrumenting node:0x"<<std::hex<<fnn->getAddress()<<std::dec << " try:"<<tryCount<<std::endl;
       if (fnn->isInstructionNode() && fnn->getType() >0){
          if(fnn->is_load_instruction() && mo->inst_loads){
             srcreg = fnn->getSrcReg();
@@ -1081,9 +1138,15 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
             }
          }
       }
+//      if (!patcher.commit()){
+//        tryCount++;
+//        goto tryagain;
+//      } else {
+//        tryCount=0;
+//      }
       ++fnit;
    }
-   patcher.commit();
+  // patcher.commit();
 
    std::cout<<"Testing mem Instructions Final:\nTotal loads:"<<total_lds<<"\tframe:"<<frame_lds<<"\tstrided:"<<strided_lds<<"\tindirect:"<<indirect_lds<<std::endl;
    std::cout<<"Total stores:"<<total_sts<<"\tframe:"<<frame_sts<<"\tstrided:"<<strided_sts<<"\tindirect:"<<indirect_sts<<std::endl;
@@ -3209,7 +3272,11 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                 // I think both locF2 and locF1 should be
                                                 // positive for this case
-                                                assert (locF2==1 && locF1>0);
+                                                //assert (locF2==1 && locF1>0); //OZGURFIXME original
+                                                if (locF2==1 && locF1>0){//OZGUR NEW
+                                                   std::cout<<"OZGURERROR:: in func "<<__func__<<" line "<<__LINE__<<" locF2= "<<locF2<<"&& locF1= "<<locF1<<std::endl;
+                                                }
+
                                                 // if (locF2<0)
                                                 //   // this is actually the iteration number for nodeB
                                                 //   locF1 = -locF1;
@@ -4302,4 +4369,3 @@ DGBuilder::isInterproceduralJump(SchedDG::Node *node, MIAMI::CFG::Node *b) const
 }
 
 }  /* namespace MIAMI_DG */
-

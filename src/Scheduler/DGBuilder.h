@@ -57,6 +57,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[4] = {0xf3,0x0f,0xae,0xe0};
         buf.copy(ptwrite_example, 4);
+        return true;
     }
 };
 class PTWriteSnippetEBX : public Dyninst::PatchAPI::Snippet {
@@ -65,6 +66,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[4] = {0xf3, 0x0f, 0xae, 0xe3}; 
         buf.copy(ptwrite_example, 4);
+        return true;
     }
 };
 class PTWriteSnippetECX : public Dyninst::PatchAPI::Snippet {
@@ -73,6 +75,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[4] = {0xf3,0x0f,0xae,0xe1};
         buf.copy(ptwrite_example, 4);
+        return true;
     }
 };
 class PTWriteSnippetEDX : public Dyninst::PatchAPI::Snippet {
@@ -81,6 +84,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[4] = {0xf3,0x0f,0xae,0xe2};
         buf.copy(ptwrite_example, 4);
+        return true;
     }
 };
 class PTWriteSnippetRAX : public Dyninst::PatchAPI::Snippet {
@@ -89,6 +93,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[5] = {0xf3, 0x48, 0x0f, 0xae, 0xe0};
         buf.copy(ptwrite_example, 5);
+        return true;
     }
 };
 class PTWriteSnippetRBX : public Dyninst::PatchAPI::Snippet {
@@ -97,6 +102,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[5] = {0xf3, 0x48, 0x0f, 0xae, 0xe3};
         buf.copy(ptwrite_example, 5);
+        return true;
     }
 };
 class PTWriteSnippetRCX : public Dyninst::PatchAPI::Snippet {
@@ -105,6 +111,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[5] = {0xf3, 0x48, 0x0f, 0xae, 0xe1};
         buf.copy(ptwrite_example, 5);
+        return true;
     }
 };
 class PTWriteSnippetRDX : public Dyninst::PatchAPI::Snippet {
@@ -113,6 +120,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[5] = {0xf3, 0x48, 0x0f, 0xae, 0xe2};
         buf.copy(ptwrite_example, 5);
+        return true;
     }
 };
 class PTWriteSnippetRBP : public Dyninst::PatchAPI::Snippet {
@@ -121,6 +129,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[5] = {0xf3, 0x48, 0x0f, 0xae, 0xe5};
         buf.copy(ptwrite_example, 5);
+        return true;
     }
 };
 class PTWriteSnippetRSP : public Dyninst::PatchAPI::Snippet {
@@ -129,6 +138,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[5] = {0xf3, 0x48, 0x0f, 0xae, 0xe4};
         buf.copy(ptwrite_example, 5);
+        return true;
     }
 };
 class PTWriteSnippetRSI : public Dyninst::PatchAPI::Snippet {
@@ -137,6 +147,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[5] = {0xf3, 0x48, 0x0f, 0xae, 0xe6} ;
         buf.copy(ptwrite_example, 5);
+        return true;
     }
 };
 class PTWriteSnippetRDI : public Dyninst::PatchAPI::Snippet {
@@ -145,6 +156,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[5] = {0xf3, 0x48, 0x0f, 0xae, 0xe7};
         buf.copy(ptwrite_example, 5);
+        return true;
     }
 };
 class PTWriteSnippetR8 : public Dyninst::PatchAPI::Snippet {
@@ -153,6 +165,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[5] = {0xf3, 0x49, 0x0f, 0xae, 0xe0};
         buf.copy(ptwrite_example, 5);
+        return true;
     }
 };
 class PTWriteSnippetR9 : public Dyninst::PatchAPI::Snippet {
@@ -161,6 +174,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[5] = {0xf3, 0x49, 0x0f, 0xae, 0xe1};
         buf.copy(ptwrite_example, 5);
+        return true;
     }
 };
 class PTWriteSnippetR10 : public Dyninst::PatchAPI::Snippet {
@@ -169,6 +183,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[5] = {0xf3, 0x49, 0x0f, 0xae, 0xe2}; 
         buf.copy(ptwrite_example, 5);
+        return true;
     }
 };
 class PTWriteSnippetR11 : public Dyninst::PatchAPI::Snippet {
@@ -177,6 +192,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[5] = {0xf3, 0x49, 0x0f, 0xae, 0xe3};
         buf.copy(ptwrite_example, 5);
+        return true;
     }
 };
 class PTWriteSnippetR12 : public Dyninst::PatchAPI::Snippet {
@@ -185,6 +201,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[5] = {0xf3, 0x49, 0x0f, 0xae, 0xe4};
         buf.copy(ptwrite_example, 5);
+        return true;
     }
 };
 class PTWriteSnippetR13 : public Dyninst::PatchAPI::Snippet {
@@ -193,6 +210,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[5] = {0xf3, 0x49, 0x0f, 0xae, 0xe5};
         buf.copy(ptwrite_example, 5);
+        return true;
     }
 };
 class PTWriteSnippetR14 : public Dyninst::PatchAPI::Snippet {
@@ -201,6 +219,7 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[5] = {0xf3, 0x49, 0x0f, 0xae, 0xe6};
         buf.copy(ptwrite_example, 5);
+        return true;
     }
 };
 class PTWriteSnippetR15 : public Dyninst::PatchAPI::Snippet {
@@ -209,6 +228,34 @@ public:
     bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
         static unsigned char ptwrite_example[5] = {0xf3, 0x49, 0x0f, 0xae, 0xe7};
         buf.copy(ptwrite_example, 5);
+        return true;
+    }
+};
+class PTWriteSnippetZERO : public Dyninst::PatchAPI::Snippet {
+public:
+    PTWriteSnippetZERO() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char ptwrite_example[9] = {0xf3,  0x0f, 0xae, 0x24, 0x25, 0x00, 0x00, 0x00, 0x00};
+        buf.copy(ptwrite_example, 9);
+        return true;
+    }
+};
+class NOPSnippet5 : public Dyninst::PatchAPI::Snippet {
+public:
+    NOPSnippet5() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char nop_example[5] = {0x90, 0x90, 0x90, 0x90, 0x90};
+        buf.copy(nop_example, 5);
+        return true;
+    }
+};
+class NOPSnippet1 : public Dyninst::PatchAPI::Snippet {
+public:
+    NOPSnippet1() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char nop_example[1] = {0x90};
+        buf.copy(nop_example, 1);
+        return true;
     }
 };
 typedef std::list<SchedDG::Node*> NodeList;

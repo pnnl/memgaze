@@ -967,6 +967,7 @@ GFSliceVal
 StrideSlice::ComputeFormulaForMemoryOperand(PrivateCFG::Node* node, const DecodedInstruction *dInst, 
          int uop_idx, int op_num, addrtype pc)
 {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
    // how to compute an effective address is platform dependent
    // RISC ISAs have only base + index registers. The two values
    // are summed. 
@@ -977,6 +978,7 @@ StrideSlice::ComputeFormulaForMemoryOperand(PrivateCFG::Node* node, const Decode
    GFSliceVal _formula (sliceVal (0, TY_CONSTANT));
    if (!generic_formula_for_memory_operand(dInst, uop_idx, op_num, pc, _formula))
    {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
       // iterate over the terms of the formula and slice all registers
       GFSliceVal::iterator fit;
       for (fit=_formula.begin() ; fit!=_formula.end() ; ++fit)
@@ -1000,11 +1002,13 @@ StrideSlice::ComputeFormulaForMemoryOperand(PrivateCFG::Node* node, const Decode
       }  // for each term of the generic formula
    } else  // if could not get generic formula for memory operand
    {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
       // this should never happen, assert
       cerr << "Could not get generic formula for memory operand of micro-op at pc 0x"
            << hex << pc << dec << ", uop index " << uop_idx << endl;
       assert (!"We should be able to compute a generic formula always.");
    }
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
    return (opFormula);
 }
 
@@ -1075,7 +1079,8 @@ StrideSlice::BuildCyclicPath(PrivateCFG::Node *startb)
       fprintf(stderr, "ERROR: Could not build a 1-iteration cyclic path that includes block %d [0x%" 
               PRIxaddr ",0x%" PRIxaddr "] for scope with marker %u. I do not know what to do.\n",
            startb->getId(), startb->getStartAddress(), startb->getEndAddress(), slice_marker);
-      assert(!"Chech the CFG of this routine.");
+      //assert(!"Chech the CFG of this routine.");//OZGURFIXME original
+      std::cout<<"OZGURERROR:: Chech the CFG of this routine: "<<startb->inCfg()->name()<<std::endl;
    }
 }
 
@@ -2168,7 +2173,13 @@ StrideSlice::SliceOut(PrivateCFG::Node* b, int uop_idx, const register_info& reg
          {
             assert (ii->num_imm_values == 1);
             si->formula = new GFSliceVal(sliceVal(ii->imm_values[0].value.s, TY_CONSTANT));
-         } else
+         } 
+         //OZGURFIXME start
+         else  if (ii->type==IB_lea){
+            si->formula = new GFSliceVal(sliceVal(ii->imm_values[0].value.s, TY_REGISTER));
+         }
+         //OZGURFIXME END
+         else
          {
             fprintf (stderr, "ALERT, Micro-op %d at pc 0x%" PRIxaddr " with slice effect EASY on reg %s, has type %d which is not MOVE. Check it out!\n",
                     uop.idx, pc, reg.ToString().c_str(), ii->type);
@@ -3397,10 +3408,11 @@ void
 StrideSlice::Slice(PrivateCFG::Node *b, int from_uop, const register_info& reg, 
                 addrtype _start_pc, addrtype _to_pc)
 {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
    start_be = back_edged;
    start_rank = b->getPathRank();
    
-#if DEBUG_STATIC_MEMORY
+//#if DEBUG_STATIC_MEMORY
    DEBUG_STMEM(4,
       cerr << endl << "  ** StrideSlice::Slice, block [0x" << hex << b->getStartAddress()
            << ",0x" << b->getEndAddress() << "], from_uop=" << dec << from_uop
@@ -3408,7 +3420,8 @@ StrideSlice::Slice(PrivateCFG::Node *b, int from_uop, const register_info& reg,
            << _start_pc << dec << ", start_be=" << start_be 
            << ", start_rank=" << start_rank << endl;
    )
-#endif
+//#endif
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 
    UopCodeCache *ucc = b->MicroOpCode();
    int num_uops = ucc->NumberOfUops();
@@ -3435,12 +3448,14 @@ StrideSlice::Slice(PrivateCFG::Node *b, int from_uop, const register_info& reg,
 #endif
    
    BaseSlice::Slice(b, from_uop, reg, _start_pc, _to_pc);
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 }
 
 void
 StrideSlice::StartSlice(PrivateCFG::Node *b, int from_uop, const register_info& reg, 
                 addrtype _start_pc, addrtype _to_pc)
 {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 #if DEBUG_STATIC_MEMORY
    DEBUG_STMEM(3,
       cerr << "StrideSlice::StartSlice, block [0x" << hex << b->getStartAddress()
@@ -3453,6 +3468,7 @@ StrideSlice::StartSlice(PrivateCFG::Node *b, int from_uop, const register_info& 
    // I should not have any leftover cycles. Test?
    if (!sCycles.empty())
    {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
        cerr << "WARNING: StrideSlice::start_slice, cycle map is not empty. Previous slice may be incorrect!" << endl;
        sCycles.clear();
    }
@@ -3467,9 +3483,11 @@ StrideSlice::StartSlice(PrivateCFG::Node *b, int from_uop, const register_info& 
    NodeEdgeMap::iterator nemit = incomingEdges.find(b);
    if (nemit == incomingEdges.end())  // did not find it
    {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
       incomingEdges.clear();
       BuildCyclicPath(b);
    }
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
    
    Slice(b, from_uop, reg, _start_pc, _to_pc);
 }

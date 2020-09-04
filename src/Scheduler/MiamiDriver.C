@@ -580,6 +580,7 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
    StringOffsetMap::iterator sit = imgFileOffsets.find(iname);
    if (sit != imgFileOffsets.end())
    {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
       // only process images for which we've collected data before
       // now go and read the info for this image
       int res = fseek(fd, sit->second, SEEK_SET);
@@ -593,6 +594,7 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
       uint32_t hashKey = 0;
       if (mo->do_staticmem)
       {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          FILE *img_fd = fopen(iname.c_str(), "rb");
          if (img_fd)  // I was able to open it, compute its CRC32 hash
          {
@@ -618,6 +620,7 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
          newimg->loadFPfile(mo->func_name, prog, mo);
          newimg->palmAnalyzeRoutines(prog, mo);
       } else if(mo->load_classes){
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          std::cout<<"OZGURDBG in load_classes"<<std::endl;
          newimg->loadFromFile(fd, false);  // do not parse routines now
          newimg->createDyninstImage(bpatch);
@@ -633,6 +636,7 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
 std::cout<<"I wrote to a file named "<<newName<<" image: "<<iname<<std::endl;
       }
       else { 
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          std::cout<<"old cfg do fp:"<<mo->do_fp<<" fp file size:"<< mo->fp_path.length()<<std::endl;
          newimg->loadFromFile(fd, false);  // do not parse routines now
          newimg->createDyninstImage(bpatch);
@@ -648,9 +652,11 @@ std::cout<<"I wrote to a file named "<<newName<<" image: "<<iname<<std::endl;
       }
    }
    else{
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
       uint32_t hashKey = 0;
       if (mo->do_staticmem)
       {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          FILE *img_fd = fopen(iname.c_str(), "rb");
          if (img_fd)  // I was able to open it, compute its CRC32 hash
          {
@@ -674,6 +680,7 @@ std::cout<<"I wrote to a file named "<<newName<<" image: "<<iname<<std::endl;
          newimg->loadFPfile(mo->func_name, prog, mo);
          newimg->palmAnalyzeRoutines(prog, mo);
       } else if(mo->load_classes){
+std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 std::cout<<"OZGURDBG in load_classes"<<std::endl;
          //newimg->loadFromFile(fd, false);  // do not parse routines now
          newimg->createDyninstImage(bpatch);

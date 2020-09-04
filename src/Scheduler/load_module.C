@@ -1522,6 +1522,7 @@ int LoadModule::dyninstAnalyzeRoutines(ProgScope *prog, const MiamiOptions *mo){
    rout->discover_CFG(rstart);
    //rout->dyninst_discover_CFG(rstart);
    int ires;
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 
    img_scope = new ImageScope(prog, img_name, img_id);
    if (rout->is_valid_for_analysis()){

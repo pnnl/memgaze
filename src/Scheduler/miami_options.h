@@ -288,11 +288,31 @@ namespace MIAMI
       void setNoScopeTree(bool nst) {
          do_scopetree = !nst;
       }
-      
+      //This will called as one of the last option setting 
+      //it will overwrite every other option execpt linemap
       void setLoadClasses(bool lcs) {
          load_classes = lcs;
-         do_cfgcounts=false;
-         do_build_dg=true;
+         //OZGURFIXME I need to decide what to enable or disable
+         //Originally this section is not exist
+         //I copied it from mrd which opens all this options
+         if (! no_scheduling)
+            {
+               do_scheduling = true;
+               do_cfgpaths = true;
+               //extra
+               do_mycfgpaths =  false;
+               //End;
+               do_build_dg = true;
+               units_usage = false;
+               do_staticmem = true;
+               do_ref_scope_index = true;
+               
+               do_cfgcounts = false;
+               do_idecode = true;
+               dump_xml = false;
+            }
+         //do_cfgcounts=false;
+         //do_build_dg=true;
       }
        
       void setInstLoads(bool opt) {

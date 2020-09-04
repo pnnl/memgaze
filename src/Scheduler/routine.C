@@ -510,6 +510,7 @@ Routine::computeStrideFormulasForScope(StrideSlice &sslice, ReferenceSlice *rsli
         RIFGNodeId node, TarjanIntervals *tarj, MiamiRIFG* mCfg, int level,
         RFormulasMap& refFormulas, RefInfoMap& memRefs)
 {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
    // I need to compute the strides for references in this scope and all
    // its inner loops. I can set a limit for how deep I go if this analysis
    // takes too long and the strides relative to a far outer loop are never used.
@@ -521,6 +522,7 @@ Routine::computeStrideFormulasForScope(StrideSlice &sslice, ReferenceSlice *rsli
    if (root_b->Size() > 0)
       nqueue.push_back(root_b);
       
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
    
    // I need to iterate over the nodes twice. First time process only acyclic
    // blocks, computing strides for all memory operands at this level. 
@@ -537,6 +539,7 @@ Routine::computeStrideFormulasForScope(StrideSlice &sslice, ReferenceSlice *rsli
             nqueue.push_back(b);
       }
    }
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 
 #if DEBUG_STATIC_MEMORY
    DEBUG_STMEM(1,
@@ -566,6 +569,7 @@ Routine::computeStrideFormulasForScope(StrideSlice &sslice, ReferenceSlice *rsli
 #endif
          if (InstrBinIsMemoryType(uop.iinfo->type))
          {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 #if DEBUG_STATIC_MEMORY
             DEBUG_STMEM(2,
                fprintf(stderr, "$(%d) Found memory micro-op at pc 0x%" PRIxaddr ", idx %d, type %s, block Id %d. Start slicing for stride.\n",
@@ -573,24 +577,29 @@ Routine::computeStrideFormulasForScope(StrideSlice &sslice, ReferenceSlice *rsli
             )
 #endif
 
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
             int opidx = uop.getMemoryOperandIndex();  // memory operand index in original DecodedInstruction
             if (opidx<0)  // dump the instruction decoding
             {
                DumpInstrList(uop.dinst);
                assert (opidx >= 0);
             }
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
             
             // record all the memory references that we found while computing the
             // strides, and record their level relative to the striding loop
             memRefs.insert(RefInfoMap::value_type(AddrIntPair(pc, i),
                       RefStrideId(pc, opidx, level)));
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
             
             RefFormulas* &rf = refFormulas(pc, opidx);
             if (! rf)
                rf = new RefFormulas();
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
             
             if ((int)(rf->strides.size()) < root_b->getLevel())
                rf->strides.resize(root_b->getLevel());
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
                
             // check first if we have the formulas already
             GFSliceVal &_loadedFormula = rf->strides[level];
@@ -610,6 +619,7 @@ Routine::computeStrideFormulasForScope(StrideSlice &sslice, ReferenceSlice *rsli
                )
 #endif
    
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
                // iterate over the temp formula to slice its register terms up to the
                // start of the routine
                _loadedFormula = GFSliceVal(sliceVal (0, TY_CONSTANT));
@@ -678,6 +688,7 @@ Routine::computeStrideFormulasForScope(StrideSlice &sslice, ReferenceSlice *rsli
                if (tempFormula.has_irregular_access())
                   _loadedFormula.set_irregular_access();
                
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
                // iterate over the formula again to find any stack reference terms
                GFSliceVal adjustFormula(sliceVal(0, TY_CONSTANT));
                bool fchanged = false;
@@ -718,6 +729,7 @@ Routine::computeStrideFormulasForScope(StrideSlice &sslice, ReferenceSlice *rsli
                 * and LOADs. See Sparc version, profile_analysis.C:1543
                 */
             }  // formula is not already loaded
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
             
 #if DEBUG_STATIC_MEMORY
             DEBUG_STMEM(1,
@@ -729,6 +741,7 @@ Routine::computeStrideFormulasForScope(StrideSlice &sslice, ReferenceSlice *rsli
          }  // uop is memory reference
       }  // for each micro-op
    }  // while nqueue not empty
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 
    for (kid = tarj->TarjInners(node) ; kid != RIFG_NIL ; 
                 kid = tarj->TarjNext(kid))
@@ -739,12 +752,14 @@ Routine::computeStrideFormulasForScope(StrideSlice &sslice, ReferenceSlice *rsli
                 refFormulas, memRefs);
       }
    }
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 }
 
 void
 Routine::computeStrideFormulasForRoutine(RIFGNodeId node, TarjanIntervals *tarj, 
             MiamiRIFG* mCfg, int marker, int level, ReferenceSlice *rslice)
 {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
    CFG::Node* b;
    int kid;
 
@@ -770,9 +785,11 @@ Routine::computeStrideFormulasForRoutine(RIFGNodeId node, TarjanIntervals *tarj,
          computeStrideFormulasForRoutine(kid, tarj, mCfg, tmarker, level+1, rslice);
       }
    }
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 
    if (level>0)
    {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
       // build stride formulas for this scope
       // do not compute strides if scope is a routine body
       CFG *cfg = ControlFlowGraph();
@@ -789,6 +806,7 @@ Routine::computeStrideFormulasForRoutine(RIFGNodeId node, TarjanIntervals *tarj,
       )
 #endif
       computeStrideFormulasForScope(sslice, rslice, node, tarj, mCfg, 0, refFormulas, memRefs);
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
       
       // Now, I have to traverse the list of memory references, and for those that have 
       // the potential of being indirect, clarify if the strde is truly indirect
@@ -813,11 +831,13 @@ Routine::computeStrideFormulasForRoutine(RIFGNodeId node, TarjanIntervals *tarj,
          }
       }
    }  // not zero
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 }
 
 int
 Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
 {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
    std::cout<<__func__<<__LINE__<<std::endl;
    int ires;
    // compute execution frequency of every edge and block
@@ -828,6 +848,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
    std::cout << "[INFO]Routine::main_analysis(): '" << name << "'\n";
    if (name.compare(mo->debug_routine) == 0)  // they are equal
    {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
       // draw CFG
       cfg->draw_CFG(name.c_str(), 0, mo->debug_parts);
    }
@@ -835,6 +856,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
    /* compute BB ad edge frequencies */
    if (mo->do_cfgcounts)
    {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
       ires = cfg->computeBBAndEdgeCounts();
       if (ires < 0)
       {
@@ -847,11 +869,13 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
 
 
    createBlkNoToMiamiBlkMap(cfg);
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
    
    MiamiRIFG mCfg(cfg);
    TarjanIntervals tarj(mCfg);  // computes tarjan intervals
    RIFGNodeId root = mCfg.GetRootNode();
    cfg->set_node_levels(root, &tarj, &mCfg, 0);
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
    
    // for DEBUGGING
 #if 0 // begin debug1
@@ -965,6 +989,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
    
    if (mo->do_scopetree)
    {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
       // call mark_loop_back_edges after computing the tarjan intervals
       CFG::AddrEdgeMMap *entryEdges = new CFG::AddrEdgeMMap ();
       CFG::AddrEdgeMMap *callEntryEdges = new CFG::AddrEdgeMMap ();
@@ -985,6 +1010,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
       // (re)compute node ranks after tarjan analysis to get consistent rank numbers
       // for irreducible intervals
       cfg->ComputeNodeRanks();
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 
       std::string file, func;
       int32_t lineNumber1 = 0, lineNumber2 = 0;
@@ -999,6 +1025,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
       std::string rName = std::string(MIAMIP::get_best_function_name(name.c_str(), outbuf, maxname));
       std::string fName = (file.length()>0)?file:std::string("unknown-file");
       delete[] outbuf;
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 
       addrtype _key;
       if (sizeof(addrtype)==8)
@@ -1015,6 +1042,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
          cerr << "    - " << tmpit->second->ToString() << " with key " 
               << hex << tmpit->first << dec << endl;
 #endif
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 
       CodeScope::iterator siit = prog->find(_key);
       FileScope *fscope;
@@ -1022,6 +1050,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
          fscope = static_cast<FileScope*> (siit->second);
       else
       {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          fscope = new FileScope (prog, fName, _key);
 #if DEBUG_PROG_SCOPE
          fprintf (stderr, "New FileScope, fname=%s, xml=%s\n", fName.c_str(), 
@@ -1043,18 +1072,22 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
       rscope->setMarkedWith(tarj.LoopIndex(root));
       // add lines in the global map as well
       mdriver.AddSourceFileInfo(findex, lineNumber1, lineNumber2);
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 #if PROFILE_SCHEDULER
       MIAMIP::report_time (stderr, "Initialize data for routine %s", rName.c_str());
 #endif
 
 
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
       if (name.compare(mo->debug_routine) == 0)  // they are equal
       {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          CfgToDot(&mCfg, &tarj, 0, mo->debug_parts);
       }
       
       if (mo->do_staticmem)
       {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          // build base location formulas first; use topological traversal of the CFG, 
          // so that when I analyze an instruction, all references on all paths to that 
          // instruction are already analyzed (have symbolic formulas)
@@ -1065,12 +1098,16 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
                     rscope->ToString().c_str(), 0);
          )
 #endif
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          RFormulasMap &refFormulas = *rFormulas;
          rslice = new ReferenceSlice(cfg, refFormulas);
          computeBaseFormulas(rslice, cfg, refFormulas);
-         
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
+if (rslice != NULL)
+std::cout<<" This is Rslice "<<rslice<<std::endl;         
          // build stride formulas now
          computeStrideFormulasForRoutine(root, &tarj, &mCfg, tarj.LoopIndex(root), 0, rslice);
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          if (rslice) {
             delete (rslice);
             rslice = 0;
@@ -1082,9 +1119,11 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
       }
       //OZGURS
       if(mo->load_classes){
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          build_loops_for_interval (rscope, root, &tarj, &mCfg, tarj.LoopIndex(root), 0,
                 1 /*no_fpga_acc */, entryEdges, callEntryEdges);
       } else {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
       //OZGURE
          // pass level info as well.
          if (build_paths_for_interval (rscope, root, &tarj, &mCfg, tarj.LoopIndex(root), 0,
@@ -1108,10 +1147,12 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
       delete (callEntryEdges);
    } else  // do_scopetree == false
    {
+std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
       // do not build scope trees. However, test if we have to do
       // some other type of static analysis: instruction mix, stream reuse bining ...
       if (mo->do_idecode || mo->do_streams || mo->do_ref_scope_index)
       {
+std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          AddrIntSet scopeMemRefs;
          
          // Get an index for this "scope" first
@@ -1139,6 +1180,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
          }
          if (mo->do_ref_scope_index)
          {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
             AddrIntSet::iterator ais = scopeMemRefs.begin();
             for ( ; ais!=scopeMemRefs.end() ; ++ais)
             {
@@ -1153,6 +1195,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
          
          if (mo->do_streams)
          {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
             // I need to get the set of memory refs in this scope
             LoadModule *img = InLoadModule();
             RFormulasMap &refFormulas = *rFormulas;
@@ -1161,6 +1204,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
          }
       }
    }  // if/else do_scopetree
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 
    DeleteControlFlowGraph();
    return (0);

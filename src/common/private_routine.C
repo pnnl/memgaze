@@ -516,9 +516,10 @@ PrivateRoutine::MayFollowCallSite(addrtype pc, bool strict)
 int 
 PrivateRoutine::discover_CFG(addrtype pc)
 {
-//   cout<<"OZGURDBG discover_CFG: "<<(unsigned int*)pc<<" "<<(unsigned int*)Start()<<" "<<(unsigned int*)End()<<endl;
+   cout<<"OZGURDBG discover_CFG: "<<(unsigned int*)pc<<" "<<(unsigned int*)Start()<<" "<<(unsigned int*)End()<<endl;
    if (pc<Start() || pc>=End())
    {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 #if DEBUG_BBLs
       if (name.compare(debugName)==0)
       {
@@ -534,6 +535,7 @@ PrivateRoutine::discover_CFG(addrtype pc)
 #if DEBUG_BBLs
    if (name.compare(debugName)==0)
    {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
       fprintf(stderr, "==> Routine %s, static check for block at address 0x%" PRIxaddr "\n", 
              name.c_str(), pc);
    }
@@ -541,6 +543,7 @@ PrivateRoutine::discover_CFG(addrtype pc)
    if (mits == _blocks.end() || pc<mits->second->getStartAddress())  // must create a new block
    // did not find block, must decode instructions
    {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
       addrtype saddr = pc, eaddr;  // how far I have to decode
       if (mits == _blocks.end())
          eaddr = End();  // up to the end of the routine
@@ -560,6 +563,7 @@ PrivateRoutine::discover_CFG(addrtype pc)
          
          if (res<0)  // error while decoding
          {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
             fprintf(stderr, " - ERROR: Bad decoding (%d) while discovering CFG for routine %s, at address 0x%" PRIxaddr 
                     " (+reloc=0x%" PRIxaddr "), eaddr-pc=%" PRIaddr ", len=%d\n", 
                     res, name.c_str(), pc, pc+reloc, eaddr-pc, len);
@@ -587,6 +591,7 @@ PrivateRoutine::discover_CFG(addrtype pc)
       // which we consider to terminate the basic block
       if (0 && pc>eaddr)
       {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          // This case is actually possible when an instruction has a prefix, but there is
          // a path that jumps to the instruction itself, while another path falls through
          // the prefix.
@@ -601,6 +606,7 @@ PrivateRoutine::discover_CFG(addrtype pc)
       addrtype lpc = pc - len;  // PC address of last instruction
       bool create_fallthru_edge = true, discover_fallthru_code = false;
       assert (res || res2 || pc>=eaddr);
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
       
       // I must create a block from saddr to pc
       // If last instruction is a REP prefixed instruction, then create a separate
@@ -608,8 +614,10 @@ PrivateRoutine::discover_CFG(addrtype pc)
       // the REP instruction in this case.
       if (res2)  // it was a rep instruction
       {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          if (lpc > saddr)  // non-empty block before the REP instruction
          {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
             AddBlock(saddr, lpc, PrivateCFG::MIAMI_CODE_BLOCK, 0);
             // connect the two blocks with a fall-through edge
             AddPotentialEdge(lpc, lpc, PrivateCFG::MIAMI_FALLTHRU_EDGE);
@@ -631,12 +639,15 @@ PrivateRoutine::discover_CFG(addrtype pc)
       
       if (res)  // last decoded instruction was a transfer control instruction
       {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          assert (!res2);  // should not find a REP prefixed branch
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          
          MIAMI::DecodedInstruction dInst;
          addrtype target = 0;
          res = decode_instruction_at_pc((void*)(lpc+reloc), len, &dInst);
          assert (res>=0); // I just decoded this instruction earlier
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          
          // I need to determine what type of branch instruction it is, direct or indirect
          // and if we can compute the branch target
@@ -646,9 +657,11 @@ PrivateRoutine::discover_CFG(addrtype pc)
          InstrBin branch_type = IB_INVALID;
          for ( ; lit!=dInst.micro_ops.end() ; ++lit)
          {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
             instruction_info *ii = &(*lit);
             if (ii->type==IB_br_CC || ii->type==IB_branch || ii->type==IB_jump || ii->type==IB_ret)
             {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
                branch_type = ii->type;
                
                res = ComputeBranchTargetFormula(&dInst, ii, -1, dInst.pc, targetF); 
@@ -667,6 +680,7 @@ PrivateRoutine::discover_CFG(addrtype pc)
          PrivateCFG::EdgeType edge_type = PrivateCFG::MIAMI_DIRECT_BRANCH_EDGE;
          if (branch_type==IB_jump)
          {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
             edge_type = PrivateCFG::MIAMI_FALLTHRU_EDGE;
             create_fallthru_edge = false;  // do not create fall-thru here, 
             // it will be created by AddCallSurrogate from the call-site block
@@ -677,6 +691,7 @@ PrivateRoutine::discover_CFG(addrtype pc)
          
          if (branch_type == IB_jump)  // indirect function call
          {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
             // add an unresolved call surrogate
             AddCallSurrogateBlock(lpc, pc, target, edge_type, true);
             // AddCallSurrogateBlock function creates the fall-through edge
@@ -687,10 +702,12 @@ PrivateRoutine::discover_CFG(addrtype pc)
          }
          else if (branch_type == IB_ret)
             AddReturnEdge(pc);
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 
 //         cout <<"0 -- t: "<<(unsigned int*)(target-reloc)<<" cfte: "<<create_fallthru_edge<<" dftc: "<<discover_fallthru_code<<endl;
          if (! target)  // target could not be resolved
          {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
             // write something about it
 #if DEBUG_INDIRECT_TRANSFER
             DEBUG_INDIRECT(3,
@@ -706,6 +723,7 @@ PrivateRoutine::discover_CFG(addrtype pc)
             // do not attempt to resolve Returns
             if (branch_type!=IB_ret && branch_type!=IB_jump)
             {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
                // Find the block that contains the indirect jump
                // if _blocks is not empty, then we must be building the CFG 
                // as we speak; use the _blocks map to find the block.
@@ -719,6 +737,7 @@ PrivateRoutine::discover_CFG(addrtype pc)
                        << hex << lpc << dec << ". Cannot resolve indirect target." << endl;
                } else
                {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 #if DEBUG_INDIRECT_TRANSFER
                   DEBUG_INDIRECT(1,
                      cerr << endl << "Indirect " << Convert_InstrBin_to_string(branch_type)
@@ -731,6 +750,7 @@ PrivateRoutine::discover_CFG(addrtype pc)
                   ResolveBranchTargetFormula(targetF, g, brB, lpc, (InstrBin)branch_type, targets);
                   if (! targets.empty())  // uhu, we found some targets
                   {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
                      AddrSet::iterator ait;
 #if DEBUG_INDIRECT_TRANSFER
                      DEBUG_INDIRECT(1,
@@ -757,6 +777,7 @@ PrivateRoutine::discover_CFG(addrtype pc)
          } else
 //         if (target && branch_type!=IB_jump)
          {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
             
             // check if it is an intra-procedural branch
             // gmarin, 2013/10/16: Apparently, pin provides bad routine bounds,
@@ -795,6 +816,7 @@ PrivateRoutine::discover_CFG(addrtype pc)
       
       if (create_fallthru_edge)
       {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          // create a fall-through edge to the next block.
          // What if the end address was the end of the routine? Should I create
          // a fall-through edge to the exit node, even if no return?
@@ -809,10 +831,12 @@ PrivateRoutine::discover_CFG(addrtype pc)
 
       if ((create_fallthru_edge || discover_fallthru_code) && pc<End())
       {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          discover_CFG(pc);
       }
    } else if (pc>mits->second->getStartAddress())
    {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
 //      cout <<" here?"<<endl;
       // check if we enter the middle of a block; I must split the block
       AddBlock(pc, mits->second->getEndAddress(), PrivateCFG::MIAMI_CODE_BLOCK, 0);

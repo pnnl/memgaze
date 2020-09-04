@@ -1540,6 +1540,7 @@ XedInstToUopList(xed_decoded_inst_t* inst, InstrList *iList, void *pc)
 static int
 decode_instruction(void *pc, int len, xed_decoded_inst_t *xedd)
 {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
    xed_decoded_inst_zero_set_mode(xedd, &xed_dstate);
    if (len > XED_MAX_INSTRUCTION_BYTES)
       len = XED_MAX_INSTRUCTION_BYTES;
@@ -1667,6 +1668,7 @@ decode_instruction(void *pc, int len, xed_decoded_inst_t *xedd)
 int 
 decode_instruction_at_pc(void *pc, int len, DecodedInstruction *dInst)
 {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
    xed_decoded_inst_t xedd;
    
    int res = decode_instruction(pc, len, &xedd);
@@ -1823,6 +1825,7 @@ mach_inst_stutters(const DecodedInstruction *dInst)
 int 
 instruction_at_pc_stutters(void *pc, int len, int& ilen)
 {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
    xed_decoded_inst_t xedd;
 
    int res = decode_instruction(pc, len, &xedd);
@@ -1843,6 +1846,7 @@ instruction_at_pc_stutters(void *pc, int len, int& ilen)
  */
 int instruction_at_pc_transfers_control(void *pc, int len, int& ilen)
 {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
    xed_decoded_inst_t xedd;
    
    int res = decode_instruction(pc, len, &xedd);
@@ -1853,6 +1857,7 @@ int instruction_at_pc_transfers_control(void *pc, int len, int& ilen)
    InstrBin ibin = GetInstrBin(&xedd);
     if (ibin == IB_unknown)  // an unknown opcode
     {
+//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
        // list the xed decoded instructions
        fprintf(stderr, "instruction_at_pc_transfers_control: HELLO, MIAMI does not handle the following opcode. Please report this error to mgabi99@gmail.com\n");
        debug_decode_instruction_at_pc(pc, xed_decoded_inst_get_length(&xedd));
