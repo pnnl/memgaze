@@ -27,7 +27,7 @@
              Jason Eckhardt
            Port to OpenAnalysis by Nathan Tallent (renamed NestedSCR
 	     from TarjanIntervals)
-  \version $Id: TarjanIntervals.cpp,v 1.2 2005/03/14 23:49:26 ntallent Exp $
+  \version $Id$
 
   Copyright (c) 2002-2005, Rice University <br>
   Copyright (c) 2004-2005, University of Chicago <br>
