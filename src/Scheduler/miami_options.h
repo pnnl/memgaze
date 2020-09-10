@@ -90,6 +90,9 @@ namespace MIAMI
       
       bool printLinemap; //print linemap 
       string linemapFile; //path of  instrumented binary as input file 
+      string lcFile; //path of load classification output File 
+      FILE *lcFILE;
+      bool lcFileExist;
 
       MiamiOptions() {
          do_scheduling = false;
@@ -131,7 +134,8 @@ namespace MIAMI
          inst_indirect = true;
          inst_frame = false;
 
-         printLinemap = false; 
+         printLinemap = false;
+         lcFileExist = false;
       }
       
       bool CheckDependencies() {
@@ -171,6 +175,11 @@ namespace MIAMI
          }
          if (printLinemap && linemapFile.length()){
             is_good = true;
+         }
+         if(lcFile.length()>1){
+            lcFILE = fopen(lcFile.c_str(), "w");
+            if (lcFILE != NULL)
+              lcFileExist=true;
          }
          // Assert that we set correctly other dependencies
          if (is_good)
@@ -492,7 +501,12 @@ namespace MIAMI
          printLinemap = true;
       }
      }
-     
+    void addLcFile(const string& _lcFile){
+      if (_lcFile.length()>1){
+         lcFile = _lcFile;
+      }
+     }
+    
      void addBlockPath(const string& blkPath){
          if (blkPath.length()){
             block_path = blkPath;

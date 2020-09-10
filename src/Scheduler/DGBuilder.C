@@ -833,7 +833,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
    Dyninst::PatchAPI::Point* lps;
    std::vector<Dyninst::PatchAPI::Point*> points ; 
    bool func_exist = true;   
-//   std::cout<<"OZGURDBG::func name is : "<<rout->Name()<<std::endl;
+// i  std::cout<<"OZGURDBG::func name is : "<<rout->Name()<<std::endl;
    if(mo->func_name.length()){
       if (mo->func_name == rout->Name()){
          std::cout<<"Printing Load Classification for function: "<<mo->func_name<<std::endl;
@@ -902,15 +902,11 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
      std::vector<BPatch_point*> *entry_points ; 
      //std::vector<Dyninst::PatchAPI::Point*> exit_points ; 
      std::vector<BPatch_point*> *exit_points ; 
-//     Dyninst::PatchAPI::Snippet::Ptr ptrZERO = PTWriteSnippetZERO::create(new PTWriteSnippetZERO());
      Dyninst::PatchAPI::Snippet::Ptr ptrZERO = PTWriteSnippetZERO::create(new PTWriteSnippetR15());
-//     Dyninst::PatchAPI::Snippet::Ptr ptrZERO = NOPSnippet1::create(new NOPSnippet1());
      //First insert ptw zero after entry point
      entry_points = funcs[0]->findPoint(BPatch_locEntry);
-//     entry_points = funcs[0]->findPoint(BPatch_allLocations);
      std::vector<BPatch_point*>::iterator pit;
      for (pit = entry_points->begin(); pit != entry_points->end(); pit++){
-//       pit = entry_points->begin();
        loadPtr = *pit;
       std::cout<<"ALL OLD Instrumenting entry point at address 0x" << std::hex<< loadPtr->getAddress() << std::dec <<std::endl;
        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
@@ -918,10 +914,8 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
       std::cout<<"Instrumenting entry point at address 0x" << std::hex<< lps->addr() << std::dec <<std::endl;
      }
      //second insert ptw zero before exit point
-     //exit_points = funcs[0]->findPoint(BPatch_exit);
      exit_points = funcs[0]->findPoint(BPatch_locExit);
      for (pit = exit_points->begin(); pit != exit_points->end(); pit++){
-//        pit = entry_points->begin();
        loadPtr = *pit;
       std::cout<<"OLD Instrumenting exit point at address 0x" << std::hex<< loadPtr->getAddress() << std::dec <<std::endl;
        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callBefore);
@@ -929,8 +923,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
       std::cout<<"Instrumenting exit point at address 0x" << std::hex<< lps->addr() << std::dec <<std::endl;
      }
    }
-//   patcher.commit();
-
+  
 
    double total_lds = 0;
    double frame_lds = 0;
@@ -983,7 +976,12 @@ tryagain:
             if (fnn->is_scalar_stack_reference()){
                frame_lds+=1;
                std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tframe"<<std::endl;
+               
                if(mo->inst_frame){
+                  if (mo->lcFileExist)
+                  {
+                      fprintf(mo->lcFILE, "%x 0\n",(fnn->getAddress()));
+                  }
                   std::cout<<"OZGURDBG Instrumenting Frame Load\n";
                   if (func_exist){
                      daddr= fnn->getAddress();
@@ -1010,6 +1008,10 @@ tryagain:
                      std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tconstant"<<std::endl;
                      flag_stride = false;
                      if(mo->inst_frame){
+                        if (mo->lcFileExist)
+                        {
+                            fprintf(mo->lcFILE, "%x 0\n",(fnn->getAddress()));
+                        }
                   std::cout<<"OZGURDBG Instrumenting Constant Load\n";
                         if (func_exist){
                            daddr= fnn->getAddress();
@@ -1031,6 +1033,10 @@ tryagain:
                   strided_lds+=1;
                   std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tstrided"<<std::endl;
                   if (mo->inst_strided){
+                      if (mo->lcFileExist)
+                      {
+                          fprintf(mo->lcFILE, "%x 1\n",(fnn->getAddress()));
+                      }
                   std::cout<<"OZGURDBG Instrumenting Strided Load\n";
                      if (func_exist){
                         daddr= fnn->getAddress();
@@ -1051,7 +1057,13 @@ tryagain:
             } else {
                indirect_lds+=1;
                std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tindirect"<<std::endl;
+
                if (mo->inst_indirect){
+                  if (mo->lcFileExist)
+                  {
+                      fprintf(mo->lcFILE, "%x 2\n",(fnn->getAddress()));
+                  }    
+
                   std::cout<<"OZGURDBG Instrumenting Indirect Load\n";
                   if (func_exist){
                      daddr= fnn->getAddress();
@@ -1075,6 +1087,10 @@ tryagain:
                frame_sts+=1;
                std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tstore"<<"\tframe"<<std::endl;
                if(mo->inst_frame){
+                  if (mo->lcFileExist)
+                  {
+                      fprintf(mo->lcFILE, "%x 0\n",fnn->getAddress());
+                  }    
                   if (func_exist){
                      daddr= fnn->getAddress();
                      loadPtr = funcs[0]->findPoint(daddr);
@@ -1096,6 +1112,10 @@ tryagain:
                      std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tstore"<<"\tconstant"<<std::endl;
                      flag_stride_store = false;
                      if(mo->inst_frame){
+                        if (mo->lcFileExist)
+                        {
+                            fprintf(mo->lcFILE, "%x 0\n",fnn->getAddress());
+                        }    
                         if (func_exist){
                            daddr= fnn->getAddress();
                            loadPtr = funcs[0]->findPoint(daddr);
@@ -1112,6 +1132,10 @@ tryagain:
                   strided_sts+=1;
                   std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tstore"<<"\tstrided"<<std::endl;
                   if (mo->inst_strided){
+                     if (mo->lcFileExist)
+                     {
+                        fprintf(mo->lcFILE, "%x 1\n",fnn->getAddress());
+                     }    
                      if (func_exist){
                         daddr= fnn->getAddress();
                         loadPtr = funcs[0]->findPoint(daddr);
@@ -1126,6 +1150,10 @@ tryagain:
                indirect_sts+=1;
                std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tstore"<<"\tindirect"<<std::endl;
                if (mo->inst_indirect){
+                  if (mo->lcFileExist)
+                  {
+                      fprintf(mo->lcFILE, "%x 2\n",fnn->getAddress());
+                  }    
                   if (func_exist){
                      daddr= fnn->getAddress();
                      loadPtr = funcs[0]->findPoint(daddr);
