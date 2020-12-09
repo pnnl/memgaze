@@ -897,32 +897,32 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
    Dyninst::PatchAPI::PatchMgrPtr patchMgr = Dyninst::PatchAPI::convert(DynApp);
    Dyninst::PatchAPI::Patcher patcher(patchMgr);
 //Adding ptwrite 0 to entry and exit points of the fuction.
-   if(func_exist){
-     //std::vector<Dyninst::PatchAPI::Point*> entry_points ; 
-     std::vector<BPatch_point*> *entry_points ; 
-     //std::vector<Dyninst::PatchAPI::Point*> exit_points ; 
-     std::vector<BPatch_point*> *exit_points ; 
-     Dyninst::PatchAPI::Snippet::Ptr ptrZERO = PTWriteSnippetZERO::create(new PTWriteSnippetR15());
-     //First insert ptw zero after entry point
-     entry_points = funcs[0]->findPoint(BPatch_locEntry);
-     std::vector<BPatch_point*>::iterator pit;
-     for (pit = entry_points->begin(); pit != entry_points->end(); pit++){
-       loadPtr = *pit;
-      std::cout<<"ALL OLD Instrumenting entry point at address 0x" << std::hex<< loadPtr->getAddress() << std::dec <<std::endl;
-       lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
-      lps->pushBack(ptrZERO);
-      std::cout<<"Instrumenting entry point at address 0x" << std::hex<< lps->addr() << std::dec <<std::endl;
-     }
-     //second insert ptw zero before exit point
-     exit_points = funcs[0]->findPoint(BPatch_locExit);
-     for (pit = exit_points->begin(); pit != exit_points->end(); pit++){
-       loadPtr = *pit;
-      std::cout<<"OLD Instrumenting exit point at address 0x" << std::hex<< loadPtr->getAddress() << std::dec <<std::endl;
-       lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callBefore);
-      lps->pushBack(ptrZERO);
-      std::cout<<"Instrumenting exit point at address 0x" << std::hex<< lps->addr() << std::dec <<std::endl;
-     }
-   }
+//   if(func_exist){
+//     //std::vector<Dyninst::PatchAPI::Point*> entry_points ; 
+//     std::vector<BPatch_point*> *entry_points ; 
+//     //std::vector<Dyninst::PatchAPI::Point*> exit_points ; 
+//     std::vector<BPatch_point*> *exit_points ; 
+//     Dyninst::PatchAPI::Snippet::Ptr ptrZERO = PTWriteSnippetZERO::create(new PTWriteSnippetR15());
+//     //First insert ptw zero after entry point
+//     entry_points = funcs[0]->findPoint(BPatch_locEntry);
+//     std::vector<BPatch_point*>::iterator pit;
+//     for (pit = entry_points->begin(); pit != entry_points->end(); pit++){
+//       loadPtr = *pit;
+//      std::cout<<"ALL OLD Instrumenting entry point at address 0x" << std::hex<< loadPtr->getAddress() << std::dec <<std::endl;
+//       lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+//      lps->pushBack(ptrZERO);
+//      std::cout<<"Instrumenting entry point at address 0x" << std::hex<< lps->addr() << std::dec <<std::endl;
+//     }
+//     //second insert ptw zero before exit point
+//     exit_points = funcs[0]->findPoint(BPatch_locExit);
+//     for (pit = exit_points->begin(); pit != exit_points->end(); pit++){
+//       loadPtr = *pit;
+//      std::cout<<"OLD Instrumenting exit point at address 0x" << std::hex<< loadPtr->getAddress() << std::dec <<std::endl;
+//       lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callBefore);
+//      lps->pushBack(ptrZERO);
+//      std::cout<<"Instrumenting exit point at address 0x" << std::hex<< lps->addr() << std::dec <<std::endl;
+//     }
+//   }
   
 
    double total_lds = 0;

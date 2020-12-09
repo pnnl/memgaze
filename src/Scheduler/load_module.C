@@ -1142,6 +1142,7 @@ LoadModule::createDyninstImage(BPatch& bpatch)
 //      std::cout<<"Exiting the Program!!! "<<std::endl;
 //      exit(0)
 //   }
+   bpatch.setRelocateJumpTable(true);
    BPatch_addressSpace* app = bpatch.openBinary(img_name.c_str(),false);
    //BPatch_binaryEdit* app = bpatch.openBinary(img_name.c_str(),false);
    dyn_app = bpatch.openBinary(img_name.c_str(),false);
