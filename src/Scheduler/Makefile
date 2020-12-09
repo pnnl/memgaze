@@ -48,6 +48,7 @@ DYNINST_LDFLAGS = \
 	-lpcontrol \
 	-ldynElf \
 	-ldynDwarf \
+	-lboost_system \
 	-lcommon
 
 XED_CFLAGS = -I$(XED_INC)
