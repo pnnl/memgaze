@@ -220,7 +220,8 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
    //   calculateMemoryData(-1);
 
    // delete the decoded instructions stored in builtNodes
-   builtNodes.map(deleteInstsInMap, NULL);
+   //OZGUR TODO I am moving deleting this to the destructer since I will need dInsts later. 
+   //builtNodes.map(deleteInstsInMap, NULL);
 }
 
 DGBuilder::~DGBuilder()
@@ -231,6 +232,8 @@ DGBuilder::~DGBuilder()
    // Perhaps I can delete them even earlier, after the graph is build. 
    // I am not going to use the buildNodes hashMap after that.
    // builtNodes is emptied at the end of the constructor now.
+   //OZGUR TODO I am emptying buildNodes here since I need it after constructor too.
+   builtNodes.map(deleteInstsInMap, NULL);
 }
 
 //ozgurS
@@ -711,11 +714,23 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
             }
          }  
       }
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
    }
    
+   int control = 0 ;
+   cerr << "OZGURTESTREG\n";
    if (nn->is_load_instruction()){
       nnrit = srcreg.begin();
       for( ; nnrit!=srcreg.end() ; ++nnrit ) {
+        control++;
+        if (control >1){
+          std::cout << ">>>>> OZGURFIXME THIS HAS MORE REGISTERS <<<<<<\n";
+            nn->longdump(this,std::cout);
+        }
+        //if(nnrit != srcreg.end())
          std::cout<<"Print Src reg info\n"<<nnrit->ToString()<<std::endl;
          std::cout<<"Print Src reg Name: "<<nnrit->name<<std::endl;
          reg = nnrit->name;  
@@ -739,18 +754,22 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
                   break;	    		
                case XED_REG_RAX:
                   cerr << "PTW rax  @ " << new_point << endl;
+//                  new_point->pushBack(ptrEAX);
                   new_point->pushBack(ptrRAX);
                   break;	    		
                case XED_REG_RBX:
                   cerr << "PTW rbx  @ " << new_point << endl;
+//                  new_point->pushBack(ptrEBX);
                   new_point->pushBack(ptrRBX);
                   break;	    		
                case XED_REG_RCX:
                   cerr << "PTW rcx  @ " << new_point << endl;
+//                  new_point->pushBack(ptrECX);
                   new_point->pushBack(ptrRCX);
                   break;	    		
                case XED_REG_RDX:
                   cerr << "PTW rdx  @ " << new_point << endl;
+//                  new_point->pushBack(ptrEDX);
                   new_point->pushBack(ptrRDX);
                   break;	    		
                case XED_REG_RBP:
@@ -807,6 +826,47 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
             }
          }
       }
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+
    }
 
 //std::cout<<"OZGURDEBUG::InsertSniplet try: "<< tryCount <<std::endl;
@@ -821,6 +881,7 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
 
 
 float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
+   Dyninst::PatchAPI::Snippet::Ptr lfence = LFENCESnippet::create(new LFENCESnippet());
    NodesIterator fnit(*this);
    LoadModule *img =this->img;
    Routine *rout = this->routine;
@@ -923,8 +984,6 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
 //      std::cout<<"Instrumenting exit point at address 0x" << std::hex<< lps->addr() << std::dec <<std::endl;
 //     }
 //   }
-  
-
    double total_lds = 0;
    double frame_lds = 0;
    double strided_lds = 0;
@@ -933,20 +992,46 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
    double frame_sts = 0;
    double strided_sts = 0;
    double indirect_sts = 0;
+   int disp = 0;
+   int scale = 1;
    std::cout<<"Address\ttype\tclass\n";
    while ((bool)fnit) {
-            Node *nn = fnit;
-            int opidx = nn->memoryOpIndex();
-//            nn->longdump(this,std::cout);
-            if (opidx >=0){
-               RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
-               if(refF != NULL){
-                  GFSliceVal oform = refF->base;
-                  coeff_t valueNum;
-                  ucoeff_t valueDen;
-//                  std::cout<<"ref->base: "<<oform<<std::endl;
-               }
+      coeff_t valueNum = 0;
+      ucoeff_t valueDen = 0;
+      Node *nn = fnit;
+      nn->PrintObject(std::cout);
+      std::cout << "loop index: "<<nn->getLoopIndex()<<std::endl;
+      std::cout << "isLoopCondition(): "<<nn->isLoopCondition()<<std::endl;
+      int opidx = nn->memoryOpIndex();
+            nn->longdump(this,std::cout);
+//      if (opidx >=0){
+         RefFormulas *refF = nn->in_cfg()->refFormulas.hasFormulasFor(nn->getAddress(), opidx);
+         if(refF != NULL){
+            GFSliceVal oform = refF->base;
+            GFSliceVal::iterator sliceVit;
+            int ijk = 0;
+            std::cout<<" HAHAHA 0:0 num: "<<valueNum<<" den: "<<valueDen;
+            for (sliceVit=oform.begin() ; sliceVit!=oform.end() ; ++sliceVit){
+            ijk++;
+              valueDen = sliceVit->ValueDen();
+              valueNum = sliceVit->ValueNum();
+            std::cout<<" HAHAHA index:"<<ijk<<" num: "<<valueNum<<" den: "<<valueDen;
             }
+            std::cout<<" HAHAHA Before num: "<<valueNum<<" den: "<<valueDen;
+            IsConstantFormula(oform, valueNum, valueDen); //TODO find a better way to get valueNum
+            std::cout<<" After num: "<<valueNum<<" den: "<<valueDen<<std::endl;
+            std::cout<<"ref->base: "<<oform<<std::endl;
+            std::cout<<"consten Term of Formula is: "<<ConstantTermOfFormula(oform)<<std::endl;
+            MIAMI::DecodedInstruction* &dInst = builtNodes[nn->getAddress()];
+//            MIAMI::DecodedInstruction* &dInst2 = builtNodes[nn->getAddress()+reloc_offset];
+            std::cout<<"Decoded Instruction PC:"<<std::hex<<dInst->pc<<" Reloc:"<<reloc_offset<<" len:"<<std::dec<<dInst->len;
+            std::cout<<std::hex<<" disp:"<<dInst->l_disp<<" scale:"<<dInst->l_scale<<std::dec<<std::endl;
+            disp = dInst->l_disp;
+            scale = dInst->l_scale;
+//            std::cout<<"Decoded Instruction PC:"<<std::hex<<dInst2->pc<<" Reloc:"<<reloc_offset<<" len:"<<std::dec<<dInst2->len;
+//            std::cout<<std::hex<<" disp:"<<dInst2->l_disp<<" scale:"<<dInst2->l_scale<<std::dec<<std::endl;
+         }
+//      }
 
       Node *fnn = fnit;
 tryagain:
@@ -978,9 +1063,11 @@ tryagain:
                std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tframe"<<std::endl;
                
                if(mo->inst_frame){
+               //if(mo->inst_frame && fnn->getLoopIndex()>1){//OZGUR_FIXME FIXME make a smarter fix I add index check fornow
                   if (mo->lcFileExist)
                   {
-                      fprintf(mo->lcFILE, "%x 0\n",(fnn->getAddress()));
+                     //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
+                     fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
                   }
                   std::cout<<"OZGURDBG Instrumenting Frame Load\n";
                   if (func_exist){
@@ -993,6 +1080,8 @@ tryagain:
                            lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
                         }
                         addPTWSnippet(&patcher, lps , fnn);
+//                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+//                        lps->pushBack(lfence);
                      }
                   }
                }
@@ -1008,9 +1097,11 @@ tryagain:
                      std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tconstant"<<std::endl;
                      flag_stride = false;
                      if(mo->inst_frame){
+                     //if(mo->inst_frame && fnn->getLoopIndex()>1){//OZGUR_FIXME FIXME make a smarter fix I add index check fornow
                         if (mo->lcFileExist)
                         {
-                            fprintf(mo->lcFILE, "%x 0\n",(fnn->getAddress()));
+                            //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
+                            fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
                         }
                   std::cout<<"OZGURDBG Instrumenting Constant Load\n";
                         if (func_exist){
@@ -1023,6 +1114,9 @@ tryagain:
                                  lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
                               }
                               addPTWSnippet(&patcher, lps , fnn);
+//                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+//                        lps->pushBack(lfence);
+
                            }
                         }
                      }
@@ -1035,7 +1129,9 @@ tryagain:
                   if (mo->inst_strided){
                       if (mo->lcFileExist)
                       {
-                          fprintf(mo->lcFILE, "%x 1\n",(fnn->getAddress()));
+                          //fprintf(mo->lcFILE, "%x 1\n",(fnn->getAddress()));
+                          //fprintf(mo->lcFILE, "%x 1 %x\n",(fnn->getAddress()),valueNum);
+                          fprintf(mo->lcFILE, "%x 1 %x %x\n",(fnn->getAddress()),disp,scale);
                       }
                   std::cout<<"OZGURDBG Instrumenting Strided Load\n";
                      if (func_exist){
@@ -1050,6 +1146,9 @@ tryagain:
                               lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
                            }
                            addPTWSnippet(&patcher, lps , fnn);
+//                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+//                        lps->pushBack(lfence);
+
                         }
                      }
                   }
@@ -1061,7 +1160,9 @@ tryagain:
                if (mo->inst_indirect){
                   if (mo->lcFileExist)
                   {
-                      fprintf(mo->lcFILE, "%x 2\n",(fnn->getAddress()));
+                      //fprintf(mo->lcFILE, "%x 2\n",(fnn->getAddress()));
+                      //fprintf(mo->lcFILE, "%x 2 %x\n",(fnn->getAddress()),valueNum);
+                      fprintf(mo->lcFILE, "%x 2 %x %x\n",(fnn->getAddress()),disp,scale);
                   }    
 
                   std::cout<<"OZGURDBG Instrumenting Indirect Load\n";
@@ -1075,6 +1176,9 @@ tryagain:
                            lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
                         }
                         addPTWSnippet(&patcher, lps , fnn);
+//                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+//                        lps->pushBack(lfence);
+
                      }
                   }
                }
@@ -1089,7 +1193,9 @@ tryagain:
                if(mo->inst_frame){
                   if (mo->lcFileExist)
                   {
-                      fprintf(mo->lcFILE, "%x 0\n",fnn->getAddress());
+                      //fprintf(mo->lcFILE, "%x 0\n",fnn->getAddress());
+                      //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
+                      fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
                   }    
                   if (func_exist){
                      daddr= fnn->getAddress();
@@ -1114,7 +1220,9 @@ tryagain:
                      if(mo->inst_frame){
                         if (mo->lcFileExist)
                         {
-                            fprintf(mo->lcFILE, "%x 0\n",fnn->getAddress());
+                            //fprintf(mo->lcFILE, "%x 0\n",fnn->getAddress());
+                            //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
+                            fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
                         }    
                         if (func_exist){
                            daddr= fnn->getAddress();
@@ -1134,7 +1242,9 @@ tryagain:
                   if (mo->inst_strided){
                      if (mo->lcFileExist)
                      {
-                        fprintf(mo->lcFILE, "%x 1\n",fnn->getAddress());
+                        //fprintf(mo->lcFILE, "%x 1\n",fnn->getAddress());
+                        //fprintf(mo->lcFILE, "%x 1 %x\n",(fnn->getAddress()),valueNum);
+                        fprintf(mo->lcFILE, "%x 1 %x %x\n",(fnn->getAddress()),disp,scale);
                      }    
                      if (func_exist){
                         daddr= fnn->getAddress();
@@ -1152,7 +1262,9 @@ tryagain:
                if (mo->inst_indirect){
                   if (mo->lcFileExist)
                   {
-                      fprintf(mo->lcFILE, "%x 2\n",fnn->getAddress());
+                      //fprintf(mo->lcFILE, "%x 2\n",fnn->getAddress());
+                      //fprintf(mo->lcFILE, "%x 2 %x\n",(fnn->getAddress()),valueNum);
+                      fprintf(mo->lcFILE, "%x 2 %x %x\n",(fnn->getAddress()),disp,scale);
                   }    
                   if (func_exist){
                      daddr= fnn->getAddress();
@@ -2029,7 +2141,6 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
             assert(!"I cannot find memory operand for micro-op!!!");
          }
          node->setMemoryOpIndex(opidx);
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
          handle_memory_dependencies (node, pc, opidx, type, stackAccess);
 
          // store all the PCs corresponding to memory references
@@ -2305,7 +2416,6 @@ void
 DGBuilder::handle_memory_dependencies(SchedDG::Node* node, addrtype pc, int opidx,
       int type, int stackAccess)
 {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
    int is_store =  node->is_store_instruction();
 
    // we do not differentiate between stack, fp and int memory ops anymore
@@ -2322,12 +2432,10 @@ void
 DGBuilder::memory_dependencies_for_node(SchedDG::Node* node, addrtype pc, int opidx,
       int is_store, UNPArray& stores, UNPArray& loads)
 {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
    RefFormulas *refF = refFormulas.hasFormulasFor(pc,opidx);
    GFSliceVal _formula;
    if (refF == NULL)
    {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 #if DEBUG_GRAPH_CONSTRUCTION
       DEBUG_GRAPH (1,
             fprintf(stderr, "WARNING: Did not find any formulas for memory instruction at address 0x%" PRIxaddr ", opidx %d\n",
@@ -2342,7 +2450,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       //      return;
    } else
    {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       _formula = refF->base;
       if (_formula.is_uninitialized())
       {
@@ -2370,7 +2477,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
    // stack location could be used.
    if (avgNumIters<=ONE_ITERATION_EPSILON || is_stack)
    {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       // only one iteration, do not compute loop-carried dependencies
       //
       int depDir = TRUE_DEPENDENCY;
@@ -2421,7 +2527,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       }
    } else  // multiple iterations; compute loop-carried depend also
    {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       GFSliceVal _iterFormula;
       if (refF && refF->strides.size()>0)
          _iterFormula = refF->strides[0];
@@ -2493,13 +2598,11 @@ bool
 DGBuilder::computeMemoryDependenciesForOneIter(SchedDG::Node *node, 
       GFSliceVal& _formula, SchedDG::Node *nodeB, int depDir)
 {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
    coeff_t valueNum;
    ucoeff_t valueDen;
    addrtype opc = nodeB->getAddress();  // pc of the Other instruction
    int oopidx = nodeB->memoryOpIndex();
    if (oopidx < 0) {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       fprintf(stderr, "Error: DGBuilder::computeMemoryDependenciesForOneIter: Instruction at 0x%" PRIxaddr ", uop of type %s, hash memory opidx %d\n",
             opc, Convert_InstrBin_to_string((MIAMI::InstrBin)nodeB->getType()), oopidx);
       assert(!"Negative memopidx. Why??");
@@ -2508,7 +2611,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
    RefFormulas *refF = refFormulas.hasFormulasFor(opc,oopidx);
    if (refF == NULL)
    {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       if (!pessimistic_memory_dep)
          return (false);
    }
@@ -2517,14 +2619,12 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
    if (oform.is_uninitialized() || _formula.is_uninitialized() ||
          !IsConstantFormula(_formula-oform, valueNum, valueDen))
    {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       if (!optimistic_memory_dep)
          addUniqueDependency(nodeB, node, 
                depDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
    } else
       if (valueNum==0)
       {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
          addUniqueDependency(nodeB, node, 
                depDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
          return (true);
@@ -2539,7 +2639,6 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
       int refIsIndirect, SchedDG::Node *nodeB, int negDir, int posDir,
       int refTypes)
 {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
    coeff_t valueNum;
    ucoeff_t valueDen;
    bool res = false;
@@ -2549,7 +2648,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
    addrtype opc = nodeB->getAddress();  // pc of the Other instruction
    int oopidx = nodeB->memoryOpIndex();
    if (oopidx < 0) {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       fprintf(stderr, "Error: DGBuilder::computeMemoryDependenciesForManyIter: Instruction at 0x%" PRIxaddr ", uop of type %s, hash memory opidx %d\n",
             opc, Convert_InstrBin_to_string((MIAMI::InstrBin)nodeB->getType()), oopidx);
       assert(!"Negative memopidx. Why??");
@@ -2566,10 +2664,8 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
    RefFormulas *refF = refFormulas.hasFormulasFor(opc,oopidx);
    if (refF == NULL)
    {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       if (pessimistic_memory_dep)
       {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
          addUniqueDependency(nodeB, node, 
                negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
          addUniqueDependency(node, nodeB, 
@@ -2601,10 +2697,8 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
       if (oform.is_uninitialized() || oiter.is_uninitialized() || 
             _formula.is_uninitialized() || _iterFormula.is_uninitialized())
       {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
          if (!optimistic_memory_dep)
          {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
             addUniqueDependency(nodeB, node, 
                   negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
             addUniqueDependency(node, nodeB, 
@@ -2645,7 +2739,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
          else
             if (refIsIndirect || oiter.has_indirect_access())
             {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                // check array names
                int32_t iidx = img->GetIndexForInstPC(pc+reloc, node->memoryOpIndex());
                assert (iidx > 0);
@@ -2673,7 +2766,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                        !FormulaContainsReferenceTerm (diffFormula))
                      ) )
                {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                   // My only hope is to have a large constant term difference
                   int constStride = 0;
                   if (!refIsScalar && !refIsIndirect && 
@@ -2694,7 +2786,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                         ((rez=(((float)ConstantTermOfFormula(_formula-oform))/
                                ((float)constStride)))<=avgNumIters && rez>=0) )
                   {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                      Edge *ee = addUniqueDependency(nodeB, node, 
                            negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
                      ee->markIndirect();  // mark dependencies that are created due to
@@ -2707,20 +2798,16 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
             } else  // strides are computed and accesses are not indirect
                if (refIsScalar || ref2IsScalar)
                {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                   if (refIsScalar && ref2IsScalar)
                   {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                      if (!IsConstantFormula(_formula-oform, valueNum, valueDen))
                      {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                         if (!optimistic_memory_dep)
                            addUniqueDependency(nodeB, node, 
                                  negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
                      } else
                         if (valueNum==0)
                         {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                            // if both accesses are scalars, create only true dependencies.
                            // Anti- and Output- ones can be eliminated by scalar 
                            // expansion.
@@ -2734,7 +2821,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                         }
                   } else  // one access is scalar and one is array
                   {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                      GFSliceVal stride;
                      if (refIsScalar)
                         stride = oiter;
@@ -2745,7 +2831,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                      if ( IsConstantFormula(diffFormula, valueNum, valueDen) &&
                            valueNum==0)
                      {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 #if DEBUG_GRAPH_CONSTRUCTION
                         DEBUG_GRAPH (2,
                               std::cerr << "Mem reference at " << std::hex << pc
@@ -2767,7 +2852,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                         if (HasIntegerRatio(diffFormula, stride, factor1, factor2)
                               && (factor2==1 || factor2==(-1)) )
                         {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                            factor1 = factor1 / factor2;
                            int minIter = abs(factor1);
                            // the existence of this dependency depends on the
@@ -2786,7 +2870,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                     (refIsScalar && factor1>0)) 
                                  && minIter<avgNumIters )
                            {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 #if DEBUG_GRAPH_CONSTRUCTION
                               DEBUG_GRAPH (2,
                                     std::cerr << "Mem reference at " << std::hex << pc
@@ -2813,7 +2896,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                   }
                } else  // strides are computed and both accesses are of array type
                {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                   // instead of treating the equal strides case separately,
                   // can I generalize for all cases?
                   // should I check for irregular strides? 
@@ -2821,19 +2903,16 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                   factor1 = factor2 = 0;
                   if (HasIntegerRatio(_iterFormula, oiter, factor1, factor2))
                   {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                      // strides have the same terms; good I guess
                      GFSliceVal diffFormula = _formula - oform;
                      if ( IsConstantFormula(diffFormula, valueNum, valueDen) &&
                            valueNum==0)
                      {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                         // base formulas are equal; if strides are equal than we 
                         // have loop independent dependency, otherwise we have
                         // dependency only in the first iteration
                         if (factor1 == factor2)
                         {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                            addUniqueDependency(nodeB, node, 
                                  negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
                         } else
@@ -2841,7 +2920,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                            // from each other => depend on first iteration only
                            if ((factor1>0 && factor2<0) || (factor1<0 && factor2>0))
                            {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 #if DEBUG_GRAPH_CONSTRUCTION
                               DEBUG_GRAPH (2,
                                     std::cerr << "Mem reference at " << std::hex << pc 
@@ -2861,7 +2939,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                               //                       negDir, MEMORY_TYPE, ONE_ITERATION, 1, 0);
                            } else  // factors have same sign => varying distance
                            {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                               // factors can be only positive
                               assert(factor1>0 && factor2>0);
 
@@ -2877,7 +2954,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                        negDir, MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
                               if (factor1 > factor2)
                               {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                  addUniqueDependency (node, nodeB, 
                                        posDir, MEMORY_TYPE, 1, 1, 0);
                               }
@@ -2896,7 +2972,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                      } else   // base formulas are not equal
                         // check if difference and strides have integer ratio
                      {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                         coeff_t diffFact1 = 0, diffFact2 = 0;
                         // strides have integer factor, but compute their GCD
                         // this is equal to stride1/factor1 or stride2/factor2.
@@ -2908,7 +2983,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                         GFSliceVal gcdStride;
                         if (factor1 < 0)
                         {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                            assert(factor2>0);
                            gcdStride = oiter / factor2;
                         } else
@@ -2927,7 +3001,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                            if (HasIntegerRatio(diffFormula, gcdStride, diffFact1,
                                     diffFact2) && (diffFact2==1 || diffFact2==(-1)) )
                            {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 #if DEBUG_GRAPH_CONSTRUCTION
                               DEBUG_GRAPH (3,
                                     std::cerr << "-> diffFact1=" << diffFact1 << ", diffFact2=" << diffFact2 
@@ -2940,22 +3013,18 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                               // be an integer
                               if (factor1==factor2)
                               { 
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                  if ((abs(diffFact1)%abs(factor1))==0)
                                  {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                     // division should be exact
                                     coeff_t dist = diffFact1 / factor1;
                                     if (dist>0)
                                     {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                        if (dist<avgNumIters)
                                           addUniqueDependency(node, nodeB, 
                                                 posDir, MEMORY_TYPE, dist, 1, 0);
                                     }
                                     else
                                     {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                        assert(dist<0);  // it cannot be zero
                                        if ((-dist)<avgNumIters)
                                           addUniqueDependency(nodeB, node,
@@ -2965,11 +3034,9 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                               } else   // strides are not equal;
                               // test for cases when we cannot have dependencies
                               {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                  if (!( (diffFact1>0 && factor1>=0 && factor2<=0) ||
                                           (diffFact1<0 && factor1<=0 && factor2>=0) ))
                                  {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                     float distance = 0;
                                     int dist = 0, ldist = 0;
                                     // if the strides have different signs, then the
@@ -2981,7 +3048,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                     if ( (factor1>0 && factor2<0) || 
                                           (factor1<0 && factor2>0) )
                                     {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                        distance = ((float)diffFact1)/(factor2-factor1);
                                        assert (distance > 0);
                                        dist  = ceil  (distance - 0.00001f);
@@ -2993,7 +3059,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 #endif
                                           if (dist < avgNumIters)
                                           {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              // compute the minimum distance achievable.
                                              // For this, check what locations are touched by 
                                              // node in iteration numbers ldist and dist 
@@ -3005,7 +3070,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              if (HasIntegerRatio (lDifference, oiter, locF1,
                                                       locF2) && (locF2==1 || locF2==(-1)) )
                                              {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                 // I think both locF2 and locF1 should be
                                                 // positive for this case
                                                 assert (locF2==1 && locF1>0);
@@ -3015,7 +3079,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 
                                                 if (locF1 < avgNumIters)
                                                 {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                    if (locF1 == ldist) // same iteration
                                                       addUniqueDependency(nodeB, node, negDir, 
                                                             MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
@@ -3030,13 +3093,11 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 
                                              if (ldist != dist)
                                              {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                 lDifference = diffFormula + 
                                                    _iterFormula * dist;
                                                 if (HasIntegerRatio (lDifference, oiter, locF1,
                                                          locF2) && (locF2==1 || locF2==(-1)) && locF1>0)
                                                 {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 #if DEBUG_GRAPH_CONSTRUCTION
                                                    DEBUG_GRAPH (3,
                                                          std::cerr << "DEBUG: pc=" << std::hex << pc << ", opc=" << opc << std::dec
@@ -3053,7 +3114,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 
                                                    if (locF1 < avgNumIters)
                                                    {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                       if (locF1 == dist) // same iteration
                                                          addUniqueDependency(nodeB, node, negDir, 
                                                                MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
@@ -3081,7 +3141,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                     }
                                     else  // factors have same sign (positive only)
                                     {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                        assert(factor1>0 && factor2>0);
                                        if (diffFact1>0)
                                           distance = ((float)diffFact1)/factor2;
@@ -3104,7 +3163,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 
                                        if (diffFact1>0 && factor1>factor2)
                                        {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                           // distance is growing; compute location accessed
                                           // by node in iteration 0, and compute the 
                                           // iteration number when nodeB accesses that location
@@ -3112,7 +3170,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                           if (HasIntegerRatio (diffFormula, oiter, locF1,
                                                    locF2) && (locF2==1 || locF2==(-1)) )
                                           {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              // I think both locF2 and locF1 should be
                                              // positive for this case
                                              assert (locF2==1 && locF1>0);
@@ -3128,7 +3185,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                           }
                                        } else if (diffFact1<0 && factor1<factor2)
                                        {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                           // distance is growing; compute location accessed
                                           // by nodeB in iteration 0, and compute the 
                                           // iteration number when node accesses that location
@@ -3136,7 +3192,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                           if (HasIntegerRatio (diffFormula*(-1), _iterFormula, 
                                                    locF1, locF2) && (locF2==1 || locF2==(-1)) )
                                           {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              // I think both locF2 and locF1 should be
                                              // positive for this case
                                              assert (locF2==1 && locF1>0);
@@ -3150,7 +3205,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                           }
                                        } else if (diffFact1>0 && factor1<factor2)
                                        {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                           // distance is shrinking; compute iteration number
                                           // when dependency direction is changing.
                                           // If this number is less than avgNumIters, then
@@ -3170,7 +3224,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 
                                           if (ldist < avgNumIters)
                                           {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              // compute the minimum distance achievable.
                                              // For this, check what locations are touched by 
                                              // nodeB in iteration numbers ldist and dist 
@@ -3182,7 +3235,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              if (HasIntegerRatio (lDifference, _iterFormula, 
                                                       locF1, locF2) && (locF2==1 || locF2==(-1)))
                                              {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                 // I think both locF2 and locF1 should be
                                                 // positive for this case
                                                 assert (locF2==1 && locF1>0);
@@ -3192,7 +3244,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 
                                                 if (locF1 < avgNumIters)
                                                 {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                    if (locF1 == ldist) // same iteration
                                                       addUniqueDependency(nodeB, node, negDir, 
                                                             MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
@@ -3207,13 +3258,11 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 
                                              if (ldist!=dist && dist<avgNumIters)
                                              {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                 lDifference = oiter * dist - 
                                                    diffFormula;
                                                 if (HasIntegerRatio (lDifference, _iterFormula, 
                                                          locF1, locF2) && (locF2==1 || locF2==(-1)))
                                                 {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                    // I think both locF2 and locF1 should be
                                                    // positive for this case
                                                    assert (locF2==1 && locF1>0);
@@ -3223,7 +3272,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 
                                                    if (locF1 < avgNumIters)
                                                    {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                       if (locF1 == dist) // same iteration
                                                          addUniqueDependency(nodeB, node, negDir, 
                                                                MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
@@ -3238,7 +3286,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              }
                                           } else 
                                           {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              // we know there is at least one iteration 
                                              // with dependencies before we reach avgNumIters
                                              // Compute location accessed by nodeB in the
@@ -3249,7 +3296,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              if (HasIntegerRatio (lDifference, _iterFormula, 
                                                       locF1, locF2) && (locF2==1 || locF2==(-1)))
                                              {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                 // I think both locF2 and locF1 should be
                                                 // positive for this case
                                                 assert (locF2==1 && locF1>0);
@@ -3264,7 +3310,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                           }
                                        } else // if (diffFact1<0 && factor1>factor2)
                                        {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                           assert (diffFact1<0 && factor1>factor2);
                                           // distance is shrinking and there is at least one
                                           // iteration with dependencies; 
@@ -3285,7 +3330,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 
                                           if (ldist < avgNumIters)
                                           {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              // compute the minimum distance achievable.
                                              // For this, check what locations are touched by 
                                              // node in iteration numbers ldist and dist 
@@ -3297,7 +3341,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              if (HasIntegerRatio (lDifference, oiter, 
                                                       locF1, locF2) && (locF2==1 || locF2==(-1)))
                                              {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                 // I think both locF2 and locF1 should be
                                                 // positive for this case
                                                 //assert (locF2==1 && locF1>0); //OZGURFIXME original
@@ -3311,7 +3354,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 
                                                 if (locF1 < avgNumIters)
                                                 {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                    if (locF1 == ldist) // same iteration
                                                       addUniqueDependency(nodeB, node, negDir, 
                                                             MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
@@ -3326,13 +3368,11 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 
                                              if (ldist!=dist && dist<avgNumIters)
                                              {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                 lDifference = _iterFormula * dist + 
                                                    diffFormula;
                                                 if (HasIntegerRatio (lDifference, oiter, 
                                                          locF1, locF2) && (locF2==1 || locF2==(-1)))
                                                 {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                    // I think both locF2 and locF1 should be
                                                    // positive for this case
                                                    assert (locF2==1 && locF1>0);
@@ -3342,7 +3382,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
 
                                                    if (locF1 < avgNumIters)
                                                    {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                       if (locF1 == dist) // same iteration
                                                          addUniqueDependency(nodeB, node, negDir, 
                                                                MEMORY_TYPE, LOOP_INDEPENDENT, 0, 0);
@@ -3357,7 +3396,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              }
                                           } else 
                                           {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              // we know there is at least one iteration 
                                              // with dependencies before we reach avgNumIters
                                              // Compute location accessed by node in the
@@ -3368,7 +3406,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                              if (HasIntegerRatio (lDifference, oiter, 
                                                       locF1, locF2) && (locF2==1 || locF2==(-1)))
                                              {
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                                                 // I think both locF2 and locF1 should be
                                                 // positive for this case
                                                 assert (locF2==1 && locF1>0);
@@ -3458,7 +3495,6 @@ std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
                      }  // I think I considered all cases
                   }
                }  // from else - both accesses are of array type
-std::cout<<__func__<<__LINE__<<std::endl;//OZGURDEBUGDELETE
    return (res);
 }
 

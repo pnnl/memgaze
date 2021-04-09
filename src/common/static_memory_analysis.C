@@ -470,6 +470,8 @@ ReferenceSlice::SliceOut(PrivateCFG::Node *b, int uop_idx, const register_info& 
    // I should always receive a valid uop index
    assert(uop_idx>=0 && uop_idx<num_uops);
    const uOp_t& uop = ucc->UopAtIndex(uop_idx);
+   uOp_t& uop_ozgur = ucc->UopAtIndex_Ozgur(uop_idx);
+   DecodedInstruction *dinst_ozgur = uop_ozgur.dinst;
    addrtype pc = uop.dinst->pc;
    
 #if DEBUG_STATIC_MEMORY
@@ -571,6 +573,8 @@ ReferenceSlice::SliceOut(PrivateCFG::Node *b, int uop_idx, const register_info& 
                // TODO: compute effective address
                GFSliceVal _formula (sliceVal (0, TY_CONSTANT));
                cachedFormula = GFSliceVal(sliceVal(0, TY_CONSTANT));
+               //OZGUR Calling my function to update dInst with scale and disp
+               calculate_disp_and_scale(uop_ozgur.dinst,opidx1,pc);
                if (!generic_formula_for_memory_operand(dinst, uop_idx, opidx1, pc, _formula))
                {
                   // iterate over the terms of the formula and find formulas for all registers

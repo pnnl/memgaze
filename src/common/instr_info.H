@@ -65,6 +65,9 @@ struct instruction_info
 #ifdef DYNINST_DECODE
       flag = false;
 #endif
+      //OZGUR_DISP
+      l_disp=0;
+      l_scale=1;
    }
    
    int num_src_operands_of_type(OperandType type, int pos = 0) const
@@ -155,6 +158,11 @@ struct instruction_info
    RInfoList src_reg_list;
    RInfoList dest_reg_list;
 #endif
+public:
+   //OZGUR ADDING offset and constant for loads uses multiple register
+   coeff_t l_disp; // holds displacemen (offset)
+   coeff_t l_scale; // holds scale value  multiplier 
+
 
 };
 
@@ -168,6 +176,8 @@ public:
    {
       mach_data = 0;
       len = 0;
+      l_disp = 0;
+      l_scale = 1;
    }
    ~DecodedInstruction()
    {
@@ -178,6 +188,10 @@ public:
    int len;      // store the length of the instruction in bytes
    addrtype pc;  // store the instruction's address
    bool is_call; // set this field to true if this is a function call
+
+   //OZGUR ADDING offset and constant for loads uses multiple register
+   coeff_t l_disp; // holds displacemen (offset)
+   coeff_t l_scale; // holds scale value  multiplier 
    
    // auxiliary field to store machine dependent info
    // only the machine dependent code knows the type of data

@@ -1164,13 +1164,16 @@ XedInstToUopList(xed_decoded_inst_t* inst, InstrList *iList, void *pc)
 
            case XED_OPERAND_IMM0: // this must be source 
                if ((primary_uop.imm_values[primary_uop.num_imm_values].is_signed = 
-                         xed_decoded_inst_get_immediate_is_signed(inst)) == true)
+                         xed_decoded_inst_get_immediate_is_signed(inst)) == true){
+
                   primary_uop.imm_values[primary_uop.num_imm_values].value.s = 
                           xed_decoded_inst_get_signed_immediate(inst);
-               else
+                          std::cout<<"OZGURIMM0 if signed at pc "<<std::hex<<pc<<" imm:"<<primary_uop.imm_values[primary_uop.num_imm_values].value.s<<std::dec<<std::endl;
+               }else{
                   primary_uop.imm_values[primary_uop.num_imm_values].value.u = 
                           xed_decoded_inst_get_unsigned_immediate(inst);
-               
+                          std::cout<<"OZGURIMM0 if not signed at pc "<<std::hex<<pc<<" imm:"<<primary_uop.imm_values[primary_uop.num_imm_values].value.s<<std::dec<<std::endl;
+               }
                primary_uop.src_opd[primary_uop.num_src_operands++] = 
                        make_operand(OperandType_IMMED, primary_uop.num_imm_values++);
                break;
@@ -1181,6 +1184,7 @@ XedInstToUopList(xed_decoded_inst_t* inst, InstrList *iList, void *pc)
                            xed_decoded_inst_get_second_immediate(inst);
                primary_uop.src_opd[primary_uop.num_src_operands++] = 
                            make_operand(OperandType_IMMED, primary_uop.num_imm_values++);
+                          std::cout<<"OZGURIMM1 at pc "<<std::hex<<pc<<" imm:"<<primary_uop.imm_values[primary_uop.num_imm_values].value.s<<std::dec<<std::endl;
                break;
 
            case XED_OPERAND_PTR:    // pointer (always in conjunction with a IMM0)
@@ -1193,6 +1197,7 @@ XedInstToUopList(xed_decoded_inst_t* inst, InstrList *iList, void *pc)
                              xed_decoded_inst_get_branch_displacement(inst);
                   primary_uop.src_opd[primary_uop.num_src_operands++] = 
                            make_operand(OperandType_IMMED, primary_uop.num_imm_values++);
+                          std::cout<<"OZGURIMM case RELLBR at pc "<<std::hex<<pc<<" imm:"<<primary_uop.imm_values[primary_uop.num_imm_values].value.s<<std::dec<<std::endl;
                }
             }
             break;
@@ -1220,6 +1225,7 @@ XedInstToUopList(xed_decoded_inst_t* inst, InstrList *iList, void *pc)
 #endif
                {
                   xed_reg_enum_t r = xed_decoded_inst_get_reg(inst, op_name);
+                  //OZGURDEBGINST here it is doing some stack analysis look at this too
                   if (r==XED_REG_STACKPUSH || r==XED_REG_STACKPOP)  // add a stack pointer operation
                   {
                      int64_t stack_inc;
@@ -1277,6 +1283,7 @@ XedInstToUopList(xed_decoded_inst_t* inst, InstrList *iList, void *pc)
                      stack_uop->imm_values[stack_uop->num_imm_values].value.s = stack_inc;
                      stack_uop->src_opd[stack_uop->num_src_operands++] = 
                               make_operand(OperandType_IMMED, stack_uop->num_imm_values++);
+                          std::cout<<"OZGURIMM Stack uop at pc "<<std::hex<<pc<<" imm:"<<primary_uop.imm_values[primary_uop.num_imm_values].value.s<<std::dec<<std::endl;
                   } else  // not a stackpush / stackpop pseudo operand
                   {
                      if (dest) {
@@ -1621,7 +1628,8 @@ decode_instruction(void *pc, int len, xed_decoded_inst_t *xedd)
    
    if (xed_error != XED_ERROR_NONE)
       return (-xed_error);
-
+//OZGURDBGINST oppen if and endif
+//std::cout<<"OZGURDBGINST at IP: "<<std::hex<<pc<<std::dec<<std::endl;
 #if DEBUG_INST_DECODE
    cerr << "iclass "
         << xed_iclass_enum_t2str(xed_decoded_inst_get_iclass(xedd))  << "\t";
@@ -1678,6 +1686,30 @@ decode_instruction_at_pc(void *pc, int len, DecodedInstruction *dInst)
    dInst->len = xed_decoded_inst_get_length(&xedd);
    dInst->pc = (addrtype)pc;
    dInst->is_call = (xed_decoded_inst_get_category(&xedd)==XED_CATEGORY_CALL);
+//OZGUR Adding scale and disp to dInst
+   int memops = xed_decoded_inst_number_of_memory_operands(&xedd); 
+   int op_num = 0;
+   for (op_num = 0; op_num < memops ; op_num++){
+      xed_reg_enum_t indx = xed_decoded_inst_get_index_reg(&xedd,op_num);
+      if (op_num == 0 && indx != XED_REG_INVALID) {
+        uint32_t scale = xed_decoded_inst_get_scale(&xedd,op_num);
+        if (scale == 0){
+          scale = 1;
+        }
+        //OZGURDBGINST
+        std::cout<<"OZGURDECODE@PC at IP "<<std::hex<<pc<<" scale:"<<scale<<std::dec<<std::endl;
+        //dInst->micro_ops.begin()->l_scale = scale;
+        dInst->l_scale = scale;
+      }
+      xed_uint_t disp_bits = xed_decoded_inst_get_memory_displacement_width(&xedd,op_num);
+      if (disp_bits) {
+        xed_int64_t disp = xed_decoded_inst_get_memory_displacement(&xedd,op_num);
+        std::cout<<"OZGURDCODE@PC at IP "<<std::hex<<pc<<" disp:"<<disp<<std::dec<<std::endl;
+        //dInst->micro_ops.begin()->l_disp = disp;
+        dInst->l_disp = disp;
+      }
+    }
+
 /*
    if (dInst->is_call)  // print the call target
    {
@@ -2933,6 +2965,31 @@ uop_canonical_decode(const DecodedInstruction *dInst, const instruction_info *ii
    return (op);
 }
 
+//OZGUR GETTING DISP and SCALE
+int 
+calculate_disp_and_scale(DecodedInstruction *dInst, int op_num, addrtype pc)
+{
+    assert (dInst->mach_data);
+    const xed_decoded_inst_t* xedd = static_cast<xed_decoded_inst_t*>(dInst->mach_data);
+
+    uint32_t scale = xed_decoded_inst_get_scale(xedd,op_num);
+    if (scale == 0)
+        scale = 1;
+    //OZGURDBGINST
+    std::cout<<"OZGURDBGSLICE at IP "<<std::hex<<pc<<" scale:"<<scale<<std::dec<<std::endl;
+    //dInst->micro_ops.begin()->l_scale = scale;
+    dInst->l_scale = scale;
+    
+    xed_uint_t disp_bits = xed_decoded_inst_get_memory_displacement_width(xedd,op_num);
+    if (disp_bits) {
+       xed_int64_t disp = xed_decoded_inst_get_memory_displacement(xedd,op_num);
+       std::cout<<"OZGURDBGSLICE at IP "<<std::hex<<pc<<" disp:"<<disp<<std::dec<<std::endl;
+       //dInst->micro_ops.begin()->l_disp = disp;
+       dInst->l_disp = disp;
+    }
+    return (0);
+}
+
 #if WITH_REFERENCE_SLICING
 int 
 generic_formula_for_memory_operand(const DecodedInstruction *dInst, int uop_idx, int op_num, 
@@ -2988,11 +3045,16 @@ generic_formula_for_memory_operand(const DecodedInstruction *dInst, int uop_idx,
        if (scale == 0)
           scale = 1;
        formula += sliceVal(scale, TY_REGISTER, pc, uop_idx, register_info(r, rclass, 0, addr_width-1));
+       //OZGURDBGINST
+       std::cout<<"OZGURDBGSLICE at IP "<<std::hex<<pc<<" scale:"<<scale<<std::dec<<std::endl;
+//       dInst->micro_ops.begin()->l_scale = scale;
     }
     xed_uint_t disp_bits = xed_decoded_inst_get_memory_displacement_width(xedd,op_num);
     if (disp_bits) {
        xed_int64_t disp = xed_decoded_inst_get_memory_displacement(xedd,op_num);
        formula += sliceVal(disp, TY_CONSTANT);
+       std::cout<<"OZGURDBGSLICE at IP "<<std::hex<<pc<<" disp:"<<disp<<std::dec<<std::endl;
+//       dInst->micro_ops.begin()->l_disp = disp;
     }
 #if DEBUG_REGISTER_EXTRACTION
     cerr << endl;
@@ -3084,6 +3146,7 @@ generic_formula_for_branch_target(const DecodedInstruction *dInst, const instruc
          case OperandType_IMMED:
             {
                formula += sliceVal(ii->imm_values[op_num].value.s, TY_CONSTANT);
+       std::cout<<"OZGURDBGSLICE at IP "<<std::hex<<pc<<" imm_values:"<<ii->imm_values[op_num].value.s<<std::dec<<std::endl;
             }
             break;
       }

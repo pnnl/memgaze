@@ -1320,6 +1320,7 @@ int LoadModule::dyninstAnalyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOpt
          Dyninst::ParseAPI::CodeSource* codeSrc = Dyninst::ParseAPI::convert(tfunctions[0])->obj()->cs();
          base_addr = (MIAMI::addrtype)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-start);
          reloc_offset=base_addr;
+         std::cout<<"OZGUR_1 RELOC:::"<<std::hex<<reloc_offset<<std::dec<<std::endl;
          low_addr_offset = (MIAMI::addrtype)codeSrc->offset();
       }
   //    rout->discover_CFG(rstart);
@@ -1396,6 +1397,7 @@ int LoadModule::dyninstAnalyzeRoutines(ProgScope *prog, const MiamiOptions *mo){
       base_addr = (MIAMI::addrtype)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-start);
       std::cout<<__func__<<__LINE__<<std::endl; 
       reloc_offset=base_addr;
+         std::cout<<"OZGUR_1 RELOC:::"<<std::hex<<reloc_offset<<std::dec<<std::endl;
       std::cout<<__func__<<__LINE__<<std::endl; 
       low_addr_offset = (MIAMI::addrtype)codeSrc->offset();
       std::cout<<__func__<<__LINE__<<std::endl; 

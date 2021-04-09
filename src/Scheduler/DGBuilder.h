@@ -258,6 +258,15 @@ public:
         return true;
     }
 };
+class LFENCESnippet : public Dyninst::PatchAPI::Snippet {
+public:
+    LFENCESnippet() {}
+    bool generate(Dyninst::PatchAPI::Point* pt, Dyninst::Buffer &buf) override {
+        static unsigned char lfence_example[3] = {0x0f, 0xae, 0xf8};
+        buf.copy(lfence_example, 3);
+        return true;
+    }
+};
 typedef std::list<SchedDG::Node*> NodeList;
 typedef std::vector<SchedDG::Node*> UNPArray;
 typedef std::map<unsigned int, NodeList> UiNLMap;

@@ -242,6 +242,9 @@ int stack_operation_top_increment_value(int reg);
  * If absolute_reg_name is negative, we ignore the register.
  */
 int max_stack_top_value(int stack);
+//OZGUR GETTING DISP and SCALE
+int calculate_disp_and_scale(DecodedInstruction *dInst, int op_num, addrtype pc); 
+
 
 #if WITH_REFERENCE_SLICING
 int generic_formula_for_memory_operand(const DecodedInstruction *dInst, int uop_idx, 

@@ -27,7 +27,7 @@ namespace MIAMI
 class uOp_t
 {
 public:
-   uOp_t(const instruction_info *_ii, const DecodedInstruction *_di, int _idx = 0) :
+   uOp_t(const instruction_info *_ii,  DecodedInstruction *_di, int _idx = 0) :
       iinfo(_ii), dinst(_di), idx(_idx)
    { }
    
@@ -38,7 +38,7 @@ public:
    // during reallocation. Elemnts in lists do not have to be contiguous. 
    // However, in my case, the lists are not growing either.
    const instruction_info *iinfo;   // pointer to decoded miro-op
-   const DecodedInstruction *dinst; // pointer to the decoded instruction
+   DecodedInstruction *dinst; // pointer to the decoded instruction
 //   addrtype pc;   // instruction's PC address
    int idx;       // micro-op's index inside the instruction
    // should I store the lists of source and destination registers here,
@@ -88,6 +88,15 @@ public:
    int NumberOfUops() const  { return (uops.size()); }
    int NumberOfInstructions() const  { return (dinsts.size()); }
    const uOp_t& UopAtIndex(int i) const
+   {
+      if (i<0 || i>=(int)uops.size())
+         return (invalid_uOp);
+      else
+         return (uops[i]);
+   }
+   
+   //OZGUR_DISP
+   uOp_t& UopAtIndex_Ozgur(int i)
    {
       if (i<0 || i>=(int)uops.size())
          return (invalid_uOp);
