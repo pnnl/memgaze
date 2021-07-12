@@ -1142,6 +1142,7 @@ LoadModule::createDyninstImage(BPatch& bpatch)
 //      std::cout<<"Exiting the Program!!! "<<std::endl;
 //      exit(0)
 //   }
+   cout<<__func__<<" trying to open binary named "<<img_name.c_str()<<endl;
    bpatch.setRelocateJumpTable(true);
    BPatch_addressSpace* app = bpatch.openBinary(img_name.c_str(),false);
    //BPatch_binaryEdit* app = bpatch.openBinary(img_name.c_str(),false);
@@ -1263,6 +1264,7 @@ int LoadModule::loadFPfile(string routName, ProgScope *prog, const MiamiOptions 
 
 int LoadModule::dyninstAnalyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOptions *mo){
      std::cout<<std::dec<<__func__<<" "<<__LINE__<<std::endl; 
+     std::cout<<std::dec<<"IDONTCAREXXX"<<std::endl; 
    size_t res;
    int ires;
    if (ires < 0)  // error
@@ -1281,6 +1283,7 @@ int LoadModule::dyninstAnalyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOpt
    for (uint32_t r=0 ; r<numRoutines ; ++r)
    {
       Routine *rout = dyninstLoadOneRoutine(fd, r , dyn_image);
+      std::cout << "OZGURDEBUG RoutineName: "<< rout->Name()<<endl;
       if (rout == NULL)
       {
          if (mo->do_linemap)
@@ -1529,7 +1532,12 @@ int LoadModule::dyninstAnalyzeRoutines(ProgScope *prog, const MiamiOptions *mo){
 
    img_scope = new ImageScope(prog, img_name, img_id);
    if (rout->is_valid_for_analysis()){
-      ires = rout->main_analysis(img_scope, mo);
+//      if (routName.find("targ") != std::string::npos){ //TODO FIXME this is a hack  remove if /else 
+//        std::cout<<"OZGURHACK I am skipping Routine "<<routName<<std::endl;
+//        ires = 1;
+//      } else {
+        ires = rout->main_analysis(img_scope, mo);
+//      }
       if (ires < 0){
          fprintf (stderr, "Error while analyzing routine %s\n", rout->Name().c_str());
          if (mo->do_linemap)
