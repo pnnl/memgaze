@@ -754,7 +754,8 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
                   break;	    		
                case XED_REG_RAX:
                   cerr << "PTW rax  @ " << new_point << endl;
-//                  new_point->pushBack(ptrEAX);
+//Currently in 64 bit mod                  
+//                  new_point->pushBack(ptrEAX);//TODO Find a better way to switch between 32 and 64 bit
                   new_point->pushBack(ptrRAX);
                   break;	    		
                case XED_REG_RBX:
@@ -3237,7 +3238,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                              {
                                                 // I think both locF2 and locF1 should be
                                                 // positive for this case
-                                                assert (locF2==1 && locF1>0);
+                                                //OZGUR FIXME TODO OPEN THIS assert (locF2==1 && locF1>0);
                                                 // if (locF2<0)
                                                 //   // this is actually the iteration number for nodeB
                                                 //   locF1 = -locF1;
