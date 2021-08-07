@@ -18,7 +18,7 @@ Building & Installing
 =============================================================================
 
 1. Build Palm Externals package:
-   https://gitlab.pnnl.gov/perf-lab-hub/palm/palm-externals
+   https://gitlab.pnnl.gov/perf-lab/palm/palm-externals
 
 2. 
 

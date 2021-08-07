@@ -6,7 +6,7 @@ Palm Memory
 =============================================================================
 
 **Home**:
-- https://gitlab.pnnl.gov/perf-lab-hub/palm/palm-memory
+- https://gitlab.pnnl.gov/perf-lab/palm/palm-memory
 
 
 **About**: Palm/Memory: The Performance and Architecture Lab Modeling
@@ -37,6 +37,6 @@ Advanced Scientific Computing Research:
 - Integrated End-to-end Performance Prediction and Diagnosis
 - PNNL DMC Fallacy...
 
-Portions of Palm Memory utilize functionality heavily adapted from MIAMI-NW (https://gitlab.pnnl.gov/perf-lab-hub/palm/miami-nw), an updated version of MIAMI.
+Portions of Palm Memory utilize functionality heavily adapted from MIAMI-NW (https://gitlab.pnnl.gov/perf-lab/palm/miami-nw), an updated version of MIAMI.
 The original MIAMI READMEs and license are located in <README> directory.
 
