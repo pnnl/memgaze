@@ -26,6 +26,8 @@ Ice Lake (shrink of SkyLake)
 IceLake Server:
   - Process: 10 nm
   
+  https://www.nextplatform.com/2020/08/17/the-ticking-and-tocking-of-intels-ice-lake-xeon-sp/
+
 
 Cascade Lake (optimization): 
 ----------------------------------------
@@ -97,8 +99,6 @@ SandyBridge (arch): Intel x86-64 Core Gen2
 - Cache: (Intel manual 2.4.5)
     L2 is *non*-inclusive
 	L3 is inclusive (contains all data in L1 and L2)
-
-
 
 
 Nehalem (arch) / Westmere (shrink): Intel x86-64 Core Gen1
