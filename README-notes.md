@@ -27,13 +27,18 @@ MemGaze Consolidation
 
 
 - Bugs:
-  - correct windows for footprint growth
+  - properly compute $\compressionRatioSym(\windowSz)$
+  - properly compute $\sampleRatioSym_1$ for code footprints
+
+  - `mem-anlys` only reads one auxiliary file even if multiple are needed
+    - results in some instructions with unknown laod classes
+  
   - [[other bugs]]?
 
 
 - Better build (can build "externals' with spack)
 
-  - **dyninst_branch** for souce code mapping has a hack.
+  - **dyninst branch** for souce code mapping has a hack.
   
     New Dyninst master provides source line mapping for instrumented
     code (now in master), which hpcstruct can read.
