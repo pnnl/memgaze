@@ -3,6 +3,72 @@
 $Id$
 
 -----------------------------------------------------------------------------
+MemGaze Consolidation
+=============================================================================
+
+- Combine measurement, instrumentor, analysis into one repo (see below)
+  - scripts for PT memory tracing: application-based, system-wide, +LBR
+  - launcher for instrumentation
+
+    memgaze (was: `palm-memory`)
+    - `mem-trace`
+      - memory tracing methods: PT, Intel ld lat,...
+
+    - `bin-anlys` (was `palm-memory`'s MIAMI)
+      - Uses DynInst, unlike MIAMI-NW
+      - Palm task-based path cost analysis (insn + memory latency, IPDPS 17 extension)
+      - Palm fine-grained footprint analysis (ISPASS 20)
+      - MemGaze binary instrumentor 
+
+    - `mem-anlys`
+      `palm/intelPT_FP`: footprint tool
+      `palm/palm-task`: Palm coarse-grained footprint analysis + hpctoolkit script
+      `palm/intelPT_FP_CallPath`: deprecated
+
+
+- Bugs:
+  - correct windows for footprint growth
+  - [[other bugs]]?
+
+
+- Better build (can build "externals' with spack)
+
+  - **dyninst_branch** for souce code mapping has a hack.
+  
+    New Dyninst master provides source line mapping for instrumented
+    code (now in master), which hpcstruct can read.
+
+    However, to gather instruction classes, we still need (more
+    precisely, want) the mapping.  The MemGaze instrumentor determines
+    instruction classes from the original binary, but we also need the
+    classes for the corresponding new/instrumented ins. Currently,
+    Ozgur introduced a small hack in Dyninst to print the mapping.
+    
+    In theory, [[run static analysis on the new instrumentation]].
+    However, possibly the instrumentation code interferes.
+
+
+  - [[Linux perf]]: any hacks?
+  
+  - [[more blockers]]?
+
+
+- Documentation:
+  - Notes using Linux perf for PT-based tracing, etc.
+    - system wide monitoring and ordering/timestamps
+    - virtual to physical address?
+    - gotchas
+    
+    - without --per-thread, perf opens a fd on each core because it has a buffer/event per cpu; size (129 pages  4 k)
+    - perf-event-disable (ioctl) should have an effect when it returns (write to msr)
+    - libunwind happens in userland: perf copies context/stack into its buffer
+
+    > perf report -D
+    > perf -g + pt
+    > strace -etrace=perf_event_open
+
+
+-----------------------------------------------------------------------------
 Changes from MIAMI-NW (Oldest to newest)
 =============================================================================
 

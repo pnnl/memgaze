@@ -103,3 +103,12 @@ SandyBridge (arch): Intel x86-64 Core Gen2
 
 Nehalem (arch) / Westmere (shrink): Intel x86-64 Core Gen1
 ----------------------------------------
+
+
+=============================================================================
+IBM:
+=============================================================================
+
+  power9, 24 cores, 8 channel/ddr4 (no buffering)
+  power9+: 16 channel, buffered, 
+  power10: 30 core/smt4,wider simd
