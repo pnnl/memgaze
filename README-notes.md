@@ -60,7 +60,8 @@ MemGaze Consolidation
     However, possibly the instrumentation code interferes.
 
 
-  - [[Linux perf]]: any hacks?
+  - **Linux perf**: Within 'perf script' (user-level) hack to
+    non-linked/related ip pointer.
   
   - [[more blockers]]?
 
