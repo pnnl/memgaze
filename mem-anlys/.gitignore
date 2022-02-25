@@ -1,0 +1,8 @@
+*.swp
+fp_intel_pt.x
+old_main.cpp
+output*.txt
+results/
+tags
+test.output
+testFiles/
