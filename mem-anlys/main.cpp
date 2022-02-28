@@ -14,6 +14,9 @@
 //***************************************************************************
 
 //***************************************************************************
+
+#include <cassert> // FIXME:tallent replace with hpctoolkit version
+
 #include <fstream>
 #include <regex>
 #include <unordered_set>
@@ -361,14 +364,10 @@ int main(int argc, char* argv[], const char* envp[]) {
   size_t delim_pos = 0;
   string cg_token;
 
-  //map<string,  int> cgFuncMap;
-  //map<string,  int>::iterator cgFuncMapIter;
+  list<string> callPath;
+  list<string>::iterator callPathIter;
 
-  list<string> cgFuncMap;
-  list<string>::iterator cgFuncMapIter;
-
-  //map <int ,  map<string ,  int>> cgMap;
-  map <int ,  list<string>> cgMap;
+  map <int, list<string>> cgMap;
 
   //map <int ,  map<string ,  int>>::iterator cgMapIter;
   map <int ,  list<string>>::iterator cgMapIter;
@@ -377,7 +376,7 @@ int main(int argc, char* argv[], const char* envp[]) {
   int in_cg_sample_id = 0, cg_sample_id_last= -1;
 
   // ------------------------------------------------------------
-  // 
+  // Convert call-path data into Calling Context Tree
   // ------------------------------------------------------------
 
   if (cgFile.is_open()) {
@@ -385,65 +384,70 @@ int main(int argc, char* argv[], const char* envp[]) {
     while (getline(cgFile, line)) {
 
       // -------------------------------------------------------
-      // ??? find correct location?
+      // Parse single line (Call path is multiple lines)
       // -------------------------------------------------------
 
-      int token_cnt = 0;
+      int token_cnt = 1;
       while ((delim_pos = line.find(cg_delim)) != std::string::npos) {
         cg_token = line.substr(0, delim_pos);
-        if (token_cnt == 1){
+        if (token_cnt == 2) {
           in_cg_name = cg_token;
           cout << "1=TOKEN::"<<cg_token<<endl;
         } 
-//        if (token_cnt == 2){
-//          stringstream cg_id_ss(cg_token);
-//          cg_id_ss >> in_cg_sample_id; 
-//          cout << "2.1=TOKEN::"<<cg_token<<endl;
-//        }
         line.erase(0, delim_pos + cg_delim.length());
         token_cnt ++;
       }
-      
-      if (token_cnt == 2){
-        stringstream cg_id_ss(line);
-        cg_id_ss >> in_cg_sample_id; 
-        cout << "2.2TOKEN::"<<line<<endl;
-      }
 
-//      std::vector<std::string> cg_elem;
-//      split(line, cg_elem, cg_delim);
-//      std::istringstream ss_cip(cg_elem[1]);
-//      ss_cip >> std::hex >> in_cg_name;
-//      std::istringstream ss_type(cg_elem[2]);
-//      ss_type >> std::int >> in_cg_sample_id;
+      assert(token_cnt == 3);
+      
+      stringstream cg_id_ss(line);
+      cg_id_ss >> in_cg_sample_id;
+      cout << "2.2TOKEN::"<<line<<endl;
+
 
       // -------------------------------------------------------
-      // read into 'cgFuncMap'
+      // Insert into 'callPath'
       // -------------------------------------------------------
 
       cout << "LAST id: "<<cg_sample_id_last << " CURRENT: "<<in_cg_sample_id<< endl;
-      if (cg_sample_id_last == -1) {
+
+      // FIXME:
+      // - merge case 'first call path' and 'new call path'
+      // - delete 'cgMap'
+      // - print path at end
+      
+      // -------------------------------
+      // first call path
+      // -------------------------------
+      if (cg_sample_id_last == -1) { 
         cg_sample_id_last = in_cg_sample_id;
-        cgFuncMap.clear();
-        //cgFuncMap.insert({in_cg_name , 1});
-        cgFuncMap.push_front(in_cg_name);
-        cgMap.insert({in_cg_sample_id, cgFuncMap});
+        callPath.clear();
+        //callPath.insert({in_cg_name , 1});
+        callPath.push_front(in_cg_name);
+
+        cgMap.insert({in_cg_sample_id, callPath}); // FIXME: delete
       }
+      // -------------------------------
+      // new call path
+      // -------------------------------
       else if (cg_sample_id_last != in_cg_sample_id) {
         cg_sample_id_last = in_cg_sample_id;
-        cgFuncMap.clear();
-        //cgFuncMap.insert({in_cg_name , 1});
-        cgFuncMap.push_front(in_cg_name);
-      //cout << "sample id "<<in_cg_sample_id<<" name:"<<cgFuncMap.find(in_cg_name)->first<<" val:"<<cgFuncMap.find(in_cg_name)->second<<endl;
-        cgFuncMapIter = find(cgFuncMap.begin(), cgFuncMap.end(), in_cg_name);
-      cout << "sample id "<<in_cg_sample_id<<" name:"<<*(cgFuncMapIter)<<endl;
+        callPath.clear();
+        //callPath.insert({in_cg_name , 1});
+        callPath.push_front(in_cg_name);
+      //cout << "sample id "<<in_cg_sample_id<<" name:"<<callPath.find(in_cg_name)->first<<" val:"<<callPath.find(in_cg_name)->second<<endl;
+        callPathIter = find(callPath.begin(), callPath.end(), in_cg_name);
+      cout << "sample id "<<in_cg_sample_id<<" name:"<<*(callPathIter)<<endl;
         if (cgMap.find(in_cg_sample_id) == cgMap.end()){
 //      cout << "OZGURDBG::LINE::"<<__LINE__<<endl;
-          cgMap.insert({in_cg_sample_id, cgFuncMap});
+          cgMap.insert({in_cg_sample_id, callPath});
         } else { 
           cout << "Something is wrong"<< endl;
         }
       }
+      // -------------------------------
+      // current call path, new frame
+      // -------------------------------
       else {
         cgMapIter =  cgMap.find(in_cg_sample_id);
         if (cgMapIter!=cgMap.end()){
@@ -451,26 +455,32 @@ int main(int argc, char* argv[], const char* envp[]) {
             //cout <<  xx->first << " " << xx->second << endl;
             cout <<  *xx << endl;
           }
-          //cgFuncMapIter = cgMapIter->second.find(in_cg_name);
-          cgFuncMapIter = find(cgFuncMap.begin(), cgFuncMap.end(), in_cg_name);
+          //callPathIter = cgMapIter->second.find(in_cg_name);
+          callPathIter = find(callPath.begin(), callPath.end(), in_cg_name);
           cout << "??? "<<in_cg_name<<endl;
-          if (cgFuncMapIter != cgMapIter->second.end()){
+          if (callPathIter != cgMapIter->second.end()){
             cout << "Same Function"<< endl;
-            //cgFuncMapIter->second++;
+            //callPathIter->second++;
             cgMapIter->second.push_front(in_cg_name);
           } else {
             //cgMapIter->second.insert({in_cg_name, 1});
             cgMapIter->second.push_front(in_cg_name);
           }
         } else {
-          cgFuncMap.clear();
-          //cgFuncMap.insert({in_cg_name , 1});
-          cgFuncMap.push_front(in_cg_name);
-          cgMap.insert({in_cg_sample_id, cgFuncMap});
+          callPath.clear();
+          //callPath.insert({in_cg_name , 1});
+          callPath.push_front(in_cg_name);
+          cgMap.insert({in_cg_sample_id, callPath});
           cout << "inCGsid: "<<in_cg_sample_id<<" func: "<<in_cg_name<<endl;
         }
       }
     }
+
+    // -------------------------------------------------------
+    // FIXME: print path
+    // -------------------------------------------------------
+
+    
   }
 
   // ------------------------------------------------------------
