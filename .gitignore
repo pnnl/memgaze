@@ -1,6 +1,13 @@
 *~
-*.[oa]
-install/
+*/*~
+*/*.[oa]
+bin-anlys/install/
 tags
+*/tags
 *.swp
+*/*.swp
 cscope.out
+*/cscope.out
+bin-anlys/x-ExtractSourceFiles
+bin-anlys/x-Viewer
+/bin-anlys/test

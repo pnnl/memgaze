@@ -360,22 +360,38 @@ int main(int argc, char* argv[], const char* envp[]) {
   string cg_delim = " :*: ";
   size_t delim_pos = 0;
   string cg_token;
+
   //map<string,  int> cgFuncMap;
-  list<string> cgFuncMap;
   //map<string,  int>::iterator cgFuncMapIter;
+
+  list<string> cgFuncMap;
   list<string>::iterator cgFuncMapIter;
+
   //map <int ,  map<string ,  int>> cgMap;
   map <int ,  list<string>> cgMap;
+
   //map <int ,  map<string ,  int>>::iterator cgMapIter;
   map <int ,  list<string>>::iterator cgMapIter;
+
   string in_cg_name = "";
   int in_cg_sample_id = 0, cg_sample_id_last= -1;
-  if (cgFile.is_open()){
-    while(getline(cgFile, line)) {
+
+  // ------------------------------------------------------------
+  // 
+  // ------------------------------------------------------------
+
+  if (cgFile.is_open()) {
+
+    while (getline(cgFile, line)) {
+
+      // -------------------------------------------------------
+      // ??? find correct location?
+      // -------------------------------------------------------
+
       int token_cnt = 0;
       while ((delim_pos = line.find(cg_delim)) != std::string::npos) {
         cg_token = line.substr(0, delim_pos);
-        if (token_cnt == 1){ 
+        if (token_cnt == 1){
           in_cg_name = cg_token;
           cout << "1=TOKEN::"<<cg_token<<endl;
         } 
@@ -387,6 +403,7 @@ int main(int argc, char* argv[], const char* envp[]) {
         line.erase(0, delim_pos + cg_delim.length());
         token_cnt ++;
       }
+      
       if (token_cnt == 2){
         stringstream cg_id_ss(line);
         cg_id_ss >> in_cg_sample_id; 
@@ -399,14 +416,20 @@ int main(int argc, char* argv[], const char* envp[]) {
 //      ss_cip >> std::hex >> in_cg_name;
 //      std::istringstream ss_type(cg_elem[2]);
 //      ss_type >> std::int >> in_cg_sample_id;
+
+      // -------------------------------------------------------
+      // read into 'cgFuncMap'
+      // -------------------------------------------------------
+
       cout << "LAST id: "<<cg_sample_id_last << " CURRENT: "<<in_cg_sample_id<< endl;
-      if (cg_sample_id_last == -1){
+      if (cg_sample_id_last == -1) {
         cg_sample_id_last = in_cg_sample_id;
         cgFuncMap.clear();
         //cgFuncMap.insert({in_cg_name , 1});
         cgFuncMap.push_front(in_cg_name);
         cgMap.insert({in_cg_sample_id, cgFuncMap});
-      } else if (cg_sample_id_last != in_cg_sample_id){
+      }
+      else if (cg_sample_id_last != in_cg_sample_id) {
         cg_sample_id_last = in_cg_sample_id;
         cgFuncMap.clear();
         //cgFuncMap.insert({in_cg_name , 1});
@@ -420,7 +443,8 @@ int main(int argc, char* argv[], const char* envp[]) {
         } else { 
           cout << "Something is wrong"<< endl;
         }
-      } else {
+      }
+      else {
         cgMapIter =  cgMap.find(in_cg_sample_id);
         if (cgMapIter!=cgMap.end()){
           for (auto xx =  cgMapIter->second.begin() ; xx!=  cgMapIter->second.end() ; xx++){
@@ -448,6 +472,10 @@ int main(int argc, char* argv[], const char* envp[]) {
       }
     }
   }
+
+  // ------------------------------------------------------------
+  // 
+  // ------------------------------------------------------------
 
   cout << "PRINTING CALL GRAPH MAP" << endl;
   for (auto it = cgMap.begin(); it != cgMap.end(); it++ ){
