@@ -387,7 +387,7 @@ int main(int argc, char* argv[], const char* envp[]) {
         cg_token = line.substr(0, delim_pos);
         if (token_cnt == 2) {
           in_cg_name = cg_token;
-          cout << "1=TOKEN::"<<cg_token<<endl;
+//          cout << "1=TOKEN::"<<cg_token<<endl;
         } 
         line.erase(0, delim_pos + cg_delim.length());
         token_cnt ++;
@@ -397,7 +397,7 @@ int main(int argc, char* argv[], const char* envp[]) {
       
       stringstream cg_id_ss(line);
       cg_id_ss >> in_cg_sample_id;
-      cout << "2.2TOKEN::"<<line<<endl;
+//      cout << "2.2TOKEN::"<<line<<endl;
 
 
       // -------------------------------------------------------
