@@ -367,11 +367,6 @@ int main(int argc, char* argv[], const char* envp[]) {
   list<string> callPath;
   list<string>::iterator callPathIter;
 
-  map <int, list<string>> cgMap;
-
-  //map <int ,  map<string ,  int>>::iterator cgMapIter;
-  map <int ,  list<string>>::iterator cgMapIter;
-
   string in_cg_name = "";
   int in_cg_sample_id = 0, cg_sample_id_last= -1;
 
@@ -412,88 +407,51 @@ int main(int argc, char* argv[], const char* envp[]) {
       cout << "LAST id: "<<cg_sample_id_last << " CURRENT: "<<in_cg_sample_id<< endl;
 
       // FIXME:
-      // - merge case 'first call path' and 'new call path'
-      // - delete 'cgMap'
-      // - print path at end
+      // - done merge case 'first call path' and 'new call path'
+      // - done delete 'cgMap'
+      // - done print path at end
       
       // -------------------------------
       // first call path
       // -------------------------------
-      if (cg_sample_id_last == -1) { 
-        cg_sample_id_last = in_cg_sample_id;
-        callPath.clear();
-        //callPath.insert({in_cg_name , 1});
-        callPath.push_front(in_cg_name);
-
-        cgMap.insert({in_cg_sample_id, callPath}); // FIXME: delete
-      }
+      if (cg_sample_id_last != in_cg_sample_id) {
       // -------------------------------
-      // new call path
+      // Here we need to run execution tree
       // -------------------------------
-      else if (cg_sample_id_last != in_cg_sample_id) {
-        cg_sample_id_last = in_cg_sample_id;
-        callPath.clear();
-        //callPath.insert({in_cg_name , 1});
-        callPath.push_front(in_cg_name);
-      //cout << "sample id "<<in_cg_sample_id<<" name:"<<callPath.find(in_cg_name)->first<<" val:"<<callPath.find(in_cg_name)->second<<endl;
-        callPathIter = find(callPath.begin(), callPath.end(), in_cg_name);
-      cout << "sample id "<<in_cg_sample_id<<" name:"<<*(callPathIter)<<endl;
-        if (cgMap.find(in_cg_sample_id) == cgMap.end()){
-//      cout << "OZGURDBG::LINE::"<<__LINE__<<endl;
-          cgMap.insert({in_cg_sample_id, callPath});
-        } else { 
-          cout << "Something is wrong"<< endl;
+        if (!callPath.empty()){
+          cout<<"Create/add to execution tree"<<endl;  
+          
+          // -------------------------------------------------------
+          // FIXED: print path
+          // -------------------------------------------------------
+          cout << "Call path for sample "<<in_cg_sample_id<<endl;
+          for (auto it = callPath.begin(); it != callPath.end(); it++){
+            cout << "\t" <<*it<<endl; 
+          }
+        } else {
+          cout << "Create and empty execution tree (root)"<<endl;
         }
+      // -------------------------------
+      // Clean calPath and start for new entry
+      // -------------------------------
+        cg_sample_id_last = in_cg_sample_id;
+        callPath.clear();
+        callPath.push_front(in_cg_name);
       }
       // -------------------------------
       // current call path, new frame
       // -------------------------------
       else {
-        cgMapIter =  cgMap.find(in_cg_sample_id);
-        if (cgMapIter!=cgMap.end()){
-          for (auto xx =  cgMapIter->second.begin() ; xx!=  cgMapIter->second.end() ; xx++){
-            //cout <<  xx->first << " " << xx->second << endl;
-            cout <<  *xx << endl;
-          }
-          //callPathIter = cgMapIter->second.find(in_cg_name);
-          callPathIter = find(callPath.begin(), callPath.end(), in_cg_name);
-          cout << "??? "<<in_cg_name<<endl;
-          if (callPathIter != cgMapIter->second.end()){
-            cout << "Same Function"<< endl;
-            //callPathIter->second++;
-            cgMapIter->second.push_front(in_cg_name);
-          } else {
-            //cgMapIter->second.insert({in_cg_name, 1});
-            cgMapIter->second.push_front(in_cg_name);
-          }
-        } else {
-          callPath.clear();
-          //callPath.insert({in_cg_name , 1});
-          callPath.push_front(in_cg_name);
-          cgMap.insert({in_cg_sample_id, callPath});
-          cout << "inCGsid: "<<in_cg_sample_id<<" func: "<<in_cg_name<<endl;
-        }
+        callPath.push_front(in_cg_name);
       }
     }
-
     // -------------------------------------------------------
-    // FIXME: print path
+    // FIXED: print last path
     // -------------------------------------------------------
-
-    
-  }
-
-  // ------------------------------------------------------------
-  // 
-  // ------------------------------------------------------------
-
-  cout << "PRINTING CALL GRAPH MAP" << endl;
-  for (auto it = cgMap.begin(); it != cgMap.end(); it++ ){
-    cout << "Call graph for sample "<<it->first<<endl;
-    for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++){
-      //cout << "\t" <<it2->first<<endl; 
-      cout << "\t" <<*it2<<endl; 
-    }
+    cout << "Call path for sample "<<in_cg_sample_id<<endl;
+    for (auto it = callPath.begin(); it != callPath.end(); it++){
+      cout << "\t" <<*it<<endl; 
+    }    
   }
 //End of Call graph reader
 //NATHAN_E
