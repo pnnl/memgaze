@@ -79,6 +79,7 @@ const int inst_indirect = 921; //"inst_indirect", "", "instrument only indirect 
 const int inst_frame = 922; //"inst_frame", "", "instrument only frame/constant instructions Default = 0"
 const int linemap = 923; //"linemap", "", "specify instumented binary to print linemap.");
 const int lcFile = 924; //"lc_file", "", "prints load classifications to a file.");
+const int funcList = 925; //"func_list", "", "list of functions to analyze (required).");
 
 
  
@@ -121,7 +122,7 @@ std::string KnobFpPath = ""; //"fp_path", "", "path containing instruction footp
 std::string KnobDumpFile = ""; //dump_file, "", "file name to dwar scheduling dump""
 std::string KnobLinemap = ""; //"linemap", "", "specify instrumented binary to print linemap.");
 std::string KnobLcFile = ""; //"lc_file", "", "prints load classifications to a file.");
-
+std::vector<std::string> KnobFuncList; //"func_list", "", "list of functions to analyze (required).");
 /*
  * Compute an application's instruction execution cost by re-scheduling
  * its native instructions on a model of the target architecture.
@@ -349,6 +350,11 @@ static int parse_opt (int key, char *arg, struct argp_state *state)
             break;
         }
 
+        case funcList:
+        {
+          KnobFuncList.push_back(arg);
+        }
+
         default :
         {
             break; 
@@ -396,6 +402,8 @@ int parse_args(int argc , char * argv[]){
         { "inst_frame", inst_frame, "BOOL", 1, "Instrument Frame/Constant Load/Stores (Default=0)"},
         { "linemap", linemap, "STRING", 0, "specify an instrumented binary to print Linemap."},
         { "lcFile ", lcFile, "STRING", 0, "prints load classifications to a file."},
+        //{ "func_list", funcList, "STRING", 0, "List of functions to analyze (required)."},
+        { "func_list", funcList, "INTEGER", 0, "List of functions to analyze (required)."},
         {0}
      };
 
@@ -417,6 +425,9 @@ main (int argc, char *argv[])
       while (DEBUGGER_WAIT);
 
       unsetenv("MIAMI_DEBUG_WAIT");
+    }
+    for (int i = 1; i<argc; i++){
+      std::cout << "ARG "<<i<<": "<<argv[i]<<std::endl;
     }
     parse_args(argc , argv);  
 
@@ -466,10 +477,18 @@ main (int argc, char *argv[])
     mo->addLinemap(KnobLinemap);
     mo->addLcFile(KnobLcFile);
   
+    int numFunclist = KnobFuncList.size();
+    if (numFunclist > 0)
+    {
+       // pass all the mrd files to the MiamiOptions object
+       int i;
+       for (i=0 ; i<numFunclist ; ++i)
+          mo->addFuncList(KnobFuncList[i]);
+    }
+
     if (! mo->CheckDependencies())
        return 0;
 
-  
     // This tool is compiled both as a standalone tool
     // and as a dynamic object pintool. getpid is safe in the standalone
     // case, but it may return a wrong pid when running under PIN.

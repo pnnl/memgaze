@@ -16,6 +16,7 @@
 #include "mrd_file_info.h"
 #include <string>
 #include <map>
+#include <vector>
 
 using std::string;
 
@@ -93,6 +94,8 @@ namespace MIAMI
       string lcFile; //path of load classification output File 
       FILE *lcFILE;
       bool lcFileExist;
+      //std::map<std::string, int> funcList;
+      std::map<int, int> funcList;
 
       MiamiOptions() {
          do_scheduling = false;
@@ -514,6 +517,17 @@ namespace MIAMI
             do_cfgpaths=false;
          }
       }
+      void addFuncList(const string& mfile)
+      {
+         if (mfile.length()) {
+            
+            //funcList.insert({mfile,1});
+            std::cout<<"IN:"<<mfile<<" out:"<<std::hex<<std::stoi(mfile, 0 , 16)<<std::dec<<std::endl;
+            funcList.insert({std::stoi(mfile, 0 , 16),1});
+         }
+                                
+      }
+
    };
 
 }

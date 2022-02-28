@@ -1,0 +1,30 @@
+--- vanilla_linux/linux-5.5.9/tools/perf/util/scripting-engines/trace-event-python.c	2020-03-11 23:18:49.000000000 -0700
++++ linux-5.5.9/tools/perf/util/scripting-engines/trace-event-python.c	2021-02-18 13:40:47.661426289 -0800
+@@ -745,9 +745,24 @@
+ 			_PyLong_FromLong(sample->tid));
+ 	pydict_set_item_string_decref(dict_sample, "cpu",
+ 			_PyLong_FromLong(sample->cpu));
+-	pydict_set_item_string_decref(dict_sample, "ip",
+-			PyLong_FromUnsignedLongLong(sample->ip));
+-	pydict_set_item_string_decref(dict_sample, "time",
++//Original	pydict_set_item_string_decref(dict_sample, "ip",
++//			PyLong_FromUnsignedLongLong(sample->ip));
++//OZGURS
++//        pydict_set_item_string_decref(dict_sample,"get_line", _PyUnicode_FromString(al->srcline));
++//        pydict_set_item_string_decref(dict_sample,"ev_name", _PyUnicode_FromString(al->srcline));
++        if (al->map) {
++//            printf("%u, %lu, %lu",    al->map->prot,al->map->pgoff, al->map->reloc);
++//            printf(", %lu, %lu, %lu\n",    al->map->dso->text_offset, al->map->start, sample->ip);
++//            printf("0x%x, 0x%lx, 0x%lx",    al->map->prot,al->map->pgoff, al->map->reloc);
++//            printf(", 0x%lx, 0x%lx, 0x%lx\n",    al->map->dso->data.debug_frame_offset, al->map->start, sample->ip);
++	    pydict_set_item_string_decref(dict_sample, "ip",
++			PyLong_FromUnsignedLongLong(sample->ip - al->map->start ));//+ al->map->pgoff));
++         } else {
++            pydict_set_item_string_decref(dict_sample, "ip",
++                        PyLong_FromUnsignedLongLong(sample->ip));
++        }
++//OZGURE	
++        pydict_set_item_string_decref(dict_sample, "time",
+ 			PyLong_FromUnsignedLongLong(sample->time));
+ 	pydict_set_item_string_decref(dict_sample, "period",
+ 			PyLong_FromUnsignedLongLong(sample->period));

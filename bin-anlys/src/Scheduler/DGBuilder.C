@@ -867,6 +867,170 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
 //   new_point->pushBack(nop5);
 //   new_point->pushBack(nop5);
 //   new_point->pushBack(nop5);
+//  new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//  new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//  new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//  new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+//   new_point->pushBack(nop5);
+
+
+
+
 
    }
 
@@ -881,12 +1045,105 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
 }
 
 
-float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
+float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::CFG::Node** ba , int numBlocks){
    Dyninst::PatchAPI::Snippet::Ptr lfence = LFENCESnippet::create(new LFENCESnippet());
    NodesIterator fnit(*this);
+   NodesIterator bnit(*this);
+   NodesIterator lnit(*this);
    LoadModule *img =this->img;
    Routine *rout = this->routine;
-    
+   std::map<unsigned long, std::map<unsigned long, int>> blockMap;
+   std::map<unsigned long, int> blockInstrumentedMap;
+   if (!mo->funcList.empty()){
+//      std::map<const string, int>::const_iterator testfuncListIter = mo->funcList.begin();
+      std::map<int, int>::const_iterator testfuncListIter = mo->funcList.begin();
+      while (testfuncListIter!= mo->funcList.end()){
+        std::cout << " OZGURDEBUGFNAMESINLIST: "<<std::hex<<testfuncListIter->first<<std::dec<<std::endl;
+        testfuncListIter++;
+      }
+      
+      //std::map<const string, int>::const_iterator funcListIter = mo->funcList.find(rout->Name());
+      std::map<int, int>::const_iterator funcListIter = mo->funcList.find(rout->start_addr);
+      if (funcListIter != mo->funcList.end()){
+         std::cout<<"OZGURDEBUGFLIST Printing Load Classification for function: "<<rout->Name()<<std::endl;    
+      } else {
+         std::cout<<"OZGURDEBUGFLIST This is wrong function\n I was looking for "<<rout->Name()<<std::endl;
+         return 0;
+      }  
+   }
+ 
+   std::cout << "OZGURDBGX3 #Blocks: "<<numBlocks;
+   for( int i=0 ; i<numBlocks ; ++i )
+   {
+      std::cout << "\n\tBlock["<<i<<"] 's startAddres: "<< std::hex<<ba[i]->getStartAddress()<<
+      " endAddress:  "<< ba[i]->getEndAddress()<<std::dec<<std::endl;
+      CFG::ForwardInstructionIterator testiter(ba[i]);
+//      NodesIterator testiter(ba[i]);
+      std::map<unsigned long, int> blockInstMap;
+      while (testiter){
+        blockInstMap.insert({testiter.Address(), 0});
+        //Node *testnn = testiter;
+        //std::cout<<"\n\t\tinstruction addres:"<<std::hex<<testnn->getAddress()<<std::dec<<std::endl;
+        std::cout<<"\t\tinstruction addres:"<<std::hex<<testiter.Address()<<std::dec<<std::endl;
+        ++testiter;
+      }
+      for (auto x = blockInstMap.begin(); x!= blockInstMap.end();x++){
+        std::cout <<std::hex << x->first << "-" <<x->second<<std::dec<<std::endl ;
+      }
+      if (numBlocks == i){
+         blockMap.insert({ba[i]->getEndAddress(), blockInstMap});
+         blockInstrumentedMap.insert({ba[i]->getEndAddress(), 0});
+      } else {
+         blockMap.insert({ba[i]->getEndAddress() -1, blockInstMap});
+         blockInstrumentedMap .insert({ba[i]->getEndAddress() -1, 0});
+      }
+  }
+// std::cout<<std::dec<<"LINE "<<__LINE__<<std::endl;
+  std::map<unsigned long, std::map<unsigned long, int>>::iterator blockMapIter;
+  std::map<unsigned long, int>::iterator blockInstMapIter;
+  std::map<unsigned long, int>::iterator blockInstrumentedMapIter;
+  while((bool)bnit){
+    Node *xxy = bnit;
+    if (xxy->isInstructionNode() && xxy->getType() >0){
+      if(xxy->is_load_instruction() && mo->inst_loads){
+        blockMapIter = blockMap.lower_bound(xxy->getAddress());
+        blockInstrumentedMapIter = blockInstrumentedMap.lower_bound(xxy->getAddress());
+        if (xxy->is_scalar_stack_reference()){
+          if (blockMapIter != blockMap.end()){
+            blockInstMapIter = blockMapIter->second.find(xxy->getAddress());
+            if (blockInstMapIter != blockMapIter->second.end()){
+              std::cout<< "Node Ox"<<std::hex<<xxy->getAddress()<<" is Frame\n";
+              blockInstrumentedMapIter->second++;
+              blockInstMapIter->second++;
+            }
+          }                                                                                             
+        } else if (xxy->is_strided_reference()){
+          IncomingEdgesIterator ieit(xxy);
+          while ((bool)ieit){
+            Node *nn = ieit->source();
+            if(nn->getType() > 0 && nn->is_scalar_stack_reference()){
+              if (blockMapIter != blockMap.end()){
+                blockInstMapIter = blockMapIter->second.find(xxy->getAddress());
+                if (blockInstMapIter != blockMapIter->second.end()){
+                  std::cout<< "Node Ox"<<std::hex<<xxy->getAddress()<<" is Constant\n";
+                  blockInstMapIter->second++;
+                  blockInstrumentedMapIter->second++;
+                }
+              }
+            }
+            ++ieit;
+          }
+        }
+      }
+    }
+    ++bnit;
+  }
+  for (auto oz = blockMap.begin();  oz != blockMap.end(); oz++){
+    std::cout<<std::hex<<oz->first<<std::endl;
+    for (auto oz2 = oz->second.begin();  oz2 != oz->second.end(); oz2++){
+      std::cout<<std::hex<<"\t"<<oz2->first<<"-"<<oz2->second<<std::dec<<std::endl; 
+    }
+  }   
 
    BPatch_image* image =  img->getDyninstImage();
    BPatch_Vector<BPatch_function*> funcs;
@@ -904,6 +1161,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
          return 0;
       }
    }
+
    if(rout->Name().find("@") != std::string::npos){
       std::cout<<"OZGURDBG::func name has @ : "<<rout->Name()<<std::endl;
       func_exist  = false;
@@ -993,6 +1251,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo){
    double frame_sts = 0;
    double strided_sts = 0;
    double indirect_sts = 0;
+   int total_frame_lds = 0;
    int disp = 0;
    int scale = 1;
    std::cout<<"Address\ttype\tclass\n";
@@ -1061,14 +1320,25 @@ tryagain:
             total_lds+=1;
             if (fnn->is_scalar_stack_reference()){
                frame_lds+=1;
-               std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tframe"<<std::endl;
-               
+//               std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tframe"<<std::endl;
+//               blockMapIter = blockMap.lower_bound(fnn->getAddress());
+//               std::cout<<"Search-1!!!\n";
+//               if (blockMapIter != blockMap.end()){
+//                  std::cout<<"found-1!!!\n";
+//                  blockInstMapIter = blockMapIter->second.find(fnn->getAddress());
+//                  if (blockInstMapIter != blockMapIter->second.end()){
+//                     std::cout<<"found-2!!!\n";
+//                     blockInstMapIter->second++;
+//                  }
+//               }                                                                                             
+              
                if(mo->inst_frame){
                //if(mo->inst_frame && fnn->getLoopIndex()>1){//OZGUR_FIXME FIXME make a smarter fix I add index check fornow
                   if (mo->lcFileExist)
                   {
                      //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
-                     fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
+                     //fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
+                     fprintf(mo->lcFILE, "%x 0 %x %x 0\n",(fnn->getAddress()),disp,scale);
                   }
                   std::cout<<"OZGURDBG Instrumenting Frame Load\n";
                   if (func_exist){
@@ -1094,6 +1364,16 @@ tryagain:
                      ++ieit;
                   } else { 
                   if (nn->is_scalar_stack_reference()){
+//                     blockMapIter = blockMap.lower_bound(fnn->getAddress());
+//                     std::cout<<"Search-2!!!\n";
+//                     if (blockMapIter != blockMap.end()){
+//                       std::cout<<"found-4!!!\n";
+//                       blockInstMapIter = blockMapIter->second.find(fnn->getAddress());
+//                       if (blockInstMapIter != blockMapIter->second.end()){
+//                         std::cout<<"found-4!!!\n";
+//                         blockInstMapIter->second++;
+//                       }
+//                     }                                                                                            
                      frame_lds+=1;
                      std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tconstant"<<std::endl;
                      flag_stride = false;
@@ -1102,7 +1382,8 @@ tryagain:
                         if (mo->lcFileExist)
                         {
                             //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
-                            fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
+                            //fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
+                            fprintf(mo->lcFILE, "%x 0 %x %x 0\n",(fnn->getAddress()),disp,scale);
                         }
                   std::cout<<"OZGURDBG Instrumenting Constant Load\n";
                         if (func_exist){
@@ -1130,9 +1411,22 @@ tryagain:
                   if (mo->inst_strided){
                       if (mo->lcFileExist)
                       {
+//                          blockMapIter = blockMap.lower_bound(fnn->getAddress());
+//                          if (blockMapIter != blockMap.end()){
+//                             total_frame_lds = 0;
+//                             for ( blockInstMapIter = blockMapIter->second.begin(); blockInstMapIter != blockMapIter->second.end(); blockInstMapIter++){
+//                                total_frame_lds += blockInstMapIter->second;
+//                                blockInstMapIter->second = 0;
+//                             }
+//                          }                                                                                             
                           //fprintf(mo->lcFILE, "%x 1\n",(fnn->getAddress()));
                           //fprintf(mo->lcFILE, "%x 1 %x\n",(fnn->getAddress()),valueNum);
-                          fprintf(mo->lcFILE, "%x 1 %x %x\n",(fnn->getAddress()),disp,scale);
+                          //fprintf(mo->lcFILE, "%x 1 %x %x\n",(fnn->getAddress()),disp,scale);
+//                          fprintf(mo->lcFILE, "%x 1 %x %x %d\n",(fnn->getAddress()),disp,scale,total_frame_lds);
+                          blockInstrumentedMapIter = blockInstrumentedMap.lower_bound(fnn->getAddress());
+                          fprintf(mo->lcFILE, "%x 1 %x %x %d\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second);
+                          blockInstrumentedMapIter->second=0;
+//                          total_frame_lds = 0;
                       }
                   std::cout<<"OZGURDBG Instrumenting Strided Load\n";
                      if (func_exist){
@@ -1161,9 +1455,25 @@ tryagain:
                if (mo->inst_indirect){
                   if (mo->lcFileExist)
                   {
-                      //fprintf(mo->lcFILE, "%x 2\n",(fnn->getAddress()));
-                      //fprintf(mo->lcFILE, "%x 2 %x\n",(fnn->getAddress()),valueNum);
-                      fprintf(mo->lcFILE, "%x 2 %x %x\n",(fnn->getAddress()),disp,scale);
+//                    blockMapIter = blockMap.lower_bound(fnn->getAddress());
+//                    if (blockMapIter != blockMap.end()){
+//                       total_frame_lds = 0;
+//                       for ( blockInstMapIter = blockMapIter->second.begin(); blockInstMapIter != blockMapIter->second.end(); blockInstMapIter++){
+//                          total_frame_lds += blockInstMapIter->second;
+//                          blockInstMapIter->second = 0;
+//                       }
+//                    }                                                                                             
+//                 
+//                    
+//                      //fprintf(mo->lcFILE, "%x 2\n",(fnn->getAddress()));
+//                      //fprintf(mo->lcFILE, "%x 2 %x\n",(fnn->getAddress()),valueNum);
+//                      //fprintf(mo->lcFILE, "%x 2 %x %x\n",(fnn->getAddress()),disp,scale);
+//                      fprintf(mo->lcFILE, "%x 2 %x %x %d\n",(fnn->getAddress()),disp,scale,total_frame_lds);
+//                      total_frame_lds = 0;
+                      blockInstrumentedMapIter = blockInstrumentedMap.lower_bound(fnn->getAddress());
+                      fprintf(mo->lcFILE, "%x 2 %x %x %d\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second);
+                      blockInstrumentedMapIter->second=0;
+
                   }    
 
                   std::cout<<"OZGURDBG Instrumenting Indirect Load\n";
@@ -1287,11 +1597,91 @@ tryagain:
 //      }
       ++fnit;
    }
+
   // patcher.commit();
+   for (auto oz = blockMap.begin();  oz != blockMap.end(); oz++){
+      std::cout<<std::hex<<oz->first<<std::endl;
+      for (auto oz2 = oz->second.begin();  oz2 != oz->second.end(); oz2++){
+        std::cout<<std::hex<<"\t"<<oz2->first<<"-"<<oz2->second<<std::dec<<std::endl; 
+      }
+   }
+   for (auto instBl = blockInstrumentedMap.begin(); instBl !=  blockInstrumentedMap.end(); instBl++){
+    std::cout<<std::hex<<instBl->first<<"-"<<std::dec<<instBl->second<<std::endl;
+    if (instBl->second >0){
+      std::cout<<"Instrument a frame load and add second -1 as multuiplier\n";
+      bool is_instrumented = false;
+      while((bool)lnit){
+        Node *xxy = lnit;
+        if (xxy->isInstructionNode() && xxy->getType() >0){
+          if(xxy->is_load_instruction() && mo->inst_loads){
+            blockInstrumentedMapIter = blockInstrumentedMap.lower_bound(xxy->getAddress());
+            if (blockInstrumentedMapIter->second >0 && !is_instrumented){
+              if (xxy->is_scalar_stack_reference()){
+                if (mo->lcFileExist){
+                  //fprintf(mo->lcFILE, "%x 0 %x %x %d\n",(xxy->getAddress()),disp,scale);
+                  fprintf(mo->lcFILE, "%x 0 0 0 %d\n",(xxy->getAddress()),blockInstrumentedMapIter->second-1);
+                  blockInstrumentedMapIter->second = 0;
+                }
+                  std::cout<<"OZGURDBG Instrumenting Frame Load at"<<std::hex<<xxy->getAddress()<<std::dec<<std::endl;
+                  if (func_exist){
+                     daddr= xxy->getAddress();
+                     loadPtr = funcs[0]->findPoint(daddr);
+                     if (loadPtr){
+                        if (before){
+                           lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callBefore);
+                        } else {
+                           lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                        }
+                        addPTWSnippet(&patcher, lps , xxy);
+//                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+//                        lps->pushBack(lfence);
+                     }
+                  }               
+                is_instrumented = true;
+              } else if (xxy->is_strided_reference()){
+                IncomingEdgesIterator ieit(xxy);
+                while ((bool)ieit){
+                  Node *nn = ieit->source();
+                  if(nn->getType() > 0 && nn->is_scalar_stack_reference()){
+                     if (mo->lcFileExist){
+                        //fprintf(mo->lcFILE, "%x 0 %x %x 0\n",(xxy->getAddress()),disp,scale);
+                        fprintf(mo->lcFILE, "%x 0 0 0 %d\n",(xxy->getAddress()),blockInstrumentedMapIter->second-1);
+                        blockInstrumentedMapIter->second = 0;
+                    }
+                  std::cout<<"OZGURDBG Instrumenting Constant Load at"<<std::hex<<xxy->getAddress()<<std::dec<<std::endl;
+                    if (func_exist){
+                       daddr= xxy->getAddress();
+                       loadPtr = funcs[0]->findPoint(daddr);
+                       if (loadPtr){
+                          if (before){
+                             lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callBefore);
+                          } else {
+                             lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                          }
+                          addPTWSnippet(&patcher, lps , xxy);
+//                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+//                        lps->pushBack(lfence);
+
+                       }
+                    }                 
+                    is_instrumented = true;
+                  }
+                  ++ieit;
+                }
+              }
+            }
+          }
+        }
+        ++lnit;
+      }
+
+    }
+    std::cout<<std::hex<<instBl->first<<"-"<<std::dec<<instBl->second<<std::endl;
+   }
 
    std::cout<<"Testing mem Instructions Final:\nTotal loads:"<<total_lds<<"\tframe:"<<frame_lds<<"\tstrided:"<<strided_lds<<"\tindirect:"<<indirect_lds<<std::endl;
    std::cout<<"Total stores:"<<total_sts<<"\tframe:"<<frame_sts<<"\tstrided:"<<strided_sts<<"\tindirect:"<<indirect_sts<<std::endl;
-   return 0;
+   return 1;
 }
 
 //ozgurS
@@ -3200,7 +3590,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                              //   // this is actually the iteration number for nodeB
                                              //   locF1 = -locF1;
 
-                                             assert (locF1 < avgNumIters);
+//TODO FIXME OZGUR HACK for AMD                                             assert (locF1 < avgNumIters);
                                              addUniqueDependency(nodeB, node, negDir, 
                                                    MEMORY_TYPE, locF1, 1, 0);
                                           }

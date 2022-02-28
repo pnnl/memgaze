@@ -18,9 +18,9 @@ ifneq ($(MIAMI_TARGET),$(PALM_MIAMI_ROOT))
 	@echo "Copying documentation"
 #	@cp -r doc README LICENSE ACKNOWLEDGEMENTS $(MIAMI_TARGET)
 	@echo "Copying utilities"
-	@cp -r share ExtractSourceFiles $(MIAMI_TARGET)
+#	@cp -r share ExtractSourceFiles $(MIAMI_TARGET)
 	@echo "Copying Viewer"
-	@cp -r Viewer $(MIAMI_TARGET)
+#	@cp -r Viewer $(MIAMI_TARGET)
 else
 	@echo "Installing in place"
 endif

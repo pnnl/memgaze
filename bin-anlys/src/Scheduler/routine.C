@@ -844,7 +844,19 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
    CFG *cfg = ControlFlowGraph();
 //   computeSchedule = _computeSchedule;
    mo = _mo;
-   
+//TODO FIXME OZGUR hacking this for AMD binary 
+//START
+   if (name.compare("std::istream::getline") == 0 || 
+       name.compare("std::operator>><char, std::char_traits<char> >(std::basic_istream<char, std::char_traits<char> >&, char*) [clone .cold]") == 0 ||
+       name.compare("GenerateRGG::generate") == 0 ||
+       name.compare("std::basic_istream<wchar_t, std::char_traits<wchar_t> >::getline") == 0  
+      ){
+      std::cout << "[INFO]Routine::main_analysis(): skipping function: '" << name << "'\n";
+      return 0;
+   }
+
+//END
+
    std::cout << "[INFO]Routine::main_analysis(): '" << name << "'\n";
    if (name.compare(mo->debug_routine) == 0)  // they are equal
    {
@@ -989,7 +1001,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
    
    if (mo->do_scopetree)
    {
-//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
+std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<" CFG:"<<std::hex<<cfg->CfgEntry()->getStartAddress()<<std::dec<<std::endl;
       // call mark_loop_back_edges after computing the tarjan intervals
       CFG::AddrEdgeMMap *entryEdges = new CFG::AddrEdgeMMap ();
       CFG::AddrEdgeMMap *callEntryEdges = new CFG::AddrEdgeMMap ();
@@ -2785,8 +2797,13 @@ Routine::constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
          float totalFP=0;
          std::map<int,double> levelExecCounts;
          if(mo->load_classes){
-            std::cout<<"Sniper Routine: "<<this->name<<std::endl;
-            sch->printLoadClassifications(mo);
+            std::cout<<"Sniper Routine: "<<this->name<<" StartAddr:"<<std::hex<<this->start_addr<<std::dec<<std::endl;
+            float errOzgur = sch->printLoadClassifications(mo, bpit->first->blocks, bpit->first->size);
+            if (errOzgur == 1) {
+                std::cout<<"Sniper Routine Analized: "<<this->name<<std::endl;
+            } else {
+                std::cout<<"Sniper Routine Skipped: "<<this->name<<std::endl;
+            }
          }
          if(mo->fp_path.length()>0){
             std::string p=mo->fp_path;

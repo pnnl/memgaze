@@ -181,8 +181,8 @@ public:
 
    PrivateCFG::Node* FindCFGNodeAtAddress(addrtype pc);
 
-protected:
    addrtype start_addr;
+protected:
    addrtype start_offset;
    std::string name;
    usize_t size;

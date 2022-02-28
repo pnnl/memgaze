@@ -353,7 +353,7 @@ public:
 
 //ozgurS
    float calculateMemoryData(int level, int index , std::map<int,double> levelExecCounts);
-   float printLoadClassifications(const MIAMI::MiamiOptions *mo);
+   float printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::CFG::Node** ba , int numBlocks);
    void addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::PatchAPI::Point* new_point, Node *nn);
 //ozgurE
 
