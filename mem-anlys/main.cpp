@@ -448,7 +448,7 @@ int main(int argc, char* argv[], const char* envp[]) {
     // -------------------------------------------------------
     // FIXED: print last path
     // -------------------------------------------------------
-    cout << "Call path for sample "<<in_cg_sample_id<<endl;
+    cout << "Call path for last sample "<<in_cg_sample_id<<endl;
     for (auto it = callPath.begin(); it != callPath.end(); it++){
       cout << "\t" <<*it<<endl; 
     }    
