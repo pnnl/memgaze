@@ -86,14 +86,15 @@ MK_TARGETS_PRE = \
 
 # <class>_CHECK_BASE: Given <check>, generate the base/stem
 #   <check_base>, which will be used to generate <check_diff> and
-#   <check_update> targets.
+#   <check_update> targets. Should be a GNU Make 'function variable',
+#   i.e., invokable with $(call...)
 #
 #   Example that removes a suffix using a pattern rule:
 #     CHECK_FN = $(patsubst %.out,%,$(1))
 
 # Generate target name suffixes for <check_diff> and <check_update>
-#   (overridable).  Each target is generated using a suffix pattern
-#   rule. For example:
+#   (overridable).  Each target is generated using a GNU Make suffix
+#   pattern rule. For example:
 #     <check_diff> = %<class>_DIFF, where % is <check_base>.
 #
 #   <class>_DIFF:   Name of <check_diff> target from <check_base>
@@ -102,13 +103,15 @@ MK_TARGETS_PRE = \
 CHECK_DIFF   := %.diff
 CHECK_UPDATE := %.update
 
-# Commands that execute and generate target files
+# Commands that execute and generate target files. Each variable
+#   defines a GNU Make 'recipe', i.e., shell command that may use GNU
+#   Make 'automatic variables'.
 #
 #   <class>_RUN:        Generate each <check> (output files)
 #   <class>_RUN_DIFF:   Generate <check_diff> file
 #   <class>_RUN_UPDATE: Generate <check_gold> file
 #
-#   Notes:
+#   Useful variables and notes:
 #     $@: target
 #     $${chk_base}: <check_base> for RUN (no pattern rule is assumed)
 #     $*          : <check_base> for RUN_DIFF and RUN_UPDATE
