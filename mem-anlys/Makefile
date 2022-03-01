@@ -17,8 +17,7 @@ include ../Makefile-defs.mk
 
 #****************************************************************************
 
-CXX = g++ -std=c++11 -Wall
-#CXX = g++ -std=c++0x -Wall -Wno-unused-variable
+CXX = g++ -std=c++11 -Wall -Wno-unused-variable
 
 LIBCXX_LIB = $(dir $(shell $(CXX) -print-file-name=libstdc++.so))
 
