@@ -381,7 +381,6 @@ int main(int argc, char* argv[], const char* envp[]) {
       // -------------------------------------------------------
       // Parse single line (Call path is multiple lines)
       // -------------------------------------------------------
-
       int token_cnt = 1;
       while ((delim_pos = line.find(cg_delim)) != std::string::npos) {
         cg_token = line.substr(0, delim_pos);
@@ -406,40 +405,26 @@ int main(int argc, char* argv[], const char* envp[]) {
 
       cout << "LAST id: "<<cg_sample_id_last << " CURRENT: "<<in_cg_sample_id<< endl;
 
-      // FIXME:
-      // - done merge case 'first call path' and 'new call path'
-      // - done delete 'cgMap'
-      // - done print path at end
-      
       // -------------------------------
-      // first call path
+      // case 1: new call path
       // -------------------------------
       if (cg_sample_id_last != in_cg_sample_id) {
-      // -------------------------------
-      // Here we need to run execution tree
-      // -------------------------------
+
+        // Prior call path is now complete
         if (!callPath.empty()){
-          cout<<"Create/add to execution tree"<<endl;  
-          
-          // -------------------------------------------------------
-          // FIXED: print path
-          // -------------------------------------------------------
           cout << "Call path for sample "<<in_cg_sample_id<<endl;
           for (auto it = callPath.begin(); it != callPath.end(); it++){
             cout << "\t" <<*it<<endl; 
           }
-        } else {
-          cout << "Create and empty execution tree (root)"<<endl;
         }
-      // -------------------------------
-      // Clean calPath and start for new entry
-      // -------------------------------
+
+        // Begin new call path
         cg_sample_id_last = in_cg_sample_id;
         callPath.clear();
         callPath.push_front(in_cg_name);
       }
       // -------------------------------
-      // current call path, new frame
+      // case 2: new frame for continuing current call path
       // -------------------------------
       else {
         callPath.push_front(in_cg_name);
