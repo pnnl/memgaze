@@ -8,11 +8,11 @@ MemGaze Consolidation
 
 - Combine measurement, instrumentor, analysis into one repo (see below)
 
-  - distinguish scripts: important vs. others; 
+  - distinguish scripts: important vs. others
     - remove unnecessary
     - talk about rest
     
-  [[added -Wall]]
+  - [[ added -Wall ]]
     
   - scripts for PT memory tracing: application-based, system-wide, +LBR
   - launcher for instrumentation
