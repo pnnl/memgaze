@@ -46,7 +46,7 @@
 
 
 #----------------------------------------------------------------------------
-# Recursive makes
+# Targets and recursive makes
 #----------------------------------------------------------------------------
 
 #-----------------------------------------------------------
@@ -73,15 +73,114 @@ MK_TARGETS_POST = \
 MK_TARGETS_PRE = \
 	info
 
+
+#----------------------------------------------------------------------------
+# Check (test) rules
+#----------------------------------------------------------------------------
+
+#-----------------------------------------------------------
+# MK_CHECK: List of test/check classes, each designated <class>
+#-----------------------------------------------------------
+#
+# <class>_CHECK: List of test/check output files, each <check>
+
+# <class>_CHECK_BASE: Given <check>, generate the base/stem
+#   <check_base>, which will be used to generate <check_diff> and
+#   <check_update> targets.
+#
+#   Example that removes a suffix using a pattern rule:
+#     CHECK_FN = $(patsubst %.out,%,$(1))
+
+# Generate target name suffixes for <check_diff> and <check_update>
+#   (overridable).  Each target is generated using a suffix pattern
+#   rule. For example:
+#     <check_diff> = %<class>_DIFF, where % is <check_base>.
+#
+#   <class>_DIFF:   Name of <check_diff> target from <check_base>
+#   <class>_UPDATE: Name of <check_update> target from <check_base>
+
+CHECK_DIFF   := %.diff
+CHECK_UPDATE := %.update
+
+# Commands that execute and generate target files
+#
+#   <class>_RUN:        Generate each <check> (output files)
+#   <class>_RUN_DIFF:   Generate <check_diff> file
+#   <class>_RUN_UPDATE: Generate <check_gold> file
+#
+#   Notes:
+#     $@: target
+#     $${chk_base}: <check_base> for RUN (no pattern rule is assumed)
+#     $*          : <check_base> for RUN_DIFF and RUN_UPDATE
+#     bash note:  : <command> && { <$? -eq 0> } || { $? -ne 0 }
+#   
+#   Examples:
+#     RUN        = <app> -o $@ $${chk_base}.in
+#     RUN_DIFF   = diff -C0 -N $*.out $*.gold > $@
+#     RUN_UPDATE = mv $*.out $*.gold
+
+
+# TODO:
+# - prerequisite for RUN could be the program
+# - cleaner version of RUN command (doesn't work -- trickier than it seemed)
+CHECK_RUN_VARS = chk_base="$$(call $$(1)_CHECK_BASE,$@)"
+
+
 #----------------------------------------------------------------------------
 # Interface for common utilities
 #----------------------------------------------------------------------------
 
 SHELL = /bin/bash
 
+PRINTF = printf --
+RM     = rm -f
+
+SED    = sed -r
+AWK    = awk
+TAR    = tar
+
 
 #****************************************************************************
-# Basic dependencies for targets
+# Helpers
+#****************************************************************************
+
+_msg_target_dbg = "debug: '$@' ('$(*D)', '$(*F)')\n"
+
+#----------------------------------------------------------------------------
+
+_msg_ClrBeg0="$$'\e[1m\e[4m\e[35m'" # '$' syntax quotes escapes
+_msg_ClrBeg1="$$'\e[1m\e[4m\e[31m'" # '$' syntax quotes escapes
+_msg_ClrEnd="$$'\e[0m'"
+
+_msg_sep1 := "*****************************************************************************"
+_msg_sep2 := "---------------------------------------------------------"
+
+_msg_infoGrp  = "$(_msg_sep1)\n$@: $(CURDIR)\n$(_msg_sep1)\n"
+_msg_info     = "$@: $^\n"
+_msg_dbg      = "debug: '$@' : '$^'"
+_msg_err      = "$(_msg_ClrBeg1)Error$(_msg_ClrEnd): "
+
+_msg_vars_dbg = "$(_msg_sep2)\ncheck:        $(_mk_check)\ncheck_diff:   $(_mk_check_diff)\ncheck_update: $(_mk_check_update)\n$(_msg_sep2)\n"
+
+#----------------------------------------------------------------------------
+
+# Check that given variables are set and all have non-empty values,
+# die with an error otherwise.
+#   https://stackoverflow.com/questions/10858261/how-to-abort-makefile-if-variable-not-set
+#
+# Params:
+#   1. List of variable name(s) to test
+#   2. (optional) Error message to print.
+#
+_ensure_def = \
+  $(strip $(foreach var,$(1),\
+            $(call _ensure_def1,$(var),$(strip $(value 2)))))
+_ensure_def1 = \
+  $(if $(value $(1)),,$(error Undefined $(1)$(if $(2), ($(2)))))
+
+
+#****************************************************************************
+# Generate dependencies for targets
 #****************************************************************************
 
 # _realTargetL: target names for targets
@@ -91,10 +190,6 @@ SHELL = /bin/bash
 #_realTargetL_post = $(addsuffix $(_realTargetSfx), $(MK_TARGETS_POST))
 
 # t <-- t.local-post <-- t.real <-- t.local-pre <-- subdirs
-
-#----------------------------------------------------------------------------
-
-_msg_target_dbg = "debug: '$@' ('$(*D)', '$(*F)')\n"
 
 #----------------------------------------------------------------------------
 
@@ -292,7 +387,78 @@ $(foreach x,$(MK_LIBRARIES_C) $(MK_LIBRARIES_CXX),$(eval $(call _library_templat
 
 
 #****************************************************************************
-# Additional dependencies for targets
+# Check (test) rules
+#****************************************************************************
+
+define _check_template
+  # Args: (1): check class
+
+  #---------------------------------------------------------
+
+  $(call _ensure_def, $(1)_CHECK)
+
+  $(call _ensure_def, $(1)_CHECK_BASE)
+
+  $(call _ensure_def, $(1)_RUN $(1)_RUN_DIFF $(1)_RUN_UPDATE)
+
+  #---------------------------------------------------------
+
+  $(1)_DIFF   ?= $$(CHECK_DIFF)
+  $(1)_UPDATE ?= $$(CHECK_UPDATE)
+
+  $(1)_ck_base = $$(foreach x,$$($(1)_CHECK),$$(call $(1)_CHECK_BASE,$$(x)))
+
+  $(1)_ck_diff = $$(patsubst %,$$($(1)_DIFF),$$($(1)_ck_base))
+
+  $(1)_ck_updt = $$(patsubst %,$$($(1)_UPDATE),$$($(1)_ck_base))
+
+  #---------------------------------------------------------
+
+  _mk_check        += $$($(1)_CHECK)
+
+  _mk_check_diff   += $$($(1)_ck_diff)
+
+  _mk_check_update += $$($(1)_ck_updt)
+
+  #---------------------------------------------------------
+
+
+$$($(1)_CHECK) : 
+	  @$(PRINTF) $$(_msg_info)
+ifdef DEBUG
+	  @chk_base="$$(call $(1)_CHECK_BASE,$$@)" && \
+	    $(PRINTF) $$(_msg_dbg)" // '$$@' -> '$$$${chk_base}'\n"
+endif
+	  @chk_base="$$(call $(1)_CHECK_BASE,$$@)" && \
+	    $$($(1)_RUN) || $(PRINTF) $$(_msg_err)"$$($(1)_RUN)\n"
+
+  #---------------------------------------------------------
+
+  $$($(1)_ck_diff) : $$($(1)_DIFF) :
+	@$(PRINTF) $$(_msg_info)
+ifdef DEBUG
+	  @$(PRINTF) $$(_msg_dbg)"\n"
+endif
+	  @$$($(1)_RUN_DIFF) || $(PRINTF) $$(_msg_err)"$$($(1)_RUN_DIFF)\n"
+
+  #---------------------------------------------------------
+
+  $$($(1)_ck_updt) : $$($(1)_UPDATE) : 
+	  @$(PRINTF) $$(_msg_info)
+ifdef DEBUG
+	  @$(PRINTF) $$(_msg_dbg)"\n"
+endif
+	  @$$($(1)_RUN_UPDATE) || $(PRINTF) $$(_msg_err)"$$($(1)_RUN_UPDATE)\n"
+
+  #---------------------------------------------------------
+
+endef
+
+$(foreach x,$(MK_CHECK),$(eval $(call _check_template,$(x))))
+
+
+#****************************************************************************
+# Interface targets
 #****************************************************************************
 
 all : $(MK_PROGRAMS_C) $(MK_PROGRAMS_CXX) $(MK_LIBRARIES_C) $(MK_LIBRARIES_CXX)
@@ -312,8 +478,52 @@ distclean : clean
 #	x="$(MK_LIBRARIES_C)" && if test -n "$${x}" ; then $(RM) $${x} ; fi
 #	x="$(MK_LIBRARIES_CXX)" && if test -n "$${x}" ; then $(RM) $${x} ; fi
 
+#----------------------------------------------------------------------------
+
 check : all
 check.local : all
+
+#----------------------------------------------------------------------------
+
+_check_pre _check_diff_pre _check_update_pre :
+	@$(PRINTF) $(_msg_infoGrp)
+ifdef DEBUG
+	@$(PRINTF) $(_msg_vars_dbg)
+endif
+
+
+check : _check_pre $(_mk_check) check_diff
+ifdef DEBUG
+	@$(PRINTF) $(_msg_dbg)"\n"
+endif
+
+
+check_diff : _check_diff_pre $(_mk_check_diff)
+ifdef DEBUG
+	@$(PRINTF) $(_msg_dbg)"\n"
+	@$(PRINTF) $(_msg_vars_dbg)
+endif
+
+
+check_update : _check_update_pre $(_mk_check_update)
+ifdef DEBUG
+	@$(PRINTF) $(_msg_dbg)"\n"
+	@$(PRINTF) $(_msg_vars_dbg)
+endif
+
+
+check_clean :
+	@$(PRINTF) $(_msg_infoGrp)
+ifdef DEBUG
+	@$(PRINTF) $(_msg_dbg)"\n"
+	@$(PRINTF) $(_msg_vars_dbg)
+endif
+	@$(RM) $(_mk_check) $(_mk_check_diff)
+
+# .PHONY : all check check_diff check_update clean
+
+
+#****************************************************************************
 
 help :
 	@echo "$(MK_TARGETS_POST) $(MK_TARGETS_PRE)"
