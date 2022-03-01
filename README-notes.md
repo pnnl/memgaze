@@ -12,6 +12,8 @@ MemGaze Consolidation
     - remove unnecessary
     - talk about rest
     
+  [[added -Wall]]
+    
   - scripts for PT memory tracing: application-based, system-wide, +LBR
   - launcher for instrumentation
 
