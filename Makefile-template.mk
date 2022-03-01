@@ -87,7 +87,8 @@ MK_TARGETS_PRE = \
 # <class>_CHECK_BASE: Given <check>, generate the base/stem
 #   <check_base>, which will be used to generate <check_diff> and
 #   <check_update> targets. Should be a GNU Make 'function variable',
-#   i.e., invokable with $(call...)
+#   i.e., invokable with $(call...). There is one parameter, the input
+#   <check> target.
 #
 #   Example that removes a suffix using a pattern rule:
 #     CHECK_FN = $(patsubst %.out,%,$(1))
