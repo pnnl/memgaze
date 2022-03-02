@@ -8,14 +8,12 @@ MemGaze Consolidation
 
 - Combine measurement, instrumentor, analysis into one repo (see below)
 
-  - distinguish scripts: important vs. others
+  - documentation and distinction between scripts: important vs. others
+    - scripts for PT memory tracing: application-based, system-wide, +LBR
+    - launcher for instrumentation
     - remove unnecessary
-    - talk about rest
     
-  - [[ added -Wall ]]
-    
-  - scripts for PT memory tracing: application-based, system-wide, +LBR
-  - launcher for instrumentation
+  - compile: added -Wall
 
     memgaze (was: `palm-memory`)
     - `mem-trace`
@@ -36,18 +34,17 @@ MemGaze Consolidation
 - Bugs:
   - memory leaks
 
-  - properly compute $\compressionRatioSym(\windowSz)$
-  - properly compute $\sampleRatioSym_1$ for code footprints
-
   - `mem-anlys` only reads one auxiliary file even if multiple are needed
     - results in some instructions with unknown laod classes
+
+  - properly compute $\sampleRatioSym_1$ for code footprints
+  - properly compute $\compressionRatioSym(\windowSz)$
 
   - Our window analysis algorithm uses pre-selected bins to create the histogram. Due to the variation of sample sizes window sizes also vary. This can create a binning anomaly at the largest one or two window sizes. Since \fpSym  should never get smaller in a larger window, we force each bin to take the maximum of the current and previous windows. This anomaly only happens when there are constant loads instrumented for our quantitative approach. To address this issue we are working on a more detailed fix.
 
   - Hacks in bin-anlys CFG / DependenceGraphBuilder
 
   - [[other bugs]]?
-
 
 
 - Better build (can build "externals' with spack)
