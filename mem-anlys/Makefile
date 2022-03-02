@@ -58,6 +58,40 @@ $(fp_anlys)_LIBS =
 
 $(fp_anlys)_LDADD =
 
+#****************************************************************************
+
+
+HPCTOOLKIT_SPACK_ROOT ?= /files0/kili337/IntelPT/spack/opt/spack/linux-centos7-skylake_avx512/gcc-7.1.0/hpctoolkit-2021.10.15-gxyejpvcuclo4pp7dust3ym3f7runqze
+
+HPCTOOLKIT_LIB = $(HPCTOOLKIT_SPACK_ROOT)/lib
+HPCTOOLKIT_INC = $(HPCTOOLKIT_SPACK_ROOT)/share/hpctoolkit/src/src
+HPCTOOLKIT_ARGS = $(HPCTOOLKIT_SPACK_ROOT)/share/hpctoolkit/src/src/tool/hpcprof
+
+HPCTOOLKIT_CXXFLAGS = \
+	-I$(HPCTOOLKIT_INC) \
+	-I$(HPCTOOLKIT_ARGS) \
+
+HPCTOOLKIT_LDFLAGS = \
+        -L$(HPCTOOLKIT_LIB) -Wl,-rpath $(HPCTOOLKIT_LIB)
+
+fp_hpctk := fp-hpctk.x
+
+MK_PROGRAMS_CXX += # $(fp_hpctk)
+
+$(fp_hpctk)_SRCS = \
+	main-hpctk.cpp
+
+$(fp_hpctk)_CXXFLAGS = \
+	-g -O3 \
+  $(HPCTOOLKIT_CXXFLAGS)
+
+$(fp_hpctk)_LDFLAGS = \
+  $(HPCTOOLKIT_LDFLAGS)
+
+$(fp_hpctk)_LIBS =
+
+$(fp_hpctk)_LDADD =
+
 
 #****************************************************************************
 # Template Rules

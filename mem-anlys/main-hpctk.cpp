@@ -111,11 +111,11 @@ realmain(int argc, char* const* argv)
   Prof::CallPath::Profile* prof = Prof::CallPath::Profile::make(rFlags);
   // cf. <hpctoolkit-src>/src/lib/prof/CallPath-Profile.cpp:1297
 
-  Prof::CCT::ANode* cct = prof.cct();
+  Prof::CCT::Tree* cct = prof->cct();
 
   // *** create synthetic root in cct ***
   Prof::CCT::ANode* cct_root =
-    new CCT::Call(NULL, cpId0, nodeFmt.as_info, LoadMap::LMId_NULL, HPCRUN_FMT_LMIp_NULL, opIdx, lipCopy, metricData0);
+    new Prof::CCT::Call(NULL, cpId0, nodeFmt.as_info, LoadMap::LMId_NULL, HPCRUN_FMT_LMIp_NULL, opIdx, lipCopy, metricData0);
 
   prof.cct()->root(cct_root);
 
