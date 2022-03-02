@@ -113,7 +113,7 @@ CHECK_UPDATE := %.update
 #   <class>_RUN_UPDATE: Generate <check_gold> file
 #
 #   Useful variables and notes:
-#     $@: target
+#     $@          : target
 #     $${chk_base}: <check_base> for RUN (no pattern rule is assumed)
 #     $*          : <check_base> for RUN_DIFF and RUN_UPDATE
 #     bash note:  : <command> && { <$? -eq 0> } || { $? -ne 0 }
