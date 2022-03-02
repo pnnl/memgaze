@@ -118,10 +118,17 @@ CHECK_UPDATE := %.update
 #     $*          : <check_base> for RUN_DIFF and RUN_UPDATE
 #     bash note:  : <command> && { <$? -eq 0> } || { $? -ne 0 }
 #   
-#   Examples:
+#   Example (simple)
 #     RUN        = <app> -o $@ $${chk_base}.in
 #     RUN_DIFF   = diff -C0 -N $*.out $*.gold > $@
 #     RUN_UPDATE = mv $*.out $*.gold
+#
+#   Example: generate both <check> and sdtout/stderr
+#     RUN        = <app> ... -o $@ >& $${chk_base}.out-oe
+#     RUN_DIFF   = diff $*.out $*.gold > $@ && diff $*.out-oe $*.gold-oe >> $@
+#     RUN_UPDATE = mv $*.out $*.gold        && mv $*.out-oe $*.gold-oe
+
+# <class>_CLEAN: Additional clean targets (e.g., additional output files)
 
 
 # TODO:
@@ -164,7 +171,7 @@ _msg_info     = "$@: $^\n"
 _msg_dbg      = "debug: '$@' : '$^'"
 _msg_err      = "$(_msg_ClrBeg1)Error$(_msg_ClrEnd): "
 
-_msg_vars_dbg = "$(_msg_sep2)\ncheck:        $(_mk_check)\ncheck_diff:   $(_mk_check_diff)\ncheck_update: $(_mk_check_update)\n$(_msg_sep2)\n"
+_msg_vars_dbg = "$(_msg_sep2)\ncheck:        $(_mk_check)\ncheck_diff:   $(_mk_check_diff)\ncheck_update: $(_mk_check_update)\ncheck_clean:  $(_mk_check_clean)\n$(_msg_sep2)\n"
 
 #----------------------------------------------------------------------------
 
@@ -420,9 +427,12 @@ define _check_template
 
   _mk_check        += $$($(1)_CHECK)
 
+  _mk_check_clean  += $$($(1)_CLEAN)
+
   _mk_check_diff   += $$($(1)_ck_diff)
 
   _mk_check_update += $$($(1)_ck_updt)
+
 
   #---------------------------------------------------------
 
@@ -522,7 +532,7 @@ ifdef DEBUG
 	@$(PRINTF) $(_msg_dbg)"\n"
 	@$(PRINTF) $(_msg_vars_dbg)
 endif
-	@$(RM) $(_mk_check) $(_mk_check_diff)
+	@$(RM) $(_mk_check) $(_mk_check_diff) $(_mk_check_clean)
 
 # .PHONY : all check check_diff check_update clean
 
