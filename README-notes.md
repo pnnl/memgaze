@@ -6,35 +6,43 @@ $Id$
 MemGaze Consolidation
 =============================================================================
 
-- Combine measurement, instrumentor, analysis into one repo (see below)
-
-  - documentation and distinction between scripts: important vs. others
-    - scripts for PT memory tracing: application-based, system-wide, +LBR
-    - launcher for instrumentation
-    - remove unnecessary
+* Documentation:
+  - Overview of pipeline, both external and internal
+    - distinction between scripts
     
+  - Notes using Linux perf, perf script, dyninst
+    - system wide monitoring and ordering/timestamps
+    - virtual to physical address?
+    
+    ```
+    - without --per-thread, perf opens a fd on each core because it has a buffer/event per cpu; size (129 pages  4 k)
+    - perf-event-disable (ioctl) should have an effect when it returns (write to msr)
+    - libunwind happens in userland: perf copies context/stack into its buffer
+
+    > perf report -D
+    > perf -g + pt
+    > strace -etrace=perf_event_open
+    ```
+    
+  - Notes for instrumentation or analysis?
+
+
+* Tool consolidation
+  - instrumentation launcher
+
+  - tracing options:
+    - PT-based samples: application vs. system-wide; +LBR
+    - Sparse samples (ld latency)
+
+  - remove unnecessary
+
   - compile: added -Wall
 
-    memgaze (was: `palm-memory`)
-    - `mem-trace`
-      - memory tracing methods: PT, Intel ld lat,...
 
-    - `bin-anlys` (was `palm-memory`'s MIAMI)
-      - Uses DynInst, unlike MIAMI-NW
-      - Palm task-based path cost analysis (insn + memory latency, IPDPS 17 extension)
-      - Palm fine-grained footprint analysis (ISPASS 20)
-      - MemGaze binary instrumentor 
-
-    - `mem-anlys`
-      `palm/intelPT_FP`: footprint tool
-      `palm/palm-task`: Palm coarse-grained footprint analysis + hpctoolkit script
-      `palm/intelPT_FP_CallPath`: deprecated
-
-
-- Bugs:
+* Bugs:
   - memory leaks
 
-  - `mem-anlys` only reads one auxiliary file even if multiple are needed
+  - mem-anlys only reads one auxiliary file even if multiple are needed
     - results in some instructions with unknown laod classes
 
   - properly compute $\sampleRatioSym_1$ for code footprints
@@ -47,7 +55,7 @@ MemGaze Consolidation
   - [[other bugs]]?
 
 
-- Better build (can build "externals' with spack)
+* Better build (can build "externals' with spack)
 
   - **dyninst branch** for souce code mapping has a hack.
   
@@ -70,19 +78,20 @@ MemGaze Consolidation
   - [[more blockers]]?
 
 
-- Documentation:
-  - Notes using Linux perf for PT-based tracing, etc.
-    - system wide monitoring and ordering/timestamps
-    - virtual to physical address?
-    - gotchas
-    
-    - without --per-thread, perf opens a fd on each core because it has a buffer/event per cpu; size (129 pages  4 k)
-    - perf-event-disable (ioctl) should have an effect when it returns (write to msr)
-    - libunwind happens in userland: perf copies context/stack into its buffer
 
-    > perf report -D
-    > perf -g + pt
-    > strace -etrace=perf_event_open
+* Organization/Notes:
+  - `mem-trace`
+  - `bin-anlys`
+    - Our stipped down version of MIAMI, uses DynInst, unlike MIAMI-NW
+    - MemGaze binary instrumentor
+    - Palm function-level, fine-grained footprint analysis (ISPASS 20)
+    - Palm task-based path cost analysis
+      (insn + memory latency, IPDPS 17 extension to replace IACA)
+
+  - `mem-anlys`
+     - footprint analysis of sampled trace
+     - Palm coarse-grained footprint analysis
+       palm-task: hpctoolkit run + fp analysis on database xml file
 
 -----------------------------------------------------------------------------
 MemGaze Pipeline
