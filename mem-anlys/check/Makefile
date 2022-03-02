@@ -41,33 +41,34 @@ sfx_outoe := .out-oe
 sfx_gld   := .gold
 sfx_gldoe := .gold-oe
 
+ubench = ./ubench-500k-O3
+
 #****************************************************************************
 
 MK_CHECK = $(fp_anlys)
 
 $(fp_anlys)_CHECK := \
-	ubench-500k_O3.lbr$(sfx_out)
+	ubench-500k-O3.lbr$(sfx_out)
 
 $(fp_anlys)_CHECK_BASE = $(patsubst %$(sfx_out),%,$(1))
 
 $(fp_anlys)_RUN = \
   ../$(fp_anlys) \
-    -t UBENCH-O3/ubench-500k_O3_s8192_p100000.trace.final \
-    -l UBENCH-O3/ubench-500k_O3.lc_Fixed \
-    -s UBENCH-O3/ubench-500k_O3_PTW.hpcstruct \
+    -t $(ubench)/ubench-500k-O3_s8192_p100000.trace.final \
+    -l $(ubench)/ubench-500k-O3.lc_Fixed \
+    -s $(ubench)/ubench-500k-O3_PTW.hpcstruct \
     -o $@ \
     -m 1 -p 100000 \
     >& $${chk_base}$(sfx_outoe)
 
-# -o UBENCH-O3/ubench-500k_O3_graph_full.txt
 
 $(fp_anlys)_RUN_DIFF = \
-  diff -C0 -N $*$(sfx_out)   UBENCH-O3/$*$(sfx_gld)   >  $@ && \
-  diff -C0 -N $*$(sfx_outoe) UBENCH-O3/$*$(sfx_gldoe) >> $@
+  diff -C0 -N $*$(sfx_out)   $(ubench)/$*$(sfx_gld)   >  $@ && \
+  diff -C0 -N $*$(sfx_outoe) $(ubench)/$*$(sfx_gldoe) >> $@
 
 $(fp_anlys)_RUN_UPDATE = \
-  mv $*$(sfx_out)   $*$(sfx_gld) && \
-  mv $*$(sfx_outoe) $*$(sfx_gldoe)
+  mv $*$(sfx_out)   $(ubench)/$*$(sfx_gld) && \
+  mv $*$(sfx_outoe) $(ubench)/$*$(sfx_gldoe)
 
 $(fp_anlys)_CLEAN := $(patsubst %$(sfx_out),%$(sfx_outoe),$($(fp_anlys)_CHECK))
 
