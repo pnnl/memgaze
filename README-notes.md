@@ -9,7 +9,9 @@ MemGaze Consolidation
 * Documentation:
   - Overview of pipeline, both external and internal
     - distinction between scripts
-    
+
+  - Using Chenhao's tool?
+
   - Notes using Linux perf, perf script, dyninst
     - system wide monitoring and ordering/timestamps
     - virtual to physical address?
@@ -25,7 +27,7 @@ MemGaze Consolidation
     ```
     
   - Notes for instrumentation or analysis?
-
+  
 
 * Tool consolidation
   - instrumentation launcher
@@ -37,6 +39,8 @@ MemGaze Consolidation
   - remove unnecessary
 
   - compile: added -Wall
+
+  - [[Test cases]]
 
 
 * Bugs:
