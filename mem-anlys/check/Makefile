@@ -61,7 +61,6 @@ $(fp_anlys)_RUN = \
     -m 1 -p 100000 \
     >& $${chk_base}$(sfx_outoe)
 
-
 $(fp_anlys)_RUN_DIFF = \
   diff -C0 -N $*$(sfx_out)   $(ubench)/$*$(sfx_gld)   >  $@ && \
   diff -C0 -N $*$(sfx_outoe) $(ubench)/$*$(sfx_gldoe) >> $@
