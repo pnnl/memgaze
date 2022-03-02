@@ -6,6 +6,10 @@ $Id$
 MemGaze Consolidation
 =============================================================================
 
+[[Checked spack hpctoolkit build: Entire dyninst appears to be built.]]
+
+[['fp_intel_pt.x' --> mem-fp-code]]
+
 * Documentation:
   - Overview of pipeline, both external and internal
     - distinction between scripts
