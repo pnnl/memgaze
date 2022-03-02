@@ -22,7 +22,8 @@ include ../Makefile-defs.mk
 # Recursion
 #****************************************************************************
 
-MK_SUBDIRS =
+MK_SUBDIRS = \
+  check
 
 
 #****************************************************************************
@@ -71,3 +72,4 @@ include ../Makefile-template.mk
 
 info.local :
 
+check.local :

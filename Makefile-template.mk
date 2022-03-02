@@ -64,7 +64,7 @@ MK_TARGETS_POST = \
 	\
 	install \
 	\
-	check
+	check check_clean check_diff check_update
 
 #-----------------------------------------------------------
 # MK_TARGETS_PRE: pre-order dependencies w.r.t MK_SUBDIRS
@@ -273,6 +273,11 @@ $(_localTargetL_pre1) : %$(_localTargetSfx1) : %$(_localTargetSfx)
 .PHONY : $(_localTargetL_pre1)
 .PHONY : $(_subdirTargetL_pre)
 
+#----------------------------------------------------------------------------
+
+_force : 
+.PHONY : _force
+
 
 #****************************************************************************
 # Build/Compilation rules
@@ -448,7 +453,7 @@ endif
 
   #---------------------------------------------------------
 
-  $$($(1)_ck_diff) : $$($(1)_DIFF) :
+  $$($(1)_ck_diff) : $$($(1)_DIFF) : _force
 	@$(PRINTF) $$(_msg_info)
 ifdef DEBUG
 	  @$(PRINTF) $$(_msg_dbg)"\n"
