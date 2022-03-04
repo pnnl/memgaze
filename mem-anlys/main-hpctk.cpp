@@ -50,10 +50,6 @@ makeMetrics(Prof::CallPath::Profile& prof,
 
 //****************************************************************************
 
-// Grabbed source and build from spack, 2021.10.15
-
-// <hpctoolkit-src> = /files0/tallent/build/spack/opt/spack/linux-centos7-skylake_avx512/gcc-7.1.0/hpctoolkit-2021.10.15-2lh5l4ipm6jtuqt2fvsmf25g3o7o6ugk/share/hpctoolkit/src/
-
 
 // tallent: typical exception wrapper
 
@@ -89,6 +85,11 @@ main(int argc, char* const* argv)
 static int
 realmain(int argc, char* const* argv) 
 {
+  // ------------------------------------------------------------
+  // *. Create synthetic root in CCT
+  // ------------------------------------------------------------
+  // cf. <hpctk>/src/tool/hpcprof/main.cpp
+  
   Args args;
   args.parse(argc, argv);
 
@@ -101,23 +102,46 @@ realmain(int argc, char* const* argv)
 
 
   // ------------------------------------------------------------
-  // 1. Create CCT from each call path fragment
-  //    (CCT is CCT::Call and CCT::Stmt)
+  // 1. Create synthetic root in CCT
   // ------------------------------------------------------------
 
-  // *** tallent: key new code #1 ***
-
+  // <hpctk>/src/lib/analysis/CallPath.cpp:141 read()
+  // <hpctk>/src/lib/prof/CallPath-Profile.cpp:1297, fmt_epoch_fread()
+  
   uint rFlags = 0;
   Prof::CallPath::Profile* prof = Prof::CallPath::Profile::make(rFlags);
-  // cf. <hpctoolkit-src>/src/lib/prof/CallPath-Profile.cpp:1297
 
   Prof::CCT::Tree* cct = prof->cct();
 
-  // *** create synthetic root in cct ***
-  Prof::CCT::ANode* cct_root =
-    new Prof::CCT::Call(NULL, cpId0, nodeFmt.as_info, LoadMap::LMId_NULL, HPCRUN_FMT_LMIp_NULL, opIdx, lipCopy, metricData0);
+  // <hpctk>/src/lib/prof/CallPath-Profile.cpp:2092, cct_makeNode()
+  // <hpctk>/src/lib/prof/CallPath-Profile.cpp:2120, fmt_cct_makeNode()
 
-  prof.cct()->root(cct_root);
+  const uint cpId = HPCRUN_FMT_CCTNodeId_NULL;
+  ushort opIdx = 0;
+
+  lush_assoc_info_t as_info = lush_assoc_info_NULL;
+  as_info.u.as = LUSH_ASSOC_1_to_1;
+
+  Prof::LoadMap::LMId_t lmId = Prof::LoadMap::LMId_NULL;
+  VMA ip = HPCRUN_FMT_LMIp_NULL;
+
+  lush_lip_t lip;
+  lush_lip_init(&lip);
+
+  uint mSz = 0; // (true) ? 0 : numMetricsDst;
+  Prof::Metric::IData metrics(mSz);
+
+  Prof::CCT::ANode* cct_root =
+    new Prof::CCT::Call(NULL, cpId, as_info, lmId, ip, opIdx, &lip, metrics);
+
+  prof->cct()->root(cct_root);
+
+
+  // ------------------------------------------------------------
+  // *. Create CCT from each call path fragment
+  //    (CCT is CCT::Call and CCT::Stmt)
+  // ------------------------------------------------------------
+  // *** tallent: key new code #1 ***
 
   for (each LBR path) {
     Prof::CCT::ANode* path = makeCCTPath(...); // see below
@@ -129,7 +153,6 @@ realmain(int argc, char* const* argv)
   
   // tallent: unsure
   prof->disable_redundancy(args.remove_redundancy);
-
 
   // -------------------------------------------------------
   // Make empty Experiment database (ensure file system works)
@@ -165,7 +188,7 @@ realmain(int argc, char* const* argv)
   // Post-order traversal (i.e., children before parents):
   //   compute footprint metrics from sets of trace  samples
 
-  // Example traversal: <hpctoolkit-src>/src/lib/prof/CCT-Tree.cpp:468
+  // Example traversal: <hpctk>/src/lib/prof/CCT-Tree.cpp:468
   //   CCT::Tree::ANode::aggregateMetricsIncl(...);
 
 
@@ -237,13 +260,13 @@ makeCCTPath(...)
     Prof::CCT::ANode* node = NULL;
     
     if (leaf) {
-      // <hpctoolkit-src>/src/lib/prof/CallPath-Profile.cpp:2076
+      // <hpctk>/src/lib/prof/CallPath-Profile.cpp:2076
       node = new CCT::Stmt(NULL, cpId, nodeFmt.as_info, lmId, lmIP, opIdx, lip,
                         metricData);
       map node to trace sample;
     }
     else {
-      // <hpctoolkit-src>/src/lib/prof/CallPath-Profile.cpp:2096
+      // <hpctk>/src/lib/prof/CallPath-Profile.cpp:2096
       node = new CCT::Call(NULL, cpId0, nodeFmt.as_info, lmId, lmIP, opIdx,
                         lipCopy, metricData0);
     }

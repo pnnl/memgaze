@@ -60,6 +60,7 @@ $(fp_anlys)_LDADD =
 
 #****************************************************************************
 
+# Spack-based: source + configure, 2021.10.15
 
 HPCTOOLKIT_SPACK_ROOT ?= /files0/kili337/IntelPT/spack/opt/spack/linux-centos7-skylake_avx512/gcc-7.1.0/hpctoolkit-2021.10.15-gxyejpvcuclo4pp7dust3ym3f7runqze
 
