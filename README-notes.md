@@ -10,11 +10,20 @@ MemGaze Consolidation
 
 [['fp_intel_pt.x' --> mem-fp-code]]
 
-* Documentation:
-  - Overview of pipeline, both external and internal
-    - distinction between scripts
+* Consolidation and documentation:
 
-  - Using Chenhao's tool?
+  - [[done]] Overview of pipeline, both external and internal 
+
+  - Organization of scripts
+    - perform instrumentation
+  
+    - tracing options:
+      - PT-based samples: application vs. system-wide; +LBR
+      - Sparse samples (ld latency)
+
+  - Test cases
+    Extracts from traces
+    See: /people/tallent/1perf-lab/palm/memgaze/mem-anlys/check
 
   - Notes using Linux perf, perf script, dyninst
     - system wide monitoring and ordering/timestamps
@@ -30,21 +39,16 @@ MemGaze Consolidation
     > strace -etrace=perf_event_open
     ```
     
+  - Using Chenhao's tool?
+
   - Notes for instrumentation or analysis?
   
 
-* Tool consolidation
-  - instrumentation launcher
 
-  - tracing options:
-    - PT-based samples: application vs. system-wide; +LBR
-    - Sparse samples (ld latency)
+* Tool consolidation
 
   - remove unnecessary
 
-  - compile: added -Wall
-
-  - [[Test cases]]
 
 
 * Bugs:
@@ -104,6 +108,7 @@ MemGaze Consolidation
 -----------------------------------------------------------------------------
 MemGaze Pipeline
 =============================================================================
+
 MemGaze has 3 mains steps:
 1-) Analysis and Instrumentation of the Binary (bin-anyls):
   -> Read binary with dyninst
@@ -113,11 +118,13 @@ MemGaze has 3 mains steps:
   -> Print original and instrumented IP address
   -> Print load classification file
   -> Adjust IP addresses
+
 2-) Trace Collection (mem-trace)
   -> Run Instrumented Binary with perf
   -> Extract data file with perf-script by using a python script
   -> Fix IP address by adding base address
   -> Separate trace and Call Path graph into two different file from the perf script output
+
 3-) Memory Analysis (mem-anlys)
   -> Read multiple file:
     -> CallPath
@@ -126,8 +133,6 @@ MemGaze has 3 mains steps:
     -> load classification
   -> Build calling context tree (work in progress)
   -> Do memeory analysis on the tree  or per routine
-
-
 
 
 -----------------------------------------------------------------------------
