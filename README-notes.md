@@ -6,20 +6,21 @@ $Id$
 MemGaze Consolidation
 =============================================================================
 
-[[Checked spack hpctoolkit build: Entire dyninst appears to be built.]]
-
-[['fp_intel_pt.x' --> mem-fp-code]]
-
 * Consolidation and documentation:
 
   - [[done]] Overview of pipeline, both external and internal 
 
   - Organization of scripts
+  
+     [['fp_intel_pt.x' --> mem-fp-code]]
+     
     - perform instrumentation
   
     - tracing options:
       - PT-based samples: application vs. system-wide; +LBR
       - Sparse samples (ld latency)
+
+  - Cleanup <palm>/palm-task/intel_pt
 
   - Test cases
     Extracts from traces
@@ -41,7 +42,7 @@ MemGaze Consolidation
     ```
 
   - Using Chenhao's tool?
-
+  
 
 * Bugs:
   - memory leaks
@@ -60,6 +61,10 @@ MemGaze Consolidation
 
 
 * Better build (can build "externals' with spack)
+
+[[Checked spack hpctoolkit build: Entire dyninst appears to be built.]]
+
+- Can spack use scope/custimization to change where it pulls/obtains source code.
 
   - **dyninst branch** for souce code mapping has a hack.
   
