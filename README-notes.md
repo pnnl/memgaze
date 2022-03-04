@@ -21,6 +21,7 @@ MemGaze Consolidation
       - Sparse samples (ld latency)
 
   - Cleanup <palm>/palm-task/intel_pt
+    - Save lastest version of Ruchi's branch
 
   - Test cases
     Extracts from traces
