@@ -25,7 +25,8 @@ MemGaze Consolidation
     Extracts from traces
     See: /people/tallent/1perf-lab/palm/memgaze/mem-anlys/check
 
-  - Notes using Linux perf, perf script, dyninst
+  - Notes using Linux perf, perf script, dyninst, instrumentation or analysis?
+  
     - system wide monitoring and ordering/timestamps
     - virtual to physical address?
     
@@ -38,12 +39,8 @@ MemGaze Consolidation
     > perf -g + pt
     > strace -etrace=perf_event_open
     ```
-    
+
   - Using Chenhao's tool?
-
-  - Notes for instrumentation or analysis?
-  
-
 
 * Tool consolidation
 
