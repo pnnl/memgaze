@@ -42,11 +42,6 @@ MemGaze Consolidation
 
   - Using Chenhao's tool?
 
-* Tool consolidation
-
-  - remove unnecessary
-
-
 
 * Bugs:
   - memory leaks
