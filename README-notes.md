@@ -43,6 +43,10 @@ MemGaze Consolidation
     ```
 
   - Using Chenhao's tool?
+    
+    memcamera: trace files are *trace.out
+    memcamera: insn-pc mem-addr cpu-id timestamp [mem-addr2 <cpu-id> <timestamp>]
+    memgaze:   insn-pc mem-addr cpu-id timestamp sample-id
   
 
 * Bugs:
