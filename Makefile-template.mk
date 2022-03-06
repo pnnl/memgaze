@@ -448,7 +448,7 @@ ifdef DEBUG
 	  @chk_base="$$(call $(1)_CHECK_BASE,$$@)" && \
 	    $(PRINTF) $$(_msg_dbg)" // '$$@' -> '$$$${chk_base}'\n"
 endif
-	  @chk_base="$$(call $(1)_CHECK_BASE,$$@)" && \
+	  chk_base="$$(call $(1)_CHECK_BASE,$$@)" && \
 	    $$($(1)_RUN) || $(PRINTF) $$(_msg_err)"$$($(1)_RUN)\n"
 
   #---------------------------------------------------------
@@ -458,7 +458,7 @@ endif
 ifdef DEBUG
 	  @$(PRINTF) $$(_msg_dbg)"\n"
 endif
-	  @$$($(1)_RUN_DIFF) || $(PRINTF) $$(_msg_err)"$$($(1)_RUN_DIFF)\n"
+	  $$($(1)_RUN_DIFF) || $(PRINTF) $$(_msg_err)"$$($(1)_RUN_DIFF)\n"
 
   #---------------------------------------------------------
 
@@ -467,7 +467,7 @@ endif
 ifdef DEBUG
 	  @$(PRINTF) $$(_msg_dbg)"\n"
 endif
-	  @$$($(1)_RUN_UPDATE) || $(PRINTF) $$(_msg_err)"$$($(1)_RUN_UPDATE)\n"
+	  $$($(1)_RUN_UPDATE) || $(PRINTF) $$(_msg_err)"$$($(1)_RUN_UPDATE)\n"
 
   #---------------------------------------------------------
 
