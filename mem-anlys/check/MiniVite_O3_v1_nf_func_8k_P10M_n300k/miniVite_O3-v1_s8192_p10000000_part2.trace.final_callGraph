@@ -1,0 +1,123 @@
+CG-LBR :*: std::_Hashtable<long, std::pair<long const, long>, std::allocator<std::pair<long const, long> >, std::__detail::_Select1st, std::equal_to<long>, std::hash<long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_emplace<std::pair<long const, long> >(std::integral_constant<bool, true>, std::pair<long const, long>&&) [clone .isra.457]_dyninst :*: 36380
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36381
+CG-LBR :*: GOMP_parallel :*: 36382
+CG-LBR :*: cfree@GLIBC_2.2.5 :*: 36384
+CG-LBR :*: distLouvainMethod :*: 36384
+CG-LBR :*: __memmove_ssse3 :*: 36385
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36386
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36387
+CG-LBR :*: distExecuteLouvainIteration_dyninst :*: 36388
+CG-LBR :*: distLouvainMethod :*: 36388
+CG-LBR :*: operator delete :*: 36389
+CG-LBR :*: distLouvainMethod :*: 36389
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36390
+CG-LBR :*: cfree@GLIBC_2.2.5 :*: 36391
+CG-LBR :*: distLouvainMethod :*: 36391
+CG-LBR :*: std::_Hashtable<long, std::pair<long const, long>, std::allocator<std::pair<long const, long> >, std::__detail::_Select1st, std::equal_to<long>, std::hash<long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_emplace<std::pair<long const, long> >(std::integral_constant<bool, true>, std::pair<long const, long>&&) [clone .isra.457]_dyninst :*: 36392
+CG-LBR :*: cfree@GLIBC_2.2.5 :*: 36393
+CG-LBR :*: distLouvainMethod :*: 36393
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36394
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36395
+CG-LBR :*: distExecuteLouvainIteration_dyninst :*: 36396
+CG-LBR :*: distLouvainMethod :*: 36396
+CG-LBR :*: std::vector<double, std::allocator<double> >::_M_realloc_insert<double>_dyninst :*: 36397
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36398
+CG-LBR :*: cfree@GLIBC_2.2.5 :*: 36399
+CG-LBR :*: distLouvainMethod :*: 36400
+CG-LBR :*: std::_Hashtable<long, std::pair<long const, long>, std::allocator<std::pair<long const, long> >, std::__detail::_Select1st, std::equal_to<long>, std::hash<long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_emplace<std::pair<long const, long> >(std::integral_constant<bool, true>, std::pair<long const, long>&&) [clone .isra.457]_dyninst :*: 36401
+CG-LBR :*: distLouvainMethod :*: 36402
+CG-LBR :*: distComputeModularity_dyninst :*: 36403
+CG-LBR :*: cfree@GLIBC_2.2.5 :*: 36404
+CG-LBR :*: std::vector<double, std::allocator<double> >::_M_realloc_insert<double>_dyninst :*: 36405
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36406
+CG-LBR :*: distExecuteLouvainIteration_dyninst :*: 36407
+CG-LBR :*: distLouvainMethod :*: 36407
+CG-LBR :*: distExecuteLouvainIteration_dyninst :*: 36408
+CG-LBR :*: distLouvainMethod :*: 36408
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36409
+CG-LBR :*: distExecuteLouvainIteration_dyninst :*: 36410
+CG-LBR :*: distLouvainMethod :*: 36410
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36411
+CG-LBR :*: cfree@GLIBC_2.2.5 :*: 36412
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36413
+CG-LBR :*: distGetMaxIndex_dyninst :*: 36414
+CG-LBR :*: distGetMaxIndex_dyninst :*: 36415
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36416
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36417
+CG-LBR :*: distLouvainMethod :*: 36418
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36419
+CG-LBR :*: distLouvainMethod :*: 36420
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36421
+CG-LBR :*: cfree@GLIBC_2.2.5 :*: 36422
+CG-LBR :*: fillRemoteCommunities :*: 36424
+CG-LBR :*: distLouvainMethod :*: 36424
+CG-LBR :*: main_dyninst :*: 36424
+CG-LBR :*: __libc_start_main :*: 36424
+CG-LBR :*: distLouvainMethod :*: 36425
+CG-LBR :*: cfree@GLIBC_2.2.5 :*: 36426
+CG-LBR :*: std::_Hashtable<long, std::pair<long const, long>, std::allocator<std::pair<long const, long> >, std::__detail::_Select1st, std::equal_to<long>, std::hash<long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_emplace<std::pair<long const, long> >(std::integral_constant<bool, true>, std::pair<long const, long>&&) [clone .isra.457]_dyninst :*: 36427
+CG-LBR :*: distExecuteLouvainIteration_dyninst :*: 36428
+CG-LBR :*: distLouvainMethod :*: 36428
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36429
+CG-LBR :*: distExecuteLouvainIteration_dyninst :*: 36430
+CG-LBR :*: distLouvainMethod :*: 36430
+CG-LBR :*: cfree@GLIBC_2.2.5 :*: 36431
+CG-LBR :*: __memmove_ssse3 :*: 36432
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36433
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36434
+CG-LBR :*: distExecuteLouvainIteration_dyninst :*: 36435
+CG-LBR :*: distLouvainMethod :*: 36435
+CG-LBR :*: std::__detail::_Prime_rehash_policy::_M_next_bkt_dyninst :*: 36436
+CG-LBR :*: cfree@GLIBC_2.2.5 :*: 36437
+CG-LBR :*: distLouvainMethod :*: 36437
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36438
+CG-LBR :*: distLouvainMethod :*: 36439
+CG-LBR :*: std::_Hashtable<long, std::pair<long const, long>, std::allocator<std::pair<long const, long> >, std::__detail::_Select1st, std::equal_to<long>, std::hash<long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_emplace<std::pair<long const, long> >(std::integral_constant<bool, true>, std::pair<long const, long>&&) [clone .isra.457]_dyninst :*: 36440
+CG-LBR :*: distLouvainMethod :*: 36441
+CG-LBR :*: cfree@GLIBC_2.2.5 :*: 36442
+CG-LBR :*: fillRemoteCommunities :*: 36444
+CG-LBR :*: distLouvainMethod :*: 36444
+CG-LBR :*: main_dyninst :*: 36444
+CG-LBR :*: __libc_start_main :*: 36444
+CG-LBR :*: cfree@GLIBC_2.2.5 :*: 36445
+CG-LBR :*: std::_Hashtable<long, std::pair<long const, long>, std::allocator<std::pair<long const, long> >, std::__detail::_Select1st, std::equal_to<long>, std::hash<long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash_dyninst :*: 36446
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36447
+CG-LBR :*: std::_Hashtable<long, std::pair<long const, long>, std::allocator<std::pair<long const, long> >, std::__detail::_Select1st, std::equal_to<long>, std::hash<long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_emplace<std::pair<long const, long> >(std::integral_constant<bool, true>, std::pair<long const, long>&&) [clone .isra.457]_dyninst :*: 36448
+CG-LBR :*: distExecuteLouvainIteration_dyninst :*: 36449
+CG-LBR :*: distLouvainMethod :*: 36449
+CG-LBR :*: std::_Hashtable<long, std::pair<long const, long>, std::allocator<std::pair<long const, long> >, std::__detail::_Select1st, std::equal_to<long>, std::hash<long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_emplace<std::pair<long const, long> >(std::integral_constant<bool, true>, std::pair<long const, long>&&) [clone .isra.457]_dyninst :*: 36450
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36451
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36452
+CG-LBR :*: cfree@GLIBC_2.2.5 :*: 36453
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36454
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36455
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36456
+CG-LBR :*: std::vector<double, std::allocator<double> >::_M_realloc_insert<double>_dyninst :*: 36457
+CG-LBR :*: cfree@GLIBC_2.2.5 :*: 36458
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36459
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36460
+CG-LBR :*: distExecuteLouvainIteration_dyninst :*: 36461
+CG-LBR :*: distLouvainMethod :*: 36461
+CG-LBR :*: cfree@GLIBC_2.2.5 :*: 36465
+CG-LBR :*: distExecuteLouvainIteration_dyninst :*: 36466
+CG-LBR :*: distLouvainMethod :*: 36466
+CG-LBR :*: std::_Hashtable<long, std::pair<long const, long>, std::allocator<std::pair<long const, long> >, std::__detail::_Select1st, std::equal_to<long>, std::hash<long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_emplace<std::pair<long const, long> >(std::integral_constant<bool, true>, std::pair<long const, long>&&) [clone .isra.457]_dyninst :*: 36467
+CG-LBR :*: cfree@GLIBC_2.2.5 :*: 36468
+CG-LBR :*: distLouvainMethod :*: 36468
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36469
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36470
+CG-LBR :*: distExecuteLouvainIteration_dyninst :*: 36471
+CG-LBR :*: distLouvainMethod :*: 36471
+CG-LBR :*: cfree@GLIBC_2.2.5 :*: 36472
+CG-LBR :*: distExecuteLouvainIteration_dyninst :*: 36473
+CG-LBR :*: distLouvainMethod :*: 36473
+CG-LBR :*: std::vector<double, std::allocator<double> >::_M_realloc_insert<double>_dyninst :*: 36474
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36475
+CG-LBR :*: std::_Hashtable<long, std::pair<long const, long>, std::allocator<std::pair<long const, long> >, std::__detail::_Select1st, std::equal_to<long>, std::hash<long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash_dyninst :*: 36476
+CG-LBR :*: std::_Hashtable<long, std::pair<long const, long>, std::allocator<std::pair<long const, long> >, std::__detail::_Select1st, std::equal_to<long>, std::hash<long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_emplace<std::pair<long const, long> >(std::integral_constant<bool, true>, std::pair<long const, long>&&) [clone .isra.457]_dyninst :*: 36477
+CG-LBR :*: distGetMaxIndex_dyninst :*: 36478
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36479
+CG-LBR :*: std::_Hashtable<long, std::pair<long const, long>, std::allocator<std::pair<long const, long> >, std::__detail::_Select1st, std::equal_to<long>, std::hash<long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_emplace<std::pair<long const, long> >(std::integral_constant<bool, true>, std::pair<long const, long>&&) [clone .isra.457]_dyninst :*: 36480
+CG-LBR :*: distBuildLocalMapCounter_dyninst :*: 36481
+CG-LBR :*: std::_Hashtable<long, std::pair<long const, long>, std::allocator<std::pair<long const, long> >, std::__detail::_Select1st, std::equal_to<long>, std::hash<long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_emplace<std::pair<long const, long> >(std::integral_constant<bool, true>, std::pair<long const, long>&&) [clone .isra.457]_dyninst :*: 36482
+CG-LBR :*: GOMP_parallel :*: 36483
