@@ -8,18 +8,13 @@ MemGaze Consolidation
 
 * Consolidation and documentation:
 
-  - Accounts on nuke, nuketoo for: suri836
-
   - Delete <palm>/palm-task/intel_pt
+
+  - [[working]] Test cases using extracts from traces (approx ~100 samples)
   
   - [[working]] Annotate hacks in bin-anlys CFG / DependenceGraphBuilder
 
-  - [[working]] Test cases using extracts from traces (approx ~100 samples)
-    Let the test name be 'stem': Then each file should be accessed as ${stem}/${stem}.<ext>
-    CHECK = ${stem1}$(sfx_out) ${stem2}$(sfx_out)...
-
-
-  - Archive of traces for MemGaze paper with updated naming scheme and only needed files
+  - [[working]] Archive of traces for MemGaze paper with updated naming scheme and only needed files
 
   - Organize <memgaze>/mem-anlys/scripts --> <memgaze>/bin
   

@@ -1,6 +1,0 @@
-classes=10
-train  = /home/bodhisatwa/Research_Repos/benchmarks/darknet/data/cifar-small/train.list
-valid  = /home/bodhisatwa/Research_Repos/benchmarks/darknet/data/cifar-small/test.list
-labels = /home/bodhisatwa/Research_Repos/benchmarks/darknet/data/cifar-small/labels.txt
-backup = /home/bodhisatwa/Research_Repos/benchmarks/darknet/backup/
-top=2
