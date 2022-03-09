@@ -8,9 +8,18 @@ MemGaze Consolidation
 
 * Consolidation and documentation:
 
-  - Organization of scripts
+  - Delete <palm>/palm-task/intel_pt
   
-     [['fp_intel_pt.x' --> mem-fp-code]]
+  - Test cases using extracts from traces (approx ~100 samples)
+    See: /people/tallent/1perf-lab/palm/memgaze/mem-anlys/check
+    minivite-v1-O3-n300k-buf8k-p10M
+    ubench-O3-buf8k-p100K
+
+  - Archive of traces for MemGaze paper with updated naming scheme and only needed files
+
+  - Organize <memgaze>/mem-anlys/scripts --> <memgaze>/bin
+  
+    - Rename: [[fp_intel_pt.x --> mem-fp-code]]
      
     - perform instrumentation
   
@@ -18,17 +27,7 @@ MemGaze Consolidation
       - PT-based samples: application vs. system-wide; +LBR
       - Sparse samples (ld latency)
 
-  - Cleanup <palm>/palm-task/intel_pt
-
-  - Test cases using extracts from traces (approx ~100 samples)
-    See: /people/tallent/1perf-lab/palm/memgaze/mem-anlys/check
-    minivite-v1-O3-n300k-buf8k-p10M
-    ubench-O3-buf8k-p100K
-
-  - Archive of traces for MemGaze paper with updated naming scheme
-
   - Notes using Linux perf, perf script, dyninst, instrumentation or analysis?
-  
     - system wide monitoring and ordering/timestamps
     - virtual to physical address?
     
@@ -41,12 +40,6 @@ MemGaze Consolidation
     > perf -g + pt
     > strace -etrace=perf_event_open
     ```
-
-  - Using Chenhao's tool?
-    
-    memcamera: trace files are *trace.out
-    memcamera: insn-pc mem-addr cpu-id timestamp [mem-addr2 <cpu-id> <timestamp>]
-    memgaze:   insn-pc mem-addr cpu-id timestamp sample-id
   
 
 * Bugs:
@@ -107,6 +100,10 @@ MemGaze Consolidation
 
 * Completed:
   - Overview of pipeline, both external and internal 
+  
+  - Trace format:
+    memcamera: insn-pc mem-addr cpu-id timestamp [mem-addr2 <cpu-id> <timestamp>]
+    memgaze:   insn-pc mem-addr cpu-id timestamp sample-id
 
   - properly compute $\sampleRatioSym_1$ for code footprints
   - properly compute $\compressionRatioSym(\windowSz)$
