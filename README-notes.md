@@ -13,9 +13,9 @@ MemGaze Consolidation
   - Delete <palm>/palm-task/intel_pt
   
   - Test cases using extracts from traces (approx ~100 samples)
-    See: /people/tallent/1perf-lab/palm/memgaze/mem-anlys/check
-    minivite-v1-O3-n300k-buf8k-p10M
-    ubench-O3-buf8k-p100K
+    Let the test name be 'stem': Then each file should be accessed as ${stem}/${stem}.<ext>
+    CHECK = ${stem1}$(sfx_out) ${stem2}$(sfx_out)...
+
 
   - Archive of traces for MemGaze paper with updated naming scheme and only needed files
 
@@ -138,10 +138,10 @@ MemGaze has 3 mains steps:
 
 3-) Memory Analysis (mem-anlys)
   -> Read multiple file:
-    -> CallPath
-    -> Trace
-    -> hpcstruct
-    -> load classification
+    -> CallPath  (*.callpath)
+    -> Trace     (*.trace)
+    -> hpcstruct (*.hpcstruct)
+    -> load classification (*.lc)
   -> Build calling context tree (work in progress)
   -> Do memeory analysis on the tree  or per routine
 
