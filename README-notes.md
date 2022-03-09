@@ -11,10 +11,13 @@ MemGaze Consolidation
   - Delete <palm>/palm-task/intel_pt
 
   - [[working]] Test cases using extracts from traces (approx ~100 samples)
+
+    [[Rename .lc to *.binanlys]]
   
   - [[working]] Annotate hacks in bin-anlys CFG / DependenceGraphBuilder
 
   - [[working]] Archive of traces for MemGaze paper with updated naming scheme and only needed files
+
 
   - Organize <memgaze>/mem-anlys/scripts --> <memgaze>/bin
   
@@ -81,6 +84,8 @@ MemGaze Consolidation
 
 
 
+-----------------------------------------------------------------------------
+
 * Organization/Notes:
   - `mem-trace`
   - `bin-anlys`
@@ -94,7 +99,6 @@ MemGaze Consolidation
      - footprint analysis of sampled trace
      - Palm coarse-grained footprint analysis
        palm-task: hpctoolkit run + fp analysis on database xml file
-
 
 
 * Completed:
