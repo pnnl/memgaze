@@ -18,6 +18,8 @@ MemGaze Consolidation
 
   - Organize <memgaze>/mem-anlys/scripts --> <memgaze>/bin
   
+     compile.sh: overall driver
+  
     - Rename: [[fp_intel_pt.x --> mem-fp-code]]
      
     - perform instrumentation
