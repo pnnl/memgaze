@@ -8,7 +8,6 @@ MemGaze Consolidation
 
 * Consolidation and documentation:
 
-  - Delete <palm>/palm-task/intel_pt
 
   - [[working]] Test cases using extracts from traces (approx ~100 samples)
 
@@ -116,6 +115,7 @@ MemGaze Consolidation
     ~/1perf-lab/palm/memgaze-memanlys-ruchi/
     /files0/kili337/Nathan/intelPT_FP
 
+  - Delete <palm>/palm-task/intel_pt
 
 -----------------------------------------------------------------------------
 MemGaze Pipeline
