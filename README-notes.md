@@ -8,8 +8,6 @@ MemGaze Consolidation
 
 * Consolidation and documentation:
 
-  - [[done]] Overview of pipeline, both external and internal 
-
   - Organization of scripts
   
      [['fp_intel_pt.x' --> mem-fp-code]]
@@ -22,12 +20,12 @@ MemGaze Consolidation
 
   - Cleanup <palm>/palm-task/intel_pt
 
-  - Ruchi's  of Ruchi's branch
-      /files0/kili337/Nathan/intelPT_FP
-
-  - Test cases
-    Extracts from traces
+  - Test cases using extracts from traces (approx ~100 samples)
     See: /people/tallent/1perf-lab/palm/memgaze/mem-anlys/check
+    minivite-v1-O3-n300k-buf8k-p10M
+    ubench-O3-buf8k-p100K
+
+  - Archive of traces for MemGaze paper with updated naming scheme
 
   - Notes using Linux perf, perf script, dyninst, instrumentation or analysis?
   
@@ -53,29 +51,13 @@ MemGaze Consolidation
 
 * Bugs:
   - [[working]] memory leaks
+  
+  - [[working]] Annotate hacks in bin-anlys CFG / DependenceGraphBuilder
 
   - mem-anlys only reads one auxiliary file even if multiple are needed
     - results in some instructions with unknown laod classes
 
-<<<<<<< HEAD
-  - properly compute $\sampleRatioSym_1$ for code footprints  - DONE
-  - properly compute $\compressionRatioSym(\windowSz)$  -DONE
-
   - Our window analysis algorithm uses pre-selected bins to create the histogram. Due to the variation of sample sizes window sizes also vary. This can create a binning anomaly at the largest one or two window sizes. Since \fpSym  should never get smaller in a larger window, we force each bin to take the maximum of the current and previous windows. This anomaly only happens when there are constant loads instrumented for our quantitative approach. To address this issue we are working on a more detailed fix.
-
-  - Hacks in bin-anlys CFG / DependenceGraphBuilder -  Writing up every modifications.
-=======
-  - [[done]] properly compute $\sampleRatioSym_1$ for code footprints
-  - [[done]] properly compute $\compressionRatioSym(\windowSz)$
-  - [[done]] applied fixes just before paper submission
-  
-  - [[other bugs]]?
-
-  - Our window analysis algorithm uses pre-selected bins to create the histogram. Due to the variation of sample sizes window sizes also vary. This can create a binning anomaly at the largest one or two window sizes. Since \fpSym  should never get smaller in a larger window, we force each bin to take the maximum of the current and previous windows. This anomaly only happens when there are constant loads instrumented for our quantitative approach. To address this issue we are working on a more detailed fix.
-
-  - [[working]] Hacks in bin-anlys CFG / DependenceGraphBuilder
-    Annotate 
->>>>>>> update.
 
 
 
@@ -120,6 +102,20 @@ MemGaze Consolidation
      - footprint analysis of sampled trace
      - Palm coarse-grained footprint analysis
        palm-task: hpctoolkit run + fp analysis on database xml file
+
+
+
+* Completed:
+  - Overview of pipeline, both external and internal 
+
+  - properly compute $\sampleRatioSym_1$ for code footprints
+  - properly compute $\compressionRatioSym(\windowSz)$
+  - applied fixes just before paper submission
+
+  - Ruchi's branch for saving execution interval tree as hpcviewer xml file:
+    ~/1perf-lab/palm/memgaze-memanlys-ruchi/
+    /files0/kili337/Nathan/intelPT_FP
+
 
 -----------------------------------------------------------------------------
 MemGaze Pipeline
