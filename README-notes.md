@@ -12,7 +12,9 @@ MemGaze Consolidation
 
   - Delete <palm>/palm-task/intel_pt
   
-  - Test cases using extracts from traces (approx ~100 samples)
+  - [[working]] Annotate hacks in bin-anlys CFG / DependenceGraphBuilder
+
+  - [[working]] Test cases using extracts from traces (approx ~100 samples)
     Let the test name be 'stem': Then each file should be accessed as ${stem}/${stem}.<ext>
     CHECK = ${stem1}$(sfx_out) ${stem2}$(sfx_out)...
 
@@ -46,8 +48,6 @@ MemGaze Consolidation
 
 * Bugs:
   - [[working]] memory leaks
-  
-  - [[working]] Annotate hacks in bin-anlys CFG / DependenceGraphBuilder
 
   - mem-anlys only reads one auxiliary file even if multiple are needed
     - results in some instructions with unknown laod classes
