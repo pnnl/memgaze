@@ -8,6 +8,8 @@ MemGaze Consolidation
 
 * Consolidation and documentation:
 
+  - Accounts on nuke, nuketoo for: suri836
+
   - Delete <palm>/palm-task/intel_pt
   
   - Test cases using extracts from traces (approx ~100 samples)
