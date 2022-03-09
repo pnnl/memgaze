@@ -304,7 +304,7 @@ namespace MIAMI
       //it will overwrite every other option execpt linemap
       void setLoadClasses(bool lcs) {
          load_classes = lcs;
-         //OZGURFIXME I need to decide what to enable or disable
+         //OZGUR TODO:optimization I need to decide what to enable or disable
          //Originally this section is not exist
          //I copied it from mrd which opens all this options
          if (! no_scheduling)

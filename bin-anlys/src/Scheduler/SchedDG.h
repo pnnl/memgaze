@@ -493,7 +493,7 @@ public:
     bool InOrderDependenciesSatisfied(bool initial=false, Edge **dep = 0);
     
     bool is_scalar_stack_reference();
-//OZGURS
+//OZGURS new functionalities for both ispass an ICS
     RInfoList getSrcReg(){return srcRegs;}
     RInfoList getDestReg(){return destRegs;}
     bool is_strided_reference();

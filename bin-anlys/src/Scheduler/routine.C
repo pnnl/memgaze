@@ -844,7 +844,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
    CFG *cfg = ControlFlowGraph();
 //   computeSchedule = _computeSchedule;
    mo = _mo;
-//TODO FIXME OZGUR hacking this for AMD binary 
+//TODO FIXME:amd OZGUR hacking this for AMD binary 
 //START
    if (name.compare("std::istream::getline") == 0 || 
        name.compare("std::operator>><char, std::char_traits<char> >(std::basic_istream<char, std::char_traits<char> >&, char*) [clone .cold]") == 0 ||
@@ -2621,7 +2621,7 @@ Routine::constructOuterLoopDG(ScopeImplementation *pscope, CFG::Node *b, int mar
          {  // try to fix paths so they include it
             fprintf(stderr, "WARNING: found block 0x%lx (%" PRIu64 "); Go hack the paths\n",
                   db->getStartAddress(), db->ExecCount() );
-            assert(!"I need adjustPaths"); //OZGUR if I set ExecCount this will get triggered ??
+            assert(!"I need adjustPaths"); //OZGUR TODO:optimization if I set ExecCount this will get triggered ??
  //           notready = adjustPaths(pscope, marker, bpmtemp);
             changed = changed || notready;
          }
@@ -3200,7 +3200,7 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
          {  // try to fix paths so they include it
             fprintf(stderr, "WARNING: found block 0x%lx (%" PRIu64 "); Go hack the paths\n",
                   db->getStartAddress(), db->ExecCount() );
-            //assert(!"I need adjustPaths"); //OZGUR if I set ExecCount this will get triggered ??
+            //assert(!"I need adjustPaths"); //OZGUR TODO:opt if I set ExecCount this will get triggered ??
  //           notready = adjustPaths(pscope, marker, bpmtemp);
             changed = changed || notready;
          }

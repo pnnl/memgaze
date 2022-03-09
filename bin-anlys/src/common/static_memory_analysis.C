@@ -1083,7 +1083,7 @@ StrideSlice::BuildCyclicPath(PrivateCFG::Node *startb)
       fprintf(stderr, "ERROR: Could not build a 1-iteration cyclic path that includes block %d [0x%" 
               PRIxaddr ",0x%" PRIxaddr "] for scope with marker %u. I do not know what to do.\n",
            startb->getId(), startb->getStartAddress(), startb->getEndAddress(), slice_marker);
-      //assert(!"Chech the CFG of this routine.");//OZGURFIXME original
+      //assert(!"Chech the CFG of this routine.");//OZGUR FIXME:unknown original
       std::cout<<"OZGURERROR:: Chech the CFG of this routine: "<<startb->inCfg()->name()<<std::endl;
    }
 }
@@ -2178,7 +2178,7 @@ StrideSlice::SliceOut(PrivateCFG::Node* b, int uop_idx, const register_info& reg
             assert (ii->num_imm_values == 1);
             si->formula = new GFSliceVal(sliceVal(ii->imm_values[0].value.s, TY_CONSTANT));
          } 
-         //OZGURFIXME start
+         //OZGURFIXME start I am guessing I add this check for lea
          else  if (ii->type==IB_lea){
             si->formula = new GFSliceVal(sliceVal(ii->imm_values[0].value.s, TY_REGISTER));
          }

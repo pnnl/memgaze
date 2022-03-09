@@ -12353,7 +12353,7 @@ SchedDG::minSchedulingLengthDueToResources(int& bottleneckUnit,
 //--------------------------------------------------------------------------------------------------------------------
 
 
-/* OZGUR PALM
+/* OZGUR PALM this is a new function
  * Check if an instruction is a memory reference not to the stack
  * with all strides zero, and no indirect or irregular stride.
  */

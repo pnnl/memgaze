@@ -366,7 +366,7 @@ PrivateRoutine::AddPotentialEdge(addrtype end_addr, addrtype target, PrivateCFG:
       // I should always find the source block
       fprintf (stderr, "In PrivateRoutine::AddPotentialEdge, source block does not exist. end_addr=%p, target=%p, edgeType=%d\n",
            (void*)end_addr, (void*)target, edgeType);
-      //OZGURFIXME assert(!"Source block does not exist");//This gives error so I am just removing it to see wwhat will happen ???
+      //OZGUR FIXME:unkown assert(!"Source block does not exist");//This gives error so I am just removing it to see wwhat will happen ???
    }
 #if DEBUG_BBLs
    if (name.compare(debugName)==0)

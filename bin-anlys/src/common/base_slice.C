@@ -391,7 +391,7 @@ BaseSlice::SliceEffect(const PrivateCFG::Node *b, const uOp_t& uop, const regist
       return (SliceEffect_NORMAL);
    else
    { 
-      //OZGURFIXME new code{
+      //OZGUR FIXME: not sure what it was new code{
     //  if(InstrBinIsRegisterMove(uop.iinfo->type))
     //     return (SliceEffect_EASY);
     //  else

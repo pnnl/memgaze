@@ -658,7 +658,7 @@ protected:
 //            iMarkers = iMarkersHi;
          StrideInst *si = (*iMarkers)(def_pc, idx);
          assert(si || !"Could not find a cached value for specified register");
-        // assert(si->is_strideF != 1);//OZGURFIXME{
+        // assert(si->is_strideF != 1);//OZGUR FIXME:unknown{
          if(si->is_strideF != 1)
             std::cout<<"OZGURERROR:: sii->is_strideF != 1 it is:"<<si->is_strideF<<std::endl;
          //}

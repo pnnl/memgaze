@@ -1333,7 +1333,6 @@ tryagain:
 //               }                                                                                             
               
                if(mo->inst_frame){
-               //if(mo->inst_frame && fnn->getLoopIndex()>1){//OZGUR_FIXME FIXME make a smarter fix I add index check fornow
                   if (mo->lcFileExist)
                   {
                      //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
@@ -1378,7 +1377,6 @@ tryagain:
                      std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tconstant"<<std::endl;
                      flag_stride = false;
                      if(mo->inst_frame){
-                     //if(mo->inst_frame && fnn->getLoopIndex()>1){//OZGUR_FIXME FIXME make a smarter fix I add index check fornow
                         if (mo->lcFileExist)
                         {
                             //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
@@ -2493,7 +2491,8 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
       if (entryVal)
          node->setEntryValue (entryVal);
       add(node);
-      //OZGURS
+      //OZGURS I add following variables and I am setting them here
+      // I think I did this for ISPASS paper to check if load is in loop bound or not
       node->setLevel(b->getLevel());
       node->setLoopIndex(b->getLoopIndex());
       node->setExecCount(b->ExecCount());
@@ -2509,7 +2508,8 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
       iiobj.data = node;
       //ozgurS
       //      if (node->is_load_instruction()){
-      //TODO findMe and FIXME
+      //TODO findMe and FIXME:segfault
+      //Note: I do not remember why there was a segfault
       node->setLvlMap(img->getMemLoadData(node->getAddress()));
 //      std::cout<<"DEBUG OZGUR instadd: "<< std::hex <<node->getAddress()<< std::dec<<" lvl0:"<<node->getLvlMap()->find(0)->second.hitCount<<" lvl-1:"<<node->getLvlMap()->find(-1)->second.hitCount<<std::endl; //segfault FIXME
       //std::cout<<"DEBUG OZGUR instadd: "<< std::hex <<node->getAddress()<< std::dec<<" lvl5:"<<node->getLvlMap()->find(5)->second.hitCount<<std::endl; //segfault FIXME
@@ -3590,7 +3590,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                              //   // this is actually the iteration number for nodeB
                                              //   locF1 = -locF1;
 
-//TODO FIXME OZGUR HACK for AMD                                             assert (locF1 < avgNumIters);
+//TODO FIXME:amd  OZGUR HACK for AMD                                             assert (locF1 < avgNumIters);
                                              addUniqueDependency(nodeB, node, negDir, 
                                                    MEMORY_TYPE, locF1, 1, 0);
                                           }
@@ -3628,7 +3628,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                              {
                                                 // I think both locF2 and locF1 should be
                                                 // positive for this case
-                                                //OZGUR FIXME TODO OPEN THIS assert (locF2==1 && locF1>0);
+                                                //OZGUR FIXME: OPEN THIS assert (locF2==1 && locF1>0);
                                                 // if (locF2<0)
                                                 //   // this is actually the iteration number for nodeB
                                                 //   locF1 = -locF1;
@@ -3734,7 +3734,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                              {
                                                 // I think both locF2 and locF1 should be
                                                 // positive for this case
-                                                //assert (locF2==1 && locF1>0); //OZGURFIXME original
+                                                //assert (locF2==1 && locF1>0); //OZGUR FIXME: original
                                                 if (locF2==1 && locF1>0){//OZGUR NEW
                                                    std::cout<<"OZGURERROR:: in func "<<__func__<<" line "<<__LINE__<<" locF2= "<<locF2<<"&& locF1= "<<locF1<<std::endl;
                                                 }

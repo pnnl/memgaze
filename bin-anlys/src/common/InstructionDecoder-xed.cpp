@@ -1094,7 +1094,7 @@ XedInstToUopList(xed_decoded_inst_t* inst, InstrList *iList, void *pc)
                       primary_uop.type = IB_store;
                       is_store_uop = true;
                    } else
-                   { //OZGUR HACK checkwaht to hack here. to fix constant (imm)
+                   { 
                       // should I assert that the main uop is not a load_uop? hmm ...
                       // create store uop
                       iList->push_back(instruction_info());
