@@ -275,7 +275,7 @@ int main(int argc, char* argv[], const char* envp[]) {
   //Setting Option Parser
   CmdOptionParser opps(argc, argv);
   if (opps.cmdOptionExists("-h")){
-    cout << "-t Trace File\n-l Load Classification File\n-s hpcstruct File\n-o Graph Output File\n-m Mode o for time based and 1 for load based\n-p Period\n-f Focus Function Name\n-b block size mask def 0xffffffffffff\n-h Help"<<endl;
+    cout << "-t Trace File\n-l Load Classification File\n-s hpcstruct File\n-o Graph Output File\n-m Mode o for time based and 1 for load based\n-p Period\n-f Focus Function Name\n-b block size mask def 0xffffffffffff\n-c CallPath File\n-h Help"<<endl;
     return 1;
   }
 
@@ -313,7 +313,8 @@ int main(int argc, char* argv[], const char* envp[]) {
   int sampleID = 0,  in_sampleID = 0, prev_sampleID = 0;
 //New Mode to read input comands  
   string  inputFile = opps.getCmdOption("-t");
-  string callGraphFileName = inputFile+std::string("_callGraph");
+  string  callGraphFileName = opps.getCmdOption("-c");
+//  string callGraphFileName = inputFile+std::string("_callGraph");
   string classificationInputFile = opps.getCmdOption("-l");
   string hpcStructInputFile = opps.getCmdOption("-s");
   string outputFile = opps.getCmdOption("-o");
