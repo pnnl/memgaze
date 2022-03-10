@@ -22,7 +22,7 @@ MemGaze Consolidation
   
      compile.sh: overall driver
   
-    - Rename: [[fp_intel_pt.x --> mem-fp-code]]
+    - Renamed [[fp_intel_pt.x --> memgaze-analyze]]
      
     - perform instrumentation
   
