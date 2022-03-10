@@ -40,23 +40,23 @@ LIBCXX_LIB = $(dir $(shell $(CXX) -print-file-name=libstdc++.so))
 
 #****************************************************************************
 
-fp_anlys := fp_intel_pt.x
+mg_analyze := memgaze-analyze
 
-MK_PROGRAMS_CXX = $(fp_anlys)
+MK_PROGRAMS_CXX = $(mg_analyze)
 
-$(fp_anlys)_SRCS = \
+$(mg_analyze)_SRCS = \
 	main.cpp \
 	Function.cpp \
 	Window.cpp
 
-$(fp_anlys)_CXXFLAGS = \
+$(mg_analyze)_CXXFLAGS = \
 	-g -O3
 
-$(fp_anlys)_LDFLAGS =
+$(mg_analyze)_LDFLAGS =
 
-$(fp_anlys)_LIBS =
+$(mg_analyze)_LIBS =
 
-$(fp_anlys)_LDADD =
+$(mg_analyze)_LDADD =
 
 #****************************************************************************
 
@@ -75,23 +75,23 @@ HPCTOOLKIT_CXXFLAGS = \
 HPCTOOLKIT_LDFLAGS = \
         -L$(HPCTOOLKIT_LIB) -Wl,-rpath $(HPCTOOLKIT_LIB)
 
-fp_hpctk := fp-hpctk.x
+mg_hpctk := memgaze-hpctk
 
-MK_PROGRAMS_CXX += # $(fp_hpctk)
+MK_PROGRAMS_CXX += # $(mg_hpctk)
 
-$(fp_hpctk)_SRCS = \
+$(mg_hpctk)_SRCS = \
 	main-hpctk.cpp
 
-$(fp_hpctk)_CXXFLAGS = \
+$(mg_hpctk)_CXXFLAGS = \
 	-g -O3 \
   $(HPCTOOLKIT_CXXFLAGS)
 
-$(fp_hpctk)_LDFLAGS = \
+$(mg_hpctk)_LDFLAGS = \
   $(HPCTOOLKIT_LDFLAGS)
 
-$(fp_hpctk)_LIBS =
+$(mg_hpctk)_LIBS =
 
-$(fp_hpctk)_LDADD =
+$(mg_hpctk)_LDADD =
 
 
 #****************************************************************************
