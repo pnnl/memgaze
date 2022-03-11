@@ -1,0 +1,865 @@
+Trace InputFile: ./ubench-O3-n500k-buf8k-p100k/ubench-O3-n500k-buf8k-p100k.trace Classication inputFile: ./ubench-O3-n500k-buf8k-p100k/ubench-O3-n500k-buf8k-p100k.binanlys outputFile: ubench-O3-n500k-buf8k-p100k.out
+LAST id: -1 CURRENT: 1
+LAST id: 1 CURRENT: 2
+Call path for sample 2
+	__random
+LAST id: 2 CURRENT: 3
+Call path for sample 3
+	init_random_dyninst
+LAST id: 3 CURRENT: 4
+Call path for sample 4
+	__random
+LAST id: 4 CURRENT: 5
+Call path for sample 5
+	init_random_dyninst
+LAST id: 5 CURRENT: 6
+Call path for sample 6
+	__random
+LAST id: 6 CURRENT: 7
+Call path for sample 7
+	init_random_dyninst
+LAST id: 7 CURRENT: 8
+Call path for sample 8
+	__random_r
+LAST id: 8 CURRENT: 9
+Call path for sample 9
+	init_random_dyninst
+LAST id: 9 CURRENT: 10
+Call path for sample 10
+	__random
+LAST id: 10 CURRENT: 11
+Call path for sample 11
+	init_random_dyninst
+LAST id: 11 CURRENT: 12
+Call path for sample 12
+	__random
+LAST id: 12 CURRENT: 13
+Call path for sample 13
+	init_random_dyninst
+LAST id: 13 CURRENT: 14
+Call path for sample 14
+	init_random_dyninst
+LAST id: 14 CURRENT: 15
+Call path for sample 15
+	init_random_dyninst
+LAST id: 15 CURRENT: 16
+Call path for sample 16
+	init_random_dyninst
+LAST id: 16 CURRENT: 17
+Call path for sample 17
+	init_random_dyninst
+LAST id: 17 CURRENT: 18
+Call path for sample 18
+	__random
+LAST id: 18 CURRENT: 19
+Call path for sample 19
+	init_random_dyninst
+LAST id: 19 CURRENT: 20
+Call path for sample 20
+	init_random_dyninst
+LAST id: 20 CURRENT: 21
+Call path for sample 21
+	__random
+LAST id: 21 CURRENT: 22
+Call path for sample 22
+	init_random_dyninst
+LAST id: 22 CURRENT: 23
+Call path for sample 23
+	__random
+LAST id: 23 CURRENT: 24
+Call path for sample 24
+	init_random_dyninst
+LAST id: 24 CURRENT: 25
+Call path for sample 25
+	__random_r
+LAST id: 25 CURRENT: 26
+Call path for sample 26
+	init_random_dyninst
+LAST id: 26 CURRENT: 27
+Call path for sample 27
+	__random
+LAST id: 27 CURRENT: 28
+Call path for sample 28
+	init_random_dyninst
+LAST id: 28 CURRENT: 29
+Call path for sample 29
+	__random
+LAST id: 29 CURRENT: 30
+Call path for sample 30
+	init_random_dyninst
+LAST id: 30 CURRENT: 31
+Call path for sample 31
+	__random
+LAST id: 31 CURRENT: 32
+Call path for sample 32
+	init_random_dyninst
+LAST id: 32 CURRENT: 33
+Call path for sample 33
+	__random
+LAST id: 33 CURRENT: 34
+Call path for sample 34
+	init_random_dyninst
+LAST id: 34 CURRENT: 35
+Call path for sample 35
+	init_random_dyninst
+LAST id: 35 CURRENT: 36
+Call path for sample 36
+	init_random_dyninst
+LAST id: 36 CURRENT: 37
+Call path for sample 37
+	init_random_dyninst
+LAST id: 37 CURRENT: 38
+Call path for sample 38
+	init_random_dyninst
+LAST id: 38 CURRENT: 39
+Call path for sample 39
+	__random
+LAST id: 39 CURRENT: 40
+Call path for sample 40
+	init_random_dyninst
+LAST id: 40 CURRENT: 41
+Call path for sample 41
+	init_random_dyninst
+LAST id: 41 CURRENT: 42
+Call path for sample 42
+	__random_r
+LAST id: 42 CURRENT: 43
+Call path for sample 43
+	init_random_dyninst
+LAST id: 43 CURRENT: 44
+Call path for sample 44
+	init_random_dyninst
+LAST id: 44 CURRENT: 45
+Call path for sample 45
+	init_random_dyninst
+LAST id: 45 CURRENT: 46
+Call path for sample 46
+	init_random_dyninst
+LAST id: 46 CURRENT: 47
+Call path for sample 47
+	init_random_dyninst
+LAST id: 47 CURRENT: 48
+Call path for sample 48
+	init_random_dyninst
+LAST id: 48 CURRENT: 49
+Call path for sample 49
+	init_random_dyninst
+LAST id: 49 CURRENT: 50
+Call path for sample 50
+	init_random_dyninst
+LAST id: 50 CURRENT: 51
+Call path for sample 51
+	init_random_dyninst
+LAST id: 51 CURRENT: 52
+Call path for sample 52
+	__random
+LAST id: 52 CURRENT: 53
+Call path for sample 53
+	init_random_dyninst
+LAST id: 53 CURRENT: 54
+Call path for sample 54
+	__random
+LAST id: 54 CURRENT: 55
+Call path for sample 55
+	init_random_dyninst
+LAST id: 55 CURRENT: 56
+Call path for sample 56
+	init_random_dyninst
+LAST id: 56 CURRENT: 57
+Call path for sample 57
+	init_random_dyninst
+LAST id: 57 CURRENT: 58
+Call path for sample 58
+	__random
+LAST id: 58 CURRENT: 59
+Call path for sample 59
+	__random_r
+LAST id: 59 CURRENT: 60
+Call path for sample 60
+	__random
+LAST id: 60 CURRENT: 61
+Call path for sample 61
+	init_random_dyninst
+LAST id: 61 CURRENT: 62
+Call path for sample 62
+	init_random_dyninst
+LAST id: 62 CURRENT: 63
+Call path for sample 63
+	init_random_dyninst
+LAST id: 63 CURRENT: 64
+Call path for sample 64
+	init_random_dyninst
+LAST id: 64 CURRENT: 65
+Call path for sample 65
+	init_random_dyninst
+LAST id: 65 CURRENT: 66
+Call path for sample 66
+	init_random_dyninst
+LAST id: 66 CURRENT: 67
+Call path for sample 67
+	init_random_dyninst
+LAST id: 67 CURRENT: 68
+Call path for sample 68
+	init_random_dyninst
+LAST id: 68 CURRENT: 69
+Call path for sample 69
+	init_random_dyninst
+LAST id: 69 CURRENT: 70
+Call path for sample 70
+	init_random_dyninst
+LAST id: 70 CURRENT: 71
+Call path for sample 71
+	init_random_dyninst
+LAST id: 71 CURRENT: 72
+Call path for sample 72
+	init_random_dyninst
+LAST id: 72 CURRENT: 73
+Call path for sample 73
+	__random
+LAST id: 73 CURRENT: 74
+Call path for sample 74
+	init_random_dyninst
+LAST id: 74 CURRENT: 75
+Call path for sample 75
+	__random
+LAST id: 75 CURRENT: 76
+Call path for sample 76
+	init_random_dyninst
+LAST id: 76 CURRENT: 77
+Call path for sample 77
+	init_random_dyninst
+LAST id: 77 CURRENT: 78
+Call path for sample 78
+	init_random_dyninst
+LAST id: 78 CURRENT: 79
+Call path for sample 79
+	init_random_dyninst
+LAST id: 79 CURRENT: 80
+Call path for sample 80
+	init_random_dyninst
+LAST id: 80 CURRENT: 81
+Call path for sample 81
+	__random
+LAST id: 81 CURRENT: 82
+Call path for sample 82
+	init_random_dyninst
+LAST id: 82 CURRENT: 83
+Call path for sample 83
+	init_random_dyninst
+LAST id: 83 CURRENT: 84
+Call path for sample 84
+	init_random_dyninst
+LAST id: 84 CURRENT: 85
+Call path for sample 85
+	init_random_dyninst
+LAST id: 85 CURRENT: 86
+Call path for sample 86
+	init_random_dyninst
+LAST id: 86 CURRENT: 87
+Call path for sample 87
+	init_random_dyninst
+LAST id: 87 CURRENT: 88
+Call path for sample 88
+	init_random_dyninst
+LAST id: 88 CURRENT: 89
+Call path for sample 89
+	init_random_dyninst
+LAST id: 89 CURRENT: 90
+Call path for sample 90
+	__random
+LAST id: 90 CURRENT: 91
+Call path for sample 91
+	init_random_dyninst
+LAST id: 91 CURRENT: 92
+Call path for sample 92
+	init_shuffle_dyninst
+LAST id: 92 CURRENT: 93
+Call path for sample 93
+	init_shuffle_dyninst
+LAST id: 93 CURRENT: 94
+Call path for sample 94
+	init_shuffle_dyninst
+LAST id: 94 CURRENT: 95
+Call path for sample 95
+	__random_r
+LAST id: 95 CURRENT: 96
+Call path for sample 96
+	__random_r
+LAST id: 96 CURRENT: 97
+Call path for sample 97
+	init_shuffle_dyninst
+LAST id: 97 CURRENT: 98
+Call path for sample 98
+	init_shuffle_dyninst
+LAST id: 98 CURRENT: 99
+Call path for sample 99
+	init_shuffle_dyninst
+LAST id: 99 CURRENT: 100
+Call path for sample 100
+	__random_r
+LAST id: 100 CURRENT: 101
+Call path for sample 101
+	init_shuffle_dyninst
+LAST id: 101 CURRENT: 102
+Call path for sample 102
+	__random
+LAST id: 102 CURRENT: 103
+Call path for sample 103
+	init_shuffle_dyninst
+LAST id: 103 CURRENT: 104
+Call path for sample 104
+	init_shuffle_dyninst
+LAST id: 104 CURRENT: 105
+Call path for sample 105
+	init_shuffle_dyninst
+LAST id: 105 CURRENT: 106
+Call path for sample 106
+	init_shuffle_dyninst
+LAST id: 106 CURRENT: 107
+Call path for sample 107
+	init_shuffle_dyninst
+LAST id: 107 CURRENT: 108
+Call path for sample 108
+	init_shuffle_dyninst
+LAST id: 108 CURRENT: 109
+Call path for sample 109
+	__random
+LAST id: 109 CURRENT: 110
+Call path for sample 110
+	init_shuffle_dyninst
+LAST id: 110 CURRENT: 111
+Call path for sample 111
+	init_shuffle_dyninst
+LAST id: 111 CURRENT: 112
+Call path for sample 112
+	init_shuffle_dyninst
+LAST id: 112 CURRENT: 113
+Call path for sample 113
+	init_shuffle_dyninst
+LAST id: 113 CURRENT: 114
+Call path for sample 114
+	init_shuffle_dyninst
+LAST id: 114 CURRENT: 115
+Call path for sample 115
+	__random
+LAST id: 115 CURRENT: 116
+Call path for sample 116
+	__random_r
+LAST id: 116 CURRENT: 117
+Call path for sample 117
+	init_shuffle_dyninst
+LAST id: 117 CURRENT: 118
+Call path for sample 118
+	init_shuffle_dyninst
+LAST id: 118 CURRENT: 119
+Call path for sample 119
+	__random_r
+LAST id: 119 CURRENT: 120
+Call path for sample 120
+	init_shuffle_dyninst
+LAST id: 120 CURRENT: 121
+Call path for sample 121
+	init_shuffle_dyninst
+LAST id: 121 CURRENT: 122
+Call path for sample 122
+	init_shuffle_dyninst
+LAST id: 122 CURRENT: 123
+Call path for sample 123
+	init_shuffle_dyninst
+LAST id: 123 CURRENT: 124
+Call path for sample 124
+	init_shuffle_dyninst
+LAST id: 124 CURRENT: 125
+Call path for sample 125
+	init_shuffle_dyninst
+LAST id: 125 CURRENT: 126
+Call path for sample 126
+	__random_r
+LAST id: 126 CURRENT: 127
+Call path for sample 127
+	__random
+LAST id: 127 CURRENT: 128
+Call path for sample 128
+	__random
+LAST id: 128 CURRENT: 129
+Call path for sample 129
+	init_shuffle_dyninst
+LAST id: 129 CURRENT: 130
+Call path for sample 130
+	init_shuffle_dyninst
+LAST id: 130 CURRENT: 131
+Call path for sample 131
+	init_shuffle_dyninst
+LAST id: 131 CURRENT: 132
+Call path for sample 132
+	init_shuffle_dyninst
+LAST id: 132 CURRENT: 133
+Call path for sample 133
+	__random_r
+LAST id: 133 CURRENT: 134
+Call path for sample 134
+	__random_r
+LAST id: 134 CURRENT: 135
+Call path for sample 135
+	init_shuffle_dyninst
+LAST id: 135 CURRENT: 136
+Call path for sample 136
+	init_shuffle_dyninst
+LAST id: 136 CURRENT: 137
+Call path for sample 137
+	init_shuffle_dyninst
+LAST id: 137 CURRENT: 138
+Call path for sample 138
+	init_shuffle_dyninst
+LAST id: 138 CURRENT: 139
+Call path for sample 139
+	init_shuffle_dyninst
+LAST id: 139 CURRENT: 140
+Call path for sample 140
+	__random_r
+LAST id: 140 CURRENT: 141
+Call path for sample 141
+	init_shuffle_dyninst
+LAST id: 141 CURRENT: 142
+Call path for sample 142
+	init_shuffle_dyninst
+LAST id: 142 CURRENT: 143
+Call path for sample 143
+	init_shuffle_dyninst
+LAST id: 143 CURRENT: 144
+Call path for sample 144
+	init_shuffle_dyninst
+LAST id: 144 CURRENT: 145
+Call path for sample 145
+	init_shuffle_dyninst
+LAST id: 145 CURRENT: 146
+Call path for sample 146
+	__random
+LAST id: 146 CURRENT: 147
+Call path for sample 147
+	__random_r
+LAST id: 147 CURRENT: 148
+Call path for sample 148
+	init_shuffle_dyninst
+LAST id: 148 CURRENT: 149
+Call path for sample 149
+	init_shuffle_dyninst
+LAST id: 149 CURRENT: 150
+Call path for sample 150
+	init_shuffle_dyninst
+LAST id: 150 CURRENT: 151
+Call path for sample 151
+	init_shuffle_dyninst
+LAST id: 151 CURRENT: 152
+Call path for sample 152
+	__random
+LAST id: 152 CURRENT: 153
+Call path for sample 153
+	__random_r
+LAST id: 153 CURRENT: 154
+Call path for sample 154
+	init_shuffle_dyninst
+LAST id: 154 CURRENT: 155
+Call path for sample 155
+	init_shuffle_dyninst
+LAST id: 155 CURRENT: 156
+Call path for sample 156
+	init_shuffle_dyninst
+LAST id: 156 CURRENT: 157
+Call path for sample 157
+	init_shuffle_dyninst
+LAST id: 157 CURRENT: 158
+Call path for sample 158
+	init_shuffle_dyninst
+LAST id: 158 CURRENT: 159
+Call path for sample 159
+	__random_r
+LAST id: 159 CURRENT: 160
+Call path for sample 160
+	init_shuffle_dyninst
+LAST id: 160 CURRENT: 161
+Call path for sample 161
+	init_shuffle_dyninst
+LAST id: 161 CURRENT: 162
+Call path for sample 162
+	init_shuffle_dyninst
+LAST id: 162 CURRENT: 163
+Call path for sample 163
+	init_shuffle_dyninst
+LAST id: 163 CURRENT: 164
+Call path for sample 164
+	init_shuffle_dyninst
+LAST id: 164 CURRENT: 165
+Call path for sample 165
+	__random
+LAST id: 165 CURRENT: 166
+Call path for sample 166
+	__random
+LAST id: 166 CURRENT: 167
+Call path for sample 167
+	init_shuffle_dyninst
+LAST id: 167 CURRENT: 168
+Call path for sample 168
+	init_shuffle_dyninst
+LAST id: 168 CURRENT: 169
+Call path for sample 169
+	init_shuffle_dyninst
+LAST id: 169 CURRENT: 170
+Call path for sample 170
+	init_shuffle_dyninst
+LAST id: 170 CURRENT: 171
+Call path for sample 171
+	init_shuffle_dyninst
+LAST id: 171 CURRENT: 172
+Call path for sample 172
+	__random
+LAST id: 172 CURRENT: 173
+Call path for sample 173
+	__random_r
+LAST id: 173 CURRENT: 174
+Call path for sample 174
+	init_shuffle_dyninst
+LAST id: 174 CURRENT: 175
+Call path for sample 175
+	init_shuffle_dyninst
+LAST id: 175 CURRENT: 176
+Call path for sample 176
+	init_shuffle_dyninst
+LAST id: 176 CURRENT: 177
+Call path for sample 177
+	init_shuffle_dyninst
+LAST id: 177 CURRENT: 178
+Call path for sample 178
+	init_shuffle_dyninst
+LAST id: 178 CURRENT: 179
+Call path for sample 179
+	__random
+LAST id: 179 CURRENT: 180
+Call path for sample 180
+	init_shuffle_dyninst
+LAST id: 180 CURRENT: 181
+Call path for sample 181
+	init_shuffle_dyninst
+LAST id: 181 CURRENT: 182
+Call path for sample 182
+	init_shuffle_dyninst
+LAST id: 182 CURRENT: 183
+Call path for sample 183
+	init_shuffle_dyninst
+LAST id: 183 CURRENT: 184
+Call path for sample 184
+	__random
+LAST id: 184 CURRENT: 185
+Call path for sample 185
+	__random
+LAST id: 185 CURRENT: 186
+Call path for sample 186
+	init_shuffle_dyninst
+LAST id: 186 CURRENT: 187
+Call path for sample 187
+	init_shuffle_dyninst
+LAST id: 187 CURRENT: 188
+Call path for sample 188
+	init_shuffle_dyninst
+LAST id: 188 CURRENT: 189
+Call path for sample 189
+	init_shuffle_dyninst
+LAST id: 189 CURRENT: 190
+Call path for sample 190
+	init_shuffle_dyninst
+LAST id: 190 CURRENT: 191
+Call path for sample 191
+	__random
+LAST id: 191 CURRENT: 192
+Call path for sample 192
+	ubench_1D_Str1_x1_dyninst
+LAST id: 192 CURRENT: 193
+Call path for sample 193
+	ubench_1D_Str1_x1_dyninst
+LAST id: 193 CURRENT: 194
+Call path for sample 194
+	ubench_1D_Str1_x1_dyninst
+LAST id: 194 CURRENT: 195
+Call path for sample 195
+	ubench_1D_Str1_x1_dyninst
+LAST id: 195 CURRENT: 196
+Call path for sample 196
+	ubench_1D_Str1_x1_dyninst
+LAST id: 196 CURRENT: 197
+Call path for sample 197
+	ubench_1D_Str8_x1_dyninst
+LAST id: 197 CURRENT: 198
+Call path for sample 198
+	ubench_1D_Str8_x2_dyninst
+LAST id: 198 CURRENT: 199
+Call path for sample 199
+	ubench_multi_func_dyninst
+LAST id: 199 CURRENT: 200
+Call path for sample 200
+	ubench_multi_func_dyninst
+LAST id: 200 CURRENT: 201
+Call path for sample 201
+	ubench_multi_func_dyninst
+LAST id: 201 CURRENT: 202
+Call path for sample 202
+	ubench_multi_func_dyninst
+LAST id: 202 CURRENT: 203
+Call path for sample 203
+	ubench_multi_func_dyninst
+LAST id: 203 CURRENT: 204
+Call path for sample 204
+	ubench_1D_Str1_x1_func_dyninst
+LAST id: 204 CURRENT: 205
+Call path for sample 205
+	ubench_1D_Str1_x1_func_dyninst
+LAST id: 205 CURRENT: 206
+Call path for sample 206
+	ubench_1D_Str1_x1_func_dyninst
+LAST id: 206 CURRENT: 207
+Call path for sample 207
+	ubench_1D_Str1_x1_func_dyninst
+LAST id: 207 CURRENT: 208
+Call path for sample 208
+	ubench_1D_Str1_x1_func_dyninst
+LAST id: 208 CURRENT: 209
+Call path for sample 209
+	ubench_multi_func_dyninst
+LAST id: 209 CURRENT: 210
+Call path for sample 210
+	ubench_multi_func_dyninst
+LAST id: 210 CURRENT: 211
+Call path for sample 211
+	ubench_multi_func_dyninst
+LAST id: 211 CURRENT: 212
+Call path for sample 212
+	ubench_multi_func_dyninst
+LAST id: 212 CURRENT: 213
+Call path for sample 213
+	ubench_multi_func_dyninst
+LAST id: 213 CURRENT: 214
+Call path for sample 214
+	ubench_1D_Ind_x1_rand_dyninst
+LAST id: 214 CURRENT: 215
+Call path for sample 215
+	ubench_1D_Ind_x1_rand_dyninst
+LAST id: 215 CURRENT: 216
+Call path for sample 216
+	ubench_1D_Ind_x1_rand_dyninst
+LAST id: 216 CURRENT: 217
+Call path for sample 217
+	ubench_1D_Ind_x1_rand_dyninst
+LAST id: 217 CURRENT: 218
+Call path for sample 218
+	ubench_1D_Ind_x1_rand_dyninst
+LAST id: 218 CURRENT: 219
+Call path for sample 219
+	ubench_1D_Ind_x1_rand_dyninst
+LAST id: 219 CURRENT: 220
+Call path for sample 220
+	ubench_1D_Ind_x1_rand_dyninst
+LAST id: 220 CURRENT: 221
+Call path for sample 221
+	ubench_1D_Ind_x1_rand_dyninst
+LAST id: 221 CURRENT: 222
+Call path for sample 222
+	ubench_1D_Ind_x1_rand_dyninst
+LAST id: 222 CURRENT: 223
+Call path for sample 223
+	ubench_1D_Ind_x1_rand_dyninst
+LAST id: 223 CURRENT: 224
+Call path for sample 224
+	ubench_1D_Ind_x2_dyninst
+LAST id: 224 CURRENT: 225
+Call path for sample 225
+	ubench_1D_Ind_x2_dyninst
+LAST id: 225 CURRENT: 226
+Call path for sample 226
+	ubench_1D_Ind_x2_dyninst
+LAST id: 226 CURRENT: 227
+Call path for sample 227
+	ubench_1D_Ind_x2_dyninst
+LAST id: 227 CURRENT: 228
+Call path for sample 228
+	ubench_1D_Ind_x2_dyninst
+LAST id: 228 CURRENT: 229
+Call path for sample 229
+	ubench_1D_Ind_x2_dyninst
+LAST id: 229 CURRENT: 230
+Call path for sample 230
+	ubench_1D_Ind_x2_dyninst
+LAST id: 230 CURRENT: 231
+Call path for sample 231
+	ubench_1D_Ind_x2_dyninst
+LAST id: 231 CURRENT: 232
+Call path for sample 232
+	ubench_1D_Ind_x2_dyninst
+LAST id: 232 CURRENT: 233
+Call path for sample 233
+	ubench_1D_Ind_x2_dyninst
+LAST id: 233 CURRENT: 234
+Call path for sample 234
+	ubench_1D_Ind_x2_dyninst
+LAST id: 234 CURRENT: 235
+Call path for sample 235
+	ubench_1D_Ind_x2_dyninst
+LAST id: 235 CURRENT: 236
+Call path for sample 236
+	ubench_1D_Ind_x2_dyninst
+LAST id: 236 CURRENT: 237
+Call path for sample 237
+	ubench_1D_Ind_x2_dyninst
+LAST id: 237 CURRENT: 238
+Call path for sample 238
+	ubench_1D_Ind_x2_dyninst
+LAST id: 238 CURRENT: 239
+Call path for sample 239
+	ubench_1D_Ind_x2_dyninst
+LAST id: 239 CURRENT: 240
+Call path for sample 240
+	ubench_1D_Ind_x2_dyninst
+LAST id: 240 CURRENT: 241
+Call path for sample 241
+	ubench_1D_Ind_x2_dyninst
+LAST id: 241 CURRENT: 242
+Call path for sample 242
+	ubench_1D_Ind_x2_dyninst
+LAST id: 242 CURRENT: 243
+Call path for sample 243
+	ubench_1D_Ind_x2_dyninst
+LAST id: 243 CURRENT: 244
+Call path for sample 244
+	ubench_1D_Ind_halfx1_dyninst
+LAST id: 244 CURRENT: 245
+Call path for sample 245
+	ubench_1D_Ind_halfx1_dyninst
+LAST id: 245 CURRENT: 246
+Call path for sample 246
+	ubench_1D_Ind_halfx1_dyninst
+LAST id: 246 CURRENT: 247
+Call path for sample 247
+	ubench_1D_Ind_halfx1_dyninst
+LAST id: 247 CURRENT: 248
+Call path for sample 248
+	ubench_1D_Ind_halfx1_dyninst
+LAST id: 248 CURRENT: 249
+Call path for sample 249
+	ubench_1D_If_halfx1_dyninst
+LAST id: 249 CURRENT: 250
+Call path for sample 250
+	ubench_1D_If_halfx1_dyninst
+LAST id: 250 CURRENT: 251
+Call path for sample 251
+	ubench_1D_If_halfx1_dyninst
+LAST id: 251 CURRENT: 252
+Call path for sample 252
+	ubench_1D_If_halfx1_dyninst
+LAST id: 252 CURRENT: 252
+LAST id: 252 CURRENT: 252
+LAST id: 252 CURRENT: 252
+Call path for last sample 252
+	func3
+	zfunc2
+	func2
+	ubench_1D_If_halfx1_dyninst
+Total Loads:56055 Trace Size:56059
+ before Total Loads in Function:0 Func found:0 Func not Found: 0
+after Total Loads in Function:1 last index: 0 index0
+TOTAL Windows: 161 Important: 0 Problem: 161
+Total Loads:56055
+OZGURDBGFRAMELDS total loads before frame loads is 56055
+OZGURDBGFRAMELDS after timeVec  size  56055
+OZGURDBGFRAMELDS total loads after frame loads is 56066
+PERIOD: 100000 WS:346
+CONTROL Median Zs:11078 Zt:119662 Ws:340 Wt:3634 Stime: 61125038
+Window Size 55751 Wtime: 24979462 #Win: 161
+alternative Z1:136423 ZS:851 Z3:11195.7
+Do_reuse WS:346 Zt:382031 Wt:155151 ZS:11078
+Size of forest is 162
+MULTIPLIERS: xx=33.0173Building tree Forest size  162
+PRINTING TREE of FP
+General MULTIPLIER=33.0173
+#windows: 161 Period:100000 Total Lds:56066
+General MULTIPLIER with frame loads=286.162
+Recorded: 56055 supposed to reccord(w/ frame)56066 ratio:1.0002
+Function based Flat FP with mutiplier:3.45954
+main_dyninst [ubench-500k_O3_PTW] StartIP: 300000 Size: 1 FP: 1 lds: 0 Strided: 1 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 1
+main_dyninst [ubench-500k_O3_PTW] M2 StartIP: 300000 Size: 1 FP: 286.162 lds: 0 Strided: 286.162 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 286.162
+main_dyninst [ubench-500k_O3_PTW] Med StartIP: 300000 Size: 1 FP: 292.398 lds: 0 Strided: 292.398 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 292.398
+main_dyninst [ubench-500k_O3_PTW] Mean StartIP: 300000 Size: 1 FP: 300.586 lds: 0 Strided: 300.586 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 300.586
+main_dyninst [ubench-500k_O3_PTW] tot StartIP: 300000 Size: 1 FP: 287.162 lds: 0 Strided: 287.162 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 287.162
+init_shuffle_dyninst [ubench-500k_O3_PTW] StartIP: 300246 Size: 35757 FP: 9.72502e+06 lds: 0 Strided: 4.95055e+06 Indirect: 4.77447e+06 Constant: 0 Unknown: 0 Local multiplier = 276.869
+init_shuffle_dyninst [ubench-500k_O3_PTW] M2 StartIP: 300246 Size: 35757 FP: 1.00514e+07 lds: 0 Strided: 5.11671e+06 Indirect: 4.93471e+06 Constant: 0 Unknown: 0 Local multiplier = 286.162
+init_shuffle_dyninst [ubench-500k_O3_PTW] Med StartIP: 300246 Size: 35757 FP: 1.02705e+07 lds: 0 Strided: 5.22822e+06 Indirect: 5.04225e+06 Constant: 0 Unknown: 0 Local multiplier = 292.398
+init_shuffle_dyninst [ubench-500k_O3_PTW] Mean StartIP: 300246 Size: 35757 FP: 1.05581e+07 lds: 0 Strided: 5.37463e+06 Indirect: 5.18345e+06 Constant: 0 Unknown: 0 Local multiplier = 300.586
+init_shuffle_dyninst [ubench-500k_O3_PTW] tot StartIP: 300246 Size: 35757 FP: 1.00866e+07 lds: 0 Strided: 5.13459e+06 Indirect: 4.95196e+06 Constant: 0 Unknown: 0 Local multiplier = 287.162
+ubench_1D_Str8_x1_dyninst [ubench-500k_O3_PTW] StartIP: 3003ec Size: 554 FP: 554 lds: 0 Strided: 554 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 1
+ubench_1D_Str8_x1_dyninst [ubench-500k_O3_PTW] M2 StartIP: 3003ec Size: 554 FP: 158534 lds: 0 Strided: 158534 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 286.162
+ubench_1D_Str8_x1_dyninst [ubench-500k_O3_PTW] Med StartIP: 3003ec Size: 554 FP: 161988 lds: 0 Strided: 161988 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 292.398
+ubench_1D_Str8_x1_dyninst [ubench-500k_O3_PTW] Mean StartIP: 3003ec Size: 554 FP: 166525 lds: 0 Strided: 166525 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 300.586
+ubench_1D_Str8_x1_dyninst [ubench-500k_O3_PTW] tot StartIP: 3003ec Size: 554 FP: 159088 lds: 0 Strided: 159088 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 287.162
+ubench_1D_Str8_x2_dyninst [ubench-500k_O3_PTW] StartIP: 30042e Size: 542 FP: 542 lds: 0 Strided: 542 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 1
+ubench_1D_Str8_x2_dyninst [ubench-500k_O3_PTW] M2 StartIP: 30042e Size: 542 FP: 155100 lds: 0 Strided: 155100 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 286.162
+ubench_1D_Str8_x2_dyninst [ubench-500k_O3_PTW] Med StartIP: 30042e Size: 542 FP: 158480 lds: 0 Strided: 158480 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 292.398
+ubench_1D_Str8_x2_dyninst [ubench-500k_O3_PTW] Mean StartIP: 30042e Size: 542 FP: 162918 lds: 0 Strided: 162918 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 300.586
+ubench_1D_Str8_x2_dyninst [ubench-500k_O3_PTW] tot StartIP: 30042e Size: 542 FP: 155642 lds: 0 Strided: 155642 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 287.162
+ubench_1D_Str1_x1_func_dyninst [ubench-500k_O3_PTW] StartIP: 300484 Size: 2739 FP: 400000 lds: 0 Strided: 400000 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 146.039
+ubench_1D_Str1_x1_func_dyninst [ubench-500k_O3_PTW] M2 StartIP: 300484 Size: 2739 FP: 783796 lds: 0 Strided: 783797 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 286.162
+ubench_1D_Str1_x1_func_dyninst [ubench-500k_O3_PTW] Med StartIP: 300484 Size: 2739 FP: 800877 lds: 0 Strided: 800877 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 292.398
+ubench_1D_Str1_x1_func_dyninst [ubench-500k_O3_PTW] Mean StartIP: 300484 Size: 2739 FP: 823305 lds: 0 Strided: 823305 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 300.586
+ubench_1D_Str1_x1_func_dyninst [ubench-500k_O3_PTW] tot StartIP: 300484 Size: 2739 FP: 786536 lds: 0 Strided: 786536 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 287.162
+ubench_1D_Str1_x1_dyninst [ubench-500k_O3_PTW] StartIP: 3004b6 Size: 2662 FP: 400000 lds: 0 Strided: 400000 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 150.263
+ubench_1D_Str1_x1_dyninst [ubench-500k_O3_PTW] M2 StartIP: 3004b6 Size: 2662 FP: 761762 lds: 0 Strided: 761762 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 286.162
+ubench_1D_Str1_x1_dyninst [ubench-500k_O3_PTW] Med StartIP: 3004b6 Size: 2662 FP: 778363 lds: 0 Strided: 778363 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 292.398
+ubench_1D_Str1_x1_dyninst [ubench-500k_O3_PTW] Mean StartIP: 3004b6 Size: 2662 FP: 800160 lds: 0 Strided: 800160 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 300.586
+ubench_1D_Str1_x1_dyninst [ubench-500k_O3_PTW] tot StartIP: 3004b6 Size: 2662 FP: 764424 lds: 0 Strided: 764424 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 287.162
+ubench_1D_Ind_x1_rand_dyninst [ubench-500k_O3_PTW] StartIP: 30068a Size: 2679 FP: 897984 lds: 0 Strided: 449160 Indirect: 448152 Constant: 0 Unknown: 671.893 Local multiplier = 335.946
+ubench_1D_Ind_x1_rand_dyninst [ubench-500k_O3_PTW] M2 StartIP: 30068a Size: 2679 FP: 764910 lds: 0 Strided: 382598 Indirect: 381740 Constant: 0 Unknown: 572.323 Local multiplier = 286.162
+ubench_1D_Ind_x1_rand_dyninst [ubench-500k_O3_PTW] Med StartIP: 30068a Size: 2679 FP: 781579 lds: 0 Strided: 390936 Indirect: 390058 Constant: 0 Unknown: 584.795 Local multiplier = 292.398
+ubench_1D_Ind_x1_rand_dyninst [ubench-500k_O3_PTW] Mean StartIP: 30068a Size: 2679 FP: 803466 lds: 0 Strided: 401883 Indirect: 400982 Constant: 0 Unknown: 601.172 Local multiplier = 300.586
+ubench_1D_Ind_x1_rand_dyninst [ubench-500k_O3_PTW] tot StartIP: 30068a Size: 2679 FP: 767583 lds: 0 Strided: 383935 Indirect: 383074 Constant: 0 Unknown: 574.323 Local multiplier = 287.162
+ubench_1D_Ind_x2_dyninst [ubench-500k_O3_PTW] StartIP: 3006d0 Size: 5435 FP: 1.08092e+06 lds: 0 Strided: 540110 Indirect: 539761 Constant: 0 Unknown: 1048.76 Local multiplier = 349.586
+ubench_1D_Ind_x2_dyninst [ubench-500k_O3_PTW] M2 StartIP: 3006d0 Size: 5435 FP: 884812 lds: 0 Strided: 442120 Indirect: 441833 Constant: 0 Unknown: 858.485 Local multiplier = 286.162
+ubench_1D_Ind_x2_dyninst [ubench-500k_O3_PTW] Med StartIP: 3006d0 Size: 5435 FP: 904094 lds: 0 Strided: 451754 Indirect: 451462 Constant: 0 Unknown: 877.193 Local multiplier = 292.398
+ubench_1D_Ind_x2_dyninst [ubench-500k_O3_PTW] Mean StartIP: 3006d0 Size: 5435 FP: 929411 lds: 0 Strided: 464405 Indirect: 464105 Constant: 0 Unknown: 901.758 Local multiplier = 300.586
+ubench_1D_Ind_x2_dyninst [ubench-500k_O3_PTW] tot StartIP: 3006d0 Size: 5435 FP: 887904 lds: 0 Strided: 443665 Indirect: 443377 Constant: 0 Unknown: 861.485 Local multiplier = 287.162
+ubench_1D_Ind_halfx1_dyninst [ubench-500k_O3_PTW] StartIP: 300744 Size: 1323 FP: 399395 lds: 0 Strided: 199546 Indirect: 199244 Constant: 0 Unknown: 604.686 Local multiplier = 302.343
+ubench_1D_Ind_halfx1_dyninst [ubench-500k_O3_PTW] M2 StartIP: 300744 Size: 1323 FP: 378019 lds: 0 Strided: 188867 Indirect: 188580 Constant: 0 Unknown: 572.323 Local multiplier = 286.162
+ubench_1D_Ind_halfx1_dyninst [ubench-500k_O3_PTW] Med StartIP: 300744 Size: 1323 FP: 386257 lds: 0 Strided: 192982 Indirect: 192690 Constant: 0 Unknown: 584.795 Local multiplier = 292.398
+ubench_1D_Ind_halfx1_dyninst [ubench-500k_O3_PTW] Mean StartIP: 300744 Size: 1323 FP: 397074 lds: 0 Strided: 198387 Indirect: 198086 Constant: 0 Unknown: 601.172 Local multiplier = 300.586
+ubench_1D_Ind_halfx1_dyninst [ubench-500k_O3_PTW] tot StartIP: 300744 Size: 1323 FP: 379340 lds: 0 Strided: 189527 Indirect: 189239 Constant: 0 Unknown: 574.323 Local multiplier = 287.162
+ubench_1D_If_halfx1_dyninst [ubench-500k_O3_PTW] StartIP: 30078a Size: 1297 FP: 399692 lds: 0 Strided: 199846 Indirect: 199537 Constant: 0 Unknown: 308.404 Local multiplier = 308.404
+ubench_1D_If_halfx1_dyninst [ubench-500k_O3_PTW] M2 StartIP: 30078a Size: 1297 FP: 370865 lds: 0 Strided: 185433 Indirect: 185147 Constant: 0 Unknown: 286.162 Local multiplier = 286.162
+ubench_1D_If_halfx1_dyninst [ubench-500k_O3_PTW] Med StartIP: 30078a Size: 1297 FP: 378947 lds: 0 Strided: 189474 Indirect: 189181 Constant: 0 Unknown: 292.398 Local multiplier = 292.398
+ubench_1D_If_halfx1_dyninst [ubench-500k_O3_PTW] Mean StartIP: 30078a Size: 1297 FP: 389559 lds: 0 Strided: 194780 Indirect: 194479 Constant: 0 Unknown: 300.586 Local multiplier = 300.586
+ubench_1D_If_halfx1_dyninst [ubench-500k_O3_PTW] tot StartIP: 30078a Size: 1297 FP: 372161 lds: 0 Strided: 186081 Indirect: 185794 Constant: 0 Unknown: 287.162 Local multiplier = 287.162
+ubench_multi_func_dyninst [ubench-500k_O3_PTW] StartIP: 3007dc Size: 3065 FP: 900000 lds: 0 Strided: 450440 Indirect: 449266 Constant: 0 Unknown: 293.638 Local multiplier = 293.638
+ubench_multi_func_dyninst [ubench-500k_O3_PTW] M2 StartIP: 3007dc Size: 3065 FP: 877085 lds: 0 Strided: 438972 Indirect: 437827 Constant: 0 Unknown: 286.162 Local multiplier = 286.162
+ubench_multi_func_dyninst [ubench-500k_O3_PTW] Med StartIP: 3007dc Size: 3065 FP: 896199 lds: 0 Strided: 448538 Indirect: 447368 Constant: 0 Unknown: 292.398 Local multiplier = 292.398
+ubench_multi_func_dyninst [ubench-500k_O3_PTW] Mean StartIP: 3007dc Size: 3065 FP: 921296 lds: 0 Strided: 461099 Indirect: 459896 Constant: 0 Unknown: 300.586 Local multiplier = 300.586
+ubench_multi_func_dyninst [ubench-500k_O3_PTW] tot StartIP: 3007dc Size: 3065 FP: 880150 lds: 0 Strided: 440506 Indirect: 439357 Constant: 0 Unknown: 287.162 Local multiplier = 287.162
+__libc_csu_init_dyninst [ubench-500k_O3_PTW] StartIP: 3008d2 Size: 1 FP: 1 lds: 0 Strided: 1 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 1
+__libc_csu_init_dyninst [ubench-500k_O3_PTW] M2 StartIP: 3008d2 Size: 1 FP: 286.162 lds: 0 Strided: 286.162 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 286.162
+__libc_csu_init_dyninst [ubench-500k_O3_PTW] Med StartIP: 3008d2 Size: 1 FP: 292.398 lds: 0 Strided: 292.398 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 292.398
+__libc_csu_init_dyninst [ubench-500k_O3_PTW] Mean StartIP: 3008d2 Size: 1 FP: 300.586 lds: 0 Strided: 300.586 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 300.586
+__libc_csu_init_dyninst [ubench-500k_O3_PTW] tot StartIP: 3008d2 Size: 1 FP: 287.162 lds: 0 Strided: 287.162 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 287.162
+FULL TRACE FP: 178059
+
+Printing Level Averages
+LVL: 3 Number_of_Nodes: 7218 multiplier2: 287.162 Window_Size: 2260.09 FP: 2260.09 Strided: 1261.27 Indirect: 998.461 Constant: 0 Unknown: 0.358057 Acns: 0 Total_Loads: 2260.09
+LVL: 4 Number_of_Nodes: 3578 multiplier2: 287.162 Window_Size: 4549.4 FP: 4549.4 Strided: 2537.58 Indirect: 2011.09 Constant: 0 Unknown: 0.722318 Acns: 0 Total_Loads: 4549.4
+LVL: 5 Number_of_Nodes: 1818 multiplier2: 287.162 Window_Size: 9004.52 FP: 9001.05 Strided: 5036.64 Indirect: 3962.77 Constant: 3.475 Unknown: 1.42159 Acns: 0.000385769 Total_Loads: 9008
+LVL: 6 Number_of_Nodes: 930 multiplier2: 287.162 Window_Size: 17790.4 FP: 17786.7 Strided: 9932.7 Indirect: 7851.24 Constant: 3.39653 Unknown: 2.77898 Acns: 0.000190883 Total_Loads: 17793.8
+LVL: 7 Number_of_Nodes: 518 multiplier2: 287.162 Window_Size: 33988.2 FP: 33979.9 Strided: 18891.7 Indirect: 15083.2 Constant: 6.09803 Unknown: 4.98929 Acns: 0.000179384 Total_Loads: 33994.3
+LVL: 8 Number_of_Nodes: 195 multiplier2: 287.162 Window_Size: 69401.8 FP: 69373.8 Strided: 39162.9 Indirect: 30197.6 Constant: 16.1989 Unknown: 13.2536 Acns: 0.000233352 Total_Loads: 69418
+LVL: 9 Number_of_Nodes: 150 multiplier2: 287.162 Window_Size: 102838 FP: 102767 Strided: 57240.9 Indirect: 45511.3 Constant: 42.117 Unknown: 15.3153 Acns: 0.000409378 Total_Loads: 102880
+LVL: 10 Number_of_Nodes: 85 multiplier2: 287.162 Window_Size: 190388 FP: 190233 Strided: 106365 Indirect: 83827.5 Constant: 37.1621 Unknown: 40.5405 Acns: 0.000195153 Total_Loads: 190425
+LVL: 11 Number_of_Nodes: 42 multiplier2: 287.162 Window_Size: 380236 FP: 379600 Strided: 212677 Indirect: 166868 Constant: 75.209 Unknown: 54.6974 Acns: 0.000197756 Total_Loads: 380311
+LVL: 12 Number_of_Nodes: 22 multiplier2: 287.162 Window_Size: 781432 FP: 779683 Strided: 461521 Indirect: 318058 Constant: 143.581 Unknown: 104.422 Acns: 0.000183707 Total_Loads: 781575
+LVL: 13 Number_of_Nodes: 10 multiplier2: 287.162 Window_Size: 1.59449e+06 FP: 1.55636e+06 Strided: 874479 Indirect: 681650 Constant: 315.878 Unknown: 229.729 Acns: 0.000198066 Total_Loads: 1.59481e+06
+LVL: 14 Number_of_Nodes: 7 multiplier2: 287.162 Window_Size: 3.02767e+06 FP: 2.5872e+06 Strided: 1.433e+06 Indirect: 1.15322e+06 Constant: 451.254 Unknown: 984.554 Acns: 0.000149021 Total_Loads: 3.02812e+06
+LVL: 15 Number_of_Nodes: 2 multiplier2: 287.162 Window_Size: 6.73782e+06 FP: 6.67407e+06 Strided: 3.8344e+06 Indirect: 2.83953e+06 Constant: 1579.39 Unknown: 143.581 Acns: 0.000234352 Total_Loads: 6.73939e+06
+LVL: 16 Number_of_Nodes: 2 multiplier2: 287.162 Window_Size: 1.47878e+07 FP: 1.40276e+07 Strided: 8.01063e+06 Indirect: 6.01548e+06 Constant: 3158.78 Unknown: 1435.81 Acns: 0.000213561 Total_Loads: 1.4791e+07
+Total Trace size: 56055 Important trace size: 1 Multiplier 288.784
+Total loads: 1.61878e+07 Important loads: 288.784
+Tree root multiplier: 
+finished with Footprint Analysis
