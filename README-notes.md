@@ -8,6 +8,7 @@ MemGaze Consolidation
 
 * Consolidation and documentation:
 
+  - Renamed [[fp_intel_pt.x --> memgaze-analyze]]
 
   - [[working]] Test cases using extracts from traces (approx ~100 samples)
 
@@ -22,8 +23,6 @@ MemGaze Consolidation
   
      compile.sh: overall driver
   
-    - Renamed [[fp_intel_pt.x --> memgaze-analyze]]
-     
     - perform instrumentation
   
     - tracing options:
