@@ -33,7 +33,7 @@ MK_SUBDIRS =
 # Check
 #----------------------------------------------------------------------------
 
-fp_anlys := fp_intel_pt.x
+mg_analyze := ../memgaze-analyze
 
 sfx_out   := .out
 sfx_outoe := .out-oe
@@ -41,35 +41,36 @@ sfx_outoe := .out-oe
 sfx_gld   := .gold
 sfx_gldoe := .gold-oe
 
-ubench = ./ubench-500k-O3
+ubench = 
 
 #****************************************************************************
 
-MK_CHECK = $(fp_anlys)
+MK_CHECK = code_lbr # actor_lbr
 
-$(fp_anlys)_CHECK := \
-	ubench-500k-O3.lbr$(sfx_out)
+code_lbr_CHECK := \
+	ubench-O3-n500k-buf8k-p100k$(sfx_out)
 
-$(fp_anlys)_CHECK_BASE = $(patsubst %$(sfx_out),%,$(1))
+code_lbr_CHECK_BASE = $(patsubst %$(sfx_out),%,$(1))
 
-$(fp_anlys)_RUN = \
-  ../$(fp_anlys) \
-    -t $(ubench)/ubench-500k-O3_s8192_p100000.trace.final \
-    -l $(ubench)/ubench-500k-O3.lc_Fixed \
-    -s $(ubench)/ubench-500k-O3_PTW.hpcstruct \
+code_lbr_RUN = \
+  $(mg_analyze) \
+    -t ./$${chk_base}/$${chk_base}.trace \
+    -c ./$${chk_base}/$${chk_base}.callpath \
+    -l ./$${chk_base}/$${chk_base}.binanlys \
+    -s ./$${chk_base}/$${chk_base}.hpcstruct \
     -o $@ \
     -m 1 -p 100000 \
     >& $${chk_base}$(sfx_outoe)
 
-$(fp_anlys)_RUN_DIFF = \
-  diff -C0 -N $*$(sfx_out)   $(ubench)/$*$(sfx_gld)   >  $@ && \
-  diff -C0 -N $*$(sfx_outoe) $(ubench)/$*$(sfx_gldoe) >> $@
+code_lbr_RUN_DIFF = \
+  diff -C0 -N $*$(sfx_out)   ./$*/$*$(sfx_gld)   >  $@ && \
+  diff -C0 -N $*$(sfx_outoe) ./$*/$*$(sfx_gldoe) >> $@
 
-$(fp_anlys)_RUN_UPDATE = \
-  mv $*$(sfx_out)   $(ubench)/$*$(sfx_gld) && \
-  mv $*$(sfx_outoe) $(ubench)/$*$(sfx_gldoe)
+code_lbr_RUN_UPDATE = \
+  mv $*$(sfx_out)   ./$*/$*$(sfx_gld) && \
+  mv $*$(sfx_outoe) ./$*/$*$(sfx_gldoe)
 
-$(fp_anlys)_CLEAN := $(patsubst %$(sfx_out),%$(sfx_outoe),$($(fp_anlys)_CHECK))
+code_lbr_CLEAN := $(patsubst %$(sfx_out),%$(sfx_outoe),$(code_lbr_CHECK))
 
 # FIXME: clean will not capture the $(sfx_outoe) file
 
