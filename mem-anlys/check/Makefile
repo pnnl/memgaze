@@ -41,8 +41,6 @@ sfx_outoe := .out-oe
 sfx_gld   := .gold
 sfx_gldoe := .gold-oe
 
-ubench = 
-
 #****************************************************************************
 
 MK_CHECK = code_lbr # actor_lbr
