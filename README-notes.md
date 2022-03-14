@@ -14,6 +14,7 @@ MemGaze Consolidation
 
   - [[working]] Archive of traces for MemGaze paper with updated naming scheme and only needed files
 
+  - For Intel PT, what kernel/kernel mods are needed?
 
   - Organize <memgaze>/mem-anlys/scripts --> <memgaze>/bin
   
