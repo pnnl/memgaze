@@ -47,12 +47,12 @@ MK_CHECK = code_lbr # actor_lbr
 
 #code_lbr_CHECK := \
 	ubench-O3-n500k-buf8k-p100k$(sfx_out)
+
 code_lbr_CHECK := \
 	minivite-v1-O3-n300k-buf8k-p10M-part1$(sfx_out) \
 	minivite-v1-O3-n300k-buf8k-p10M-part2$(sfx_out) \
 	minivite-v3-O3-n300k-buf8k-p10M-part1$(sfx_out) \
 	minivite-v3-O3-n300k-buf8k-p10M-part2$(sfx_out)
-
 
 code_lbr_CHECK_BASE = $(patsubst %$(sfx_out),%,$(1))
 
