@@ -8,13 +8,14 @@ MemGaze Consolidation
 
 * Consolidation and documentation:
 
-
-  
-  - [[working]] Annotate hacks in bin-anlys CFG / DependenceGraphBuilder
-
   - [[working]] Archive of traces for MemGaze paper with updated naming scheme and only needed files
 
-  - For Intel PT, what kernel/kernel mods are needed?
+  - Notes for Intel PT and changes:
+    - Using kernel 5.5.9: no changes needed.
+    
+    - Modifications to Linux perf (user level):
+      - perf script (static ip address instead of dynamic)
+      - we played with perf driver, but are not using it
 
   - Organize <memgaze>/mem-anlys/scripts --> <memgaze>/bin
   
@@ -111,12 +112,18 @@ MemGaze Consolidation
     ~/1perf-lab/palm/memgaze-memanlys-ruchi/
     /files0/kili337/Nathan/intelPT_FP
 
+  - Annotate hacks in bin-anlys CFG / DependenceGraphBuilder:
+    Search for: "FIXME", 
+
   - Delete <palm>/palm-task/intel_pt
 
-  - Renamed [[fp_intel_pt.x --> memgaze-analyze]]
-    [[Rename .lc to *.binanlys]]
+  - Renamed fp_intel_pt.x --> memgaze-analyze
   
-  - [[working]] Test cases using extracts from traces (approx ~100 samples)
+  - Renamed files, e.g., .lc to *.binanlys
+  
+  - For mem-analysis, make check, i.e, sample texts
+
+  
 -----------------------------------------------------------------------------
 MemGaze Pipeline
 =============================================================================
