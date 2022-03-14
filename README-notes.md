@@ -8,11 +8,7 @@ MemGaze Consolidation
 
 * Consolidation and documentation:
 
-  - Renamed [[fp_intel_pt.x --> memgaze-analyze]]
 
-  - [[working]] Test cases using extracts from traces (approx ~100 samples)
-
-    [[Rename .lc to *.binanlys]]
   
   - [[working]] Annotate hacks in bin-anlys CFG / DependenceGraphBuilder
 
@@ -116,6 +112,10 @@ MemGaze Consolidation
 
   - Delete <palm>/palm-task/intel_pt
 
+  - Renamed [[fp_intel_pt.x --> memgaze-analyze]]
+    [[Rename .lc to *.binanlys]]
+  
+  - [[working]] Test cases using extracts from traces (approx ~100 samples)
 -----------------------------------------------------------------------------
 MemGaze Pipeline
 =============================================================================

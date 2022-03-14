@@ -1,0 +1,744 @@
+Trace InputFile: ./minivite-v3-O3-n300k-buf8k-p10M-part1/minivite-v3-O3-n300k-buf8k-p10M-part1.trace Classication inputFile: ./minivite-v3-O3-n300k-buf8k-p10M-part1/minivite-v3-O3-n300k-buf8k-p10M-part1.binanlys outputFile: minivite-v3-O3-n300k-buf8k-p10M-part1.out
+LAST id: -1 CURRENT: 1
+LAST id: 1 CURRENT: 2
+Call path for sample 2
+	malloc
+LAST id: 2 CURRENT: 2
+LAST id: 2 CURRENT: 2
+LAST id: 2 CURRENT: 3
+Call path for sample 3
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 3 CURRENT: 3
+LAST id: 3 CURRENT: 3
+LAST id: 3 CURRENT: 4
+Call path for sample 4
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 4 CURRENT: 4
+LAST id: 4 CURRENT: 4
+LAST id: 4 CURRENT: 5
+Call path for sample 5
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 5 CURRENT: 5
+LAST id: 5 CURRENT: 5
+LAST id: 5 CURRENT: 6
+Call path for sample 6
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 6 CURRENT: 6
+LAST id: 6 CURRENT: 6
+LAST id: 6 CURRENT: 7
+Call path for sample 7
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 7 CURRENT: 7
+LAST id: 7 CURRENT: 7
+LAST id: 7 CURRENT: 8
+Call path for sample 8
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 8 CURRENT: 8
+LAST id: 8 CURRENT: 8
+LAST id: 8 CURRENT: 9
+Call path for sample 9
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 9 CURRENT: 9
+LAST id: 9 CURRENT: 9
+LAST id: 9 CURRENT: 10
+Call path for sample 10
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 10 CURRENT: 10
+LAST id: 10 CURRENT: 10
+LAST id: 10 CURRENT: 11
+Call path for sample 11
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 11 CURRENT: 11
+LAST id: 11 CURRENT: 11
+LAST id: 11 CURRENT: 12
+Call path for sample 12
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 12 CURRENT: 12
+LAST id: 12 CURRENT: 12
+LAST id: 12 CURRENT: 13
+Call path for sample 13
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 13 CURRENT: 13
+LAST id: 13 CURRENT: 13
+LAST id: 13 CURRENT: 14
+Call path for sample 14
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 14 CURRENT: 14
+LAST id: 14 CURRENT: 14
+LAST id: 14 CURRENT: 15
+Call path for sample 15
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 15 CURRENT: 15
+LAST id: 15 CURRENT: 15
+LAST id: 15 CURRENT: 16
+Call path for sample 16
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 16 CURRENT: 16
+LAST id: 16 CURRENT: 16
+LAST id: 16 CURRENT: 17
+Call path for sample 17
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 17 CURRENT: 17
+LAST id: 17 CURRENT: 17
+LAST id: 17 CURRENT: 18
+Call path for sample 18
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 18 CURRENT: 18
+LAST id: 18 CURRENT: 18
+LAST id: 18 CURRENT: 19
+Call path for sample 19
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 19 CURRENT: 19
+LAST id: 19 CURRENT: 19
+LAST id: 19 CURRENT: 20
+Call path for sample 20
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 20 CURRENT: 20
+LAST id: 20 CURRENT: 20
+LAST id: 20 CURRENT: 21
+Call path for sample 21
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 21 CURRENT: 21
+LAST id: 21 CURRENT: 21
+LAST id: 21 CURRENT: 22
+Call path for sample 22
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 22 CURRENT: 22
+LAST id: 22 CURRENT: 22
+LAST id: 22 CURRENT: 23
+Call path for sample 23
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 23 CURRENT: 23
+LAST id: 23 CURRENT: 23
+LAST id: 23 CURRENT: 24
+Call path for sample 24
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 24 CURRENT: 24
+LAST id: 24 CURRENT: 24
+LAST id: 24 CURRENT: 25
+Call path for sample 25
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 25 CURRENT: 25
+LAST id: 25 CURRENT: 25
+LAST id: 25 CURRENT: 26
+Call path for sample 26
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 26 CURRENT: 26
+LAST id: 26 CURRENT: 26
+LAST id: 26 CURRENT: 27
+Call path for sample 27
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 27 CURRENT: 27
+LAST id: 27 CURRENT: 27
+LAST id: 27 CURRENT: 28
+Call path for sample 28
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 28 CURRENT: 28
+LAST id: 28 CURRENT: 28
+LAST id: 28 CURRENT: 29
+Call path for sample 29
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 29 CURRENT: 29
+LAST id: 29 CURRENT: 29
+LAST id: 29 CURRENT: 30
+Call path for sample 30
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 30 CURRENT: 30
+LAST id: 30 CURRENT: 30
+LAST id: 30 CURRENT: 31
+Call path for sample 31
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 31 CURRENT: 31
+LAST id: 31 CURRENT: 31
+LAST id: 31 CURRENT: 32
+Call path for sample 32
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 32 CURRENT: 32
+LAST id: 32 CURRENT: 32
+LAST id: 32 CURRENT: 33
+Call path for sample 33
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 33 CURRENT: 33
+LAST id: 33 CURRENT: 33
+LAST id: 33 CURRENT: 34
+Call path for sample 34
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 34 CURRENT: 34
+LAST id: 34 CURRENT: 34
+LAST id: 34 CURRENT: 35
+Call path for sample 35
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 35 CURRENT: 35
+LAST id: 35 CURRENT: 35
+LAST id: 35 CURRENT: 36
+Call path for sample 36
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 36 CURRENT: 36
+LAST id: 36 CURRENT: 36
+LAST id: 36 CURRENT: 37
+Call path for sample 37
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 37 CURRENT: 37
+LAST id: 37 CURRENT: 37
+LAST id: 37 CURRENT: 38
+Call path for sample 38
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 38 CURRENT: 38
+LAST id: 38 CURRENT: 38
+LAST id: 38 CURRENT: 39
+Call path for sample 39
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 39 CURRENT: 39
+LAST id: 39 CURRENT: 39
+LAST id: 39 CURRENT: 40
+Call path for sample 40
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 40 CURRENT: 40
+LAST id: 40 CURRENT: 40
+LAST id: 40 CURRENT: 41
+Call path for sample 41
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 41 CURRENT: 41
+LAST id: 41 CURRENT: 41
+LAST id: 41 CURRENT: 42
+Call path for sample 42
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 42 CURRENT: 42
+LAST id: 42 CURRENT: 42
+LAST id: 42 CURRENT: 43
+Call path for sample 43
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 43 CURRENT: 43
+LAST id: 43 CURRENT: 43
+LAST id: 43 CURRENT: 44
+Call path for sample 44
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 44 CURRENT: 44
+LAST id: 44 CURRENT: 44
+LAST id: 44 CURRENT: 45
+Call path for sample 45
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 45 CURRENT: 45
+LAST id: 45 CURRENT: 45
+LAST id: 45 CURRENT: 46
+Call path for sample 46
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 46 CURRENT: 46
+LAST id: 46 CURRENT: 46
+LAST id: 46 CURRENT: 47
+Call path for sample 47
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 47 CURRENT: 47
+LAST id: 47 CURRENT: 47
+LAST id: 47 CURRENT: 48
+Call path for sample 48
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 48 CURRENT: 48
+LAST id: 48 CURRENT: 48
+LAST id: 48 CURRENT: 49
+Call path for sample 49
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 49 CURRENT: 49
+LAST id: 49 CURRENT: 49
+LAST id: 49 CURRENT: 50
+Call path for sample 50
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 50 CURRENT: 50
+LAST id: 50 CURRENT: 50
+LAST id: 50 CURRENT: 51
+Call path for sample 51
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 51 CURRENT: 51
+LAST id: 51 CURRENT: 51
+LAST id: 51 CURRENT: 52
+Call path for sample 52
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 52 CURRENT: 52
+LAST id: 52 CURRENT: 52
+LAST id: 52 CURRENT: 53
+Call path for sample 53
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 53 CURRENT: 53
+LAST id: 53 CURRENT: 53
+LAST id: 53 CURRENT: 54
+Call path for sample 54
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 54 CURRENT: 54
+LAST id: 54 CURRENT: 54
+LAST id: 54 CURRENT: 55
+Call path for sample 55
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 55 CURRENT: 55
+LAST id: 55 CURRENT: 55
+LAST id: 55 CURRENT: 56
+Call path for sample 56
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 56 CURRENT: 56
+LAST id: 56 CURRENT: 56
+LAST id: 56 CURRENT: 57
+Call path for sample 57
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 57 CURRENT: 57
+LAST id: 57 CURRENT: 57
+LAST id: 57 CURRENT: 58
+Call path for sample 58
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 58 CURRENT: 58
+LAST id: 58 CURRENT: 58
+LAST id: 58 CURRENT: 59
+Call path for sample 59
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 59 CURRENT: 59
+LAST id: 59 CURRENT: 59
+LAST id: 59 CURRENT: 60
+Call path for sample 60
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 60 CURRENT: 60
+LAST id: 60 CURRENT: 60
+LAST id: 60 CURRENT: 61
+Call path for sample 61
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 61 CURRENT: 61
+LAST id: 61 CURRENT: 61
+LAST id: 61 CURRENT: 62
+Call path for sample 62
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 62 CURRENT: 62
+LAST id: 62 CURRENT: 62
+LAST id: 62 CURRENT: 63
+Call path for sample 63
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 63 CURRENT: 63
+LAST id: 63 CURRENT: 63
+LAST id: 63 CURRENT: 64
+Call path for sample 64
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 64 CURRENT: 64
+LAST id: 64 CURRENT: 64
+LAST id: 64 CURRENT: 65
+Call path for sample 65
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 65 CURRENT: 65
+LAST id: 65 CURRENT: 65
+LAST id: 65 CURRENT: 66
+Call path for sample 66
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 66 CURRENT: 66
+LAST id: 66 CURRENT: 66
+LAST id: 66 CURRENT: 67
+Call path for sample 67
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 67 CURRENT: 67
+LAST id: 67 CURRENT: 67
+LAST id: 67 CURRENT: 68
+Call path for sample 68
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 68 CURRENT: 68
+LAST id: 68 CURRENT: 68
+LAST id: 68 CURRENT: 69
+Call path for sample 69
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 69 CURRENT: 69
+LAST id: 69 CURRENT: 69
+LAST id: 69 CURRENT: 70
+Call path for sample 70
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 70 CURRENT: 70
+LAST id: 70 CURRENT: 70
+LAST id: 70 CURRENT: 71
+Call path for sample 71
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 71 CURRENT: 71
+LAST id: 71 CURRENT: 71
+LAST id: 71 CURRENT: 72
+Call path for sample 72
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 72 CURRENT: 72
+LAST id: 72 CURRENT: 72
+LAST id: 72 CURRENT: 73
+Call path for sample 73
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 73 CURRENT: 73
+LAST id: 73 CURRENT: 73
+LAST id: 73 CURRENT: 74
+Call path for sample 74
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 74 CURRENT: 74
+LAST id: 74 CURRENT: 74
+LAST id: 74 CURRENT: 75
+Call path for sample 75
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 75 CURRENT: 75
+LAST id: 75 CURRENT: 75
+LAST id: 75 CURRENT: 76
+Call path for sample 76
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 76 CURRENT: 76
+LAST id: 76 CURRENT: 76
+LAST id: 76 CURRENT: 77
+Call path for sample 77
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 77 CURRENT: 77
+LAST id: 77 CURRENT: 77
+LAST id: 77 CURRENT: 78
+Call path for sample 78
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 78 CURRENT: 78
+LAST id: 78 CURRENT: 78
+LAST id: 78 CURRENT: 79
+Call path for sample 79
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 79 CURRENT: 79
+LAST id: 79 CURRENT: 79
+LAST id: 79 CURRENT: 80
+Call path for sample 80
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 80 CURRENT: 80
+LAST id: 80 CURRENT: 80
+LAST id: 80 CURRENT: 81
+Call path for sample 81
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 81 CURRENT: 81
+LAST id: 81 CURRENT: 81
+LAST id: 81 CURRENT: 82
+Call path for sample 82
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 82 CURRENT: 82
+LAST id: 82 CURRENT: 82
+LAST id: 82 CURRENT: 83
+Call path for sample 83
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 83 CURRENT: 83
+LAST id: 83 CURRENT: 83
+LAST id: 83 CURRENT: 84
+Call path for sample 84
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 84 CURRENT: 84
+LAST id: 84 CURRENT: 84
+LAST id: 84 CURRENT: 85
+Call path for sample 85
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 85 CURRENT: 85
+LAST id: 85 CURRENT: 85
+LAST id: 85 CURRENT: 86
+Call path for sample 86
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 86 CURRENT: 86
+LAST id: 86 CURRENT: 86
+LAST id: 86 CURRENT: 87
+Call path for sample 87
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 87 CURRENT: 87
+LAST id: 87 CURRENT: 87
+LAST id: 87 CURRENT: 88
+Call path for sample 88
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 88 CURRENT: 88
+LAST id: 88 CURRENT: 88
+LAST id: 88 CURRENT: 89
+Call path for sample 89
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 89 CURRENT: 89
+LAST id: 89 CURRENT: 89
+LAST id: 89 CURRENT: 90
+Call path for sample 90
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 90 CURRENT: 90
+LAST id: 90 CURRENT: 90
+LAST id: 90 CURRENT: 91
+Call path for sample 91
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 91 CURRENT: 91
+LAST id: 91 CURRENT: 91
+LAST id: 91 CURRENT: 92
+Call path for sample 92
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 92 CURRENT: 92
+LAST id: 92 CURRENT: 92
+LAST id: 92 CURRENT: 93
+Call path for sample 93
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 93 CURRENT: 93
+LAST id: 93 CURRENT: 93
+LAST id: 93 CURRENT: 94
+Call path for sample 94
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 94 CURRENT: 94
+LAST id: 94 CURRENT: 94
+LAST id: 94 CURRENT: 95
+Call path for sample 95
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 95 CURRENT: 95
+LAST id: 95 CURRENT: 95
+LAST id: 95 CURRENT: 96
+Call path for sample 96
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 96 CURRENT: 96
+LAST id: 96 CURRENT: 96
+LAST id: 96 CURRENT: 97
+Call path for sample 97
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 97 CURRENT: 97
+LAST id: 97 CURRENT: 97
+LAST id: 97 CURRENT: 98
+Call path for sample 98
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 98 CURRENT: 98
+LAST id: 98 CURRENT: 98
+LAST id: 98 CURRENT: 99
+Call path for sample 99
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 99 CURRENT: 99
+LAST id: 99 CURRENT: 99
+LAST id: 99 CURRENT: 100
+Call path for sample 100
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+LAST id: 100 CURRENT: 100
+LAST id: 100 CURRENT: 100
+Call path for last sample 100
+	__libc_start_main
+	main_dyninst
+	GenerateRGG::generate_dyninst
+Total Loads:53399 Trace Size:53399
+ before Total Loads in Function:0 Func found:0 Func not Found: 0
+after Total Loads in Function:1 last index: 0 index0
+TOTAL Windows: 99 Important: 0 Problem: 99
+Total Loads:53399
+OZGURDBGFRAMELDS total loads before frame loads is 53399
+OZGURDBGFRAMELDS after timeVec  size  53399
+OZGURDBGFRAMELDS total loads after frame loads is 53399
+PERIOD: 1e+07 WS:534
+CONTROL Median Zs:2739584 Zt:1.34708e+07 Ws:538 Wt:2649 Stime: 1337320267
+Window Size 52914 Wtime: 261657 #Win: 99
+alternative Z1:2.70442e+08 ZS:2.7571e+06 Z3:2.73587e+06
+Do_reuse WS:534 Zt:13646125 Wt:2643 ZS:2739584
+Size of forest is 100
+MULTIPLIERS: xx=5131.31Building tree Forest size  100
+PRINTING TREE of FP
+General MULTIPLIER=5131.31
+#windows: 99 Period:10000000 Total Lds:53399
+General MULTIPLIER with frame loads=18538.7
+Recorded: 53399 supposed to reccord(w/ frame)53399 ratio:1
+Function based Flat FP with mutiplier:5164.12
+GenerateRGG::generate_dyninst [miniVite_O3-v3_PTW] StartIP: 40d9da Size: 53399 FP: 37079.3 lds: 0 Strided: 37079.3 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 18539.7
+GenerateRGG::generate_dyninst [miniVite_O3-v3_PTW] M2 StartIP: 40d9da Size: 53399 FP: 37077.3 lds: 0 Strided: 37077.3 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 18538.7
+GenerateRGG::generate_dyninst [miniVite_O3-v3_PTW] Med StartIP: 40d9da Size: 53399 FP: 37174.7 lds: 0 Strided: 37174.7 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 18587.4
+GenerateRGG::generate_dyninst [miniVite_O3-v3_PTW] Mean StartIP: 40d9da Size: 53399 FP: 37671.8 lds: 0 Strided: 37671.8 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 18835.9
+GenerateRGG::generate_dyninst [miniVite_O3-v3_PTW] tot StartIP: 40d9da Size: 53399 FP: 37079.3 lds: 0 Strided: 37079.3 Indirect: 0 Constant: 0 Unknown: 0 Local multiplier = 18539.7
+FULL TRACE FP: 10328.2
+
+Printing Level Averages
+LVL: 3 Number_of_Nodes: 6826 multiplier2: 18539.7 Window_Size: 146701 FP: 37079.3 Strided: 37079.3 Indirect: 0 Constant: 0 Unknown: 0 Acns: 0 Total_Loads: 146701
+LVL: 4 Number_of_Nodes: 3390 multiplier2: 18539.7 Window_Size: 294874 FP: 37079.3 Strided: 37079.3 Indirect: 0 Constant: 0 Unknown: 0 Acns: 0 Total_Loads: 294874
+LVL: 5 Number_of_Nodes: 1721 multiplier2: 18539.7 Window_Size: 586117 FP: 37079.3 Strided: 37079.3 Indirect: 0 Constant: 0 Unknown: 0 Acns: 0 Total_Loads: 586117
+LVL: 6 Number_of_Nodes: 898 multiplier2: 18539.7 Window_Size: 1.15088e+06 FP: 37079.3 Strided: 37079.3 Indirect: 0 Constant: 0 Unknown: 0 Acns: 0 Total_Loads: 1.15088e+06
+LVL: 7 Number_of_Nodes: 463 multiplier2: 18539.7 Window_Size: 2.21223e+06 FP: 37079.3 Strided: 37079.3 Indirect: 0 Constant: 0 Unknown: 0 Acns: 0 Total_Loads: 2.21223e+06
+LVL: 8 Number_of_Nodes: 200 multiplier2: 18539.7 Window_Size: 4.65633e+06 FP: 37079.3 Strided: 37079.3 Indirect: 0 Constant: 0 Unknown: 0 Acns: 0 Total_Loads: 4.65633e+06
+LVL: 9 Number_of_Nodes: 100 multiplier2: 18539.7 Window_Size: 9.31266e+06 FP: 37079.3 Strided: 37079.3 Indirect: 0 Constant: 0 Unknown: 0 Acns: 0 Total_Loads: 9.31266e+06
+LVL: 10 Number_of_Nodes: 79 multiplier2: 18539.7 Window_Size: 1.15713e+07 FP: 37079.3 Strided: 37079.3 Indirect: 0 Constant: 0 Unknown: 0 Acns: 0 Total_Loads: 1.15713e+07
+LVL: 11 Number_of_Nodes: 41 multiplier2: 18539.7 Window_Size: 2.1431e+07 FP: 37079.3 Strided: 37079.3 Indirect: 0 Constant: 0 Unknown: 0 Acns: 0 Total_Loads: 2.1431e+07
+LVL: 12 Number_of_Nodes: 26 multiplier2: 18539.7 Window_Size: 4.1434e+07 FP: 37079.3 Strided: 37079.3 Indirect: 0 Constant: 0 Unknown: 0 Acns: 0 Total_Loads: 4.1434e+07
+LVL: 13 Number_of_Nodes: 11 multiplier2: 18539.7 Window_Size: 7.95335e+07 FP: 37079.3 Strided: 37079.3 Indirect: 0 Constant: 0 Unknown: 0 Acns: 0 Total_Loads: 7.95335e+07
+LVL: 14 Number_of_Nodes: 6 multiplier2: 18539.7 Window_Size: 1.58313e+08 FP: 37079.3 Strided: 37079.3 Indirect: 0 Constant: 0 Unknown: 0 Acns: 0 Total_Loads: 1.58313e+08
+LVL: 15 Number_of_Nodes: 4 multiplier2: 18539.7 Window_Size: 3.26229e+08 FP: 37079.3 Strided: 37079.3 Indirect: 0 Constant: 0 Unknown: 0 Acns: 0 Total_Loads: 3.26229e+08
+LVL: 16 Number_of_Nodes: 2 multiplier2: 18539.7 Window_Size: 8.12483e+08 FP: 37079.3 Strided: 37079.3 Indirect: 0 Constant: 0 Unknown: 0 Acns: 0 Total_Loads: 8.12483e+08
+Total Trace size: 53399 Important trace size: 1 Multiplier 18709.6
+Total loads: 9.99074e+08 Important loads: 18709.6
+Tree root multiplier: 
+finished with Footprint Analysis
