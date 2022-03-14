@@ -47,21 +47,9 @@ Function::Function  (std::string _name, unsigned long _s,  unsigned long _e) {
 int Function::getFP(){return fp;}
 
 void Function::calcFP(){
-//cout << "DEBUG:: Line: " << __LINE__ << endl;
-//  cout <<__LINE__ << " In calcFP for func: "<<name<<" Size:"<<this->timeVec.size()<<" FP:"<<fpMap.size()<<endl;
-//  map <unsigned long, int> functionFPMap; // will hold every new access 
   map <int,int>typemap;
-//cout << "DEBUG:: Line: " << __LINE__ << endl;
   map <unsigned long, map <int, int>>::iterator typeMapIt;
-//cout << "DEBUG:: Line: " << __LINE__ << endl;
   for(auto it = timeVec.begin(); it != timeVec.end(); it++) {
-//    totalLoads++;
-//    map <unsigned long, int>::iterator fmapIter = functionFPMap.find((*it)->addr->addr);
-//    if (fmapIter != functionFPMap.end()){
-//      fmapIter->second++;
-//    } else {
-//      functionFPMap.insert({(*it)->addr->addr,1});
-//    } 
     typeMapIt = this->fpMap.find((*it)->addr->addr);
     if (typeMapIt != fpMap.end()){
       map <int, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
@@ -76,11 +64,7 @@ void Function::calcFP(){
       typemap.clear();
     }
   }
-//cout << "DEBUG:: Line: " << __LINE__ << endl;
   fp = this->fpMap.size();
-//cout << "DEBUG:: Line: " << __LINE__ << endl;
-//  cout <<__LINE__ << " In calcFP for func: "<<name<<" Size:"<<timeVec.size()<<" FP:"<<fpMap.size()<<endl;
-
 }
 
 void Function::getdiagMap (map <int,int> *typeMap, map <int, double> *fpDiagMap) {
@@ -88,7 +72,7 @@ void Function::getdiagMap (map <int,int> *typeMap, map <int, double> *fpDiagMap)
   map <int, double>::iterator did;
   double total = 0;
   double freq = 1.0; 
-  for (tit;  tit != typeMap->end(); tit++){
+  for (;tit != typeMap->end(); tit++){
     total +=tit->second;
   }
   for (tit = typeMap->begin();  tit != typeMap->end(); tit++){
@@ -104,13 +88,8 @@ void Function::getdiagMap (map <int,int> *typeMap, map <int, double> *fpDiagMap)
 
 void  Function::getFPDiag(map <int, double> *diagMap){ // this map holds fp per type
   map <unsigned long, map <int,int>>::iterator fp_it = this->fpMap.begin();
-  for (fp_it; fp_it != this->fpMap.end() ;  fp_it++){
-//    cout <<"\nFor Address:0x"<<hex<<fp_it->first<<dec<<" typeMap size:"<<fp_it->second.size()<<endl;
-//    for (auto a = fp_it->second.begin(); a != fp_it->second.end(); a++){
-//      cout << "MAP ["<<a->first<<","<<a->second<<"]\n";
-//    }
+  for (; fp_it != this->fpMap.end() ;  fp_it++){
     if (fp_it->second.size() ==1){
-//      cout << "I am adding fp directly since there is only one type\n";
       map <int, double >::iterator dmit =  diagMap->find(fp_it->second.begin()->first);
       if (dmit != diagMap->end()){
         dmit->second++;
@@ -225,9 +204,6 @@ std::vector<AccessTime *> Function::calculateFunctionFPRec(Function *root,  int 
     map <int, double> diagMap;
     root->getFPDiag(&diagMap);
 
-//    cout << root->name << " level " << level << " fp: " <<root->fp<<endl;
-//    cout << "FROM Typemap: S:"<<typemap[1]<<" I:"<<typemap[2]<<" C:"<<typemap[0]<<endl;
-//    cout << "FROM DiagMap: S:"<<diagMap[1]<<" I:"<<diagMap[2]<<" C:"<<diagMap[0]<<endl;
     return childTimeVec;
 }
 
@@ -278,11 +254,9 @@ void  Function::printFunctionTreeRec(Function *root, int level ){
       int total_loads_in_window = 0;
 
 
-//cout << "DEBUG:: Line: " << __LINE__ << " Period: "<<period <<endl;
       for(auto it = timeVec.begin(); it != timeVec.end(); it++) {
         total_loads_in_trace = total_loads_in_trace + 1 + (*it)->ip->getExtraFrameLds();
         total_loads_in_window = total_loads_in_window + 1 + (*it)->ip->getExtraFrameLds();
-//cout << "DEBUG:: Line: " << __LINE__ << endl;
         current_ws++;
         if (is_first){
           is_first = false;
@@ -290,32 +264,21 @@ void  Function::printFunctionTreeRec(Function *root, int level ){
           prev_sampleID = (*it)->getSampleID();
         }
 //Dividing trace regarding the sampling frequency/period
-//        if (is_load){ is load is not needed anymore
           if (prev_sampleID != (*it)->getSampleID()){
             new_sample = true;
           } else {
             new_sample = false;
           }
-//        } else {
-//          if (prevTime != 0 && (*it)->time-prevTime >= (period)){
-//            new_sample =  true;
-//          } else {
-//            new_sample = false;
-//          }
-//        }
       
         
         if (new_sample){
-  //cout << "DEBUG:: Line: " << __LINE__ << endl;
           //calculating window size W and skip time Z
            number_of_windows++;
            window_size+=current_ws;
            wSize.push_back(current_ws);
-  //        cout << "Current w:"<<current_ws << " Tot w:"<<window_size << " #w:"<< number_of_windows;
            skip_time+=((*it)->time-prevTime);
            Zt.push_back((*it)->time-prevTime);
            current_ztime = ((*it)->time-prevTime);
-  //        cout << " Prev T:"<<prevTime<<" firstT:"<<window_first_time<< " wT:"<<(prevTime - window_first_time);
            unsigned long z_curr;
            if (prevTime - window_first_time){
             z_curr = (current_ws*current_ztime)/(prevTime - window_first_time);
@@ -326,7 +289,6 @@ void  Function::printFunctionTreeRec(Function *root, int level ){
            window_time += prevTime - window_first_time;
            wTime.push_back(prevTime - window_first_time);
            window_first_time =  (*it)->time;
-  //        cout <<" Current Z:"<<z_curr<<" Zt:"<<current_ztime<< " zt:"<<skip_time<<endl;
            wMultipliers.push_back((double)period/(double)total_loads_in_window);
            total_loads_in_window = 0;
 
@@ -335,28 +297,18 @@ void  Function::printFunctionTreeRec(Function *root, int level ){
         prevTime = (*it)->time;
         prev_sampleID =  (*it)->getSampleID();
       }
-//      cout << "Ws: "<<window_size<<" Tz: "<<skip_time<<" Tw: "<<window_time<<" size = "<<timeVec.size()<<" #windows:"<<number_of_windows<<endl;
 
       //calculating LoadBased Multiplier versions:
-      double multiplier_ld_median =0;
-      double multiplier_ld_mean =0;
+      //double multiplier_ld_median =0;
+      //double multiplier_ld_mean =0;
       double multiplier_ld_from_totals =0;
       if (number_of_windows > 0){
         std::sort(wMultipliers.begin(),wMultipliers.end());
         int size_wMultiplier  = wMultipliers.size();
-        if (size_wMultiplier){
-          if (size_wMultiplier%2){
-            multiplier_ld_median = wMultipliers[size_wMultiplier/2];
-          } else {
-            multiplier_ld_median = (wMultipliers[size_wMultiplier/2] + wMultipliers[size_wMultiplier/2 -1])/2;
-          }
-        }
         double total_of_multipliers = 0;
         for (int index=0; index< size_wMultiplier; index++){
-//          cout << " Sample Index="<< index<<" multipler="<<wMultipliers[index]<<endl;
           total_of_multipliers+=wMultipliers[index];
         }
-        multiplier_ld_mean = total_of_multipliers/number_of_windows;
         multiplier_ld_from_totals = ((double)number_of_windows*(double)period) / (double)total_loads_in_trace;
       }
       
@@ -369,22 +321,12 @@ void  Function::printFunctionTreeRec(Function *root, int level ){
       int size_Zt =  Zt.size();
       int size_wSize =  wSize.size();
       int size_wTime =  wTime.size();
-      int zTime1 = 0 , wSize1 = 0, wTime1 = 0, zSize1 = 0;
-      int skip_size1 = 0;
-      int skip_size2 = 0;
-//      cout << "CONTROL:: size of  Zs:"<<size_Zs<<" Zt:"<<size_Zt<<" Ws:"<<size_wSize<<" Wt"<<size_wTime<<endl;
+      int wSize1 = 0;
       if (size_Zs){
         if (size_Zs%2){
           skip_size = Zs[size_Zs/2];
         } else {
           skip_size = (Zs[size_Zs/2] + Zs[size_Zs/2 -1])/2;
-        }
-      }
-      if (size_Zt){
-        if (size_Zt%2){
-          zTime1 = Zt[size_Zt/2];
-        } else {
-          zTime1 = (Zt[size_Zt/2] + Zt[size_Zt/2 -1])/2;
         }
       }
       if (size_wSize){
@@ -394,64 +336,18 @@ void  Function::printFunctionTreeRec(Function *root, int level ){
           wSize1 = (wSize[size_wSize/2] + wSize[size_wSize/2 -1])/2;
         }
       }
-      if (size_wTime){
-        if (size_wTime%2){
-          wTime1 = wTime[size_wTime/2];
-        } else {
-          wTime1 = (wTime[size_wTime/2] + wTime[size_wTime/2 -1])/2;
-        }
-      }
-      if (wTime1){
-        zSize1 =  (zTime1*wSize1)/wTime1;
-      }
-//      cout<< "CONTROL Median Zs:"<<skip_size<<" Zt:"<<zTime1<<" Ws:"<<wSize1<<" Wt:"<<wTime1<<endl;
-  //    skip_size = (skip_time*window_size)/window_time;
-      if (window_time)
-        skip_size1 = (skip_time*window_size)/window_time;
       if (number_of_windows)
         window_size=window_size/number_of_windows;
       if (number_of_windows-1)
         skip_time=skip_time/(number_of_windows-1);
       if (number_of_windows)
         window_time = window_time/number_of_windows;
-      if (window_time)
-        skip_size2 = (skip_time*window_size)/window_time;
-//      cout << "alternative Z1:"<<skip_size1 << " ZS:"<<skip_size2<<" Z3:"<<zSize1<<endl;
-//      if (total_window_time)
-//        total_skip_size = (total_skip_time*timeVec.size())/total_window_time;
-//    }
-
-//      cout << "Do_reuse WS:" <<window_size<< " Zt:"<<skip_time << " Wt:"<<window_time<<" ZS:"<<skip_size<<endl;
-
-//      if (window_time){
-//        float z =  (float)((float)window_size * (float)skip_time)/(float)window_time;
-//        window_size =  window_size/number_of_windows;
-//        skip_time =  skip_time/number_of_windows;
-//        window_time = window_time/number_of_windows;
-//      cout << "Ws: "<<window_size<<" Tz: "<<skip_time<<" Tw: "<<window_time<<" size = "<<timeVec.size()<<" #windows:"<<number_of_windows<<" z:"<<z<<endl;
-        //z =  z /number_of_windows;
-//      if (window_size){
-//        float multiplier = (float)(window_size+skip_size)/(float)window_size;
-//        return multiplier;
-//      } else {
-//        return 1.0;
-//      }
       
       if (wSize1){
         float multiplier = (float)(wSize1+skip_size)/(float)wSize1;
-//      cout << "For Focused Func Local multipliers:\nold: "<<multiplier
-//           << " MEAN: "<<multiplier_ld_mean
-//           << " Median: "<<multiplier_ld_median
-//           << " AVG: "<<multiplier_ld_from_totals<<endl;
 
-        //float multiplier = (float)(wSize1+zSize1)/(float)wSize1;
-//        return multiplier;
         return multiplier_ld_from_totals;
       } else {
-//      cout << "For Focused Func Local multipliers:\nold: 1"
-//           << " MEAN: "<<multiplier_ld_mean
-//           << " Median: "<<multiplier_ld_median
-//           << " AVG: "<<multiplier_ld_from_totals<<endl;
         if (multiplier_ld_from_totals)
           return multiplier_ld_from_totals;
         return 1.0;

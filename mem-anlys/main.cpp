@@ -243,7 +243,7 @@ Window * buildTree( vector <Window *> * windows){
       windowID = (*it)->getWindowID();
       windowID.second = lvl+1;
       newWindow->setID(windowID);
-    newWindow->setFuncName();
+      newWindow->setFuncName();
 
       (*it)->setParent (newWindow);
       (*sit)->setParent (newWindow);
@@ -255,6 +255,7 @@ Window * buildTree( vector <Window *> * windows){
       newWindow = new Window();
       newWindow->addLeftChild((*it));
       windowID = (*it)->getWindowID();
+      lvl = (*it)->getWindowID().second;
       windowID.second = lvl+1;
       newWindow->setID(windowID);
       newWindow->setFuncName();
@@ -521,7 +522,6 @@ int main(int argc, char* argv[], const char* envp[]) {
   unsigned long prevTime = 0 , index = 0, reuse = -1, prevIndex = 0;
   int func_last_index = 0, func_index=0;
   bool is_in_func = false;
-  bool newSample =  true;
   int totalWindow = 0, importantWindows=0;
   int missing_frame_loads = 0;
   int trace_size = 0;
@@ -591,7 +591,6 @@ int main(int argc, char* argv[], const char* envp[]) {
         totalWindow++;
         sampleID ++;
         prev_sampleID = in_sampleID;
-        newSample = true; 
       }
 
 
@@ -933,7 +932,7 @@ int main(int argc, char* argv[], const char* envp[]) {
   }
   
   unsigned long skip_size, total_window_time = window_time, total_window_size=window_size;
-  unsigned long total_skip_size, total_skip_time = skip_time;
+  unsigned long total_skip_time = skip_time;
 //  cout << "Before WS:" <<window_size<< " Zt:"<<skip_time << " Wt:"<<window_time<<" ZS:"<<skip_size<<endl;
   float wSize1=0, wTime1=0, zSize1=0, zTime1=0;
   float skip_size2 =0, skip_size1=0;
@@ -1007,7 +1006,6 @@ int main(int argc, char* argv[], const char* envp[]) {
     }
     cout<< "CONTROL Median Zs:"<<skip_size<<" Zt:"<<zTime1<<" Ws:"<<wSize1<<" Wt:"<<wTime1<<" Stime: "<<skip_time<<endl;
     cout << "Window Size "<<window_size << " Wtime: "<<window_time << " #Win: "<<number_of_windows<< endl;
-//    skip_size = (skip_time*window_size)/window_time;
     if (window_time)
       skip_size1 = (skip_time*window_size)/window_time;
     if (number_of_windows)
@@ -1019,8 +1017,6 @@ int main(int argc, char* argv[], const char* envp[]) {
     if (window_time)
       skip_size2 = (skip_time*window_size)/window_time;
     cout << "alternative Z1:"<<skip_size1 << " ZS:"<<skip_size2<<" Z3:"<<zSize1<<endl;
-    if (total_window_time)
-      total_skip_size = (total_skip_time*timeVec.size())/total_window_time;
   }
   if (do_reuse){
     cout << "Do_reuse WS:" <<window_size<< " Zt:"<<skip_time << " Wt:"<<window_time<<" ZS:"<<skip_size<<endl;
