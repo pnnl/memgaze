@@ -47,23 +47,26 @@ MK_CHECK = code_lbr # actor_lbr
 
 #code_lbr_CHECK := \
 	ubench-O3-n500k-buf8k-p100k$(sfx_out)
+# 10000000
 
 code_lbr_CHECK := \
-	minivite-v1-O3-n300k-buf8k-p10M-part1$(sfx_out) \
-	minivite-v1-O3-n300k-buf8k-p10M-part2$(sfx_out) \
-	minivite-v3-O3-n300k-buf8k-p10M-part1$(sfx_out) \
-	minivite-v3-O3-n300k-buf8k-p10M-part2$(sfx_out)
+	ubench-O3-n500k-buf8k-p100000$(sfx_out) \
+	minivite-v1-O3-n300k-buf8k-p10000000-part1$(sfx_out) \
+	minivite-v1-O3-n300k-buf8k-p10000000-part2$(sfx_out) \
+	minivite-v3-O3-n300k-buf8k-p10000000-part1$(sfx_out) \
+	minivite-v3-O3-n300k-buf8k-p10000000-part2$(sfx_out)
 
 code_lbr_CHECK_BASE = $(patsubst %$(sfx_out),%,$(1))
 
 code_lbr_RUN = \
+  [[ $${chk_base} =~ -p([[:digit:]]+) ]] && \
   $(mg_analyze) \
     -t ./$${chk_base}/$${chk_base}.trace \
     -c ./$${chk_base}/$${chk_base}.callpath \
     -l ./$${chk_base}/$${chk_base}.binanlys \
     -s ./$${chk_base}/$${chk_base}.hpcstruct \
     -o $@ \
-    -m 1 -p 10000000 \
+    -m 1 -p $${BASH_REMATCH[1]} \
     >& $${chk_base}$(sfx_outoe)
 
 code_lbr_RUN_DIFF = \
