@@ -79,7 +79,6 @@ MemGaze Consolidation
   - [[more blockers]]?
 
 
-
 -----------------------------------------------------------------------------
 
 * Organization/Notes:
@@ -97,70 +96,11 @@ MemGaze Consolidation
        palm-task: hpctoolkit run + fp analysis on database xml file
 
 
-* Completed:
-  - Overview of pipeline, both external and internal 
-  
-  - Trace format:
-    memcamera: insn-pc mem-addr cpu-id timestamp [mem-addr2 <cpu-id> <timestamp>]
-    memgaze:   insn-pc mem-addr cpu-id timestamp sample-id
 
-  - properly compute $\sampleRatioSym_1$ for code footprints
-  - properly compute $\compressionRatioSym(\windowSz)$
-  - applied fixes just before paper submission
+* Ruchi's branch for saving execution interval tree as hpcviewer xml file:
+  ~/1perf-lab/palm/memgaze-memanlys-ruchi/
+  /files0/kili337/Nathan/intelPT_FP
 
-  - Ruchi's branch for saving execution interval tree as hpcviewer xml file:
-    ~/1perf-lab/palm/memgaze-memanlys-ruchi/
-    /files0/kili337/Nathan/intelPT_FP
-
-  - Annotate hacks in bin-anlys CFG / DependenceGraphBuilder:
-    Search for: "FIXME",
-    -> FIXME:BETTER -> things can be updated for better aproach
-    -> FIXME:deprecated -> I didn't add this one
-    -> FIXME:old  -> not my addition
-    -> FIXME:amd -> commented out for AMD instructions
-    -> FIXME:dyninst -> changes to use dyninst
-    -> FIXME:latency -> possible error for latency
-    -> FIXME:tallent -> I think it was yours
-    -> FIXME:instruction -> changes for new instruction types
-    -> FIXME:unkown -> I don't remember why I did that
-
-  - Delete <palm>/palm-task/intel_pt
-
-  - Renamed fp_intel_pt.x --> memgaze-analyze
-  
-  - Renamed files, e.g., .lc to *.binanlys
-  
-  - For mem-analysis, make check, i.e, sample texts
-
-  
------------------------------------------------------------------------------
-MemGaze Pipeline
-=============================================================================
-
-MemGaze has 3 mains steps:
-1-) Analysis and Instrumentation of the Binary (bin-anyls):
-  -> Read binary with dyninst
-  -> Create internal CFG for each Routine
-  -> Analyze each routine to find each load and their types ( strided, indirect, constant)
-  -> Instrument with ptwrite for selective loads
-  -> Print original and instrumented IP address
-  -> Print load classification file
-  -> Adjust IP addresses
-
-2-) Trace Collection (mem-trace)
-  -> Run Instrumented Binary with perf
-  -> Extract data file with perf-script by using a python script
-  -> Fix IP address by adding base address
-  -> Separate trace and Call Path graph into two different file from the perf script output
-
-3-) Memory Analysis (mem-anlys)
-  -> Read multiple file:
-    -> CallPath  (*.callpath)
-    -> Trace     (*.trace)
-    -> hpcstruct (*.hpcstruct)
-    -> load classification (*.lc)
-  -> Build calling context tree (work in progress)
-  -> Do memeory analysis on the tree  or per routine
 
 
 -----------------------------------------------------------------------------
@@ -194,6 +134,18 @@ Changes from MIAMI-NW (Oldest to newest)
 * Initial support for new Xed instructions (see MIAMI-NW/Pin 3.x support)
   [[TODO]] properly model instruction, esp. LOCK instructions.
 
+
+* Ozgur's Hacks/Annotations:
+
+  - FIXME:BETTER -> things can be updated for better aproach
+  - FIXME:deprecated -> I didn't add this one
+  - FIXME:old  -> not my addition
+  - FIXME:amd -> commented out for AMD instructions
+  - FIXME:dyninst -> changes to use dyninst
+  - FIXME:latency -> possible error for latency
+  - FIXME:tallent -> I think it was yours
+  - FIXME:instruction -> changes for new instruction types
+  - FIXME:unkown -> I don't remember why I did that
 
 
 -----------------------------------------------------------------------------
