@@ -45,10 +45,6 @@ sfx_gldoe := .gold-oe
 
 MK_CHECK = code_lbr # actor_lbr
 
-#code_lbr_CHECK := \
-	ubench-O3-n500k-buf8k-p100k$(sfx_out)
-# 10000000
-
 code_lbr_CHECK := \
 	ubench-O3-n500k-buf8k-p100000$(sfx_out) \
 	minivite-v1-O3-n300k-buf8k-p10000000-part1$(sfx_out) \
