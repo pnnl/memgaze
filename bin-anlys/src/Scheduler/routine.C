@@ -876,7 +876,7 @@ Routine::main_analysis(ImageScope *prog, const MiamiOptions *_mo)
          return (-1);
       }
    }
-//TODO FIXME I need to check if I build the cfg by file or dyninst.
+//TODO FIXME:dyninst I need to check if I build the cfg by file or dyninst.
 //   ires = cfg->addBBAndEdgeCounts();
 
 
@@ -1908,7 +1908,7 @@ const char *
 Routine::ComputeObjectNameForRef(addrtype pc, int32_t memop)
 {
    // This functionality is not implemented yet. I need to get certain
-   // information about variables from Dwarf. FIXME
+   // information about variables from Dwarf. FIXME:old
    return ("~-TODO-~");
 }
 
@@ -1941,7 +1941,7 @@ Routine::decode_instructions_for_block (ScopeImplementation *pscope, CFG::Node *
       res = InstructionDecoder::decode_dyninst(pc+reloc, b->getEndAddress()-pc, &dInst2, dyn_func, dyn_blk);
 #endif
 
-#if 0//FIXME: deprecated
+#if 0//FIXME:deprecated
       MIAMI::DecodedInstruction* dInst2 = new MIAMI::DecodedInstruction(); // FIXME:tallent memory leak
       int res1 = isaXlate_insn_old(pc+reloc, dInst2);
       if (res1 != 0 || dInst2->micro_ops.size() == 0) {
@@ -2101,7 +2101,7 @@ Routine::myConstructPaths(ScopeImplementation *pscope, int no_fpga_acc, const st
       pathId.pathIdx = loopIdx;
       bpit->second->pathId = pathId;
 
-      // FIXME: must compute the average number of times the backedge 
+      // FIXME:old must compute the average number of times the backedge 
       // is taken everytime we enter the loop; Use a dummy value now
       float exit_count = pscope->getExitCount();
       assert (exit_count>0.f || bpmtemp->size()==1);
@@ -2664,7 +2664,7 @@ Routine::constructOuterLoopDG(ScopeImplementation *pscope, CFG::Node *b, int mar
       pathId.pathIdx = loopIdx;
       bpit->second->pathId = pathId;
 
-      // FIXME: must compute the average number of times the backedge 
+      // FIXME:old must compute the average number of times the backedge 
       // is taken everytime we enter the loop; Use a dummy value now
       float exit_count = pscope->getExitCount();
       assert (exit_count>0.f || bpmtemp->size()==1);
@@ -2766,7 +2766,7 @@ Routine::constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
       pathId.pathIdx = loopIdx;
       bpit->second->pathId = pathId;
 
-      // FIXME: must compute the average number of times the backedge 
+      // FIXME:old must compute the average number of times the backedge 
       // is taken everytime we enter the loop; Use a dummy value now
       float exit_count = pscope->getExitCount();
       //assert (exit_count>0.f || bpmtemp->size()==1);
@@ -3295,7 +3295,7 @@ Routine::constructPaths(ScopeImplementation *pscope, CFG::Node *b, int marker,
       pathId.pathIdx = loopIdx;
       bpit->second->pathId = pathId;
 
-      // FIXME: must compute the average number of times the backedge 
+      // FIXME:old must compute the average number of times the backedge 
       // is taken everytime we enter the loop; Use a dummy value now
       float exit_count = pscope->getExitCount();
       assert (exit_count>0.f || bpmtemp->size()==1);

@@ -153,7 +153,7 @@ print_operands(xed_decoded_inst_t* xedd)
               os << xed_operand_enum_t2str(op_name) << "=" << xed_reg_enum_t2str(r);
               break;
           }
-          default: //FIXME: check the width and print the correct right value.
+          default: //FIXME:old check the width and print the correct right value.
             // this is for other miscellaneous immediate fields captured during decode.
             os << " = " << "**" 
                << "need to add support for printing operand: " << xed_operand_enum_t2str(op_name)

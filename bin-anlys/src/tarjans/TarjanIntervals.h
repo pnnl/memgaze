@@ -88,7 +88,7 @@ public:
   RIFG* getRIFG() { return rifg; }
 
 
-  // Obtain a pointer to tree. [FIXME: Do we want to allow this?]
+  // Obtain a pointer to tree. [FIXME:old Do we want to allow this?]
   TarjTreeNode* getTree();
 
 

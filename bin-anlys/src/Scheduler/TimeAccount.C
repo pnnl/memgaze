@@ -440,7 +440,7 @@ TimeAccount::computeBandwidthTime (const Machine *tmach)
          else if (peak_bdwth == 0)
          {
             // bandwidth does not make sense for this level
-            // I should use the latency penalty for both the lower and upper bounds, FIXME
+            // I should use the latency penalty for both the lower and upper bounds, FIXME:old
             unsigned int latkey = MAKE_TIME_ACCOUNT_KEY (MEMORY_PENALTY_TIME_LEVEL, i);
             tait = data.find (latkey);
             if (tait != data.end())

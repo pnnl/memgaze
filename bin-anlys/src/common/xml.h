@@ -181,7 +181,7 @@ namespace xml {
     return (oss.str());
   }
  
-#ifdef ARCH_USE_LONG_LONG // FIXME
+#ifdef ARCH_USE_LONG_LONG // FIXME:old
   inline std::string MakeAttrNum(long long n) {
     std::ostringstream oss;
     oss << attB << n << attE;

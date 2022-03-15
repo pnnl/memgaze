@@ -35,7 +35,7 @@ Machine::Machine(const char* _name, const char* _version)
    replacements = NULL;
    bypasses = NULL;
    has_bypass_rules = false;
-   // FIXME. set this field statically for now. Extend language to 
+   // FIXME:old. set this field statically for now. Extend language to 
    // describe it
    has_branch_prediction = true; 
    unitsIndex = NULL;

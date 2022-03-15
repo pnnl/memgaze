@@ -111,7 +111,7 @@ namespace MIAMI_DG
 // if a control edge is taken more often than the value defined here
 // then I assume it is always predicted and instructions after it are 
 // speculatively executed without any penalty
-// This is a very subjective value. How should it be??? FIXME
+// This is a very subjective value. How should it be??? FIXME:old
 #define BR_HIGH_PROBABILITY   0.75
 
 #define DG_ENTRY_TYPE       -1
@@ -1642,7 +1642,7 @@ protected:
    float avgNumIters;
    Node *cfg_top, *cfg_bottom;
    Node *lastBranch;
-public: //FIXME TODO this should be protected
+public: //FIXME:BETTER TODO this should be protected
    // information to determine more precise memory dependencies
    RFormulasMap &refFormulas;
 protected:

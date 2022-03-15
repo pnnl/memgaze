@@ -266,7 +266,7 @@ MemoryHierarchyLevel::SetSampleMask(int _mask)
    if (probCache)
       probCache->clear();
    /* Must adjust cache parameters to account for effects of sampling. */
-   /***** FIXME *******/
+   /***** FIXME:old *******/
 }
 
 void 

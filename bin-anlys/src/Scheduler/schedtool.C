@@ -507,7 +507,7 @@ main (int argc, char *argv[])
       std::cout<<"Function Name is "<<mo->func_name<<std::endl;
    }
     int nImgs = MIAMI::mdriver.NumberOfImages();
-    nImgs=1;//TODO FIXME this is a hack delete it for full run
+    nImgs=1;//TODO FIXME:dynisnt this is a hack delete it for full run
     const std::string* iNames = MIAMI::mdriver.getImageNames();
     for (int i=0 ; i<nImgs ; ++i)
     {

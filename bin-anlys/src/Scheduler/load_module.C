@@ -1532,12 +1532,7 @@ int LoadModule::dyninstAnalyzeRoutines(ProgScope *prog, const MiamiOptions *mo){
 
    img_scope = new ImageScope(prog, img_name, img_id);
    if (rout->is_valid_for_analysis()){
-//      if (routName.find("targ") != std::string::npos){ //TODO FIXME this is a hack  remove if /else 
-//        std::cout<<"OZGURHACK I am skipping Routine "<<routName<<std::endl;
-//        ires = 1;
-//      } else {
         ires = rout->main_analysis(img_scope, mo);
-//      }
       if (ires < 0){
          fprintf (stderr, "Error while analyzing routine %s\n", rout->Name().c_str());
          if (mo->do_linemap)

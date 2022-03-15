@@ -655,7 +655,7 @@ BlockMRDData::ComputeMemoryEventsForLevel(int level, int numLevels,
          // in the arrays, and add the reuse patterns to the carriedScopes
          
          // I must add cold misses to the reuseMap as well using a sourceId
-         // and carrierId equal to 0 (zero)  **** FIXME ****
+         // and carrierId equal to 0 (zero)  **** FIXME:old ****
          double *namevals = 0;
          count_t refMissCount = iit->coldMisses;
          double refFragMisses = 0.0, refIrregMisses = 0.0;

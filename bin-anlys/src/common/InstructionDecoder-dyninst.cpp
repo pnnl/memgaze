@@ -540,7 +540,7 @@ void dynXlate_jump(instruction_data& insn_data)
   
   if (insn_jump_tgt) { // If the AST gives the constant operand
     insn_jump_tgt = insn_jump_tgt - insn_data.dInst->len;
-    uop->imm_values[uop->num_imm_values].is_signed = (uop->width == 64) ? true : false; //FIXME
+    uop->imm_values[uop->num_imm_values].is_signed = (uop->width == 64) ? true : false; //FIXME:old
     uop->imm_values[uop->num_imm_values].value.s = insn_jump_tgt;
     uop->src_opd[uop->num_src_operands++] = make_operand(MIAMI::OperandType_IMMED, uop->num_imm_values++); 
     insn_jump_tgt = 0;  
@@ -870,7 +870,7 @@ void dynXlate_assignment(Dyninst::Assignment::Ptr aptr, instruction_data& insn_d
         create_store_micro(aptr, 1, insn_data);
         uop->primary = true; // add the is primary micro
         uop->dest_opd[0] = make_operand(MIAMI::OperandType_INTERNAL, 1);
-        append_dest_regs(uop, MIAMI::OperandType_INTERNAL, insn_data.dyn_insn, Dyninst::MachRegister(), uop->width * uop->vec_len, insn_data.arch);// FIXME
+        append_dest_regs(uop, MIAMI::OperandType_INTERNAL, insn_data.dyn_insn, Dyninst::MachRegister(), uop->width * uop->vec_len, insn_data.arch);// FIXME:old
       }
     }
 
@@ -888,7 +888,7 @@ void dynXlate_assignment(Dyninst::Assignment::Ptr aptr, instruction_data& insn_d
           // Change the REGISTER operand by INTERNAL operand since we have another load uop. 
           // Not the best practice to change the last element of source operands like the
           // following. But leave it like this for now. 
-          if(uop->num_src_operands) uop->src_opd[uop->num_src_operands-1] = make_operand(MIAMI::OperandType_INTERNAL, 0); //FIXME, not the right way to do it
+          if(uop->num_src_operands) uop->src_opd[uop->num_src_operands-1] = make_operand(MIAMI::OperandType_INTERNAL, 0); //FIXME:old, not the right way to do it
           append_src_regs(uop, MIAMI::OperandType_INTERNAL, insn_data.dyn_insn, Dyninst::MachRegister(), uop->width * uop->vec_len, insn_data.arch);
           // Similarly, change the destination memory space into internal too. 
           if (aloc.type() == Dyninst::Absloc::Register)
@@ -1037,7 +1037,7 @@ void dynXlate_assignmentAST(Dyninst::Assignment::Ptr aptr, MIAMI::instruction_in
           }
         } 
         else { // operands only concerning memory
-          uop->width = 64; // default 64 for Memory (load / store)--> FIXME
+          uop->width = 64; // default 64 for Memory (load / store)--> FIXME:old
         }
       }
 
@@ -1142,7 +1142,7 @@ void traverse_or(MIAMI::instruction_info* uop, Dyninst::AST::Ptr ast)
   {
     Dyninst::DataflowAPI::ConstantAST::Ptr ast_c = Dyninst::DataflowAPI::ConstantAST::convert(ast);
     uop->src_opd[uop->num_src_operands++] = make_operand(MIAMI::OperandType_IMMED, uop->num_imm_values++);
-    uop->imm_values[uop->num_imm_values].is_signed = (uop->width == 64) ? true : false; //FIXME
+    uop->imm_values[uop->num_imm_values].is_signed = (uop->width == 64) ? true : false; //FIXME:old
     uop->imm_values[uop->num_imm_values].value.s = ast_c->val().val; 
     uop->src_opd[uop->num_src_operands++] = make_operand(MIAMI::OperandType_IMMED, uop->num_imm_values++);
     return;
@@ -1841,7 +1841,7 @@ void create_store_micro(Dyninst::Assignment::Ptr aptr, int idx, instruction_data
   uop->src_opd[uop->num_src_operands++] = make_operand(MIAMI::OperandType_INTERNAL, idx); 
   append_src_regs(uop, MIAMI::OperandType_INTERNAL, insn_data.dyn_insn, Dyninst::MachRegister(), 64, insn_data.arch); // Does the size for internal field matter?
 
-  uop->dest_opd[uop->num_dest_operands++] = make_operand(MIAMI::OperandType_MEMORY, 0); // FIXME--index
+  uop->dest_opd[uop->num_dest_operands++] = make_operand(MIAMI::OperandType_MEMORY, 0); // FIXME:old--index
   for (unsigned int i = 0; i < aptr->inputs().size(); ++i)
   {
     Dyninst::Absloc aloc = aptr->inputs().at(i).absloc();
@@ -2047,7 +2047,7 @@ MIAMI::ExecUnitType get_execution_type(Dyninst::InstructionAPI::Instruction::Ptr
       }
     //}
   }
-  return MIAMI::ExecUnitType_INT; // FIXME 
+  return MIAMI::ExecUnitType_INT; // FIXME:old 
 }
 
 // Processing the output region of a given assignment. 
@@ -2059,7 +2059,7 @@ void get_dest_field(Dyninst::Assignment::Ptr aptr, MIAMI::instruction_info* uop,
     uop->dest_opd[uop->num_dest_operands++] = make_operand(MIAMI::OperandType_REGISTER, idx);
 
   } else if (out_aloc.type() == Dyninst::Absloc::Stack || out_aloc.type() == Dyninst::Absloc::Heap || out_aloc.type() == Dyninst::Absloc::Unknown) {
-    uop->dest_opd[uop->num_dest_operands++] = make_operand(MIAMI::OperandType_MEMORY, 0); // index for memory FIXME
+    uop->dest_opd[uop->num_dest_operands++] = make_operand(MIAMI::OperandType_MEMORY, 0); // index for memory FIXME:old
     uop->type = MIAMI::IB_store;
   }
   insn_locVec.push_back(out_aloc);

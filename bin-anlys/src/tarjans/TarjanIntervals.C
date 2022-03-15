@@ -538,7 +538,7 @@ TarjanIntervals::GetTarjans()
               fprintf(stderr, ">> Set w=%d as irreducible1. vertex(w)=%d\n", w, vertex(w));
 #endif
 #if 1
-              // FIXME: The DSystem version of the code did not have the
+              // FIXME:old The DSystem version of the code did not have the
               // following line.  However, this line IS in the 1997 article,
               // and I believe it is necessary (jle, 03-02-2002).
               nonBackPreds(w).push_back(yy);

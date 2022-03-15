@@ -726,11 +726,6 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
       nnrit = srcreg.begin();
       for( ; nnrit!=srcreg.end() ; ++nnrit ) {
         control++;
-        if (control >1){
-          std::cout << ">>>>> OZGURFIXME THIS HAS MORE REGISTERS <<<<<<\n";
-            nn->longdump(this,std::cout);
-        }
-        //if(nnrit != srcreg.end())
          std::cout<<"Print Src reg info\n"<<nnrit->ToString()<<std::endl;
          std::cout<<"Print Src reg Name: "<<nnrit->name<<std::endl;
          reg = nnrit->name;  
@@ -755,7 +750,7 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
                case XED_REG_RAX:
                   cerr << "PTW rax  @ " << new_point << endl;
 //Currently in 64 bit mod                  
-//                  new_point->pushBack(ptrEAX);//TODO Find a better way to switch between 32 and 64 bit
+//                  new_point->pushBack(ptrEAX);//FIXME:BETTER Find a better way to switch between 32 and 64 bit
                   new_point->pushBack(ptrRAX);
                   break;	    		
                case XED_REG_RBX:
@@ -2437,7 +2432,7 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
    MIAMI::DecodedInstruction dInst2;
    res = InstructionDecoder::decode_dyninst(pc+reloc_offset, b->getEndAddress()-pc, &dInst2, dyn_func, dyn_blk);
 
-   //res = isaXlate_insn_old(pc+reloc_offset, dInst); //FIXME: deprecated
+   //res = isaXlate_insn_old(pc+reloc_offset, dInst); //FIXME::deprecated
 #endif
 
    if (res < 0) { // error while decoding
@@ -2508,12 +2503,7 @@ DGBuilder::build_node_for_instruction(addrtype pc, MIAMI::CFG::Node* b, float fr
       iiobj.data = node;
       //ozgurS
       //      if (node->is_load_instruction()){
-      //TODO findMe and FIXME:segfault
-      //Note: I do not remember why there was a segfault
       node->setLvlMap(img->getMemLoadData(node->getAddress()));
-//      std::cout<<"DEBUG OZGUR instadd: "<< std::hex <<node->getAddress()<< std::dec<<" lvl0:"<<node->getLvlMap()->find(0)->second.hitCount<<" lvl-1:"<<node->getLvlMap()->find(-1)->second.hitCount<<std::endl; //segfault FIXME
-      //std::cout<<"DEBUG OZGUR instadd: "<< std::hex <<node->getAddress()<< std::dec<<" lvl5:"<<node->getLvlMap()->find(5)->second.hitCount<<std::endl; //segfault FIXME
-      //std::cerr<<__func__<<" ozgur testing img total hit at lvl 0 is "<<node->getLvlMap()->find(0)->second.hitCount<<std::endl; 
       //      }
       //ozgurE
       if (node->is_memory_reference())
@@ -3171,7 +3161,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                   // much from the constant terms, then create the dependencies
                   // This solution is not that good. It does not guarantee neither few
                   // positiver, nor few negatives. It just fixes a particular case I
-                  // found in nogaps. FIXME???
+                  // found in nogaps. FIXME:old???
                   float rez;
                   if (!constStride ||
                         ((rez=(((float)ConstantTermOfFormula(_formula-oform))/
@@ -3248,7 +3238,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                            // the existence of this dependency depends on the
                            // number of iterations. But the number of iterations
                            // depends on the problem size. I have to parameterize
-                           // this dependency. FIXME
+                           // this dependency. FIXME:old
                            // 10/23/06 mgabi: Well, if the distance is larger than the 
                            // average number of iterations, then most likely there isn't
                            // a dependency for larger problem sizes either. This happens
@@ -3628,7 +3618,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                              {
                                                 // I think both locF2 and locF1 should be
                                                 // positive for this case
-                                                //OZGUR FIXME: OPEN THIS assert (locF2==1 && locF1>0);
+                                                //OZGUR FIXME:amd OPEN THIS assert (locF2==1 && locF1>0);
                                                 // if (locF2<0)
                                                 //   // this is actually the iteration number for nodeB
                                                 //   locF1 = -locF1;
@@ -3734,7 +3724,7 @@ DGBuilder::computeMemoryDependenciesForManyIter(SchedDG::Node *node,
                                              {
                                                 // I think both locF2 and locF1 should be
                                                 // positive for this case
-                                                //assert (locF2==1 && locF1>0); //OZGUR FIXME: original
+                                                //assert (locF2==1 && locF1>0); //OZGUR FIXME:amd original
                                                 if (locF2==1 && locF1>0){//OZGUR NEW
                                                    std::cout<<"OZGURERROR:: in func "<<__func__<<" line "<<__LINE__<<" locF2= "<<locF2<<"&& locF1= "<<locF1<<std::endl;
                                                 }
@@ -4152,7 +4142,7 @@ DGBuilder::handle_register_dependencies(MIAMI::DecodedInstruction *dInst,
 
    // I need to somehow consider dependencies created by stack
    // push and pop operations. How do they work for x87 operations?
-   // TODO, FIXME???
+   // TODO, FIXME:old???
 
 
    // fetch all destination registers in the regs list

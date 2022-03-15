@@ -113,7 +113,16 @@ MemGaze Consolidation
     /files0/kili337/Nathan/intelPT_FP
 
   - Annotate hacks in bin-anlys CFG / DependenceGraphBuilder:
-    Search for: "FIXME", 
+    Search for: "FIXME",
+    -> FIXME:BETTER -> things can be updated for better aproach
+    -> FIXME:deprecated -> I didn't add this one
+    -> FIXME:old  -> not my addition
+    -> FIXME:amd -> commented out for AMD instructions
+    -> FIXME:dyninst -> changes to use dyninst
+    -> FIXME:latency -> possible error for latency
+    -> FIXME:tallent -> I think it was yours
+    -> FIXME:instruction -> changes for new instruction types
+    -> FIXME:unkown -> I don't remember why I did that
 
   - Delete <palm>/palm-task/intel_pt
 

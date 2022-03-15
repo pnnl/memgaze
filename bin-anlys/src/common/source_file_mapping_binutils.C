@@ -226,7 +226,7 @@ get_source_file_location (void *data, addrtype pc, int32_t* column, int32_t* lin
    // I should either adopt the addr2line algorithm (I copied the file in 
    // the MIAMI/src/common/ folder, or change MIAMI to use SymtabAPI, if
    // the later one handles debug information correctlty.
-   // ***** FIXME *****
+   // ***** FIXME:old *****
    bfd_boolean found = bfd_find_nearest_line (info->abfd, section, info->syms, pc - vma,
 				 &filename, &functionname, &lineval);
 

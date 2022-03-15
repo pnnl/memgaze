@@ -866,7 +866,7 @@ SchedDG::pruneDependencyGraph()
             // was received as a parameter. I should test that both registers
             // are defined inside the loop. For this I should add some flag to
             // each register to tell if it was defined inside the loop or not.
-            // TODO - FIXME
+            // TODO - FIXME:old
             if (node==nn && oem->getType()!=MEMORY_TYPE &&
                     !node->is_load_instruction())
             {
@@ -1138,7 +1138,7 @@ SchedDG::pruneGraphRecursively(SchedDG::Node* node, unsigned int cMark,
          // was received as a parameter. I should test that both registers
          // are defined inside the loop. For this I should add some flag to
          // each register to tell if it was defined inside the loop or not.
-         // TODO - FIXME
+         // TODO - FIXME:old
          if (node==sink && oeit->getType()!=MEMORY_TYPE &&
                  !node->is_load_instruction() && 
                   node->srcRegs.size()<2 )
@@ -5437,7 +5437,7 @@ SchedDG::replacePattern(ReplacementRule* rule, unsigned int replacementIndex,
                // I need to test if all nodes have at least a dependency
                // from a node which is after the last barrier node. If not,
                // then create a CONTROL dependency from the last barrier node.
-               // FIXME - can it fail for more complex patterns??
+               // FIXME:old - can it fail for more complex patterns??
                PatternGraph::Edge* mappedEdge = srcNode->FirstPredecessor();
                Edge* actualPred = NULL;
                if (mappedEdge!=NULL)
@@ -5718,7 +5718,7 @@ SchedDG::replacePattern(ReplacementRule* rule, unsigned int replacementIndex,
                
                // traverse the list of outgoing edges from the actualN, and 
                // create a duplicate edge from this node to each sink node; 
-               // Create only dependencies of pittype type??? FIXME
+               // Create only dependencies of pittype type??? FIXME:old
                // Duplicate also all outgoing control dependencies
                OutgoingEdgesIterator oeit(actualN);
                bool found = false;
@@ -7517,7 +7517,7 @@ SchedDG::create_schedule ()
                // I've encountered multiple cases where one SCC (strongly connected 
                // component is reached from more than one acyclic path, creating
                // diamond like structures that result in a scheduling deadlock.
-//               if (! limpModeFindCycle)  // FIXME
+//               if (! limpModeFindCycle)  // FIXME:old
                {
                   if (e->hasCycles<3 && newNode->hasCycles==3)
                      trycase = TC_SCC_REACHED_FROM_ACYCLIC;
@@ -8658,7 +8658,7 @@ SchedDG::processIncidentEdges (Node *newNode, int templIdx, int i, int unit)
          // Now check all cycles this edge is part of to see if
          // we break the global constraints; only if use any slack
          // ******* HERE ********* TODO *********
-         // FIXME: Also, reorder the edges, giving higher priority
+         // FIXME:old Also, reorder the edges, giving higher priority
          // to those that are part of cycles that have less slack
          // available. Must find an EFFICIENT solution though.
          // MORE: I realized there can be a deadlock for diamond
@@ -8708,7 +8708,7 @@ SchedDG::processIncidentEdges (Node *newNode, int templIdx, int i, int unit)
 
                   undo_partial_node_scheduling (newNode, &newEdges, &elit);
                   
-                  // FIXME??? I do not know if the exception mask 
+                  // FIXME:old??? I do not know if the exception mask 
                   // should include TC_NODE_WITH_MIXED_EDGES below
                   throw (UnsuccessfulSchedulingException (maxSchedId,
                            TC_SHORT_BEFORE_LONG_CYCLE | TC_CONCENTRIC_TRYCASE, 
@@ -8735,7 +8735,7 @@ SchedDG::processIncidentEdges (Node *newNode, int templIdx, int i, int unit)
 
                   undo_partial_node_scheduling (newNode, &newEdges, &elit);
                   
-                  // FIXME??? I do not know if the exception mask 
+                  // FIXME:old??? I do not know if the exception mask 
                   // should include TC_NODE_WITH_MIXED_EDGES below
                   throw (UnsuccessfulSchedulingException (maxSchedId,
                            TC_SHORT_BEFORE_LONG_CYCLE | TC_CONCENTRIC_TRYCASE, 
@@ -10048,7 +10048,7 @@ SchedDG::computeScheduleLatency(int graph_level, int detailed)
 
       // in case of succes draw the graph with the complete schedule
       // otherwise, generate a debugging graph with the partial schedule
-      // FIXME: Add a flag to decide when to draw these graphs, and for 
+      // FIXME:old Add a flag to decide when to draw these graphs, and for 
       // which paths
       bool make_draw = false;
       if ( (success && (DRAW_GRAPH_ON_SUCCESS & graph_level)) ||
@@ -10158,7 +10158,7 @@ SchedDG::computeScheduleLatency(int graph_level, int detailed)
                schedule_length = preDeadlockLength;
                timeStats = savedTimeStats;
                totalResources = savedTotalResources;
-               /**** FIXME TODO *****/
+               /**** FIXME:old TODO *****/
                continue; // ???
 //               exit (-5);
             }
@@ -10500,7 +10500,7 @@ std::cerr<<__func__<<"2 ozgurCheckLat cpu= "<<cpuLatency<<" tot= "<<schedule_len
 
       // in case of succes draw the graph with the complete schedule
       // otherwise, generate a debugging graph with the partial schedule
-      // FIXME: Add a flag to decide when to draw these graphs, and for 
+      // FIXME:old Add a flag to decide when to draw these graphs, and for 
       // which paths
       bool make_draw = false;
       if ( (success && (DRAW_GRAPH_ON_SUCCESS & graph_level)) ||
@@ -10614,7 +10614,7 @@ std::cerr<<__func__<<"1 ozgurCheckLat cpu= "<<cpuLatency<<" tot= "<<schedule_len
 //ozgurE
                timeStats = savedTimeStats;
                totalResources = savedTotalResources;
-               /**** FIXME TODO *****/
+               /**** FIXME:old TODO *****/
                continue; // ???
 //               exit (-5);
             }
@@ -10647,7 +10647,7 @@ std::cerr<<__func__<<"1 ozgurCheckLat cpu= "<<cpuLatency<<" tot= "<<schedule_len
              longestCycle, maxPathRootToLeaf);
       )
 #endif
-        //FIXME chech if it need to be increased ozgur 
+        //FIXME:latency chech if it need to be increased ozgur 
 //         Edge *superE = NULL;
          bool increased = false;
          int old_schedule_length = schedule_length;
@@ -12312,7 +12312,7 @@ SchedDG::minSchedulingLengthDueToResources(int& bottleneckUnit,
    }
    
    // Do not apply retirement limit if this is a short loop with few average iterations
-   // FIXME: use a function of window size instead of the constant 100 or whatever
+   // FIXME:old use a function of window size instead of the constant 100 or whatever
    float numIters = avgNumIters;
    if (numIters>1.0f) numIters -= 1.0f;
    if (max_retire>0 && num_instructions>0 && num_instructions*numIters>80)
@@ -12681,7 +12681,7 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
    RInfoList::iterator irit = nnDestRegs.begin();
    for( ; irit!=nnDestRegs.end() ; ++irit ) {
       if (inSrcReg.name == irit->name){//TODO if no match still go back on dependencieis
-                                       //FIXME is it possible to not have a match ??
+                                       //FIXME:old is it possible to not have a match ??
          RInfoList::iterator nnrit = nnSrcRegs.begin();
          for( ; nnrit!=nnSrcRegs.end() ; ++nnrit ) {
             IncomingEdgesIterator ieit(nn);
@@ -12713,7 +12713,7 @@ AGAIN:
    std::cout<<"_____1_____\n";
 //      if (inSrcReg.name == irit->name){//TODO if no match still go back on dependencieis
    std::cout<<"_____2_____\n";
-                                       //FIXME is it possible to not have a match ??
+                                       //FIXME:old is it possible to not have a match ??
          RInfoList::iterator nnrit = nnSrcRegs.begin();
          for( ; nnrit!=nnSrcRegs.end() ; ++nnrit ) {
    std::cout<<"_____3_____\n";

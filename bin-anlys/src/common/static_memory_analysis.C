@@ -746,7 +746,7 @@ ReferenceSlice::SliceOut(PrivateCFG::Node *b, int uop_idx, const register_info& 
                }
             }
             
-            /* ***** ***** FIXME ***** ***** */
+            /* ***** ***** FIXME:old ***** ***** */
             if (op == OP_ADD)
             {
                rf1->formula += rf2->formula;
@@ -2178,11 +2178,11 @@ StrideSlice::SliceOut(PrivateCFG::Node* b, int uop_idx, const register_info& reg
             assert (ii->num_imm_values == 1);
             si->formula = new GFSliceVal(sliceVal(ii->imm_values[0].value.s, TY_CONSTANT));
          } 
-         //OZGURFIXME start I am guessing I add this check for lea
+         //OZGUR FIXME:instruction start I am guessing I add this check for lea
          else  if (ii->type==IB_lea){
             si->formula = new GFSliceVal(sliceVal(ii->imm_values[0].value.s, TY_REGISTER));
          }
-         //OZGURFIXME END
+         //OZGUR FIXME:instruction END
          else
          {
             fprintf (stderr, "ALERT, Micro-op %d at pc 0x%" PRIxaddr " with slice effect EASY on reg %s, has type %d which is not MOVE. Check it out!\n",
