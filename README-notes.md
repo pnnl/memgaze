@@ -83,6 +83,7 @@ MemGaze Consolidation
 
 * Organization/Notes:
   - `mem-trace`
+
   - `bin-anlys`
     - Our stipped down version of MIAMI, uses DynInst, unlike MIAMI-NW
     - MemGaze binary instrumentor
@@ -94,8 +95,6 @@ MemGaze Consolidation
      - footprint analysis of sampled trace
      - Palm coarse-grained footprint analysis
        palm-task: hpctoolkit run + fp analysis on database xml file
-
-
 
 * Ruchi's branch for saving execution interval tree as hpcviewer xml file:
   ~/1perf-lab/palm/memgaze-memanlys-ruchi/
@@ -135,17 +134,22 @@ Changes from MIAMI-NW (Oldest to newest)
   [[TODO]] properly model instruction, esp. LOCK instructions.
 
 
-* Ozgur's Hacks/Annotations:
+* Ozgur Kilic's Annotations:
 
-  - FIXME:BETTER -> things can be updated for better aproach
-  - FIXME:deprecated -> I didn't add this one
-  - FIXME:old  -> not my addition
-  - FIXME:amd -> commented out for AMD instructions
-  - FIXME:dyninst -> changes to use dyninst
-  - FIXME:latency -> possible error for latency
-  - FIXME:tallent -> I think it was yours
+  - FIXME:dyninst     -> changes to use dyninst
+  
+  - FIXME:amd         -> commented out for AMD instructions
   - FIXME:instruction -> changes for new instruction types
-  - FIXME:unkown -> I don't remember why I did that
+
+  - FIXME:BETTER      -> things can be updated for better aproach
+
+  - FIXME:latency     -> possible error for latency
+
+  - FIXME:unkown      -> I don't remember why I did that
+
+  - FIXME:tallent     -> not from Ozgur
+  - FIXME:old         -> not from Ozgur
+  - FIXME:deprecated  -> not from Ozgur
 
 
 -----------------------------------------------------------------------------

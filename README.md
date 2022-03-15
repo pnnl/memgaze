@@ -37,7 +37,13 @@ MemGaze has 3 mains steps:
 Linux Perf
 =============================================================================
 
+[[Ozgur: todo]]
 
+- Using kernel 5.5.9: no changes needed.
+    
+- Modifications to Linux perf (user level):
+  - perf script (static ip address instead of dynamic)
+  - we played with perf driver, but are not using it
 
 
 -----------------------------------------------------------------------------
