@@ -6,9 +6,6 @@ $Id$
 MemGaze Consolidation
 =============================================================================
 
-[[ "-xWHY-p1000" =~ -p([[:digit:]]+) ]] && me=${BASH_REMATCH[1]} && echo ${me}
-
-
 * Consolidation and documentation:
 
   - [[working]] Archive of traces for MemGaze paper with updated naming scheme and only needed files
