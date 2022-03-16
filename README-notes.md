@@ -10,37 +10,16 @@ MemGaze Consolidation
 
   - [[working]] Archive of traces for MemGaze paper with updated naming scheme and only needed files
 
-  - Notes for Intel PT and changes:
-    - Using kernel 5.5.9: no changes needed.
-    
-    - Modifications to Linux perf (user level):
-      - perf script (static ip address instead of dynamic)
-      - we played with perf driver, but are not using it
+  - [[working]] Notes for Intel PT and changes:
 
-  - Organize <memgaze>/mem-anlys/scripts --> <memgaze>/bin
-  
-     compile.sh: overall driver
-  
-    - perform instrumentation
-  
-    - tracing options:
-      - PT-based samples: application vs. system-wide; +LBR
-      - Sparse samples (ld latency)
+  - <memgaze>/bin:
+    - What does each do? Naming?
+    - paths as variables instead of hard-coded
 
-  - Notes using Linux perf, perf script, dyninst, instrumentation or analysis?
-    - system wide monitoring and ordering/timestamps
-    - virtual to physical address?
-    
-    ```
-    - without --per-thread, perf opens a fd on each core because it has a buffer/event per cpu; size (129 pages  4 k)
-    - perf-event-disable (ioctl) should have an effect when it returns (write to msr)
-    - libunwind happens in userland: perf copies context/stack into its buffer
-
-    > perf report -D
-    > perf -g + pt
-    > strace -etrace=perf_event_open
-    ```
+    - memory measurement: PT: application vs. system-wide; +LBR
+    - memory measurement: Intel ld latency recipe
   
+    - Any usage notes? gotchas?
 
 * Bugs:
   - [[working]] memory leaks
@@ -54,9 +33,9 @@ MemGaze Consolidation
 
 * Better build (can build "externals' with spack)
 
-[[Checked spack hpctoolkit build: Entire dyninst appears to be built.]]
+  [[Checked spack hpctoolkit build: Entire dyninst appears to be built.]]
 
-- Can spack use scope/custimization to change where it pulls/obtains source code.
+  - Can spack use scope/custimization to change where it pulls/obtains source code.
 
   - **dyninst branch** for souce code mapping has a hack.
   
@@ -76,8 +55,6 @@ MemGaze Consolidation
   - **Linux perf**: Within 'perf script' (user-level) hack to
     non-linked/related ip pointer.
   
-  - [[more blockers]]?
-
 
 -----------------------------------------------------------------------------
 
