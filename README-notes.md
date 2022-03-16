@@ -56,6 +56,27 @@ MemGaze Consolidation
     non-linked/related ip pointer.
   
 
+-----------------------------------------------------------------------------
+
+* Ruchi <nina222> branch to write execution interval tree as hpcviewer xml:
+
+  ~/1perf-lab/palm/memgaze-memanlys-ruchi/ (/files0/kili337/Nathan/intelPT_FP)
+  
+  See: 'ruchi-*.cpp' and test example in 'hpcviewer-data'
+
+```
+<MetricTable>
+    <Metric i="0" n="footprint" o="0" v="final" show="1" show-percent="1">
+      <Info><NV n="units" v="footprint"/><NV n="period" v="1"/></Info>
+    </Metric>
+</MetricTable>
+
+<PF i="2" ...>
+  <M n="0" v="<value"/>
+  <C i="3" s="212" l="0" v="0xd39f">
+    <PF i="4" ...>
+```
+
 
 
 =============================================================================
@@ -64,24 +85,26 @@ MemGaze Structure
 
 * mem-trace
 
+* bin-anlys: static binary analysis and instrumentation
 
-* bin-anlys: MemGaze's binary instrumentor
-  - MemGaze's pruned version of MIAMI. Uses DynInst.
+  - Contains code derived from MIAMI-NW. Uses DynInst.
 
-  - Palm function-level, fine-grained footprint analysis (ISPASS 20)
-  - Palm task-based path cost analysis
-    (insn + memory latency, IPDPS 17 extension to replace IACA)
+  - Fast-footprint 'fine-grained footprint analysis' (ISPASS 20). This
+    is function-level, footprint analysis combining (intraprocedural)
+    static analysis, control-flow profiles (for loop execution
+    counts), and memory-hit profiles.
+  
+  - Palm's task-based path cost analysis (critical path) for paths of
+    basic blocks. Cost includes instruction pipeline latency and
+    memory latency. Replaces IACA and extends its analysis.
 
-* mem-anlys: MemGaze's analysis of sampled trace
+
+* mem-anlys: analysis of memory traces
+
   - footprint, execution interval tree
+
   - Palm coarse-grained footprint analysis
     palm-task: hpctoolkit run + fp analysis on database xml file
-
-
-* Ruchi's branch for saving execution interval tree as hpcviewer xml file:
-  ~/1perf-lab/palm/memgaze-memanlys-ruchi/
-  /files0/kili337/Nathan/intelPT_FP
-
 
 
 =============================================================================
