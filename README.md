@@ -8,11 +8,15 @@ MemGaze Pipeline
 
 MemGaze has 3 mains steps. To run all three main steps use compile.sh 
 
-```./compile.sh <FOLDER> <BIN> <ARGS> <0(time)/1(load)> <BufferSIZE(def=8192)> <PERIOD(def=37500000)> <MaskedBits(def=0)> <FUNCTION-NAME if need to focus>```
+  ```./compile.sh <FOLDER> <BIN> <ARGS> <0(time)/1(load)> <BufferSIZE(def=8192)> <PERIOD(def=37500000)> <MaskedBits(def=0)> <FUNCTION-NAME if need to focus>```
 
-1-) Analysis and Instrumentation of the Binary (bin-anyls): 
-  
-  ```./instument_binary.sh ${FOLDER}/${BIN}```
+[[memgaze-all]]
+
+1-) Analysis and Instrumentation of the Binary (bin-anyls):
+
+  ```./instument_binary.sh <path-to-binary>```
+
+[[memgaze-inst]]
 
   -> Read binary with dyninst
 
@@ -39,7 +43,10 @@ MemGaze has 3 mains steps. To run all three main steps use compile.sh
   -> Run Instrumented Binary with perf
   
   ```./collect_data.sh ${FOLDER}/${BIN} """$ARGS""" ${SIZE} ${PERIOD} 0 ${LOAD}```
-  
+
+[[memgaze-trace]]
+
+
   -> Extract data file with perf-script by using a python script
   
   ```./extract_data.sh ${FOLDER}/${BIN}_s${SIZE}_p${PERIOD}```

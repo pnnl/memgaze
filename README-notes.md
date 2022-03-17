@@ -13,13 +13,10 @@ MemGaze Consolidation
   - [[working]] Notes for Intel PT and changes:
 
   - <memgaze>/bin:
-    - What does each do? Naming?
-    - paths as variables instead of hard-coded
-
     - memory measurement: PT: application vs. system-wide; +LBR
     - memory measurement: Intel ld latency recipe
   
-    - Any usage notes? gotchas?
+
 
 * Bugs:
   - [[working]] memory leaks
