@@ -80,6 +80,20 @@ Linux Perf
   - we played with perf driver, but are not using it
 
 
+???
+- system wide monitoring and ordering/timestamps
+
+    ```
+    - without --per-thread, perf opens a fd on each core because it has a buffer/event per cpu; size (129 pages  4 k)
+    - perf-event-disable (ioctl) should have an effect when it returns (write to msr)
+    - libunwind happens in userland: perf copies context/stack into its buffer
+
+    > perf report -D
+    > perf -g + pt
+    > strace -etrace=perf_event_open
+    ```
+
+
 -----------------------------------------------------------------------------
 Trace format
 =============================================================================

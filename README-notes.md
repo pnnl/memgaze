@@ -10,37 +10,16 @@ MemGaze Consolidation
 
   - [[working]] Archive of traces for MemGaze paper with updated naming scheme and only needed files
 
-  - Notes for Intel PT and changes:
-    - Using kernel 5.5.9: no changes needed.
-    
-    - Modifications to Linux perf (user level):
-      - perf script (static ip address instead of dynamic)
-      - we played with perf driver, but are not using it
+  - [[working]] Notes for Intel PT and changes:
 
-  - Organize <memgaze>/mem-anlys/scripts --> <memgaze>/bin
-  
-     compile.sh: overall driver
-  
-    - perform instrumentation
-  
-    - tracing options:
-      - PT-based samples: application vs. system-wide; +LBR
-      - Sparse samples (ld latency)
+  - <memgaze>/bin:
+    - What does each do? Naming?
+    - paths as variables instead of hard-coded
 
-  - Notes using Linux perf, perf script, dyninst, instrumentation or analysis?
-    - system wide monitoring and ordering/timestamps
-    - virtual to physical address?
-    
-    ```
-    - without --per-thread, perf opens a fd on each core because it has a buffer/event per cpu; size (129 pages  4 k)
-    - perf-event-disable (ioctl) should have an effect when it returns (write to msr)
-    - libunwind happens in userland: perf copies context/stack into its buffer
-
-    > perf report -D
-    > perf -g + pt
-    > strace -etrace=perf_event_open
-    ```
+    - memory measurement: PT: application vs. system-wide; +LBR
+    - memory measurement: Intel ld latency recipe
   
+    - Any usage notes? gotchas?
 
 * Bugs:
   - [[working]] memory leaks
@@ -54,9 +33,9 @@ MemGaze Consolidation
 
 * Better build (can build "externals' with spack)
 
-[[Checked spack hpctoolkit build: Entire dyninst appears to be built.]]
+  [[Checked spack hpctoolkit build: Entire dyninst appears to be built.]]
 
-- Can spack use scope/custimization to change where it pulls/obtains source code.
+  - Can spack use scope/custimization to change where it pulls/obtains source code.
 
   - **dyninst branch** for souce code mapping has a hack.
   
@@ -76,65 +55,63 @@ MemGaze Consolidation
   - **Linux perf**: Within 'perf script' (user-level) hack to
     non-linked/related ip pointer.
   
-  - [[more blockers]]?
-
 
 -----------------------------------------------------------------------------
 
-* Organization/Notes:
-  - `mem-trace`
+* Ruchi <nina222> branch to write execution interval tree as hpcviewer xml:
 
-  - `bin-anlys`
-    - Our stipped down version of MIAMI, uses DynInst, unlike MIAMI-NW
-    - MemGaze binary instrumentor
-    - Palm function-level, fine-grained footprint analysis (ISPASS 20)
-    - Palm task-based path cost analysis
-      (insn + memory latency, IPDPS 17 extension to replace IACA)
+  ~/1perf-lab/palm/memgaze-memanlys-ruchi/ (/files0/kili337/Nathan/intelPT_FP)
+  
+  See: 'ruchi-*.cpp' and test example in 'hpcviewer-data'
 
-  - `mem-anlys`
-     - footprint analysis of sampled trace
-     - Palm coarse-grained footprint analysis
-       palm-task: hpctoolkit run + fp analysis on database xml file
+```
+<MetricTable>
+    <Metric i="0" n="footprint" o="0" v="final" show="1" show-percent="1">
+      <Info><NV n="units" v="footprint"/><NV n="period" v="1"/></Info>
+    </Metric>
+</MetricTable>
 
-* Ruchi's branch for saving execution interval tree as hpcviewer xml file:
-  ~/1perf-lab/palm/memgaze-memanlys-ruchi/
-  /files0/kili337/Nathan/intelPT_FP
+<PF i="2" ...>
+  <M n="0" v="<value"/>
+  <C i="3" s="212" l="0" v="0xd39f">
+    <PF i="4" ...>
+```
 
 
 
------------------------------------------------------------------------------
-Changes from MIAMI-NW (Oldest to newest)
+=============================================================================
+MemGaze Structure
 =============================================================================
 
-* Use DynInst to load/process binary instead of
-  PIN. LoadModule/Routine/instructions use data from DynInst.
-  - `src/Scheduler/load-module.C`
-  - `src/Scheduler/routine.C`
+* mem-trace
 
-* Replace use of PIN with Xed (support newer GCCs and C++ RTTI)
-  - Use argp option parser (instead of PIN's)
-  - Remove tools that depend on PIN.
-  - `miami.config.sample`
-  - `miami.config`
-  - `src/make.rules`
-  - `src/Scheduler/makefile.pin`                     [removed]
-  - `src/tools/pin_config`                            [removed]
-  - `src/{CFGtool, CacheSim, MemReuse, StreamSim}` [removed]
+* bin-anlys: static binary analysis and instrumentation
 
-* Simplify make system (now that PIN-based tools are gone)
-  - `miami.config`
-  - `src/make.rules`                               [removed]
-  - `src/Scheduler/makefile.pin -> Makefile`    [renamed]
+  - Contains code derived from MIAMI-NW. Uses DynInst.
 
-* Initial support for decoding with either Xed or DynInst
-  `SystemSpecific/x86_xed_decoding.C` -> `InstructionDecoder-xed.cpp`
-  `SystemSpecific/IB_x86_xed.C` -> `InstructionDecoder-xed-iclass.h`
-
-* Initial support for new Xed instructions (see MIAMI-NW/Pin 3.x support)
-  [[TODO]] properly model instruction, esp. LOCK instructions.
+  - Fast-footprint 'fine-grained footprint analysis' (ISPASS 20). This
+    is function-level, footprint analysis combining (intraprocedural)
+    static analysis, control-flow profiles (for loop execution
+    counts), and memory-hit profiles.
+  
+  - Palm's task-based path cost analysis (critical path) for paths of
+    basic blocks. Cost includes instruction pipeline latency and
+    memory latency. Replaces IACA and extends its analysis.
 
 
-* Ozgur Kilic's Annotations:
+* mem-anlys: analysis of memory traces
+
+  - footprint, execution interval tree
+
+  - Palm coarse-grained footprint analysis
+    palm-task: hpctoolkit run + fp analysis on database xml file
+
+
+=============================================================================
+MemGaze/bin-anlys: Changes from MIAMI-NW (newest first)
+=============================================================================
+
+* Ozgur Kilic's annotations:
 
   - FIXME:dyninst     -> changes to use dyninst
   
@@ -152,8 +129,162 @@ Changes from MIAMI-NW (Oldest to newest)
   - FIXME:deprecated  -> not from Ozgur
 
 
+* Initial support for new Xed instructions (see MIAMI-NW/Pin 3.x support)
+  [[TODO]] properly model instruction, esp. LOCK instructions.
+
+
+* Initial support for decoding with either Xed or DynInst
+  `SystemSpecific/x86_xed_decoding.C` -> `InstructionDecoder-xed.cpp`
+  `SystemSpecific/IB_x86_xed.C` -> `InstructionDecoder-xed-iclass.h`
+
+
+* Simplify make system (now that PIN-based tools are gone)
+  - `miami.config`
+  - `src/make.rules`                               [removed]
+  - `src/Scheduler/makefile.pin -> Makefile`    [renamed]
+
+* Replace use of PIN with Xed (support newer GCCs and C++ RTTI)
+  - Use argp option parser (instead of PIN's)
+  - Remove tools that depend on PIN.
+  - `miami.config.sample`
+  - `miami.config`
+  - `src/make.rules`
+  - `src/Scheduler/makefile.pin`                     [removed]
+  - `src/tools/pin_config`                            [removed]
+  - `src/{CFGtool, CacheSim, MemReuse, StreamSim}` [removed]
+
+
+* Use DynInst to load/process binary instead of
+  PIN. LoadModule/Routine/instructions use data from DynInst.
+  - `src/Scheduler/load-module.C`
+  - `src/Scheduler/routine.C`
+
+
+=============================================================================
+MemGaze/bin-anlys: Translate DynInst IR to MIAMI IR
+=============================================================================
+
+* Changes I made to Xia's <huxi333> code to incorporate 'external4'
+  into 'MemGaze/bin-anlys'
+
+  - Reinstated MIAMI driver.
+  
+  - Disable Xia's code.
+
+  - Although we will eventually discard it, we should use XED as a
+    validation tool.
+	
+	- I updated the instrution translation to print the *input*
+      instruction using XED's and DynInst's decoders. The decoding
+      should align.
+
+    - We should check the *output* translation in two ways. The first
+      way is using MIAMI's original XED-based translator; and then
+      using our DynInst-based translator. I've updated the driver
+      accordingly.
+
+  - Xia's code is slow for a couple reasons:
+    - For one routine, seach through all functions O(|functions|)...
+    - For one instruction, the translation is O(|functions| *
+      |blocks| * |insn-in-block|). This holds even for the simplest
+      instruction (e.g. a nop) without registers.
+  
+    I removed the last term (|insn-in-block|) by fixing a decoding bug
+    isaXlate_getDyninstInsn(). The code had scanned the instrutions in
+    a basic block but stopped just before the requested instruction
+    address.
+  
+  - Xia's code had static data structures.  It makes the code hard to
+    understand and is unsafe for threads.  Also, it turns out that
+    some of the data structures were computed twice, once when
+    building the CFG and again when initializing instruction
+    translation for the routine. For example `bpatch.openBinary()` was
+    done twice on the same routine, creating two versions of
+    BPatch_image and vector<BPatch_function*>.
+	[`create_loadModule()` and `isaXlate_init()`]
+	
+	I consolidated the CFG and Instruction translation code to avoid
+	this and make the code easier to understand.
+
+    For now I have partially cleaned the way the static data is used
+    so that, e.g., lm_func2blockMap is not computed multiple times
+    (once for each routine).
+
+
+* BUGS:
+
+  - The DynInst Function/BasicBlock context should be part of MIAMI
+    classes, e.g. Routine and CFG.
+
+  - Complete translation from DynInst::Instruction -> MIAMI::Instruction.
+
+  - Some of the static data structure are never cleared.  For example,
+    `func_blockVec` is never cleared. It seems this may have created
+    an ever-expanding worklist for `get_instructions_address_from_block()`.
+
+  - Memory leak in `Routine::decode_instructions_for_block()`...
+
+
+Xia's <huxi333> efforts on SeaPearl
 -----------------------------------------------------------------------------
-MIAMI Notes
+
+* ~huxi333/palm/trunk/external: Corresponds to MIAMI-v1 (just debug output)
+  - `src/CFGtool/cfgtool_dynamic.C`
+  - `src/CFGtool/cfgtool_static.C`
+
+  - `src/Scheduler/DGBuilder.C`
+  - `src/Scheduler/MiamiDriver.C`
+  - `src/Scheduler/load_module.C`
+  - `src/Scheduler/routine.C`
+
+  - `src/common/PrivateCFG.h`
+  - `src/common/SystemSpecific/x86_xed_decoding.C`
+
+
+* ~huxi333/palm/trunk/external4: Incorporated partially into MemGaze/bin-anlys
+   - `MIAMI/src/Scheduler/Report`      : Summary of work
+   - `MIAMI/src/Scheduler/dyninst_*`   : New files
+	 
+  * Control flow changes in driver
+    - `src/Scheduler/MiamiDriver.C`
+    - `src/Scheduler/load-module.C`
+    - `src/Scheduler/routine.C`
+    - `src/Scheduler/DGBuilder.C`
+   
+  * Test for duplicates
+    - `src/OAUtils/BaseGraph.C`
+
+  * Replace `dynamic_cast` with `static_cast`
+    - `src/CFGtool/CFG.h`
+    - `src/MemReuse/CFG.h`
+    - `src/OAUtils/DGraph.h`
+    - `src/Scheduler/PatternGraph.h`
+
+  * Debug output
+    - `src/CFGtool/cfg_data.C`
+    - `src/CFGtool/routine.C`
+    - `src/CFGtool/cfgtool_static.C`
+    - `src/Scheduler/XML_output.C`
+    - `src/Scheduler/schedtool.C`
+
+  * No effects/buggy
+    - `src/Scheduler/DGBuilder.h`
+    - `src/Scheduler/SchedDG.C`
+
+
+* Environment:
+  ~huxi333/.bashrc
+  ~huxi333/pkg
+
+
+* Others
+  ~huxi333/palm/trunk/external2: Not useful; not yet compiled.
+  ~huxi333/palm/trunk/external3: Not useful. Attempted to work on 'CFGTool'
+
+
+
+=============================================================================
+MIAMI-NW structure
 =============================================================================
 
 * Open 'cfgprof' profile: 
@@ -225,125 +356,4 @@ MIAMI Notes
   
   Any definition files for other microarchitectures?
 
-
------------------------------------------------------------------------------
-Notes on Xia's SeaPearl Working Directory
-=============================================================================
-
-* Changes I have made to Xia's code (w.r.t. incorporating 'external4'
-  work into 'MIAMI-palm')
-
-  - Reinstated MIAMI driver.
-  
-  - Disable Xia's code.
-
-  - Although we will eventually discard it, we should use XED as a
-    validation tool.
-	
-	- I updated the instrution translation to print the *input*
-      instruction using XED's and DynInst's decoders. The decoding
-      should align.
-
-    - We should check the *output* translation in two ways. The first
-      way is using MIAMI's original XED-based translator; and then
-      using our DynInst-based translator. I've updated the driver
-      accordingly.
-
-  - Xia's code is slow for a couple reasons:
-    - For one routine, seach through all functions O(|functions|)...
-    - For one instruction, the translation is O(|functions| *
-      |blocks| * |insn-in-block|). This holds even for the simplest
-      instruction (e.g. a nop) without registers.
-  
-    I removed the last term (|insn-in-block|) by fixing a decoding bug
-    isaXlate_getDyninstInsn(). The code had scanned the instrutions in
-    a basic block but stopped just before the requested instruction
-    address.
-  
-  - Xia's code had static data structures.  It makes the code hard to
-    understand and is unsafe for threads.  Also, it turns out that
-    some of the data structures were computed twice, once when
-    building the CFG and again when initializing instruction
-    translation for the routine. For example `bpatch.openBinary()` was
-    done twice on the same routine, creating two versions of
-    BPatch_image and vector<BPatch_function*>.
-	[`create_loadModule()` and `isaXlate_init()`]
-	
-	I consolidated the CFG and Instruction translation code to avoid
-	this and make the code easier to understand.
-
-    For now I have partially cleaned the way the static data is used
-    so that, e.g., lm_func2blockMap is not computed multiple times
-    (once for each routine).
-
-
-* BUGS:
-
-  - The DynInst Function/BasicBlock context should be part of MIAMI
-    classes, e.g. Routine and CFG.
-
-  - Complete translation from DynInst::Instruction -> MIAMI::Instruction.
-
-  - Some of the static data structure are never cleared.  For example,
-    `func_blockVec` is never cleared. It seems this may have created
-    an ever-expanding worklist for `get_instructions_address_from_block()`.
-
-  - Memory leak in `Routine::decode_instructions_for_block()`...
-
-
-----------------------------------------
-Index
-----------------------------------------
-
-* ~huxi333/palm/trunk/external:  Corresponds to MIAMI-v1
-
-  * Debug Output:
-    - `src/CFGtool/cfgtool_dynamic.C`
-    - `src/CFGtool/cfgtool_static.C`
-  
-    - `src/Scheduler/DGBuilder.C`
-    - `src/Scheduler/MiamiDriver.C`
-    - `src/Scheduler/load_module.C`
-    - `src/Scheduler/routine.C`
-
-    - `src/common/PrivateCFG.h`
-    - `src/common/SystemSpecific/x86_xed_decoding.C`
-  
-* ~huxi333/palm/trunk/external4: MIAMI-palm
-   - `MIAMI/src/Scheduler/Report`      : Summary of work
-   - `MIAMI/src/Scheduler/dyninst_*`   : New files
-	 
-  * Control flow changes in driver
-    - `src/Scheduler/MiamiDriver.C`
-    - `src/Scheduler/load-module.C`
-    - `src/Scheduler/routine.C`
-    - `src/Scheduler/DGBuilder.C`
-   
-  * Test for duplicates
-    - `src/OAUtils/BaseGraph.C`
-
-  * Replace `dynamic_cast` with `static_cast`
-    - `src/CFGtool/CFG.h`
-    - `src/MemReuse/CFG.h`
-    - `src/OAUtils/DGraph.h`
-    - `src/Scheduler/PatternGraph.h`
-
-  * Debug output
-    - `src/CFGtool/cfg_data.C`
-    - `src/CFGtool/routine.C`
-    - `src/CFGtool/cfgtool_static.C`
-    - `src/Scheduler/XML_output.C`
-    - `src/Scheduler/schedtool.C`
-
-  * No effects/buggy
-    - `src/Scheduler/DGBuilder.h`
-    - `src/Scheduler/SchedDG.C`
-
-* Environment:
-  ~huxi333/.bashrc
-  ~huxi333/pkg
-
-* Others
-  ~huxi333/palm/trunk/external2: Not useful; not yet compiled.
-  ~huxi333/palm/trunk/external3: Not useful. Attempted to work on 'CFGTool'
 
