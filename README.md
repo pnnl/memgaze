@@ -76,16 +76,26 @@ MemGaze has 3 mains steps. To run all three main steps use compile.sh
 Linux Perf
 =============================================================================
 
-[[Ozgur: todo]]
-
 - Using kernel 5.5.9: no changes needed.
     
 - Modifications to Linux perf (user level):
   - perf script (static ip address instead of dynamic)
   - we played with perf driver, but are not using it
 
+- Perf command we used:
+  - Collecting trace by sampling based on number of loads:
+  
+  ```perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cpu/umask=0x81,event=0xd0,period=${PERIOD},aux-sample-size=${SIZE},call-graph=lbr/u -o ${bin}.data -- ./${bin} $args```
 
-???
+  
+  - Collecting trace by sampling based on time:
+
+  ```perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e ref-cycles/period=${PERIOD},aux-sample-size=${SIZE},call-graph=lbr/u -- ${bin} ${args}```
+
+  - Using filter to focus a single function
+
+  ```perf record -m 4M,4M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u --filter 'filter @distBuildLocalMapCounters' -o ${bin}.data -- ./${bin} $args
+
 - system wide monitoring and ordering/timestamps
 
     ```
