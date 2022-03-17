@@ -8,7 +8,7 @@ MemGaze Pipeline
 
 MemGaze has 3 mains steps. To run all three main steps use compile.sh 
 
-'''./compile.sh <FOLDER> <BIN> <ARGS> <0(time)/1(load)> <BufferSIZE(def=8192)> <PERIOD(def=37500000)> <MaskedBits(def=0)> <FUNCTION-NAME if need to focus>'''
+```./compile.sh <FOLDER> <BIN> <ARGS> <0(time)/1(load)> <BufferSIZE(def=8192)> <PERIOD(def=37500000)> <MaskedBits(def=0)> <FUNCTION-NAME if need to focus>```
 
 1-) Analysis and Instrumentation of the Binary (bin-anyls): 
   '''./instument\_binary.sh ${FOLDER}/${BIN}'''
