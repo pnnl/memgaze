@@ -96,6 +96,18 @@ Linux Perf
 
   ```perf record -m 4M,4M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u --filter 'filter @distBuildLocalMapCounters' -o ${bin}.data -- ./${bin} $args```
 
+  - To extract trace created usin ptwrite
+
+  ```perf script --script=/home/kili337/Projects/Fallacy/scripts/intel-pt-events.py -i ${bin}.data > ${bin}.trace```
+
+  - To collect trace using ldlat for intel machines
+
+  ```perf record -W -d -e cpu/mem-loads,ldlat=1,period=100/upp```
+  
+  - To extract ldlat trace
+
+  ```perf script --script=../ldlat-events.py -i <input>```
+
 - system wide monitoring and ordering/timestamps
 
     ```
