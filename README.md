@@ -8,15 +8,21 @@ MemGaze Pipeline
 
 MemGaze has 3 mains steps. To run all three main steps use compile.sh 
 
-  ```./compile.sh <FOLDER> <BIN> <ARGS> <0(time)/1(load)> <BufferSIZE(def=8192)> <PERIOD(def=37500000)> <MaskedBits(def=0)> <FUNCTION-NAME if need to focus>```
+  ```
+  ./compile.sh <FOLDER> <BIN> <ARGS> <0(time)/1(load)> <BufferSIZE(def=8192)> <PERIOD(def=37500000)> <MaskedBits(def=0)> <FUNCTION-NAME if need to focus>
+  ```
 
 [[memgaze-all]]
 
+
 1-) Analysis and Instrumentation of the Binary (bin-anyls):
 
-  ```./instument_binary.sh <path-to-binary>```
+  ```
+  ./instument_binary.sh <binary-path>
+  ```
 
 [[memgaze-inst]]
+[[For a system binary, copy to a writable directory first.]]
 
   -> Read binary with dyninst
 
@@ -26,52 +32,83 @@ MemGaze has 3 mains steps. To run all three main steps use compile.sh
 
   -> Instrument with ptwrite for selective loads
 
-  -> Print original and instrumented IP address
+  -> Generate original and instrumented IP address
+[[log contains mapping from original loads to instrumented loads]]
 
-  -> Print load classification file
+  -> Generate load classification file `<inst-dir>.binanlys0`
+[[should be <inst-dir>.binanlys0]]
 
-  -> Adjust IP addresses
+  -> Generate `<inst-dir>.binanlys`, which combines the above
   
-  ```./ip_converter.py ${FOLDER}/${BIN}.log ${FOLDER}/${BIN}.binanlys```
+  ```
+  ./ip_converter.py <inst-dir>.log <inst-dir>.binanlys0
+  ```
+
+[[memgaze-inst-cat]]
+[[memgaze-inst should call this to generate <inst-dir>.binanlys]]
 
   -> Create hpcstruct file
   
-  ```hpcstruct ${BIN}_PTW```
+  ```
+  hpcstruct ${BIN}_PTW
+  ```
+
+[[memgaze-inst should call this]]
+
 
 2-) Trace Collection (mem-trace)
   
   -> Run Instrumented Binary with perf
   
-  ```./collect_data.sh ${FOLDER}/${BIN} """$ARGS""" ${SIZE} ${PERIOD} 0 ${LOAD}```
+  ```./collect_data.sh <size> <period> 0 ${LOAD} -- <app-path> "<app-args>" ```
 
-[[memgaze-trace]]
-
+[[memgaze-run]]
 
   -> Extract data file with perf-script by using a python script
   
-  ```./extract_data.sh ${FOLDER}/${BIN}_s${SIZE}_p${PERIOD}```
+  ``` ./extract_data.sh <binary-path>_s<size>_p<period> ```
+  
+[[intel-pt-events.py --> bin/perf-script/intel-pt.py]]
+[[ldlat-events.py    --> bin/perf-script/ldlat.py]]
+
+[[memgaze-prof to run the conversion from perf data to analysis data]]
   
   -> Remove data collection errors from trace
   
-  ```./removeErros.sh ${FOLDER}/${BIN}_s${SIZE}_p${PERIOD}.trace```
+  ```
+  ./removeErros.sh <binary-path>_s<size>_p<period>.trace
+  ```
+
+[[memgaze-prof-normalize && called from memgaze-prof]]
   
-  -> Fix IP address by adding base address
+  -> Convert IP offsets (from perf script) to full static IPs
+  -> Combine two-address into single line
 
-  ```./add_base_IP.py ${FOLDER}/${BIN}_s${SIZE}_p${PERIOD}.trace.clean ${FOLDER}/${BIN}_PTW ${FOLDER}/${BIN}.binanlys_Fixed ${FOLDER}/${BIN}_s${SIZE}_p${PERIOD}.trace.final```
+  ```
+  ./add_base_IP.py <binary-path>_s<size>_p<period>.trace.clean <binary-path>_PTW <binary-path>.binanlys_Fixed <binary-path>_s<size>_p<period>.trace.final
+  ```
 
-  -> Separate trace and Call Path graph into two different file from the perf script output
+[[part of memgaze-prof-normalize]]
+
+  -> Separate trace and Call Path into two different file from the perf script output
   add_base_ip.py does this as well
+  
+[[part of memgaze-prof-normalize]]
+  
 
 3-) Memory Analysis (mem-anlys)
 
-```./execute.sh ${FOLDER}/${BIN}_PTW.hpcstruct ${FOLDER}/${BIN}.lc_Fixed ${FOLDER}/${BIN}_s${SIZE}_p${PERIOD}.trace.final $Period $LOAD $FUNC $MAKEDBIT```
+  ```
+  ./execute.sh <binary-path>_PTW.hpcstruct <binary-path>.lc_Fixed <binary-path>_s<size>_p<period>.trace.final $Period $LOAD $FUNC $MAKEDBIT
+  ```
+
+[[Remove -- use memgaze-analysis]]
 
   -> Read multiple file:
-
     -> CallPath  (*.callpath)
     -> Trace     (*.trace)
     -> hpcstruct (*.hpcstruct)
-    -> load classification (*.lc)
+    -> binary analysis (*.binanlys)
   
   -> Build calling context tree (work in progress)
   
@@ -92,12 +129,12 @@ Linux Perf
 - Perf command we used:
   - Collecting trace by sampling based on number of loads:
   
-  ```perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cpu/umask=0x81,event=0xd0,period=${PERIOD},aux-sample-size=${SIZE},call-graph=lbr/u -o ${bin}.data -- ./${bin} $args```
+  ```perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cpu/umask=0x81,event=0xd0,period=<period>,aux-sample-size=<size>,call-graph=lbr/u -o ${bin}.data -- ./${bin} $args```
 
   
   - Collecting trace by sampling based on time:
 
-  ```perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e ref-cycles/period=${PERIOD},aux-sample-size=${SIZE},call-graph=lbr/u -- ${bin} ${args}```
+  ```perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e ref-cycles/period=<period>,aux-sample-size=<size>,call-graph=lbr/u -- ${bin} ${args}```
 
   - Using filter to focus a single function
 

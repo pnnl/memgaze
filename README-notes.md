@@ -12,10 +12,11 @@ MemGaze Consolidation
 
   - [[working]] Notes for Intel PT and changes:
 
-  - <memgaze>/bin:
-    - memory measurement: PT: application vs. system-wide; +LBR
-    - memory measurement: Intel ld latency recipe
-  
+  - <memgaze>/bin: application vs. system-wide; +LBR
+
+  - memgaze-trace: fix command line
+
+  - memgaze-inst should have an option to specify instrumentation output directory [[cannot assume that <binary-path> is writable]]
 
 
 * Bugs:
