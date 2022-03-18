@@ -8,23 +8,25 @@ MemGaze Pipeline
 
 MemGaze has 3 mains steps.
 
-1. Instrument application binary <app> and write to `<app>-memgaze`
-   [[FIXME]]. Also generates downstream static analysis data to
-   `<app>-memgaze.binanlys`. Generates output within <app-dir>.
-
+1. Instrument application binary (or libary) <app> for memory
+   tracing. Generate instrumented <app> and auxiliary data within
+   directory <inst-dir>, which defaults to    [[FIXME]]
+   `<app-dir>/memgaze-<app>`. Instrumented <app> is <inst-dir>/<app>.
+   
    Note: If instrumenting <app>'s libraries, must instrument each
-   library and relink <app>-memgaze.
-
-   Note: For a system library, copy to a writable directory first.
+   library and relink instrumented <app>.
 
    ```
-   memgaze-inst <app-dir>/<app>  [[FIXME: was instument_binary.sh]]
+   memgaze-inst <app-dir>/<app> [-o <inst-dir>] [[FIXME: was instument_binary.sh]]
    ```
 
-   Auxiliary output:
-   - `<app>-memgaze.binanlys.log`: Mapping from original to instrumented IP [[FIXME]]
-   - `<app>-memgaze.binanlys0`   : Load classifications [[FIXME]]
-   - `<app>-memgaze.hpcstruct`   ; HPCToolkit structure file
+  Important contents within <inst-dir>:
+  - `<app>` : Instrumented <app>
+  - `<app>.binanlys`: Static binary analysis used downstream.
+
+  - `<app>.binanlys.log`: Mapping from original to instrumented IP [[FIXME]]
+  - `<app>.binanlys0`   : Load classifications [[FIXME]]
+  - `<app>.hpcstruct`   : HPCToolkit structure file
 
   Steps:
   - Read binary (with dyninst)
@@ -48,7 +50,7 @@ MemGaze has 3 mains steps.
    perf.)
    
    ```
-   memgaze-run -b <bufsz> -p <period> 0 <LOAD> [-o <trace-dir>] -- <app> <app-args> [[FIXME: what is 0 and <LOAD>?]]
+   memgaze-run -b <bufsz> -p <period> 0 <LOAD> [-o <trace-dir>] -- <inst-dir>/<app> <app-args> [[FIXME: what is 0 and <LOAD>?]]
    ```
    
    [[FIXME]] args for period, output, size, etc; cf. <palm>/palm-task/palm-task-memlat. Write configuration to `<trace-dir>/<memgaze.config>`
@@ -60,11 +62,10 @@ MemGaze has 3 mains steps.
    memgaze-xtrace <trace-dir>
    ```
 
-  Important results within <trace-dir>:
-  - [[FIXME]] Configuration: <memgaze.config>
-  - Memory references: <*.trace>
-  - Call paths: <*.callpath>
-  - HPCToolkit structure: <*.hpcstruct>
+  Important contents within <trace-dir>:
+  - `memgaze.config` : Configuration  [[FIXME]]
+  - `<app>.trace`    : Memory references
+  - `<app>.callpath` : Call paths
 
 
   - Extract data file with perf-script using [[libexec/perf-script-intel-pt.py or libexec/perf-script-ldlat.py]]
@@ -84,7 +85,7 @@ MemGaze has 3 mains steps.
 4. Analyze memory behavior using execution interval tree and generate footprint metrics. As inputs, takes <trace-dir>, static binary analysis data (*.binanlys), ... [[FIXME]]
 
   ```
-  memgaze-analyze <trace-dir>  <app>-memgaze.binanlys <FUNC> <MAKEDBIT>
+  memgaze-analyze <trace-dir> <inst-dir> <FUNC> <MAKEDBIT>
   ```
   
   [[FIXME: script that takes <trace-dir> & generates args for driver. Should read <period> and <LOAD> from <trace-dir>/<memgaze.config>. What is <FUNC> $MAKEDBIT??? ]]
