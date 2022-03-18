@@ -8,20 +8,20 @@ MemGaze Pipeline
 
 MemGaze has 3 mains steps.
 
-1. Instrument application binary (or libary) [app> for memory
-   tracing. Generate instrumented [app> and auxiliary data within
-   directory [inst-dir>, which defaults to    [[FIXME]]
-   `[app-dir>/memgaze-[app>`. Instrumented [app> is [inst-dir>/[app>.
+1. Instrument application binary (or libary) `<app>` for memory
+   tracing. Generate instrumented `<app>` and auxiliary data within
+   directory `<inst-dir>`, which defaults to    [[FIXME]]
+   `<app-dir>/memgaze-<app>`. Instrumented `<app>` is `<inst-dir>/<app>`.
    
-   Note: If instrumenting [app>'s libraries, must instrument each
-   library and relink instrumented [app>.
+   Note: If instrumenting `<app>`'s libraries, must instrument each
+   library and relink instrumented `<app>`.
 
    ```
    memgaze-inst <app-dir>/<app> [-o <inst-dir>] [[FIXME: was instument_binary.sh]]
    ```
 
-  Important contents within [inst-dir>:
-  - `<app>` : Instrumented <app>
+  Important contents within `<inst-dir>`:
+  - `<app>` : Instrumented `<app>`
   - `<app>.binanlys`: Static binary analysis used downstream.
 
   - `<app>.binanlys.log`: Mapping from original to instrumented IP [[FIXME]]
@@ -45,7 +45,7 @@ MemGaze has 3 mains steps.
 
 
 2. Trace memory behavior of application `<app>-memgaze`. Generates
-   output in <trace-dir>, which defaults to
+   output in `<trace-dir>`, which defaults to
    `memgaze-<app>-s<bufsz>-p<period>` [[FIXME]]. (Leverages Linux
    perf.)
    
@@ -53,16 +53,16 @@ MemGaze has 3 mains steps.
    memgaze-run -b <bufsz> -p <period> 0 <LOAD> [-o <trace-dir>] -- <inst-dir>/<app> <app-args> [[FIXME: what is 0 and <LOAD>?]]
    ```
    
-   [[FIXME]] args for period, output, size, etc; cf. <palm>/palm-task/palm-task-memlat. Write configuration to `<trace-dir>/<memgaze.config>`
+   [[FIXME]] args for period, output, size, etc; cf. `<palm>/palm-task/palm-task-memlat. Write configuration to `<trace-dir>/<memgaze.config>`
 
 
-3. Translate tracing and profiling data within <trace-dir> into open formats and place results therein.
+3. Translate tracing and profiling data within `<trace-dir>` into open formats and place results therein.
 
    ```
    memgaze-xtrace <trace-dir>
    ```
 
-  Important contents within <trace-dir>:
+  Important contents within `<trace-dir>`:
   - `memgaze.config` : Configuration  [[FIXME]]
   - `<app>.trace`    : Memory references
   - `<app>.callpath` : Call paths
@@ -82,7 +82,7 @@ MemGaze has 3 mains steps.
   ```
 
 
-4. Analyze memory behavior using execution interval tree and generate footprint metrics. As inputs, takes <trace-dir>, static binary analysis data (*.binanlys), ... [[FIXME]]
+4. Analyze memory behavior using execution interval tree and generate footprint metrics. As inputs, takes `<trace-dir>`, static binary analysis data (*.binanlys), ... [[FIXME]]
 
   ```
   memgaze-analyze <trace-dir> <inst-dir> <FUNC> <MAKEDBIT>
@@ -115,28 +115,40 @@ Linux Perf
 - Perf command we used:
   - Collecting trace by sampling based on number of loads:
   
-  ```perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cpu/umask=0x81,event=0xd0,period=<period>,aux-sample-size=<bufsz>,call-graph=lbr/u -o ${bin}.data -- ./${bin} $args```
+  ```
+  perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cpu/umask=0x81,event=0xd0,period=<period>,aux-sample-size=<bufsz>,call-graph=lbr/u -o ${bin}.data -- ./${bin} $args
+  ```
 
   
   - Collecting trace by sampling based on time:
 
-  ```perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e ref-cycles/period=<period>,aux-sample-size=<bufsz>,call-graph=lbr/u -- ${bin} ${args}```
+  ```
+  perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e ref-cycles/period=<period>,aux-sample-size=<bufsz>,call-graph=lbr/u -- ${bin} ${args}
+  ```
 
   - Using filter to focus a single function
 
-  ```perf record -m 4M,4M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u --filter 'filter @distBuildLocalMapCounters' -o ${bin}.data -- ./${bin} $args```
+  ```
+  perf record -m 4M,4M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u --filter 'filter @distBuildLocalMapCounters' -o ${bin}.data -- ./${bin} $args
+  ```
 
   - To extract trace created usin ptwrite
 
-  ```perf script --script=/home/kili337/Projects/Fallacy/scripts/intel-pt-events.py -i ${bin}.data > ${bin}.trace```
+  ```
+  perf script --script=/home/kili337/Projects/Fallacy/scripts/intel-pt-events.py -i ${bin}.data > ${bin}.trace
+  ```
 
   - To collect trace using ldlat for intel machines
 
-  ```perf record -W -d -e cpu/mem-loads,ldlat=1,period=100/upp```
+  ```
+  perf record -W -d -e cpu/mem-loads,ldlat=1,period=100/upp
+  ```
   
   - To extract ldlat trace
 
-  ```perf script --script=../ldlat-events.py -i <input>```
+  ```
+  perf script --script=../ldlat-events.py -i <input>
+  ```
 
 - system wide monitoring and ordering/timestamps
 
@@ -157,4 +169,4 @@ Trace format
 
 MemGaze:   insn-pc mem-addr cpu-id timestamp sample-id
 
-MemCAMera: insn-pc mem-addr cpu-id timestamp [mem-addr2 <cpu-id> <timestamp>]
+MemCAMera: insn-pc mem-addr cpu-id timestamp [mem-addr2 `<cpu-id> `<timestamp>]
