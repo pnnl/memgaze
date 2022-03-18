@@ -22,80 +22,83 @@ MemGaze has 3 mains steps.
    ```
 
    Auxiliary output:
-   - `<app>-memgaze.binanlys.log`: Mapping from original IP to instrumented IP [[FIXME]]
+   - `<app>-memgaze.binanlys.log`: Mapping from original to instrumented IP [[FIXME]]
    - `<app>-memgaze.binanlys0`   : Load classifications [[FIXME]]
    - `<app>-memgaze.hpcstruct`   ; HPCToolkit structure file
 
   Steps:
   - Read binary (with dyninst)
-  - Create CFG and dependence graph for each routine to determine each load's classification (strided, indirect, constant)
+  - Create CFG and dependence graph for each routine to determine each
+    load's classification (strided, indirect, constant)
   - Selectively insert ptwrite.
-  - Generates 1) load classification data and 2) mapping from original IP to instrumented IP (`libexec/memgaze-inst-cat`)
+  - Generates 1) load classification data and 2) mapping from original
+    IP to instrumented IP (`libexec/memgaze-inst-cat`)
   - Generates HPCToolkit structure file
 
-  
-  [[FIXME: libexec/memgaze-inst-cat && called by memgaze-inst]]
   ```
-  ./ip_converter.py <app>-memgaze.binanlys.log <app>-memgaze.binanlys0
+  libexec/memgaze-inst-cat <app>-memgaze.binanlys.log <app>-memgaze.binanlys0 [[FIXME: was ip_converter.py && called by memgaze-inst]]
   ```
 
   Create hpcstruct file  [[FIXME: called by memgaze-inst]]
 
 
-2. Trace or (profile memory) behavior of application `<app>-memgaze`.
-  
+2. Trace memory behavior of application `<app>-memgaze`. Generates
+   output in <trace-dir>, which defaults to
+   `memgaze-<app>-s<bufsz>-p<period>` [[FIXME]]. (Leverages Linux
+   perf.)
+   
    ```
-   memgaze-run <size> <period> 0 ${LOAD} -- <app-dir> "<app-args>"   [[FIXME]]
+   memgaze-run -b <bufsz> -p <period> 0 <LOAD> [-o <trace-dir>] -- <app> <app-args> [[FIXME: what is 0 and <LOAD>?]]
+   ```
+   
+   [[FIXME]] args for period, output, size, etc; cf. <palm>/palm-task/palm-task-memlat. Write configuration to `<trace-dir>/<memgaze.config>`
+
+
+3. Translate tracing and profiling data within <trace-dir> into open formats and place results therein.
+
+   ```
+   memgaze-xtrace <trace-dir>
    ```
 
-3. Convert tracing data into open format from Linux perf's format.
+  Important results within <trace-dir>:
+  - [[FIXME]] Configuration: <memgaze.config>
+  - Memory references: <*.trace>
+  - Call paths: <*.callpath>
+  - HPCToolkit structure: <*.hpcstruct>
 
-   ```
-   memgaze-xlate <app>_s<size>_p<period>
-   ```
 
   - Extract data file with perf-script using [[libexec/perf-script-intel-pt.py or libexec/perf-script-ldlat.py]]
   ```
-  libexec/extract_data.sh <app>_s<size>_p<period> [[FIXME: move into memgaze-xlate]]
+  libexec/extract_data.sh <trace-dir> [[FIXME: part of memgaze-xtrace; delete]]
   ```
 
-  - Remove data collection errors from trace
   - Convert IP offsets (from perf script) to full static IPs and combine two-address loads into single trace entry.
-  - Separate trace and Call Path into two different file from the perf script output
+  - Remove data collection errors from trace
+  - Separate memory references and call paths
   ```
-  libexec/memgaze-xlate-normalize <app>_s<size>_p<period>.trace [[FIXME && called from memgaze-xlate]]
-  ./add_base_IP.py <app>_s<size>_p<period>.trace.clean <app>_PTW <app>-memgaze.binanlys_Fixed <app>_s<size>_p<period>.trace.final [[FIXME: move into memgaze-xlate-normalize]]
+  libexec/memgaze-xtrace-normalize <trace-dir>.trace [[FIXME && called from memgaze-xtrace]]
+  ./add_base_IP.py <trace-dir>.trace.clean <app>_PTW <app>-memgaze.binanlys_Fixed <trace-dir>.trace.final [[FIXME: move into memgaze-xtrace-normalize]]
   ```
 
 
-4. Analyze memory behavior using execution interval tree and generate footprint metrics.
+4. Analyze memory behavior using execution interval tree and generate footprint metrics. As inputs, takes <trace-dir>, static binary analysis data (*.binanlys), ... [[FIXME]]
 
   ```
-  memgaze-analysis <app>_PTW.hpcstruct <app>-memgaze.lc_Fixed <app>_s<size>_p<period>.trace.final $Period $LOAD $FUNC $MAKEDBIT  [[FIXME: no script!]]
+  memgaze-analyze <trace-dir>  <app>-memgaze.binanlys <FUNC> <MAKEDBIT>
   ```
-  - Read multiple file:
-    - CallPath  (*.callpath)
-    - Trace     (*.trace)
-    - hpcstruct (*.hpcstruct)
-    - binary analysis (*.binanlys)
   
-  - Build calling context tree (work in progress)
-  - Do memeory analysis on the tree  or per routine
+  [[FIXME: script that takes <trace-dir> & generates args for driver. Should read <period> and <LOAD> from <trace-dir>/<memgaze.config>. What is <FUNC> $MAKEDBIT??? ]]
+  
 
 
-
-Extra:
+FIXME
 ----------------------------------------
 
-To run all three main steps use compile.sh 
+Execute entire pipeline [[FIXME: kill]]
 
   ```
-  ./compile.sh <FOLDER> <BIN> <ARGS> <0(time)/1(load)> <BufferSIZE(def=8192)> <PERIOD(def=37500000)> <MaskedBits(def=0)> <FUNCTION-NAME if need to focus>
+  memgaze-all <FOLDER> <BIN> <ARGS> <0(time)/1(load)> <BufferSIZE(def=8192)> <PERIOD(def=37500000)> <MaskedBits(def=0)> <FUNCTION-NAME if need to focus> 
   ```
-
-[[memgaze-all]]
-
-
 
 
 -----------------------------------------------------------------------------
@@ -111,12 +114,12 @@ Linux Perf
 - Perf command we used:
   - Collecting trace by sampling based on number of loads:
   
-  ```perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cpu/umask=0x81,event=0xd0,period=<period>,aux-sample-size=<size>,call-graph=lbr/u -o ${bin}.data -- ./${bin} $args```
+  ```perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cpu/umask=0x81,event=0xd0,period=<period>,aux-sample-size=<bufsz>,call-graph=lbr/u -o ${bin}.data -- ./${bin} $args```
 
   
   - Collecting trace by sampling based on time:
 
-  ```perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e ref-cycles/period=<period>,aux-sample-size=<size>,call-graph=lbr/u -- ${bin} ${args}```
+  ```perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e ref-cycles/period=<period>,aux-sample-size=<bufsz>,call-graph=lbr/u -- ${bin} ${args}```
 
   - Using filter to focus a single function
 
