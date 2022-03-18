@@ -6,7 +6,94 @@ $Id$
 MemGaze Pipeline
 =============================================================================
 
-MemGaze has 3 mains steps. To run all three main steps use compile.sh 
+MemGaze has 3 mains steps.
+
+1. Instrument application binary <app> and write to `<app>-memgaze`
+   [[FIXME]]. Also generates downstream static analysis data to
+   `<app>-memgaze.binanlys`. Generates output within <app-dir>.
+
+   Note: If instrumenting <app>'s libraries, must instrument each
+   library and relink <app>-memgaze.
+
+   Note: For a system library, copy to a writable directory first.
+
+   ```
+   memgaze-inst <app-dir>/<app>  [[FIXME: was instument_binary.sh]]
+   ```
+
+   Auxiliary output:
+   - `<app>-memgaze.binanlys.log`: Mapping from original IP to instrumented IP [[FIXME]]
+   - `<app>-memgaze.binanlys0`   : Load classifications [[FIXME]]
+   - `<app>-memgaze.hpcstruct`   ; HPCToolkit structure file
+
+  Steps:
+  - Read binary (with dyninst)
+  - Create CFG and dependence graph for each routine to determine each load's classification (strided, indirect, constant)
+  - Selectively insert ptwrite.
+  - Generates 1) load classification data and 2) mapping from original IP to instrumented IP (`libexec/memgaze-inst-cat`)
+  - Generates HPCToolkit structure file
+
+  
+  [[FIXME: libexec/memgaze-inst-cat && called by memgaze-inst]]
+  ```
+  ./ip_converter.py <app>-memgaze.binanlys.log <app>-memgaze.binanlys0
+  ```
+
+  Create hpcstruct file  [[FIXME: called by memgaze-inst]]
+
+
+2. Trace or (profile memory) behavior of application `<app>-memgaze`.
+  
+   ```
+   memgaze-run <size> <period> 0 ${LOAD} -- <app-dir> "<app-args>"   [[FIXME]]
+   ```
+
+3. Convert tracing data into open format from Linux perf's format.
+
+   ```
+   memgaze-xlate-normalize <app>_s<size>_p<period>
+   ```
+
+  - Extract data file with perf-script:  
+  ```
+  ./extract_data.sh <app>_s<size>_p<period>
+  ```
+  
+    [[intel-pt-events.py --> libexec/perf-script-intel-pt.py]]
+    [[ldlat-events.py    --> libexec/perf-script-ldlat.py]]
+
+
+  - Remove data collection errors from trace
+  ```
+  libexec/memgaze-xlate-normalize <app>_s<size>_p<period>.trace [[FIXME && called from memgaze-xlate]]
+  ```
+
+  - Convert IP offsets (from perf script) to full static IPs and combine two-address loads into single trace entry.
+  - Separate trace and Call Path into two different file from the perf script output
+  ```
+  ./add_base_IP.py <app>_s<size>_p<period>.trace.clean <app>_PTW <app>-memgaze.binanlys_Fixed <app>_s<size>_p<period>.trace.final [[FIXME: call from memgaze-xlate-normalize]]
+  ```
+
+4. Analyze memory behavior using execution interval tree and generate footprint metrics.
+
+  ```
+  memgaze-analysis <app>_PTW.hpcstruct <app>-memgaze.lc_Fixed <app>_s<size>_p<period>.trace.final $Period $LOAD $FUNC $MAKEDBIT  [[FIXME: no script!]]
+  ```
+  - Read multiple file:
+    - CallPath  (*.callpath)
+    - Trace     (*.trace)
+    - hpcstruct (*.hpcstruct)
+    - binary analysis (*.binanlys)
+  
+  - Build calling context tree (work in progress)
+  - Do memeory analysis on the tree  or per routine
+
+
+
+Extra:
+----------------------------------------
+
+To run all three main steps use compile.sh 
 
   ```
   ./compile.sh <FOLDER> <BIN> <ARGS> <0(time)/1(load)> <BufferSIZE(def=8192)> <PERIOD(def=37500000)> <MaskedBits(def=0)> <FUNCTION-NAME if need to focus>
@@ -14,105 +101,6 @@ MemGaze has 3 mains steps. To run all three main steps use compile.sh
 
 [[memgaze-all]]
 
-
-1-) Analysis and Instrumentation of the Binary (bin-anyls):
-
-  ```
-  ./instument_binary.sh <binary-path>
-  ```
-
-[[memgaze-inst]]
-[[For a system binary, copy to a writable directory first.]]
-
-  -> Read binary with dyninst
-
-  -> Create internal CFG for each Routine
-
-  -> Analyze each routine to find each load and their types ( strided, indirect, constant)
-
-  -> Instrument with ptwrite for selective loads
-
-  -> Generate original and instrumented IP address
-[[log contains mapping from original loads to instrumented loads]]
-
-  -> Generate load classification file `<inst-dir>.binanlys0`
-[[should be <inst-dir>.binanlys0]]
-
-  -> Generate `<inst-dir>.binanlys`, which combines the above
-  
-  ```
-  ./ip_converter.py <inst-dir>.log <inst-dir>.binanlys0
-  ```
-
-[[memgaze-inst-cat]]
-[[memgaze-inst should call this to generate <inst-dir>.binanlys]]
-
-  -> Create hpcstruct file
-  
-  ```
-  hpcstruct ${BIN}_PTW
-  ```
-
-[[memgaze-inst should call this]]
-
-
-2-) Trace Collection (mem-trace)
-  
-  -> Run Instrumented Binary with perf
-  
-  ```./collect_data.sh <size> <period> 0 ${LOAD} -- <app-path> "<app-args>" ```
-
-[[memgaze-run]]
-
-  -> Extract data file with perf-script by using a python script
-  
-  ``` ./extract_data.sh <binary-path>_s<size>_p<period> ```
-  
-[[intel-pt-events.py --> bin/perf-script/intel-pt.py]]
-[[ldlat-events.py    --> bin/perf-script/ldlat.py]]
-
-[[memgaze-prof to run the conversion from perf data to analysis data]]
-  
-  -> Remove data collection errors from trace
-  
-  ```
-  ./removeErros.sh <binary-path>_s<size>_p<period>.trace
-  ```
-
-[[memgaze-prof-normalize && called from memgaze-prof]]
-  
-  -> Convert IP offsets (from perf script) to full static IPs
-  -> Combine two-address into single line
-
-  ```
-  ./add_base_IP.py <binary-path>_s<size>_p<period>.trace.clean <binary-path>_PTW <binary-path>.binanlys_Fixed <binary-path>_s<size>_p<period>.trace.final
-  ```
-
-[[part of memgaze-prof-normalize]]
-
-  -> Separate trace and Call Path into two different file from the perf script output
-  add_base_ip.py does this as well
-  
-[[part of memgaze-prof-normalize]]
-  
-
-3-) Memory Analysis (mem-anlys)
-
-  ```
-  ./execute.sh <binary-path>_PTW.hpcstruct <binary-path>.lc_Fixed <binary-path>_s<size>_p<period>.trace.final $Period $LOAD $FUNC $MAKEDBIT
-  ```
-
-[[Remove -- use memgaze-analysis]]
-
-  -> Read multiple file:
-    -> CallPath  (*.callpath)
-    -> Trace     (*.trace)
-    -> hpcstruct (*.hpcstruct)
-    -> binary analysis (*.binanlys)
-  
-  -> Build calling context tree (work in progress)
-  
-  -> Do memeory analysis on the tree  or per routine
 
 
 

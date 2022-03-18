@@ -81,9 +81,7 @@ MemGaze Consolidation
 MemGaze Structure
 =============================================================================
 
-* mem-trace
-
-* bin-anlys: static binary analysis and instrumentation
+* bin-anlys: Static binary analysis and instrumentation
 
   - Contains code derived from MIAMI-NW. Uses DynInst.
 
@@ -96,6 +94,8 @@ MemGaze Structure
     basic blocks. Cost includes instruction pipeline latency and
     memory latency. Replaces IACA and extends its analysis.
 
+
+* mem-trace: Trace or profile memory behavior
 
 * mem-anlys: analysis of memory traces
 
