@@ -8,19 +8,19 @@ MemGaze Pipeline
 
 MemGaze has 3 mains steps.
 
-1. Instrument application binary (or libary) <app> for memory
-   tracing. Generate instrumented <app> and auxiliary data within
-   directory <inst-dir>, which defaults to    [[FIXME]]
-   `<app-dir>/memgaze-<app>`. Instrumented <app> is <inst-dir>/<app>.
+1. Instrument application binary (or libary) [app> for memory
+   tracing. Generate instrumented [app> and auxiliary data within
+   directory [inst-dir>, which defaults to    [[FIXME]]
+   `[app-dir>/memgaze-[app>`. Instrumented [app> is [inst-dir>/[app>.
    
-   Note: If instrumenting <app>'s libraries, must instrument each
-   library and relink instrumented <app>.
+   Note: If instrumenting [app>'s libraries, must instrument each
+   library and relink instrumented [app>.
 
    ```
    memgaze-inst <app-dir>/<app> [-o <inst-dir>] [[FIXME: was instument_binary.sh]]
    ```
 
-  Important contents within <inst-dir>:
+  Important contents within [inst-dir>:
   - `<app>` : Instrumented <app>
   - `<app>.binanlys`: Static binary analysis used downstream.
 
