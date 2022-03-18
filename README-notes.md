@@ -97,7 +97,7 @@ MemGaze Structure
 
 * mem-trace: Trace or profile memory behavior
 
-* mem-anlys: analysis of memory traces
+* mem-anlys: Analyze memory behavior from memory traces
 
   - footprint, execution interval tree
 
