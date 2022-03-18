@@ -47,7 +47,7 @@ MemGaze has four main steps.
    By default collect a sampled trace with period <period>; if period
    is 0 then collect a full (non-sampled) trace. Sample event can be
    either load-based or time-based.
-   
+
    ```
    memgaze-run -p <period or 0> -b <bufsz> [-e load|time] [-o <trace-dir>] -- <app> <app-args> [[FIXME: what is 0 and <LOAD>?]]
    ```
@@ -66,7 +66,7 @@ MemGaze has four main steps.
    ```
 
   Important contents within `<trace-dir>`: [[FIXME]]
-  - `memgaze.config` : Configuration
+  - `memgaze.config` : Configuration of measurement.
   - `<app>.trace`    : Memory references
   - `<app>.callpath` : Call paths
 
