@@ -38,19 +38,19 @@ MemGaze has 3 mains steps.
   - Generates HPCToolkit structure file
 
   ```
-  libexec/memgaze-inst-cat <app>-memgaze.binanlys.log <app>-memgaze.binanlys0 [[FIXME: was ip_converter.py && called by memgaze-inst]]
+  libexec/memgaze-inst-cat <tracedir>/<app>.binanlys.log <tracedir>/<app>.binanlys0 [[FIXME: was ip_converter.py && called by memgaze-inst]]
   ```
 
   Create hpcstruct file  [[FIXME: called by memgaze-inst]]
 
 
-2. Trace memory behavior of application `<app>-memgaze`. Generates
-   output in `<trace-dir>`, which defaults to
-   `memgaze-<app>-s<bufsz>-p<period>` [[FIXME]]. (Leverages Linux
-   perf.)
+2. Trace memory behavior of application `<app>`, which is normally
+   `<inst-dir>/<app>`. Generates output in `<trace-dir>`, which
+   defaults to `./memgaze-trace-<app>-b<bufsz>-p<period>`
+   [[FIXME]]. (Leverages Linux perf.)
    
    ```
-   memgaze-run -b <bufsz> -p <period> 0 <LOAD> [-o <trace-dir>] -- <inst-dir>/<app> <app-args> [[FIXME: what is 0 and <LOAD>?]]
+   memgaze-run -p <period> -b <bufsz> 0 <LOAD> [-o <trace-dir>] -- <app> <app-args> [[FIXME: what is 0 and <LOAD>?]]
    ```
    
    [[FIXME]] args for period, output, size, etc; cf. `<palm>/palm-task/palm-task-memlat. Write configuration to `<trace-dir>/<memgaze.config>`
@@ -78,7 +78,7 @@ MemGaze has 3 mains steps.
   - Separate memory references and call paths
   ```
   libexec/memgaze-xtrace-normalize <trace-dir>.trace [[FIXME && called from memgaze-xtrace]]
-  ./add_base_IP.py <trace-dir>.trace.clean <app>_PTW <app>-memgaze.binanlys_Fixed <trace-dir>.trace.final [[FIXME: move into memgaze-xtrace-normalize]]
+  ./add_base_IP.py <trace-dir>.trace.clean <app>_PTW <tracedir>/<app>.binanlys_Fixed <trace-dir>.trace.final [[FIXME: move into memgaze-xtrace-normalize]]
   ```
 
 
