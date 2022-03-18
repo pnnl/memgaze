@@ -10,21 +10,22 @@ MemGaze has four main steps.
 
 1. Instrument application binary (or libary) `<app>` for memory
    tracing. Generate instrumented `<app>` and auxiliary data within
-   directory `<inst-dir>`, which defaults to 
-   `<app-dir>/memgaze-<app>`. Instrumented `<app>` is `<inst-dir>/<app>`.
+   directory `<inst-dir>`, which defaults to
+   `<app-dir>/memgaze-<app>`. Instrumented `<app>` is
+   `<inst-dir>/<app>`.
    
    Note: If instrumenting `<app>`'s libraries, must instrument each
    library and relink instrumented `<app>`.
 
    ```
-   memgaze-inst <app-dir>/<app> [-o <inst-dir>] [[FIXME]]
+   memgaze-inst <app-dir>/<app> [-o <inst-dir>]
    ```
 
   Important contents within `<inst-dir>`: [[FIXME]]
   - `<app>`           : Instrumented `<app>`
-  - `<app>.binanlys`  : Static binary analysis used downstream.
+  - `<app>.binanlys`  : Static binary analysis
   - `<app>.hpcstruct` : HPCToolkit structure file
-  
+
   Steps:
   - Read binary (with dyninst)
   - Create CFG and dependence graph for each routine to determine each
