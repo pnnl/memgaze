@@ -66,7 +66,7 @@ MemGaze has four main steps.
    memgaze-xtrace <trace-dir>
    ```
 
-  Additional contents of `<trace-dir>`: [[FIXME]]
+  New contents of `<trace-dir>`: [[FIXME]]
   - `<app>.trace`    : Memory references
   - `<app>.callpath` : Call paths
 
@@ -85,14 +85,14 @@ MemGaze has four main steps.
   ```
 
 
-4. Analyze memory behavior using execution interval tree and generate footprint metrics. As inputs, takes `<trace-dir>`, static binary analysis data (*.binanlys), ... [[FIXME]]
+4. Analyze memory behavior using execution interval tree and generate
+   footprint metrics. As inputs, takes `<trace-dir>` and `<inst-dir>`
 
-
-  ```
-  memgaze-analyze -t <trace-dir> -s <inst-dir> [-o <output>] [[FIXME]]
+   ```
+   memgaze-analyze -t <trace-dir> -s <inst-dir> [-o <output>] [[FIXME]]
   
-  [[old]] memgaze-analyze -t <trace> -l <binanlys> -s <hpcstruct> -o <output> -m <1(load) | 0(time)> -p <period> -c <callpath>
-  ```
+   [[FIXME: old]] memgaze-analyze -t <trace> -l <binanlys> -s <hpcstruct> -o <output> -m <1(load) | 0(time)> -p <period> -c <callpath>
+   ```
   
   [[FIXME]] -f func: poor man's inclusive and masked-bit
   
