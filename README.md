@@ -169,4 +169,4 @@ Trace format
 
 MemGaze:   insn-pc mem-addr cpu-id timestamp sample-id
 
-MemCAMera: insn-pc mem-addr cpu-id timestamp [mem-addr2 `<cpu-id> `<timestamp>]
+MemCAMera: insn-pc mem-addr cpu-id timestamp [mem-addr2 cpu-id timestamp]
