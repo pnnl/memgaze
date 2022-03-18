@@ -51,28 +51,22 @@ MemGaze has 3 mains steps.
 3. Convert tracing data into open format from Linux perf's format.
 
    ```
-   memgaze-xlate-normalize <app>_s<size>_p<period>
+   memgaze-xlate <app>_s<size>_p<period>
    ```
 
-  - Extract data file with perf-script:  
+  - Extract data file with perf-script using [[libexec/perf-script-intel-pt.py or libexec/perf-script-ldlat.py]]
   ```
-  ./extract_data.sh <app>_s<size>_p<period>
+  libexec/extract_data.sh <app>_s<size>_p<period> [[FIXME: move into memgaze-xlate]]
   ```
-  
-    [[intel-pt-events.py --> libexec/perf-script-intel-pt.py]]
-    [[ldlat-events.py    --> libexec/perf-script-ldlat.py]]
-
 
   - Remove data collection errors from trace
-  ```
-  libexec/memgaze-xlate-normalize <app>_s<size>_p<period>.trace [[FIXME && called from memgaze-xlate]]
-  ```
-
   - Convert IP offsets (from perf script) to full static IPs and combine two-address loads into single trace entry.
   - Separate trace and Call Path into two different file from the perf script output
   ```
-  ./add_base_IP.py <app>_s<size>_p<period>.trace.clean <app>_PTW <app>-memgaze.binanlys_Fixed <app>_s<size>_p<period>.trace.final [[FIXME: call from memgaze-xlate-normalize]]
+  libexec/memgaze-xlate-normalize <app>_s<size>_p<period>.trace [[FIXME && called from memgaze-xlate]]
+  ./add_base_IP.py <app>_s<size>_p<period>.trace.clean <app>_PTW <app>-memgaze.binanlys_Fixed <app>_s<size>_p<period>.trace.final [[FIXME: move into memgaze-xlate-normalize]]
   ```
+
 
 4. Analyze memory behavior using execution interval tree and generate footprint metrics.
 
