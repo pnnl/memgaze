@@ -20,15 +20,11 @@ MemGaze has four main steps.
    memgaze-inst <app-dir>/<app> [-o <inst-dir>] [[FIXME]]
    ```
 
-  Important contents within `<inst-dir>`:
-  - `<app>` : Instrumented `<app>`
-  - `<app>.binanlys`: Static binary analysis used downstream.
-
-  Auxilliary contents within `<inst-dir>`:
-  - `<app>.binanlys.log`: Mapping from original to instrumented IP [[FIXME]]
-  - `<app>.binanlys0`   : Load classifications                     [[FIXME]]
-  - `<app>.hpcstruct`   : HPCToolkit structure file
-
+  Important contents within `<inst-dir>`: [[FIXME]]
+  - `<app>`           : Instrumented `<app>`
+  - `<app>.binanlys`  : Static binary analysis used downstream.
+  - `<app>.hpcstruct` : HPCToolkit structure file
+  
   Steps:
   - Read binary (with dyninst)
   - Create CFG and dependence graph for each routine to determine each
@@ -41,8 +37,6 @@ MemGaze has four main steps.
   ```
   libexec/memgaze-inst-cat <tracedir>/<app>.binanlys.log <tracedir>/<app>.binanlys0   [[FIXME: was ip_converter.py]]
   ```
-
-  Create hpcstruct file  [[FIXME: called by memgaze-inst]]
 
 
 2. Trace memory behavior of application `<app>`, which is normally
