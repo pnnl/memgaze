@@ -1,0 +1,121 @@
+#!/bin/bash
+set -x
+opt_outDir=''
+opt_app=''
+instrumentor_path='../bin-anlys/install/bin/miami'
+opt_loads='1'
+opt_stores='0'
+opt_strided='1'
+opt_indirect='1'
+opt_frame='0'
+opt_analysis_file=''
+hpcstuct="/home/kili337/tools/hpctoolkit_linemap/bin/hpcstruct"
+
+#$1 = binary
+#bin=$1
+#for b in ubench_1D_Str1_x1 ubench_1D_Str1_x2 ubench_1D_Str8_x1 ubench_1D_Str8_x2 ubench_1D_Ind_x1_shfl ubench_1D_Ind_x1_rand ubench_1D_Ind_x2 ubench_1D_Ind_halfx1  ubench_1D_If_halfx1
+#do 
+   echo "Instrumenting binary"
+#   /home/kili337/Projects/IPPD/gitlab/palm-memory/install/bin/miami  --bin_path ${bin}  --load_class 1 --inst_loads=1 --inst_stores=1 --inst_strided=1 --inst_indirect=1 --inst_frame=0  &> ${bin}.log
+#   /home/kili337/Projects/IPPD/gitlab/palm-memory/install/bin/miami  -m ~/x86_SandyBridge_EP.mdf  --bin_path ${bin}  --load_class 1 --inst_loads=1 --inst_stores=0 --inst_strided=1 --inst_indirect=1 --inst_frame=0 --lcFile=${bin}.lc   ${bin}.log &> ${bin}.log
+   #mv ${bin}_PTW ${bin}.out
+#done
+
+#****************************************************************************
+# Parse arguments
+#****************************************************************************
+
+die()
+{
+    cat <<EOF 1>&2
+${scriptCmd}: $*
+Use '${scriptCmd} -h' for usage.
+EOF
+    exit 1
+}
+
+usage()
+{
+    cat <<EOF
+Usage: ${scriptCmd} [options] [--] <app> [app-args]
+EOF
+    exit 0
+}
+
+#-----------------------------------------------------------
+# optional arguments
+#-----------------------------------------------------------
+while [[ $# -gt 0 ]] ; do
+
+    arg="$1"
+    shift # past argument
+
+    case "${arg}" in
+        -h | --help )
+            usage
+            ;;
+
+        -o | --output )
+            opt_outDir="$1"
+            shift # past value
+            ;;
+        
+	-i | --app )
+            opt_app="$1"
+            shift # past value
+            ;;
+
+        -l | --loads )
+            opt_loads="$1"
+            shift # past value
+            ;;
+
+        -s | --stores )
+            opt_stores="$1"
+            shift # past value
+            ;;
+
+        -t | --strided )
+            opt_strided="$1"
+            shift # past value
+            ;;
+
+        -n | --indirect )
+            opt_indirect="$1"
+            shift # past value
+            ;;
+
+        -f | --frame )
+            opt_frame="$1"
+            shift # past value
+            ;;
+
+        -a | --analysis-file )
+            opt_analysis_file="$1"
+            shift # past value
+            ;;
+
+	-- )
+            break
+            ;;
+
+        * ) # beginning of <application> command line
+            set -- "$arg" "$@"
+            break
+            ;;
+    esac
+done
+
+#-----------------------------------------------------------
+# required args
+#-----------------------------------------------------------
+#if [[ -z $1 ]] ; then
+#    die "no command to monitor"
+#fi
+
+
+${instrumentor_path}   --bin_path ${opt_app}  --load_class 1 --inst_loads=${opt_loads} --inst_stores=${opt_stores} --inst_strided=${opt_strided} --inst_indirect=${opt_indirect} --inst_frame=${opt_frame} --lcFile=${opt_analysis_file} &> ${opt_app}.log 
+
+./libexec/ip_converter.py ${opt_app}.log ${opt_analysis_file}
+${hpcstuct} ${opt_app}_PTW
+mv ${opt_analysis_file}_Fixed ${opt_analysis_file} 

@@ -24,7 +24,7 @@ PWD=$(pwd)
 time ./instument_binary.sh ${FOLDER}/${BIN}
 objdump -DC  ${FOLDER}/${BIN} >  ${FOLDER}/${BIN}.dump
 objdump -DC  ${FOLDER}/${BIN}_PTW >  ${FOLDER}/${BIN}_PTW.dump
-time ./ip_converter.py ${FOLDER}/${BIN}.log ${FOLDER}/${BIN}.lc 
+time ./ip_converter.py ${FOLDER}/${BIN}.log ${FOLDER}/${BIN}.binanlys 
 cd ${FOLDER}
 time /home/kili337/tools/hpctoolkit_linemap/bin/hpcstruct ${BIN}_PTW
 cd -
@@ -37,7 +37,7 @@ then
   mv ${FOLDER}/${BIN}.data ${FOLDER}/${BIN}_s${SIZE}_p${PERIOD}.data
   time ./extract_data.sh ${FOLDER}/${BIN}_s${SIZE}_p${PERIOD}
   time ./removeErros.sh ${FOLDER}/${BIN}_s${SIZE}_p${PERIOD}.trace
-  time ./add_base_IP.py ${FOLDER}/${BIN}_s${SIZE}_p${PERIOD}.trace.clean ${FOLDER}/${BIN}_PTW ${FOLDER}/${BIN}.lc_Fixed ${FOLDER}/${BIN}_s${SIZE}_p${PERIOD}.trace.final
+  time ./add_base_IP.py ${FOLDER}/${BIN}_s${SIZE}_p${PERIOD}.trace.clean ${FOLDER}/${BIN}_PTW ${FOLDER}/${BIN}.binanlys_Fixed ${FOLDER}/${BIN}_s${SIZE}_p${PERIOD}.trace.final
   Period=$PERIOD
   if [ ${LOAD} -eq 0 ]
   then

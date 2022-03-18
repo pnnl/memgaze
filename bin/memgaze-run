@@ -1,0 +1,119 @@
+#!/bin/bash
+set -x
+perf_path='/home/kili337/src/linux-5.5.9/tools/perf/perf'
+zero=0
+
+#echo "collecting data for $bin with $args"
+#if [ ${full} -eq ${zero} ]
+#then
+#  if [ ${LOAD} -eq ${zero} ]
+#  then
+#    /home/kili337/src/linux-5.5.9/tools/perf/perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e ref-cycles/period=${PERIOD},aux-sample-size=${SIZE},call-graph=lbr/u -o ${bin}.data -- ./${bin}_PTW $args
+#    #/home/kili337/src/linux-5.5.9/tools/perf/perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cycles/period=${PERIOD},aux-sample-size=${SIZE},call-graph=lbr/u -o ${bin}.data -- ./${bin}_PTW $args
+#  else  
+#    /home/kili337/src/linux-5.5.9/tools/perf/perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cpu/umask=0x81,event=0xd0,period=${PERIOD},aux-sample-size=${SIZE},call-graph=lbr/u -o ${bin}.data -- ./${bin}_PTW $args
+#  fi
+#fi 
+#
+#if [ ${full} -ne ${zero} ]
+#then
+#   /home/kili337/src/linux-5.5.9/tools/perf/perf record -m 4M,4M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -o ${bin}.data -- ./${bin}_PTW $args 
+#   #/home/kili337/src/linux-5.5.9/tools/perf/perf record -m 4M,4M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u --filter 'filter @distBuildLocalMapCounters' -o ${bin}.data -- ./${bin}_PTW $args 
+##   PID=$!
+##   ./intel_pt_sampling.sh $PID 0.01 &
+##   PID2=$!
+##   wait $PID
+##   sleep 1
+##   kill -9 $PID2
+#fi 
+
+
+#****************************************************************************
+# Parse arguments
+#****************************************************************************
+
+die()
+{
+    cat <<EOF 1>&2
+${scriptCmd}: $*
+Use '${scriptCmd} -h' for usage.
+EOF
+    exit 1
+}
+
+usage()
+{
+    cat <<EOF
+Usage: ${scriptCmd} [options] [--] <app> [app-args]
+EOF
+    exit 0
+}
+
+#-----------------------------------------------------------
+# optional arguments
+#-----------------------------------------------------------
+while [[ $# -gt 0 ]] ; do
+
+    arg="$1"
+    shift # past argument
+
+    case "${arg}" in
+        -h | --help )
+            usage
+            ;;
+
+        -m | --method )
+            opt_method="$1"
+            shift # past value
+            ;;
+
+        -b | --buffer-size )
+            opt_buffer="$1"
+            shift # past value
+            ;;
+
+        -p | --period)
+            opt_period="$1"
+            shift
+            ;;
+
+        -o | --output)
+            opt_output="$1"
+            shift
+            ;;
+
+
+	-- )
+            break
+            ;;
+
+        * ) # beginning of <application> command line
+            set -- "$arg" "$@"
+            break
+            ;;
+    esac
+done
+
+#-----------------------------------------------------------
+# required args
+#-----------------------------------------------------------
+if [[ -z $1 ]] ; then
+    die "no command to monitor"
+fi
+
+echo "collecting data for $bin with $args"
+if [ ${opt_period} -ne ${zero} ]
+then
+  if [ ${opt_method} -eq ${zero} ]
+  then
+    ${perf_path} record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e ref-cycles/period=${opt_period},aux-sample-size=${opt_buffer},call-graph=lbr/u -o ${opt_output}.data -- "$@"
+    #/home/kili337/src/linux-5.5.9/tools/perf/perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cycles/period=${PERIOD},aux-sample-size=${SIZE},call-graph=lbr/u -o ${bin}.data -- ./${bin}_PTW $args
+  else  
+    ${perf_path} record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cpu/umask=0x81,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer},call-graph=lbr/u -o ${opt_output}.data -- "$@"
+  fi
+fi 
+
+if [ ${opt_period} -eq ${zero} ]
+then
+   ${perf_path} record -m 4M,4M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -o ${opt_output}.data -- "$@"
+fi

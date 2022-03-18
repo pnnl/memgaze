@@ -1,0 +1,84 @@
+#!/bin/bash
+set -x
+opt_outDir=''
+opt_app=''
+instrumentor_path='../bin-anlys/install/bin/miami'
+opt_loads='1'
+opt_stores='0'
+opt_strided='1'
+opt_indirect='1'
+opt_frame='0'
+opt_analysis_file=''
+hpcstuct="/home/kili337/tools/hpctoolkit_linemap/bin/hpcstruct"
+
+
+#****************************************************************************
+# Parse arguments
+#****************************************************************************
+
+die()
+{
+    cat <<EOF 1>&2
+${scriptCmd}: $*
+Use '${scriptCmd} -h' for usage.
+EOF
+    exit 1
+}
+
+usage()
+{
+    cat <<EOF
+Usage: ${scriptCmd} [options] [--] <app> [app-args]
+EOF
+    exit 0
+}
+
+#-----------------------------------------------------------
+# optional arguments
+#-----------------------------------------------------------
+while [[ $# -gt 0 ]] ; do
+
+    arg="$1"
+    shift # past argument
+
+    case "${arg}" in
+        -h | --help )
+            usage
+            ;;
+
+        -o | --output )
+            opt_outDir="$1"
+            shift # past value
+            ;;
+        
+	-i | --app )
+            opt_app="$1"
+            shift # past value
+            ;;
+
+	-- )
+            break
+            ;;
+
+        * ) # beginning of <application> command line
+            set -- "$arg" "$@"
+            break
+            ;;
+    esac
+done
+
+#-----------------------------------------------------------
+# required args
+#-----------------------------------------------------------
+#if [[ -z $1 ]] ; then
+#    die "no command to monitor"
+#fi
+
+
+
+./libexec/extract_data.sh ${opt_app}
+./libexec/removeErros.sh ${opt_app}.trace
+mv ${opt_app}.trace.clean ${opt_app}.trace
+./libexec/add_base_IP.py ${opt_app}.trace ${opt_app}_PTW ${opt_app}.binanlys ${opt_app}.trace.final
+mv ${opt_app}.trace.final ${opt_app}.trace
+mv ${opt_app}.trace.final_callGraph ${opt_app}.callpath

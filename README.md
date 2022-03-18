@@ -85,7 +85,7 @@ MemGaze has 3 mains steps.
 4. Analyze memory behavior using execution interval tree and generate footprint metrics. As inputs, takes `<trace-dir>`, static binary analysis data (*.binanlys), ... [[FIXME]]
 
   ```
-  memgaze-analyze <trace-dir> <inst-dir> <FUNC> <MAKEDBIT>
+  memgaze-analyze -t <trace> -l <binanlys> -s <hpcstruct> -o <output> -m <1(load) | 0(time)> -p <period> -c <callpath>
   ```
   
   [[FIXME: script that takes <trace-dir> & generates args for driver. Should read <period> and <LOAD> from <trace-dir>/<memgaze.config>. What is <FUNC> $MAKEDBIT??? ]]
