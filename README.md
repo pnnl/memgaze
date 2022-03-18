@@ -43,13 +43,17 @@ MemGaze has four main steps.
 2. Trace memory behavior of application `<app>`, which is normally
    `<inst-dir>/<app>`. Generates output in `<trace-dir>`, which
    defaults to `./memgaze-<app>-trace-b<bufsz>-p<period>`
-   [[FIXME]]. (Leverages Linux perf.)
+   [[FIXME]].
    
    ```
    memgaze-run -p <period> -b <bufsz> 0 <LOAD> [-o <trace-dir>] -- <app> <app-args> [[FIXME: what is 0 and <LOAD>?]]
    ```
    
-   [[FIXME]] args for period, output, size, etc; cf. `<palm>/palm-task/palm-task-memlat. Write configuration to `<trace-dir>/<memgaze.config>`
+   Important contents within `<trace-dir>`: [[FIXME]]
+   - `<trace-dir>/<memgaze.config>`: Configuration arguments
+   - `<trace-dir>/<app>.perf`      : Tracing data (Linux perf)
+   
+   [[FIXME]] cf. `<palm>/palm-task/palm-task-memlat. 
 
 
 3. Translate tracing and profiling data within `<trace-dir>` into open formats and place results therein.
@@ -58,10 +62,10 @@ MemGaze has four main steps.
    memgaze-xtrace <trace-dir>
    ```
 
-  Important contents within `<trace-dir>`:
-  - `memgaze.config` : Configuration  [[FIXME]]
-  - `<app>.trace`    : Memory references
-  - `<app>.callpath` : Call paths
+  Important contents within `<trace-dir>`: [[FIXME]]
+  - `<trace-dir>/memgaze.config` : Configuration
+  - `<trace-dir>/<app>.trace`    : Memory references
+  - `<trace-dir>/<app>.callpath` : Call paths
 
 
   - Extract data file with perf-script using [[libexec/perf-script-intel-pt.py or libexec/perf-script-ldlat.py]]
