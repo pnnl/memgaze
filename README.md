@@ -6,26 +6,27 @@ $Id$
 MemGaze Pipeline
 =============================================================================
 
-MemGaze has 3 mains steps.
+MemGaze has four main steps.
 
 1. Instrument application binary (or libary) `<app>` for memory
    tracing. Generate instrumented `<app>` and auxiliary data within
-   directory `<inst-dir>`, which defaults to    [[FIXME]]
+   directory `<inst-dir>`, which defaults to 
    `<app-dir>/memgaze-<app>`. Instrumented `<app>` is `<inst-dir>/<app>`.
    
    Note: If instrumenting `<app>`'s libraries, must instrument each
    library and relink instrumented `<app>`.
 
    ```
-   memgaze-inst <app-dir>/<app> [-o <inst-dir>] [[FIXME: was instument_binary.sh]]
+   memgaze-inst <app-dir>/<app> [-o <inst-dir>] [[FIXME]]
    ```
 
   Important contents within `<inst-dir>`:
   - `<app>` : Instrumented `<app>`
   - `<app>.binanlys`: Static binary analysis used downstream.
 
+  Auxilliary contents within `<inst-dir>`:
   - `<app>.binanlys.log`: Mapping from original to instrumented IP [[FIXME]]
-  - `<app>.binanlys0`   : Load classifications [[FIXME]]
+  - `<app>.binanlys0`   : Load classifications                     [[FIXME]]
   - `<app>.hpcstruct`   : HPCToolkit structure file
 
   Steps:
@@ -38,7 +39,7 @@ MemGaze has 3 mains steps.
   - Generates HPCToolkit structure file
 
   ```
-  libexec/memgaze-inst-cat <tracedir>/<app>.binanlys.log <tracedir>/<app>.binanlys0 [[FIXME: was ip_converter.py && called by memgaze-inst]]
+  libexec/memgaze-inst-cat <tracedir>/<app>.binanlys.log <tracedir>/<app>.binanlys0   [[FIXME: was ip_converter.py]]
   ```
 
   Create hpcstruct file  [[FIXME: called by memgaze-inst]]
