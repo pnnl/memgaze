@@ -21,7 +21,7 @@ MemGaze has four main steps.
    memgaze-inst <app-dir>/<app> [-o <inst-dir>]
    ```
 
-  Important contents within `<inst-dir>`: [[FIXME]]
+  Important contents of `<inst-dir>`: [[FIXME]]
   - `<app>`           : Instrumented `<app>`
   - `<app>.binanlys`  : Static binary analysis
   - `<app>.hpcstruct` : HPCToolkit structure file
@@ -52,21 +52,21 @@ MemGaze has four main steps.
    memgaze-run -p <period or 0> -b <bufsz> [-e load|time] [-o <trace-dir>] -- <app> <app-args> [[FIXME: what is 0 and <LOAD>?]]
    ```
    
-   Important contents within `<trace-dir>`: [[FIXME]]
+   Important contents of `<trace-dir>`: [[FIXME]]
    - `<memgaze.config>`: Configuration arguments
    - `<app>.perf`      : Tracing data (Linux perf)
    
    [[FIXME]] cf. `<palm>/palm-task/palm-task-memlat. 
 
 
-3. Translate tracing and profiling data within `<trace-dir>` into open formats and place results therein.
+3. Translate tracing and profiling data within `<trace-dir>` into open
+   formats and place results therein.
 
    ```
    memgaze-xtrace <trace-dir>
    ```
 
-  Important contents within `<trace-dir>`: [[FIXME]]
-  - `memgaze.config` : Configuration of measurement.
+  Additional contents of `<trace-dir>`: [[FIXME]]
   - `<app>.trace`    : Memory references
   - `<app>.callpath` : Call paths
 
@@ -87,11 +87,14 @@ MemGaze has four main steps.
 
 4. Analyze memory behavior using execution interval tree and generate footprint metrics. As inputs, takes `<trace-dir>`, static binary analysis data (*.binanlys), ... [[FIXME]]
 
+
   ```
-  memgaze-analyze -t <trace> -l <binanlys> -s <hpcstruct> -o <output> -m <1(load) | 0(time)> -p <period> -c <callpath>
+  memgaze-analyze -t <trace-dir> -s <inst-dir> [-o <output>] [[FIXME]]
+  
+  [[old]] memgaze-analyze -t <trace> -l <binanlys> -s <hpcstruct> -o <output> -m <1(load) | 0(time)> -p <period> -c <callpath>
   ```
   
-  [[FIXME: script that takes <trace-dir> & generates args for driver. Should read <period> and <LOAD> from <trace-dir>/<memgaze.config>. What is <FUNC> $MAKEDBIT??? ]]
+  [[FIXME]] -f func: poor man's inclusive and masked-bit
   
 
 
