@@ -46,7 +46,7 @@ MemGaze has 3 mains steps.
 
 2. Trace memory behavior of application `<app>`, which is normally
    `<inst-dir>/<app>`. Generates output in `<trace-dir>`, which
-   defaults to `./memgaze-trace-<app>-b<bufsz>-p<period>`
+   defaults to `./memgaze-<app>-trace-b<bufsz>-p<period>`
    [[FIXME]]. (Leverages Linux perf.)
    
    ```
