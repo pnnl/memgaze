@@ -12,12 +12,9 @@ MemGaze Consolidation
 
   - [[working]] Notes for Intel PT and changes:
 
-  - <memgaze>/bin: application vs. system-wide; +LBR
-
-  - memgaze-trace: fix command line
-
-  - memgaze-inst should have an option to specify instrumentation output directory [[cannot assume that <binary-path> is writable]]
-
+  - memgaze-run:
+    - methods: pt, ldlat [[support ldlat in pipeline?]]
+    - scope:   application vs. system-wide; add LBR
 
 * Bugs:
   - [[working]] memory leaks
