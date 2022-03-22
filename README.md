@@ -49,7 +49,7 @@ MemGaze has four main steps.
    either load-based or time-based.
 
    ```
-   memgaze-run -p <period or 0> -b <bufsz> [-e load|time] [-o <trace-dir>] -- <app> <app-args> [[FIXME: what is 0 and <LOAD>?]]
+   memgaze-run -p <period or 0> -b <bufsz> [-e pt-load | pt-time | ldlat] [-o <trace-dir>] -- <app> <app-args> [[FIXME: what is 0 and <LOAD>?]]
    ```
    
    Important contents of `<trace-dir>`: [[FIXME]]
