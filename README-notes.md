@@ -27,6 +27,8 @@ MemGaze Consolidation
 
 
 * Better build (can build "externals' with spack)
+  
+  Can build dyninst
 
   [[Checked spack hpctoolkit build: Entire dyninst appears to be built.]]
 
