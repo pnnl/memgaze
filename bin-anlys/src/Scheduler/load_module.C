@@ -1143,7 +1143,7 @@ LoadModule::createDyninstImage(BPatch& bpatch)
 //      exit(0)
 //   }
    cout<<__func__<<" trying to open binary named "<<img_name.c_str()<<endl;
-   bpatch.setRelocateJumpTable(true);
+   //bpatch.setRelocateJumpTable(true); //FIXME:dyninst
    BPatch_addressSpace* app = bpatch.openBinary(img_name.c_str(),false);
    //BPatch_binaryEdit* app = bpatch.openBinary(img_name.c_str(),false);
    dyn_app = bpatch.openBinary(img_name.c_str(),false);

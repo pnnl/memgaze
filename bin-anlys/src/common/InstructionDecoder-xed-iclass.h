@@ -22,7 +22,7 @@
         return IB_cmp;
         
     case XED_ICLASS_PFRCP:              // 3DNOW
-    case XED_ICLASS_PFCPIT1:            // 3DNOW
+//FIXME:NEWBUILD    case XED_ICLASS_PFCPIT1:            // 3DNOW
     case XED_ICLASS_PFRCPIT2:           // 3DNOW
         return IB_div;
 
@@ -35,7 +35,7 @@
         return IB_mult;
         
     case XED_ICLASS_PFRSQIT1:           // 3DNOW
-    case XED_ICLASS_PFSQRT:             // 3DNOW
+//FIXME:NEWBUILD    case XED_ICLASS_PFSQRT:             // 3DNOW
         return IB_sqrt;
         
     case XED_ICLASS_PSWAPD:             // 3DNOW

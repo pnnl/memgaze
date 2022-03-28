@@ -35,7 +35,9 @@ LEX  = flex
 
 DYNINST_CXXFLAGS = \
 	-I$(DYNINST_INC) \
-	-I$(BOOST_INC)
+	-I$(BOOST_INC) \
+	-I$(TBB_INC) \
+	-I$(BINUTILS_INC)
 
 DYNINST_LDFLAGS = \
 	-L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) \
