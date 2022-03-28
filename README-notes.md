@@ -8,17 +8,17 @@ MemGaze Consolidation
 
 * Consolidation and documentation:
 
-  - [[working]] Archive of traces for MemGaze paper with updated naming scheme and only needed files
+  - [[almost]] Archive of traces for MemGaze paper with updated naming scheme and only needed files
+    nuke: /DATA/Projects/MemGaze
 
-  - [[working]] Notes for Intel PT and changes:
-
-  - memgaze-run:
+  - [[working]] memgaze-run:
     - methods: pt, ldlat [[support ldlat in pipeline?]]
     - scope:   application vs. system-wide; add LBR
 
-* Bugs:
-  - [[working]] memory leaks
+  - [[working]] Notes on Intel PT and changes
 
+
+* Bugs:
   - mem-anlys only reads one auxiliary file even if multiple are needed
     - results in some instructions with unknown laod classes
 
@@ -28,8 +28,7 @@ MemGaze Consolidation
 
 * Better build (can build "externals' with spack)
   
-  Can build dyninst
-
+  Can build dyninst.
   [[Checked spack hpctoolkit build: Entire dyninst appears to be built.]]
 
   - Can spack use scope/custimization to change where it pulls/obtains source code.
