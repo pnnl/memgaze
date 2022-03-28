@@ -165,15 +165,15 @@ add_section_to_map (bfd *abfd, asection *section, void *data)
    bfd_vma vma;
    bfd_size_type size;
 
-   if ((bfd_section_flags (section) & SEC_ALLOC) == 0)
+   if ((bfd_section_flags (section) & SEC_ALLOC) == 0) //FIXME::NEWBUILD bfd_get_section_flags (abfd, section)
       return;
 
    bfd_info *info = static_cast<bfd_info*>(data);
    if (!info)
       return;
 
-   vma = bfd_section_vma (section);
-   size = bfd_section_size (section);
+   vma = bfd_section_vma (section); //FIXME::NEWBUILD  bfd_get_section_vma (abfd, section);
+   size = bfd_section_size (section); //FIXME::NEWBUILD   bfd_get_section_size (section);
    if (size>0)
    {
       info->secs.insert(AddrSecMap::value_type(vma+size, section));
@@ -214,7 +214,7 @@ get_source_file_location (void *data, addrtype pc, int32_t* column, int32_t* lin
    
    // Found a section whose ending address is greater than my pc
    // Test that this section starts before the pc.
-   addrtype vma = bfd_section_vma ( section);
+   addrtype vma = bfd_section_vma ( section); //FIXME:NEWBUILD  bfd_get_section_vma (info->abfd, section);
    if (pc < vma)
       return (-2);
            
