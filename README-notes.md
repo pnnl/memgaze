@@ -116,6 +116,7 @@ MemGaze/bin-anlys: Changes from MIAMI-NW (newest first)
   - FIXME:instruction -> changes for new instruction types
 
   - FIXME:BETTER      -> things can be updated for better aproach
+  - FIXME:NEWBUILD    -> changes made for spack build
 
   - FIXME:latency     -> possible error for latency
 
@@ -155,6 +156,31 @@ MemGaze/bin-anlys: Changes from MIAMI-NW (newest first)
   PIN. LoadModule/Routine/instructions use data from DynInst.
   - `src/Scheduler/load-module.C`
   - `src/Scheduler/routine.C`
+
+* changes made for  spack build
+  load_module.C:1146:11: error: ‘class BPatch’ has no member named ‘setRelocateJumpTable’
+  #    bpatch.setRelocateJumpTable(true);
+  #TODO FIXME I commet out that line for now
+
+  #src/Scheduler/Makefile
+  36 DYNINST_CXXFLAGS = \
+  37         -I$(DYNINST_INC) \
+  38         -I$(BOOST_INC) \
+  39         -I$(TBB_INC)
+
+  /files0/kili337/TestBed/memgaze/memgaze/bin-anlys/src/common/source_file_mapping_binutils.C:168:9: note: suggested alternative: ‘bfd_set_section_flags’
+      if ((bfd_get_section_flags (abfd, section) & SEC_ALLOC) == 0)
+  /files0/kili337/TestBed/memgaze/memgaze/bin-anlys/src/common/source_file_mapping_binutils.C:175:10: note: suggested alternative: ‘bfd_set_section_vma’
+      vma = bfd_get_section_vma (abfd, section);
+  /files0/kili337/TestBed/memgaze/memgaze/bin-anlys/src/common/source_file_mapping_binutils.C:176:11: note: suggested alternative: ‘bfd_set_section_size’
+      size = bfd_get_section_size (section);
+
+  /files0/kili337/TestBed/memgaze/memgaze/bin-anlys/src/common/source_file_mapping_binutils.C:217:19: error: ‘bfd_get_section_vma’ was not declared in this scope
+      addrtype vma = bfd_get_section_vma (info->abfd, section);  
+
+  src/common/InstructionDecoder-xed-iclass.h
+  25 //FIXME:NEWBUILD    case XED_ICLASS_PFCPIT1:            // 3DNOW
+  38 //FIXME:NEWBUILD    case XED_ICLASS_PFSQRT:             // 3DNOW 
 
 
 =============================================================================
