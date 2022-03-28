@@ -3,6 +3,7 @@
 */*.[oa]
 */*/*/*.[oa]
 bin-anlys/install/
+bin-anlys/objs/
 tags
 */tags
 *.swp
