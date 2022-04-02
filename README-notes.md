@@ -18,17 +18,10 @@ MemGaze Consolidation
 
   - [[working]] Notes on Intel PT and changes
 
-
-* Bugs:
-  - mem-anlys only reads one auxiliary file even if multiple are needed
-    - results in some instructions with unknown laod classes
-
-  - Our window analysis algorithm uses pre-selected bins to create the histogram. Due to the variation of sample sizes window sizes also vary. This can create a binning anomaly at the largest one or two window sizes. Since \fpSym  should never get smaller in a larger window, we force each bin to take the maximum of the current and previous windows. This anomaly only happens when there are constant loads instrumented for our quantitative approach. To address this issue we are working on a more detailed fix.
-
-
   - PALM -> MEMGAZE
 
-* Better build (can build 'externals' with spack)
+
+* [[almost]] Better build (can build 'externals' with spack)
   
   - Can use hpctoolkit's dyninst.
 
@@ -50,6 +43,13 @@ MemGaze Consolidation
   - **Linux perf**: Within 'perf script' (user-level) hack to
     non-linked/related ip pointer.
   
+  
+* Bugs:
+  - mem-anlys only reads one auxiliary file even if multiple are needed
+    - results in some instructions with unknown laod classes
+
+  - Our window analysis algorithm uses pre-selected bins to create the histogram. Due to the variation of sample sizes window sizes also vary. This can create a binning anomaly at the largest one or two window sizes. Since \fpSym  should never get smaller in a larger window, we force each bin to take the maximum of the current and previous windows. This anomaly only happens when there are constant loads instrumented for our quantitative approach. To address this issue we are working on a more detailed fix.
+
 
 -----------------------------------------------------------------------------
 
