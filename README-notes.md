@@ -8,6 +8,11 @@ MemGaze Consolidation
 
 * Consolidation and documentation:
 
+  - [[todo]] 
+    - script to zip each trace file: "for each file f, gzip f"
+    - PALM -> MEMGAZE
+
+
   - [[done]] Archive of traces for MemGaze paper with updated naming scheme and only needed files
     nuke: /DATA/Projects/MemGaze
     - ICS-EVERYTHING has data for all runs, as well as perf's data files. Expect to delete.
@@ -17,8 +22,6 @@ MemGaze Consolidation
     - scope:   application vs. system-wide; add LBR
 
   - [[working]] Notes on Intel PT and changes
-
-  - PALM -> MEMGAZE
 
 
 * [[almost]] Better build (can build 'externals' with spack)
