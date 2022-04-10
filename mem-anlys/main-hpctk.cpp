@@ -295,7 +295,7 @@ realmain(int argc, char* const* argv)
 // *** Need a structure to map between CCT leaf nodes and the a set of trace samples. The current  Prof::Metric::IData assumes a dense vector of doubles ***
 
 static Prof::CCT::ANode*
-makeCCTPath(MyXFrame* leafFrame)
+makeCCTPath(MyXFrame* root)
 {
   Prof::CCT::ANode* parent = create synthetic root from above;
 
