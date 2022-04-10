@@ -33,6 +33,10 @@ using std::string;
 #include <lib/analysis/CallPath.hpp>
 #include <lib/analysis/Util.hpp>
 
+#include <lib/prof/CallPath-Profile.hpp>
+//#include <lib/analysis/CCT-Tree.hpp>
+
+
 #include <lib/support/diagnostics.h>
 #include <lib/support/RealPathMgr.hpp>
 
@@ -49,6 +53,13 @@ makeMetrics(Prof::CallPath::Profile& prof,
 
 
 //****************************************************************************
+
+// tallent: opaque (FIXME)
+class MyXFrame;
+
+static Prof::CCT::ANode*
+makeCCTPath(MyXFrame* leafFrame);
+
 
 
 // tallent: typical exception wrapper
@@ -85,6 +96,28 @@ main(int argc, char* const* argv)
 static int
 realmain(int argc, char* const* argv) 
 {
+
+  // ------------------------------------------------------------
+  // Two versions
+  //
+  // 1. Execution interval tree, where "time intervals" in execution
+  //    interval tree form call paths. That is, a parent "time
+  //    interval" is a caller and child "time interval" is a
+  //    callee. For source information, use a pseudo load module that
+  //    gives full regions. For callsite IP, a time interval (interior
+  //    nodes) uses the midpoint time (which will be unique). Leaf
+  //    nodes (loads) use load IP as address.
+  //
+  // 2. Call path profile, where LBR are call paths.
+  //
+  // To represent footprint metrics, insert final/summary metrics at
+  // each node (interior + leaf). (Metrics cannot simply be at the
+  // leaf.) Use computed metrics for the other views.
+  //
+  // Cf. `makeReturnCountMetric`, `Prof::Metric::ADesc::ComputedTy_Final`
+  //
+  // ------------------------------------------------------------
+
   // ------------------------------------------------------------
   // *. Create synthetic root in CCT
   // ------------------------------------------------------------
@@ -141,13 +174,24 @@ realmain(int argc, char* const* argv)
   // *. Create CCT from each call path fragment
   //    (CCT is CCT::Call and CCT::Stmt)
   // ------------------------------------------------------------
+
   // *** tallent: key new code #1 ***
 
-  for (each LBR path) {
-    Prof::CCT::ANode* path = makeCCTPath(...); // see below
-    MergeEffectList* mrgEffects = cct->mergeDeep(path,..);
+  // <hpctk>/src/lib/prof/CallPath-Profile.cpp:192, Profile::merge()
+  // <hpctk>/src/lib/prof/CCT-Tree.cpp:166, Tree::merge()
+  // <hpctk>/src/lib/prof/CCT-Tree.cpp:816, ANode::mergeDeep()
+  
+  
+  for (/* each LBR path */ int i = 0 ; i < 1 ; ++i) {
+    Prof::CCT::ANode* path_root = makeCCTPath(/*LBR path*/ NULL);
 
-    delete path;
+    uint x_newMetricBegIdx = 0;
+    Prof::CCT::MergeContext mergeCtxt(prof->cct(), /*doTrackCPIds*/false);
+      
+    Prof::CCT::MergeEffectList* mrgEffects =
+      cct_root->mergeDeep(path_root, x_newMetricBegIdx, mergeCtxt);
+
+    delete path_root;
     delete mrgEffects;
   }
   
@@ -251,7 +295,7 @@ realmain(int argc, char* const* argv)
 // *** Need a structure to map between CCT leaf nodes and the a set of trace samples. The current  Prof::Metric::IData assumes a dense vector of doubles ***
 
 static Prof::CCT::ANode*
-makeCCTPath(...)
+makeCCTPath(MyXFrame* leafFrame)
 {
   Prof::CCT::ANode* parent = create synthetic root from above;
 
