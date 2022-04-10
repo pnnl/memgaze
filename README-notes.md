@@ -26,6 +26,8 @@ MemGaze Consolidation
 
 * [[almost]] Better build (can build 'externals' with spack)
   
+  - HPCToolkit's spack recipe 
+  
   - Can use hpctoolkit's dyninst.
 
   - Must apply one hack/patch to dyninst:
