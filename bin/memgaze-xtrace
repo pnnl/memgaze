@@ -2,14 +2,8 @@
 set -x
 opt_outDir=''
 opt_app=''
-instrumentor_path='../bin-anlys/install/bin/miami'
-opt_loads='1'
-opt_stores='0'
-opt_strided='1'
-opt_indirect='1'
-opt_frame='0'
-opt_analysis_file=''
-hpcstuct="/home/kili337/tools/hpctoolkit_linemap/bin/hpcstruct"
+perf_path='/home/kili337/src/linux-5.5.9/tools/perf/perf'
+scriptCmd="./memgaze-xtrace"
 
 
 #****************************************************************************
@@ -28,7 +22,12 @@ EOF
 usage()
 {
     cat <<EOF
-Usage: ${scriptCmd} [options] [--] <app> [app-args]
+Usage: ${scriptCmd} [options]
+
+Options:
+  -h / --help   => print help
+  -o / --output => name of output directory
+  -i / --app    => binary path
 EOF
     exit 0
 }

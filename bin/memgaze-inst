@@ -10,16 +10,7 @@ opt_indirect='1'
 opt_frame='0'
 opt_analysis_file=''
 hpcstuct="/home/kili337/tools/hpctoolkit_linemap/bin/hpcstruct"
-
-#$1 = binary
-#bin=$1
-#for b in ubench_1D_Str1_x1 ubench_1D_Str1_x2 ubench_1D_Str8_x1 ubench_1D_Str8_x2 ubench_1D_Ind_x1_shfl ubench_1D_Ind_x1_rand ubench_1D_Ind_x2 ubench_1D_Ind_halfx1  ubench_1D_If_halfx1
-#do 
-   echo "Instrumenting binary"
-#   /home/kili337/Projects/IPPD/gitlab/palm-memory/install/bin/miami  --bin_path ${bin}  --load_class 1 --inst_loads=1 --inst_stores=1 --inst_strided=1 --inst_indirect=1 --inst_frame=0  &> ${bin}.log
-#   /home/kili337/Projects/IPPD/gitlab/palm-memory/install/bin/miami  -m ~/x86_SandyBridge_EP.mdf  --bin_path ${bin}  --load_class 1 --inst_loads=1 --inst_stores=0 --inst_strided=1 --inst_indirect=1 --inst_frame=0 --lcFile=${bin}.lc   ${bin}.log &> ${bin}.log
-   #mv ${bin}_PTW ${bin}.out
-#done
+scriptCmd="./memgaze-inst"
 
 #****************************************************************************
 # Parse arguments
@@ -37,7 +28,18 @@ EOF
 usage()
 {
     cat <<EOF
-Usage: ${scriptCmd} [options] [--] <app> [app-args]
+Usage: ${scriptCmd} [options] 
+
+Options:
+  -h / --help   => prints help
+  -o / --output => output directory path
+  -i / --app    => input binary (required)
+  -l / --loads  => load analysis (1 to do 0 to skip)
+  -s / --stores => store analysis (1 to do 0 to skip)
+  -t / --strided => strided analysis (req -l and/or -s to set 1) (1 to do 0 to skip)
+  -n / --indirect => indirect analysis (req -l and/or -s to set 1) (1 to do 0 to skip)
+  -f / --frame  => frame analysis (req -l and/or -s to set 1) (1 to do 0 to skip)
+
 EOF
     exit 0
 }
@@ -90,11 +92,6 @@ while [[ $# -gt 0 ]] ; do
             shift # past value
             ;;
 
-        -a | --analysis-file )
-            opt_analysis_file="$1"
-            shift # past value
-            ;;
-
 	-- )
             break
             ;;
@@ -106,16 +103,24 @@ while [[ $# -gt 0 ]] ; do
     esac
 done
 
-#-----------------------------------------------------------
 # required args
 #-----------------------------------------------------------
-#if [[ -z $1 ]] ; then
-#    die "no command to monitor"
-#fi
+if [[ -z ${opt_app} ]] ; then
+    die "no binary to instrument"
+fi
 
+if [ -z ${opt_outDir} ]
+then
+  opt_outDir="memgaze-${opt_app}"
+fi
 
-${instrumentor_path}   --bin_path ${opt_app}  --load_class 1 --inst_loads=${opt_loads} --inst_stores=${opt_stores} --inst_strided=${opt_strided} --inst_indirect=${opt_indirect} --inst_frame=${opt_frame} --lcFile=${opt_analysis_file} &> ${opt_app}.log 
+mkdir ${opt_outDir}
+cp ${opt_app} ${opt_outDir}
 
-./libexec/ip_converter.py ${opt_app}.log ${opt_analysis_file}
+${instrumentor_path}   --bin_path ${opt_outDir}/${opt_app}  --load_class 1 --inst_loads=${opt_loads} --inst_stores=${opt_stores} --inst_strided=${opt_strided} --inst_indirect=${opt_indirect} --inst_frame=${opt_frame} --lcFile=${opt_outDir}/${opt_app}_PTW.binanlys &> ${opt_outDir}/${opt_app}_PTW.binanlys.log 
+
+./libexec/memgaze-inst-cat ${opt_outDir}/${opt_app}_PTW.binanlys.log ${opt_outDir}/${opt_app}_PTW.binanlys
+cd ${opt_outDir}
 ${hpcstuct} ${opt_app}_PTW
-mv ${opt_analysis_file}_Fixed ${opt_analysis_file} 
+cd ..
+mv ${opt_outDir}/${opt_app}.binanlys_Fixed ${opt_outDir}/${opt_app}_PTW.binanlys 

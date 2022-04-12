@@ -2,31 +2,10 @@
 set -x
 perf_path='/home/kili337/src/linux-5.5.9/tools/perf/perf'
 zero=0
-
-#echo "collecting data for $bin with $args"
-#if [ ${full} -eq ${zero} ]
-#then
-#  if [ ${LOAD} -eq ${zero} ]
-#  then
-#    /home/kili337/src/linux-5.5.9/tools/perf/perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e ref-cycles/period=${PERIOD},aux-sample-size=${SIZE},call-graph=lbr/u -o ${bin}.data -- ./${bin}_PTW $args
-#    #/home/kili337/src/linux-5.5.9/tools/perf/perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cycles/period=${PERIOD},aux-sample-size=${SIZE},call-graph=lbr/u -o ${bin}.data -- ./${bin}_PTW $args
-#  else  
-#    /home/kili337/src/linux-5.5.9/tools/perf/perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cpu/umask=0x81,event=0xd0,period=${PERIOD},aux-sample-size=${SIZE},call-graph=lbr/u -o ${bin}.data -- ./${bin}_PTW $args
-#  fi
-#fi 
-#
-#if [ ${full} -ne ${zero} ]
-#then
-#   /home/kili337/src/linux-5.5.9/tools/perf/perf record -m 4M,4M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -o ${bin}.data -- ./${bin}_PTW $args 
-#   #/home/kili337/src/linux-5.5.9/tools/perf/perf record -m 4M,4M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u --filter 'filter @distBuildLocalMapCounters' -o ${bin}.data -- ./${bin}_PTW $args 
-##   PID=$!
-##   ./intel_pt_sampling.sh $PID 0.01 &
-##   PID2=$!
-##   wait $PID
-##   sleep 1
-##   kill -9 $PID2
-#fi 
-
+opt_period=0
+opt_method=1
+opt_buffer=8192
+scriptCmd="memgaze-run"
 
 #****************************************************************************
 # Parse arguments
@@ -45,6 +24,13 @@ usage()
 {
     cat <<EOF
 Usage: ${scriptCmd} [options] [--] <app> [app-args]
+
+Options:
+  -h / --help   => print help
+  -e / --event  => collection type for period 0 for time based and 1 for load based (def=1)
+  -b / --buffer => buffers size in bytes (def=8192)
+  -p / --period => period for sampling ( 0 for full trace) (def=0)
+  -o / --output => output folder name (def=<app>-trace-b<buffer>-p<period>
 EOF
     exit 0
 }
@@ -62,7 +48,7 @@ while [[ $# -gt 0 ]] ; do
             usage
             ;;
 
-        -m | --method )
+        -e | --event )
             opt_method="$1"
             shift # past value
             ;;
@@ -101,19 +87,41 @@ if [[ -z $1 ]] ; then
     die "no command to monitor"
 fi
 
+app=$@
+IFS=' '
+read -a strarr <<< "$app"
+app_path=${strarr[0]}
+IFS='/'
+read -a strarr <<< "$app_path"
+app=${strarr[-1]}
+IFS=''
+
+
+if [ -z ${opt_output} ]
+then
+  opt_output="${app}-trace-b${opt_buffer}-p${opt_period}"
+fi
+
+mkdir ${opt_output}
+
 echo "collecting data for $bin with $args"
 if [ ${opt_period} -ne ${zero} ]
 then
   if [ ${opt_method} -eq ${zero} ]
   then
-    ${perf_path} record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e ref-cycles/period=${opt_period},aux-sample-size=${opt_buffer},call-graph=lbr/u -o ${opt_output}.data -- "$@"
-    #/home/kili337/src/linux-5.5.9/tools/perf/perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cycles/period=${PERIOD},aux-sample-size=${SIZE},call-graph=lbr/u -o ${bin}.data -- ./${bin}_PTW $args
+    ${perf_path} record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e ref-cycles/period=${opt_period},aux-sample-size=${opt_buffer},call-graph=lbr/u -o ${opt_output}/${opt_output}.data -- "$@"
   else  
-    ${perf_path} record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cpu/umask=0x81,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer},call-graph=lbr/u -o ${opt_output}.data -- "$@"
+    ${perf_path} record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cpu/umask=0x81,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer},call-graph=lbr/u -o ${opt_output}/${opt_output}.perf -- "$@"
   fi
 fi 
 
 if [ ${opt_period} -eq ${zero} ]
 then
-   ${perf_path} record -m 4M,4M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -o ${opt_output}.data -- "$@"
+   ${perf_path} record -m 4M,4M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -o ${opt_output}/${opt_output}.perf -- "$@"
 fi
+cat <<EOF > ${opt_output}/memgaze.config
+-p ${opt_period}
+-m ${opt_method}
+-b ${app_path}
+EOF
+
