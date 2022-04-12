@@ -8,34 +8,29 @@ MemGaze Consolidation
 
 * Consolidation and documentation:
 
-  - [[working]] Archive of traces for MemGaze paper with updated naming scheme and only needed files
+  - [[todo]] 
+    - script to zip each trace file: "for each file f, gzip f"
+    - PALM -> MEMGAZE
 
-  - [[working]] Notes for Intel PT and changes:
 
-  - memgaze-run:
+  - [[done]] Archive of traces for MemGaze paper with updated naming scheme and only needed files
+    nuke: /DATA/Projects/MemGaze
+    - ICS-EVERYTHING has data for all runs, as well as perf's data files. Expect to delete.
+    
+  - [[working]] memgaze-run:
     - methods: pt, ldlat [[support ldlat in pipeline?]]
     - scope:   application vs. system-wide; add LBR
 
-* Bugs:
-  - [[working]] memory leaks
-
-  - mem-anlys only reads one auxiliary file even if multiple are needed
-    - results in some instructions with unknown laod classes
-
-  - Our window analysis algorithm uses pre-selected bins to create the histogram. Due to the variation of sample sizes window sizes also vary. This can create a binning anomaly at the largest one or two window sizes. Since \fpSym  should never get smaller in a larger window, we force each bin to take the maximum of the current and previous windows. This anomaly only happens when there are constant loads instrumented for our quantitative approach. To address this issue we are working on a more detailed fix.
+  - [[working]] Notes on Intel PT and changes
 
 
-
-* Better build (can build "externals' with spack)
+* [[almost]] Better build (can build 'externals' with spack)
   
-  Can build dyninst
-
-  [[Checked spack hpctoolkit build: Entire dyninst appears to be built.]]
-
-  - Can spack use scope/custimization to change where it pulls/obtains source code.
-
-  - **dyninst branch** for souce code mapping has a hack.
+  - HPCToolkit's spack recipe 
   
+  - Can use hpctoolkit's dyninst.
+
+  - Must apply one hack/patch to dyninst:
     New Dyninst master provides source line mapping for instrumented
     code (now in master), which hpcstruct can read.
 
@@ -47,11 +42,19 @@ MemGaze Consolidation
     
     In theory, [[run static analysis on the new instrumentation]].
     However, possibly the instrumentation code interferes.
-
+  
+  
 
   - **Linux perf**: Within 'perf script' (user-level) hack to
     non-linked/related ip pointer.
   
+  
+* Bugs:
+  - mem-anlys only reads one auxiliary file even if multiple are needed
+    - results in some instructions with unknown laod classes
+
+  - Our window analysis algorithm uses pre-selected bins to create the histogram. Due to the variation of sample sizes window sizes also vary. This can create a binning anomaly at the largest one or two window sizes. Since \fpSym  should never get smaller in a larger window, we force each bin to take the maximum of the current and previous windows. This anomaly only happens when there are constant loads instrumented for our quantitative approach. To address this issue we are working on a more detailed fix.
+
 
 -----------------------------------------------------------------------------
 

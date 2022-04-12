@@ -1,7 +1,8 @@
 #!/bin/bash
 set -x
 opt_outDir=''
-opt_app=''
+opt_trace_dir=''
+opt_inst_dir=''
 instrumentor_path='../bin-anlys/install/bin/miami'
 opt_loads='1'
 opt_stores='0'
@@ -57,7 +58,7 @@ while [[ $# -gt 0 ]] ; do
             ;;
 
 	-s | --inst-dir )
-            opt_trace_dir="$1"
+            opt_inst_dir="$1"
             shift # past value
             ;;
 
@@ -78,10 +79,60 @@ done
 #if [[ -z $1 ]] ; then
 #    die "no command to monitor"
 #fi
+trace=''
+binanlys=''
+hpcstruct=''
+mode=''
+period=''
+callpath=''
 
-while IFS= read -r line; do
-    echo "Text read from file: $line"
-done < my_filename.txt
+
+while IFS=' ' read -r type value; do
+    echo "type: $type value: $value"
+    if [[ $type == "-m" ]]
+    then 
+      mode=$value
+    elif [[ $type == "-p" ]]
+    then 
+      period=$value
+    elif [[ $type == "-t" ]]
+    then 
+      trace=$value
+    elif [[ $type == "-b" ]]
+    then 
+      binanlys=$value
+    elif [[ $type == "-h" ]]
+    then 
+      hpcstruct=$value
+    elif [[ $type == "-c" ]]
+    then 
+      callpath=$value
+    fi
+done < ${opt_trace_dir}/memgaze.config 
 
 
-../mem-anlys/memgaze-analyze -t <trace> -l <binanlys> -s <hpcstruct> -o <output> -m <1(load) | 0(time)> -p <period> -c <callpath>
+../mem-anlys/memgaze-analyze -t $trace -l $binanlys -s $hpcstruct -o $output -m $mode -p $period -c $callpath
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,22 +1,31 @@
 #!/bin/bash
 set -x
+
+# memgaze-deps
+
 mkdir toolkit
 cd toolkit
+
 git clone -c feature.manyFiles=true https://github.com/spack/spack.git
+
 mv spack/etc/spack/defaults/config.yaml spack/etc/spack/defaults/org_config.yaml
 cp ../config.yaml spack/etc/spack/defaults/config.yaml
+
 #git clone https://github.com/hpctoolkit/hpctoolkit.git
 cd spack/bin
 ARCH=$(./spack arch)
+
 #./spack install hpctoolkit@2022.01.15
 ./spack install hpctoolkit@2022.01.15 -papi -mpi
 cd ../..
+
 echo `pwd`
 for folder in `pwd`/${ARCH}/*
 do
    echo $folder
    LIB_PATH=$folder
 done
+
 for folder in ${LIB_PATH}/*
 do
    if [[ $folder == ${LIB_PATH}/hpctoolkit* ]]
@@ -39,6 +48,7 @@ do
       TBB=${folder}
    fi
 done
+
 echo "${HPCTOOLKIT}/"
 echo "${DYNINST}/"
 export PALM_EXT_ROOT=${LIB_PATH}
@@ -49,6 +59,7 @@ export XED_ROOT=${XED}
 export BINUTILS_ROOT=${BINUTILS}
 export BOOST_ROOT=${BOOST}
 export TBB_ROOT=${TBB}
+
 cd ../bin-anlys
 make -j4 
 

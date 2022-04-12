@@ -173,6 +173,8 @@ Linux Perf
 Trace format
 =============================================================================
 
-MemGaze:   insn-pc mem-addr cpu-id timestamp sample-id
+MemGaze:   <insn-pc> <mem-addr> <cpu-id> <timestamp> sample-id
+  (in initial trace, a two-source load has two lines, which are converted to one line)
 
-MemCAMera: insn-pc mem-addr cpu-id timestamp [mem-addr2 cpu-id timestamp]
+
+MemCAMera: <insn-pc> <mem-addr> <cpu-id> <timestamp> [mem-addr2 cpu-id timestamp]
