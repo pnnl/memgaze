@@ -26,11 +26,9 @@ MemGaze Consolidation
 
 * [[almost]] Better build (can build 'externals' with spack)
   
-  - HPCToolkit's spack recipe 
-  
-  - Can use hpctoolkit's dyninst.
+  - Leverage HPCToolkit's DynInst, xed, etc with HPCToolkit's spack recipe.
 
-  - Must apply one hack/patch to dyninst:
+  - Must apply one hack/patch to DynInst:
     New Dyninst master provides source line mapping for instrumented
     code (now in master), which hpcstruct can read.
 
@@ -38,11 +36,11 @@ MemGaze Consolidation
     precisely, want) the mapping.  The MemGaze instrumentor determines
     instruction classes from the original binary, but we also need the
     classes for the corresponding new/instrumented ins. Currently,
-    Ozgur introduced a small hack in Dyninst to print the mapping.
+    we use a one-line hack in Dyninst to print the mapping.
     
-    In theory, [[run static analysis on the new instrumentation]].
-    However, possibly the instrumentation code interferes.
-  
+    Alternatives: 1) Re-run MemGaze's static binary analysis on the
+    new code within the binary. 2) Propose a DynInst interface for
+    exporting the details of the mapping.
   
 
   - **Linux perf**: Within 'perf script' (user-level) hack to
