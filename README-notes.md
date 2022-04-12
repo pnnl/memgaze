@@ -8,9 +8,10 @@ MemGaze Consolidation
 
 * Consolidation and documentation:
 
-  - [[todo]] 
+  - [[todo]]
     - script to zip each trace file: "for each file f, gzip f"
-    - PALM -> MEMGAZE
+
+  - PALM -> MEMGAZE
 
 
   - [[done]] Archive of traces for MemGaze paper with updated naming scheme and only needed files
