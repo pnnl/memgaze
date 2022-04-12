@@ -46,12 +46,6 @@ using std::string;
 static int
 realmain(int argc, char* const* argv);
 
-static void
-makeMetrics(Prof::CallPath::Profile& prof,
-	    const Analysis::Args& args,
-	    const Analysis::Util::NormalizeProfileArgs_t& nArgs);
-
-
 //****************************************************************************
 
 // tallent: opaque (FIXME)
@@ -60,6 +54,8 @@ class MyXFrame;
 static Prof::CCT::ANode*
 makeCCTPath(MyXFrame* leafFrame);
 
+static Prof::CCT::ANode*
+makeCCTRoot();
 
 
 // tallent: typical exception wrapper
@@ -135,7 +131,7 @@ realmain(int argc, char* const* argv)
 
 
   // ------------------------------------------------------------
-  // 1. Create synthetic root in CCT
+  // 1a. Create synthetic root in CCT
   // ------------------------------------------------------------
 
   // <hpctk>/src/lib/analysis/CallPath.cpp:141 read()
@@ -146,36 +142,17 @@ realmain(int argc, char* const* argv)
 
   Prof::CCT::Tree* cct = prof->cct();
 
-  // <hpctk>/src/lib/prof/CallPath-Profile.cpp:2092, cct_makeNode()
-  // <hpctk>/src/lib/prof/CallPath-Profile.cpp:2120, fmt_cct_makeNode()
-
-  const uint cpId = HPCRUN_FMT_CCTNodeId_NULL;
-  ushort opIdx = 0;
-
-  lush_assoc_info_t as_info = lush_assoc_info_NULL;
-  as_info.u.as = LUSH_ASSOC_1_to_1;
-
-  Prof::LoadMap::LMId_t lmId = Prof::LoadMap::LMId_NULL;
-  VMA ip = HPCRUN_FMT_LMIp_NULL;
-
-  lush_lip_t lip;
-  lush_lip_init(&lip);
-
-  uint mSz = 0; // (true) ? 0 : numMetricsDst;
-  Prof::Metric::IData metrics(mSz);
-
-  Prof::CCT::ANode* cct_root =
-    new Prof::CCT::Call(NULL, cpId, as_info, lmId, ip, opIdx, &lip, metrics);
+  Prof::CCT::ANode* cct_root = makeCCTRoot();
 
   prof->cct()->root(cct_root);
 
 
   // ------------------------------------------------------------
-  // *. Create CCT from each call path fragment
-  //    (CCT is CCT::Call and CCT::Stmt)
+  // 1b. Create CCT from each call path fragment
+  //     (CCT is CCT::Call and CCT::Stmt)
   // ------------------------------------------------------------
 
-  // *** tallent: key new code #1 ***
+  // *** TODO: key new code #1 ***
 
   // <hpctk>/src/lib/prof/CallPath-Profile.cpp:192, Profile::merge()
   // <hpctk>/src/lib/prof/CCT-Tree.cpp:166, Tree::merge()
@@ -227,7 +204,7 @@ realmain(int argc, char* const* argv)
   // 3a. Create footprint metrics for canonical CCT
   // -------------------------------------------------------
 
-  // *** tallent: key new code #2 ***
+  // *** TODO: key new code #2 ***
   
   // Post-order traversal (i.e., children before parents):
   //   compute footprint metrics from sets of trace  samples
@@ -287,40 +264,103 @@ realmain(int argc, char* const* argv)
 //****************************************************************************
 
 
-// Make CCT path from LBR path:
-// - Outermost frame is near root,
+// Make CCT path from LBR path. 'path' represents outermost frame.
+// - Outermost frame is nearest to root.
 // - Innermost frame is a leaf.
 // - Each leaf has a set trace samples from merging.
 
-// *** Need a structure to map between CCT leaf nodes and the a set of trace samples. The current  Prof::Metric::IData assumes a dense vector of doubles ***
+// *** TODO: Need a structure to map between CCT leaf nodes and the a set of trace samples. The current  Prof::Metric::IData assumes a dense vector of doubles ***
 
 static Prof::CCT::ANode*
-makeCCTPath(MyXFrame* root)
+makeCCTPath(MyXFrame* path)
 {
-  Prof::CCT::ANode* parent = create synthetic root from above;
+  MyXFrame* frame_outer = path;
 
-  for (each frame) {
+  Prof::CCT::ANode* path_root = makeCCTRoot();
+  
+  Prof::CCT::ANode* parent = path_root;
 
-    Prof::CCT::ANode* node = NULL;
+  // FIXME: Iterator is conceptually iterating through frames + sample
+  
+  for (MyXFrame* frame = frame_outer; frame != NULL ;
+        /* TODO: frame = frame->next */) {
+
+    bool isSampleOrLoad = false; // TODO
     
-    if (leaf) {
+    Prof::CCT::ANode* node = NULL;
+
+    const uint cpId = HPCRUN_FMT_CCTNodeId_NULL; // used for traces
+    ushort opIdx = 0;
+
+    lush_assoc_info_t as_info = lush_assoc_info_NULL;
+    as_info.u.as = LUSH_ASSOC_1_to_1;
+
+    lush_lip_t lip;
+    lush_lip_init(&lip);
+
+    uint mSz = 0; // TODO: num metrics
+    Prof::Metric::IData metricData(mSz);
+
+    // ----------------------------------------
+    // Leaf: Sample/load **** fixme: currently wrong ***
+    // ----------------------------------------
+    if (isSampleOrLoad) {
       // <hpctk>/src/lib/prof/CallPath-Profile.cpp:2076
-      node = new CCT::Stmt(NULL, cpId, nodeFmt.as_info, lmId, lmIP, opIdx, lip,
-                        metricData);
-      map node to trace sample;
+
+      Prof::LoadMap::LMId_t lmId = Prof::LoadMap::LMId_NULL; // TODO: pseudo-LM
+      VMA lmIP = HPCRUN_FMT_LMIp_NULL; // TODO: pseudo ip within pseudo-LM
+
+      node = new Prof::CCT::Stmt(NULL, cpId, as_info, lmId, lmIP, opIdx, &lip,
+                                 metricData);
+      // TODO: map 'node' to trace sample
     }
+    // ----------------------------------------
+    // Interior: Frame
+    // ----------------------------------------
     else {
       // <hpctk>/src/lib/prof/CallPath-Profile.cpp:2096
-      node = new CCT::Call(NULL, cpId0, nodeFmt.as_info, lmId, lmIP, opIdx,
-                        lipCopy, metricData0);
+
+      Prof::LoadMap::LMId_t lmId = Prof::LoadMap::LMId_NULL; // TODO: LM for load
+      VMA lmIP = HPCRUN_FMT_LMIp_NULL; // TODO load's ip within LM
+
+      node = new Prof::CCT::Call(NULL, cpId, as_info, lmId, lmIP, opIdx, &lip,
+                                 metricData);
     }
 
     if (parent) {
+      // TODO: With current iterator, 'parent' could be passed to the
+      // constructor. But may need to create children before 'parent'
+      // and use link().
       node->link(parent);
     }
 
     parent = node; // change parent
   }
 
-  return root_of_path
+  return path_root;
+}
+
+
+static Prof::CCT::ANode*
+makeCCTRoot()
+{
+  // <hpctk>/src/lib/prof/CallPath-Profile.cpp:2092, cct_makeNode()
+  // <hpctk>/src/lib/prof/CallPath-Profile.cpp:2120, fmt_cct_makeNode()
+  
+  const uint cpId = HPCRUN_FMT_CCTNodeId_NULL; // used for traces
+  ushort opIdx = 0;
+
+  lush_assoc_info_t as_info = lush_assoc_info_NULL;
+  as_info.u.as = LUSH_ASSOC_1_to_1;
+
+  Prof::LoadMap::LMId_t lmId = Prof::LoadMap::LMId_NULL;
+  VMA ip = HPCRUN_FMT_LMIp_NULL;
+
+  lush_lip_t lip;
+  lush_lip_init(&lip);
+
+  uint mSz = 0; // TODO: num metrics as argument
+  Prof::Metric::IData metricData(mSz);
+
+  return new Prof::CCT::Call(NULL, cpId, as_info, lmId, ip, opIdx, &lip, metricData);
 }

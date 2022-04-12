@@ -75,6 +75,10 @@ HPCTOOLKIT_CXXFLAGS = \
 HPCTOOLKIT_LDFLAGS = \
         -L$(HPCTOOLKIT_LIB) -Wl,-rpath $(HPCTOOLKIT_LIB)
 
+# FIXME: LDADD from <hpctk>/src/tool/hpcprof/Makefile.am
+HPCTOOLKIT_LDADD =
+
+
 #----------------------------------------------------------------------------
 
 mg_hpctk := memgaze-hpctk
@@ -93,7 +97,8 @@ $(mg_hpctk)_LDFLAGS = \
 
 $(mg_hpctk)_LIBS =
 
-$(mg_hpctk)_LDADD =
+$(mg_hpctk)_LDADD = \
+  $(HPCTOOLKIT_LDADD)
 
 
 #****************************************************************************
