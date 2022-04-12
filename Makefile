@@ -3,6 +3,8 @@
 MEMGAZE := $(shell pwd)
 SPACK := $(MEMGAZE)/utils/spack/bin/spack
 
+BUILD_DIR = lib-externals
+
 setup:
 	mkdir -p utils
 	cd utils && \
