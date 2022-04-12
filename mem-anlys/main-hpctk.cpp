@@ -52,10 +52,16 @@ realmain(int argc, char* const* argv);
 class MyXFrame;
 
 static Prof::CCT::ANode*
-makeCCTPath(MyXFrame* leafFrame);
+makeCCTPath(MyXFrame* path, uint n_metrics);
 
 static Prof::CCT::ANode*
-makeCCTRoot();
+makeCCTFrame(Prof::LoadMap::LMId_t lmId, VMA ip, uint n_metrics);
+
+static Prof::CCT::ANode*
+makeCCTLeaf(Prof::LoadMap::LMId_t lmId, VMA ip, uint n_metrics);
+
+static Prof::CCT::ANode*
+makeCCTRoot(uint n_metrics);
 
 
 // tallent: typical exception wrapper
@@ -92,7 +98,6 @@ main(int argc, char* const* argv)
 static int
 realmain(int argc, char* const* argv) 
 {
-
   // ------------------------------------------------------------
   // Two versions
   //
@@ -115,7 +120,7 @@ realmain(int argc, char* const* argv)
   // ------------------------------------------------------------
 
   // ------------------------------------------------------------
-  // *. Create synthetic root in CCT
+  // 0. Parse arguments
   // ------------------------------------------------------------
   // cf. <hpctk>/src/tool/hpcprof/main.cpp
   
@@ -129,6 +134,7 @@ realmain(int argc, char* const* argv)
   Analysis::Util::NormalizeProfileArgs_t nArgs =
     Analysis::Util::normalizeProfileArgs(args.profileFiles);
 
+  uint n_metrics = 0; // TODO: number expected metrics
 
   // ------------------------------------------------------------
   // 1a. Create synthetic root in CCT
@@ -142,7 +148,7 @@ realmain(int argc, char* const* argv)
 
   Prof::CCT::Tree* cct = prof->cct();
 
-  Prof::CCT::ANode* cct_root = makeCCTRoot();
+  Prof::CCT::ANode* cct_root = makeCCTRoot(n_metrics);
 
   prof->cct()->root(cct_root);
 
@@ -160,7 +166,7 @@ realmain(int argc, char* const* argv)
   
   
   for (/* each LBR path */ int i = 0 ; i < 1 ; ++i) {
-    Prof::CCT::ANode* path_root = makeCCTPath(/*LBR path*/ NULL);
+    Prof::CCT::ANode* path_root = makeCCTPath(/*LBR path*/ NULL, n_metrics);
 
     uint x_newMetricBegIdx = 0;
     Prof::CCT::MergeContext mergeCtxt(prof->cct(), /*doTrackCPIds*/false);
@@ -272,15 +278,16 @@ realmain(int argc, char* const* argv)
 // *** TODO: Need a structure to map between CCT leaf nodes and the a set of trace samples. The current  Prof::Metric::IData assumes a dense vector of doubles ***
 
 static Prof::CCT::ANode*
-makeCCTPath(MyXFrame* path)
+makeCCTPath(MyXFrame* path, uint n_metrics)
 {
   MyXFrame* frame_outer = path;
 
-  Prof::CCT::ANode* path_root = makeCCTRoot();
+  Prof::CCT::ANode* path_root = makeCCTRoot(n_metrics);
   
   Prof::CCT::ANode* parent = path_root;
 
   // FIXME: Iterator is conceptually iterating through frames + sample
+  // even though the pseudo type has frames.
   
   for (MyXFrame* frame = frame_outer; frame != NULL ;
         /* TODO: frame = frame->next */) {
@@ -289,42 +296,25 @@ makeCCTPath(MyXFrame* path)
     
     Prof::CCT::ANode* node = NULL;
 
-    const uint cpId = HPCRUN_FMT_CCTNodeId_NULL; // used for traces
-    ushort opIdx = 0;
-
-    lush_assoc_info_t as_info = lush_assoc_info_NULL;
-    as_info.u.as = LUSH_ASSOC_1_to_1;
-
-    lush_lip_t lip;
-    lush_lip_init(&lip);
-
-    uint mSz = 0; // TODO: num metrics
-    Prof::Metric::IData metricData(mSz);
-
     // ----------------------------------------
-    // Leaf: Sample/load **** fixme: currently wrong ***
+    // Leaf: Sample/load
     // ----------------------------------------
     if (isSampleOrLoad) {
-      // <hpctk>/src/lib/prof/CallPath-Profile.cpp:2076
-
+      // TODO:
       Prof::LoadMap::LMId_t lmId = Prof::LoadMap::LMId_NULL; // TODO: pseudo-LM
-      VMA lmIP = HPCRUN_FMT_LMIp_NULL; // TODO: pseudo ip within pseudo-LM
+      VMA ip = HPCRUN_FMT_LMIp_NULL; // TODO: pseudo ip within pseudo-LM
 
-      node = new Prof::CCT::Stmt(NULL, cpId, as_info, lmId, lmIP, opIdx, &lip,
-                                 metricData);
-      // TODO: map 'node' to trace sample
+      node = makeCCTLeaf(lmId, ip, n_metrics);
     }
     // ----------------------------------------
     // Interior: Frame
     // ----------------------------------------
     else {
-      // <hpctk>/src/lib/prof/CallPath-Profile.cpp:2096
-
+      // TODO:
       Prof::LoadMap::LMId_t lmId = Prof::LoadMap::LMId_NULL; // TODO: LM for load
-      VMA lmIP = HPCRUN_FMT_LMIp_NULL; // TODO load's ip within LM
+      VMA ip = HPCRUN_FMT_LMIp_NULL; // TODO load's ip within LM
 
-      node = new Prof::CCT::Call(NULL, cpId, as_info, lmId, lmIP, opIdx, &lip,
-                                 metricData);
+      node = makeCCTFrame(lmId, ip, n_metrics);
     }
 
     if (parent) {
@@ -342,25 +332,54 @@ makeCCTPath(MyXFrame* path)
 
 
 static Prof::CCT::ANode*
-makeCCTRoot()
+makeCCTFrame(Prof::LoadMap::LMId_t lmId, VMA ip, uint n_metrics)
 {
-  // <hpctk>/src/lib/prof/CallPath-Profile.cpp:2092, cct_makeNode()
+  // <hpctk>/src/lib/prof/CallPath-Profile.cpp:2096, cct_makeNode()
   // <hpctk>/src/lib/prof/CallPath-Profile.cpp:2120, fmt_cct_makeNode()
-  
+
   const uint cpId = HPCRUN_FMT_CCTNodeId_NULL; // used for traces
   ushort opIdx = 0;
 
   lush_assoc_info_t as_info = lush_assoc_info_NULL;
   as_info.u.as = LUSH_ASSOC_1_to_1;
 
-  Prof::LoadMap::LMId_t lmId = Prof::LoadMap::LMId_NULL;
-  VMA ip = HPCRUN_FMT_LMIp_NULL;
+  lush_lip_t lip;
+  lush_lip_init(&lip);
+
+  Prof::Metric::IData metricData(n_metrics);
+
+  return new Prof::CCT::Call(NULL, cpId, as_info, lmId, ip, opIdx, &lip, metricData);
+}
+
+
+static Prof::CCT::ANode*
+makeCCTLeaf(Prof::LoadMap::LMId_t lmId, VMA ip, uint n_metrics)
+{
+  // <hpctk>/src/lib/prof/CallPath-Profile.cpp:2076
+
+  const uint cpId = HPCRUN_FMT_CCTNodeId_NULL; // used for traces
+  ushort opIdx = 0;
+  
+  lush_assoc_info_t as_info = lush_assoc_info_NULL;
+  as_info.u.as = LUSH_ASSOC_1_to_1;
 
   lush_lip_t lip;
   lush_lip_init(&lip);
 
-  uint mSz = 0; // TODO: num metrics as argument
-  Prof::Metric::IData metricData(mSz);
+  Prof::Metric::IData metricData(n_metrics);
 
-  return new Prof::CCT::Call(NULL, cpId, as_info, lmId, ip, opIdx, &lip, metricData);
+  // TODO: map 'node' to trace sample
+  
+  return new Prof::CCT::Stmt(NULL, cpId, as_info, lmId, ip, opIdx, &lip,
+                             metricData);
+}
+
+
+static Prof::CCT::ANode*
+makeCCTRoot(uint n_metrics)
+{
+  Prof::LoadMap::LMId_t lmId = Prof::LoadMap::LMId_NULL;
+  VMA ip = HPCRUN_FMT_LMIp_NULL;
+
+  return makeCCTFrame(lmId, ip, n_metrics);
 }
