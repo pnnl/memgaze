@@ -99,25 +99,35 @@ static int
 realmain(int argc, char* const* argv) 
 {
   // ------------------------------------------------------------
-  // Two versions
+  // Two interpretations of HPCToolkit's CCT for call path profiles.
   //
-  // 1. Execution interval tree, where "time intervals" in execution
-  //    interval tree form call paths. That is, a parent "time
-  //    interval" is a caller and child "time interval" is a
-  //    callee. For source information, use a pseudo load module that
-  //    gives full regions. For callsite IP, a time interval (interior
-  //    nodes) uses the midpoint time (which will be unique). Leaf
-  //    nodes (loads) use load IP as address.
+  // 1. A CCT is MemGaze's execution interval tree, where nested time
+  //    intervals form "time" call paths. That is, a parent and child
+  //    time interval in MemGaze is a caller and callee, respectively
+  //    in a CCT. Leaf nodes represent samples/loads and correspond
+  //    directly to a sample at the load.
   //
-  // 2. Call path profile, where LBR are call paths.
+  //    The static source code information for a time interval is
+  //    found in a pseudo load module where the callsite IP for a time
+  //    interval is the interval's midpoint (which will be
+  //    unique). The interval's procedure name is the time interval
+  //    string.
+  //
+  // 2. A CCT is a forest of partial call paths from LBR.
+  //
+  //
+  // Metrics:
   //
   // To represent footprint metrics, insert final/summary metrics at
   // each node (interior + leaf). (Metrics cannot simply be at the
   // leaf.) Use computed metrics for the other views.
   //
+  // For time intervals, have one metric be the midpoint time so we can sort by time.
+  //
   // Cf. `makeReturnCountMetric`, `Prof::Metric::ADesc::ComputedTy_Final`
   //
   // ------------------------------------------------------------
+
 
   // ------------------------------------------------------------
   // 0. Parse arguments
@@ -286,7 +296,9 @@ makeCCTPath(MyXFrame* path, uint n_metrics)
   
   Prof::CCT::ANode* parent = path_root;
 
-  // FIXME: Iterator is conceptually iterating through frames + sample
+  // FIXME: Iterator is cl
+  s
+    onceptually iterating through frames + sample
   // even though the pseudo type has frames.
   
   for (MyXFrame* frame = frame_outer; frame != NULL ;
