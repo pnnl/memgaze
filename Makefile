@@ -11,8 +11,8 @@ MEMGAZE_ROOT := $(shell pwd)
 
 MG_XLIB = $(MEMGAZE_ROOT)/xlib
 
-# XLIB build root -- might be different
-MG_XLIB_ROOT = $(MG_XLIB)
+# MG_XLIB_ROOT: Bulid files for MemGaze XLIB
+MG_XLIB_ROOT       = $(MG_XLIB)
 MG_XLIB_SPACK_ROOT = $(MG_XLIB_ROOT)/spack
 
 all: xlib_build
