@@ -1,28 +1,37 @@
 # -*-Mode: makefile;-*-
 
+#*BeginPNNLCopyright*********************************************************
+#
+# $HeadURL$
+# $Id$
+#
+#***********************************************************EndPNNLCopyright*
+
 MEMGAZE := $(shell pwd)
 
-BUILD_DIR = lib-externals
-SPACK := $(MEMGAZE)/utils/spack/bin/spack
+MEMGAZE_XLIB_ROOT = $(MEMGAZE)/xlib
 
-setup:
-	mkdir -p utils
-	cd utils && \
-	git clone -c feature.manyFiles=true https://github.com/spack/spack.git
-	git clone https://github.com/hpctoolkit/hpctoolkit.git
+SPACK := $(MEMGAZE_XLIB_ROOT)/spack/bin/spack
+
+all: xlib_clone xlib_build
+
+xlib_clone:
+	mkdir -p $(MEMGAZE_XLIB_ROOT) && \
+	  cd $(MEMGAZE_XLIB_ROOT) && \
+	  git clone -c feature.manyFiles=true https://github.com/spack/spack.git &&
+	  git clone https://github.com/hpctoolkit/hpctoolkit.git
 
 dyninst:
 
 hpctoolkit:
 
-build:  dyninst
-	cd utils;  \
-	cp ../config.yaml spack/etc/spack/ && \
-	cp hpctoolkit/spack/packages.yaml  spack/etc/spack/ && \
-	ARCH="$(shell $(SPACK) arch)"; \
-	$(SPACK) install --reuse  hpctoolkit@2022.01.15 -papi -mpi
+xlib_build:  dyninst
+	cd $(MEMGAZE_XLIB_ROOT) && \
+	  cp ../config.yaml spack/etc/spack/ && \
+	  cp hpctoolkit/spack/packages.yaml  spack/etc/spack/ && \
+	  ARCH="$(shell $(SPACK) arch)" && \
+	  $(SPACK) install --reuse  hpctoolkit@2022.01.15 -papi -mpi
 
-all: setup build
 
 
 #TAR = tar
