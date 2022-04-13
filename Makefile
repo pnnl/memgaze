@@ -7,57 +7,30 @@
 #
 #***********************************************************EndPNNLCopyright*
 
-MEMGAZE_ROOT := $(shell pwd)
+#****************************************************************************
+# Package defs
+#****************************************************************************
 
-MG_XLIB = $(MEMGAZE_ROOT)/xlib
+include Makefile-defs.mk
 
-# MG_XLIB_ROOT: Bulid files for MemGaze XLIB
-MG_XLIB_ROOT       = $(MG_XLIB)
-MG_XLIB_SPACK_ROOT = $(MG_XLIB_ROOT)/spack
+#****************************************************************************
+# Recursion
+#****************************************************************************
 
-all: xlib_build
+MK_SUBDIRS = \
+  xlib
 
-xlib_spack:
-	mkdir -p $(MG_XLIB_ROOT) && \
-	  cd $(MG_XLIB_ROOT) && \
-	  git clone -c feature.manyFiles=true https://github.com/spack/spack.git && \
-	  git clone https://github.com/hpctoolkit/hpctoolkit.git && \
-	  cp $(MG_XLIB)/config.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/ && \
-	  cp $(MG_XLIB_ROOT)/hpctoolkit/spack/packages.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/
+#****************************************************************************
+# Template Rules
+#****************************************************************************
 
-
-xlib_dyninst_patch:
-
-xlib_hpctoolkit_xxx:
-
-xlib_build: xlib_spack xlib_dyninst_patch
-  ARCH="$(shell $(MG_XLIB_SPACK_ROOT)/bin/spack arch)" && \
-	  cd $(MG_XLIB_ROOT) && \
-	  $(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse  hpctoolkit@2022.01.15 -papi -mpi
+include Makefile-template.mk
 
 
-xlib_clean:
-# delete build files
+#****************************************************************************
+# Local Rules
+#****************************************************************************
 
-xlib_distclean: xlib_clean
-# delete spack/etc
+info.local :
 
-
-#TAR = tar
-#TARNM = perfect-suite-1.0.1
-#
-#
-#
-#dist :
-#nm_cur=`basename ${PWD}` ; \
-#nm_new=$(TARNM) ; \
-#cd .. ; \
-#if [[ ! -e $${nm_new} ]] ; then ln -s $${nm_cur} $${nm_new} ; fi ; \
-#${TAR} zcvf $${nm_new}.tar.gz \
-#-h \
-#--exclude=".git" \
-#--exclude=".svn" \
-#--exclude="suite/sar/tools" \
-#--exclude="suite/wami/tools" \
-#--exclude="doc/src" \
-#$${nm_new}
+check.local :
