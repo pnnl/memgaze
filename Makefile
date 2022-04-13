@@ -7,31 +7,40 @@
 #
 #***********************************************************EndPNNLCopyright*
 
-MEMGAZE := $(shell pwd)
+MEMGAZE_ROOT := $(shell pwd)
 
-MEMGAZE_XLIB_ROOT = $(MEMGAZE)/xlib
+MG_XLIB = $(MEMGAZE_ROOT)/xlib
 
-SPACK := $(MEMGAZE_XLIB_ROOT)/spack/bin/spack
+# XLIB build root -- might be different
+MG_XLIB_ROOT = $(MG_XLIB)
+MG_XLIB_SPACK_ROOT = $(MG_XLIB_ROOT)/spack
 
-all: xlib_clone xlib_build
+all: xlib_build
 
-xlib_clone:
-	mkdir -p $(MEMGAZE_XLIB_ROOT) && \
-	  cd $(MEMGAZE_XLIB_ROOT) && \
-	  git clone -c feature.manyFiles=true https://github.com/spack/spack.git &&
-	  git clone https://github.com/hpctoolkit/hpctoolkit.git
+xlib_spack:
+	mkdir -p $(MG_XLIB_ROOT) && \
+	  cd $(MG_XLIB_ROOT) && \
+	  git clone -c feature.manyFiles=true https://github.com/spack/spack.git && \
+	  git clone https://github.com/hpctoolkit/hpctoolkit.git && \
+	  cp $(MG_XLIB)/config.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/ && \
+	  cp $(MG_XLIB_ROOT)/hpctoolkit/spack/packages.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/
 
-dyninst:
 
-hpctoolkit:
+xlib_dyninst_patch:
 
-xlib_build:  dyninst
-	cd $(MEMGAZE_XLIB_ROOT) && \
-	  cp ../config.yaml spack/etc/spack/ && \
-	  cp hpctoolkit/spack/packages.yaml  spack/etc/spack/ && \
-	  ARCH="$(shell $(SPACK) arch)" && \
-	  $(SPACK) install --reuse  hpctoolkit@2022.01.15 -papi -mpi
+xlib_hpctoolkit_xxx:
 
+xlib_build: xlib_spack xlib_dyninst_patch
+  ARCH="$(shell $(MG_XLIB_SPACK_ROOT)/bin/spack arch)" && \
+	  cd $(MG_XLIB_ROOT) && \
+	  $(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse  hpctoolkit@2022.01.15 -papi -mpi
+
+
+xlib_clean:
+# delete build files
+
+xlib_distclean: xlib_clean
+# delete spack/etc
 
 
 #TAR = tar
