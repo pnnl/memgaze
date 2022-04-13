@@ -13,7 +13,6 @@ MemGaze Consolidation
 
   - PALM -> MEMGAZE
 
-
   - [[done]] Archive of traces for MemGaze paper with updated naming scheme and only needed files
     nuke: /DATA/Projects/MemGaze
     - ICS-EVERYTHING has data for all runs, as well as perf's data files. Expect to delete.

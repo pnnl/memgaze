@@ -21,7 +21,7 @@ MemGaze has four main steps.
    memgaze-inst <app-dir>/<app> [-o <inst-dir>]
    ```
 
-  Important contents of `<inst-dir>`: [[FIXME]]
+  Important contents of `<inst-dir>`:
   - `<app>`           : Instrumented `<app>`
   - `<app>.binanlys`  : Static binary analysis
   - `<app>.hpcstruct` : HPCToolkit structure file

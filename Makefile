@@ -1,9 +1,9 @@
 # -*-Mode: makefile;-*-
 
 MEMGAZE := $(shell pwd)
-SPACK := $(MEMGAZE)/utils/spack/bin/spack
 
 BUILD_DIR = lib-externals
+SPACK := $(MEMGAZE)/utils/spack/bin/spack
 
 setup:
 	mkdir -p utils
