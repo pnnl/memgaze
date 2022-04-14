@@ -12,4 +12,5 @@ cscope.out
 */cscope.out
 bin-anlys/x-ExtractSourceFiles
 bin-anlys/x-Viewer
-/bin-anlys/test
+bin-anlys/test
+xlib/lib/

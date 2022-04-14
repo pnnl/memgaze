@@ -23,7 +23,7 @@ mkfile_defs_root := $(abspath $(dir $(mkfile_defs)))
 #MEMGAZE_ROOT = $(mkfile_defs_root)
 MEMGAZE_ROOT = /home/kili337/Projects/IPPD/gitlab/memgaze
 MG_XLIB = $(MEMGAZE_ROOT)/xlib
-MG_XLIB_ROOT = $(MG_XLIB)/lib/lib
+MG_XLIB_ROOT = $(MG_XLIB)/lib
 
 #MEMGAZE_EXT_ROOT = $(MEMGAZE_ROOT)/../../palm-externals/trunk
 

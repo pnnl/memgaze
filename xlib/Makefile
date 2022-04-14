@@ -49,6 +49,8 @@ xlib_spack:
 
 
 xlib_dyninst_patch:
+	  rm $(MG_XLIB_SPACK_ROOT)/etc/spack/packages.yaml && \
+	$(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse --source --overwrite -y dyninst@12.0.1 
 #  patch binaryEdit.C dyninst.patch
 #  rebuild dyninst
 
@@ -58,7 +60,7 @@ xlib_hpctoolkit:
 xlib_build: xlib_spack #xlib_dyninst_patch
   ARCH="$(shell $(MG_XLIB_SPACK_ROOT)/bin/spack arch)" && \
 	  cd $(MG_XLIB_ROOT) && \
-	  $(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse  hpctoolkit@2022.01.15 -papi -mpi
+	  $(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse  --source hpctoolkit@2022.01.15 -papi -mpi
 
 
 xlib_clean:
