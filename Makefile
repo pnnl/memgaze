@@ -18,7 +18,8 @@ include Makefile-defs.mk
 #****************************************************************************
 
 MK_SUBDIRS = \
-  xlib
+	xlib \
+	bin-anlys  
 
 #****************************************************************************
 # Template Rules
@@ -34,3 +35,10 @@ include Makefile-template.mk
 info.local :
 
 check.local :
+
+all info:
+	@for dir in $(MK_SUBDIRS); \
+        do \
+           echo "Running \"make $@\" in $$dir"; \
+           (cd $$dir && $(MAKE) $@ ); \
+        done

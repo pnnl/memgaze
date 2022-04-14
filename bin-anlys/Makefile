@@ -1,8 +1,8 @@
 # -*-Mode: makefile;-*-
-
+include ../Makefile-defs.mk
 include miami.config
 
-MIAMI_TARGET ?= $(PALM_MIAMI_ROOT)
+MIAMI_TARGET ?= $(MEMGAZE_MIAMI_ROOT)
 VAR_FILES = $(wildcard $(MIAMI_TARGET)/etc/vars/vars_*)
 
 
@@ -12,7 +12,7 @@ ifneq ($(VAR_FILES),)
 	rm $(VAR_FILES)
 endif
 	cd src && $(MAKE) $@ MIAMI_KIT=1
-ifneq ($(MIAMI_TARGET),$(PALM_MIAMI_ROOT))
+ifneq ($(MIAMI_TARGET),$(MEMGAZE_MIAMI_ROOT))
 	@echo "Installing out of tree"
 	mkdir -p $(MIAMI_TARGET)
 	@echo "Copying documentation"

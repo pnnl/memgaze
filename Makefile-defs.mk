@@ -19,24 +19,34 @@ mkfile_defs := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 mkfile_defs_root := $(abspath $(dir $(mkfile_defs)))
 
 #****************************************************************************
+#MEMGAZE_ROOT := $(shell pwd)
+#MEMGAZE_ROOT = $(mkfile_defs_root)
+MEMGAZE_ROOT = /home/kili337/Projects/IPPD/gitlab/memgaze
+MG_XLIB = $(MEMGAZE_ROOT)/xlib
+MG_XLIB_ROOT = $(MG_XLIB)/lib/lib
 
-PALM_ROOT ?= $(mkfile_defs_root)
+#MEMGAZE_EXT_ROOT = $(MEMGAZE_ROOT)/../../palm-externals/trunk
 
-PALM_EXT_ROOT = $(PALM_ROOT)/../../palm-externals/trunk
+MEMGAZE_EXT_HPCTKEXT_ROOT ?= $(MG_XLIB_ROOT)/hpctoolkit-2022.01.15
 
-PALM_EXT_HPCTKEXT_ROOT ?= $(PALM_EXT_ROOT)/hpctoolkit-externals/x86_64-linux-$(MYCFG_SYSNAMESHORT)
-
-DYNINST_ROOT = $(PALM_EXT_HPCTKEXT_ROOT)/symtabAPI
+DYNINST_ROOT = $(MG_XLIB_ROOT)/dyninst-12.0.1
 DYNINST_INC = $(DYNINST_ROOT)/include
 DYNINST_LIB = $(DYNINST_ROOT)/lib
+DYNINSTAPI_RT_LIB=$(DYNINST_LIB)/libdyninstAPI_RT.so
 
-LIBDWARF_LIB = $(PALM_EXT_HPCTKEXT_ROOT)/libdwarf/lib
+LIBDWARF_LIB = $(MG_XLIB_ROOT)/libdwarf-20180129/lib
 
-LIBELF_LIB = $(PALM_EXT_HPCTKEXT_ROOT)/libelf/lib
+LIBELF_LIB = $(MG_XLIB_ROOT)/elfutils-0.186/lib
 
-BOOST_ROOT = $(PALM_EXT_HPCTKEXT_ROOT)/boost
+BOOST_ROOT = $(MG_XLIB_ROOT)/boost-1.77.0
 BOOST_INC = $(BOOST_ROOT)/include
 BOOST_LIB = $(BOOST_ROOT)/lib
+
+XED_ROOT=$(MG_XLIB_ROOT)/intel-xed-12.0.1
+BINUTILS_ROOT=$(MG_XLIB_ROOT)/binutils-2.36.1
+LIBIBERTY_INC=$(BINUTILS_ROOT)/include/libiberty/
+TBB_ROOT=$(MG_XLIB_ROOT)/intel-tbb-2020.3
+
 
 
 #****************************************************************************

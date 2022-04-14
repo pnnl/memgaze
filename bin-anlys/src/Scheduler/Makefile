@@ -1,5 +1,6 @@
 # -*-Mode: makefile;-*-
 
+include ../../../Makefile-defs.mk
 include ../../miami.config
 
 #****************************************************************************
@@ -37,6 +38,7 @@ DYNINST_CXXFLAGS = \
 	-I$(DYNINST_INC) \
 	-I$(BOOST_INC) \
 	-I$(TBB_INC) \
+	-I$(LIBIBERTY_INC) \
 	-I$(BINUTILS_INC)
 
 DYNINST_LDFLAGS = \
@@ -58,7 +60,9 @@ XED_LDFLAGS = \
 	-L$(XED_LIB) -Wl,-rpath $(XED_LIB) \
 	-lxed
 
-BINUTILS_CFLAGS = -I$(BINUTILS_ROOT)/include
+BINUTILS_CFLAGS = \
+        -I$(BINUTILS_ROOT)/include \
+	-I$(LIBIBERTY_INC) 
 BINUTILS_LDFLAGS = \
 	-L$(BINUTILS_ROOT)/lib -L$(BINUTILS_ROOT)/lib64 \
 	-lbfd -liberty -lz
@@ -73,13 +77,13 @@ TOOL_CFLAGS =
 TOOL_ROOTS = miami
 TOOL_VAR = vars_sched
 TOOL_OBJ_DIR = scheduler
-BINSCRIPT = $(PALM_MIAMI_ROOT)/src/tools/run_static.in
+BINSCRIPT = $(MEMGAZE_MIAMI_ROOT)/src/tools/run_static.in
 
 
-MIAMI_TARGET ?= $(PALM_MIAMI_ROOT)/install
+MIAMI_TARGET ?= $(MEMGAZE_MIAMI_ROOT)/install
 BINDIR = $(MIAMI_TARGET)/bin/
 EXEDIR = $(BINDIR)libexec/
-OBJDIR = $(PALM_MIAMI_ROOT)/objs/
+OBJDIR = $(MEMGAZE_MIAMI_ROOT)/objs/
 ETCDIR = $(MIAMI_TARGET)/etc
 VARSDIR = $(ETCDIR)/vars
 ifeq ($(MIAMI_KIT),1)
@@ -88,7 +92,7 @@ else
    VARSFILE = $(ETCDIR)/vars/$(TOOL_VAR)
 endif
 
-BINSCRIPT ?= $(PALM_MIAMI_ROOT)/src/tools/run_tool.in
+BINSCRIPT ?= $(MEMGAZE_MIAMI_ROOT)/src/tools/run_tool.in
 
 MIAMI_LIBRARY_PATHS = $(BINUTILS_ROOT)/lib:$(BINUTILS_ROOT)/lib64:$(DYNINST_LIB):$(XED_LIB)
 
@@ -101,12 +105,12 @@ TOOLS = $(SA_TOOLS) $(SA_WRAPPER)
 
 #****************************************************************************
 
-vpath %.C   $(PALM_MIAMI_ROOT)/src/Scheduler
-vpath %.cpp $(PALM_MIAMI_ROOT)/src/Scheduler
-vpath %.C   $(PALM_MIAMI_ROOT)/src/common
-vpath %.cpp $(PALM_MIAMI_ROOT)/src/common
-vpath %.C   $(PALM_MIAMI_ROOT)/src/OAUtils
-vpath %.C   $(PALM_MIAMI_ROOT)/src/tarjans
+vpath %.C   $(MEMGAZE_MIAMI_ROOT)/src/Scheduler
+vpath %.cpp $(MEMGAZE_MIAMI_ROOT)/src/Scheduler
+vpath %.C   $(MEMGAZE_MIAMI_ROOT)/src/common
+vpath %.cpp $(MEMGAZE_MIAMI_ROOT)/src/common
+vpath %.C   $(MEMGAZE_MIAMI_ROOT)/src/OAUtils
+vpath %.C   $(MEMGAZE_MIAMI_ROOT)/src/tarjans
 
 #----------------------------------------------------------------------------
 
@@ -306,7 +310,7 @@ cleanall distclean: clean
 #----------------------------------------------------------------------------
 
 info:
-	@echo "PALM_MIAMI_ROOT=$(PALM_MIAMI_ROOT)"
+	@echo "MEMGAZE_MIAMI_ROOT=$(MEMGAZE_MIAMI_ROOT)"
 	@echo "MIAMI_TARGET=$(MIAMI_TARGET)"
 	@echo "TOOL_OBJ_DIR=$(TOOL_OBJ_DIR)"
 	@echo "TOOL_CXXFLAGS=$(TOOL_CXXFLAGS)"
