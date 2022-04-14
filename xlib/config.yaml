@@ -19,7 +19,7 @@ config:
   install_tree:
     root: $spack/../
     projections:
-      all: "${ARCHITECTURE}/${COMPILERNAME}-${COMPILERVER}/${PACKAGE}-${VERSION}-${HASH}"
+      all: "${PACKAGE}-${VERSION}"
     #  all: "${ARCHITECTURE}/${COMPILERNAME}-${COMPILERVER}/${PACKAGE}-${VERSION}-${HASH}"
     # install_tree can include an optional padded length (int or boolean)
     # default is False (do not pad)
