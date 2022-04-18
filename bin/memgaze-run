@@ -123,5 +123,6 @@ cat <<EOF > ${opt_output}/memgaze.config
 -p ${opt_period}
 -m ${opt_method}
 -b ${app_path}
+-data ${opt_output}.perf
 EOF
 

@@ -9,7 +9,9 @@ opt_strided='1'
 opt_indirect='1'
 opt_frame='0'
 opt_analysis_file=''
-hpcstuct="/home/kili337/tools/hpctoolkit_linemap/bin/hpcstruct"
+#hpcstuct="/home/kili337/tools/hpctoolkit_linemap/bin/hpcstruct"
+currDir=`pwd`
+hpcstuct="${currDir}/../xlib/lib/hpctoolkit-2022.01.15/bin/hpcstruct"
 scriptCmd="./memgaze-inst"
 
 #****************************************************************************
@@ -123,4 +125,4 @@ ${instrumentor_path}   --bin_path ${opt_outDir}/${opt_app}  --load_class 1 --ins
 cd ${opt_outDir}
 ${hpcstuct} ${opt_app}_PTW
 cd ..
-mv ${opt_outDir}/${opt_app}.binanlys_Fixed ${opt_outDir}/${opt_app}_PTW.binanlys 
+mv ${opt_outDir}/${opt_app}_PTW.binanlys_Fixed ${opt_outDir}/${opt_app}_PTW.binanlys 

@@ -27,7 +27,7 @@ Usage: ${scriptCmd} [options]
 Options:
   -h / --help   => print help
   -o / --output => name of output directory
-  -i / --app    => binary path
+  -i / --input  => directory for perf data
 EOF
     exit 0
 }
@@ -50,7 +50,7 @@ while [[ $# -gt 0 ]] ; do
             shift # past value
             ;;
         
-	-i | --app )
+	-i | --input )
             opt_app="$1"
             shift # past value
             ;;
@@ -73,11 +73,34 @@ done
 #    die "no command to monitor"
 #fi
 
+if [ -z ${opt_outDir} ]
+then
+  opt_outDir=${opt_app}
+fi
+
+while IFS= read -r line; do
+    echo "Text read from file: $line"
+    words=($line)
+    echo "option: ${words[0]} var: ${words[1]}"
+    if [[ ${words[0]} == '-b' ]]
+    then
+      app_path=${words[1]}
+    fi
+    if [[ ${words[0]} == '-data' ]]
+    then
+      dataFile=${words[1]}
+    fi
+done < ${opt_app}/memgaze.config
+
+IFS='/' read -a apps <<< $app_path
+app=${apps[1]}
+echo "app: $app"
 
 
-./libexec/extract_data.sh ${opt_app}
-./libexec/removeErros.sh ${opt_app}.trace
-mv ${opt_app}.trace.clean ${opt_app}.trace
-./libexec/add_base_IP.py ${opt_app}.trace ${opt_app}_PTW ${opt_app}.binanlys ${opt_app}.trace.final
-mv ${opt_app}.trace.final ${opt_app}.trace
-mv ${opt_app}.trace.final_callGraph ${opt_app}.callpath
+
+${perf_path} script --script=./libexec/intel-pt-events.py -i ${opt_app}/${dataFile} > ${opt_outDir}/${app}.trace
+cat ${opt_outDir}/${app}.trace |grep -v error > ${opt_outDir}/${app}.trace.clean
+mv ${opt_outDir}/${app}.trace.clean ${opt_outDir}/${app}.trace
+./libexec/add_base_IP.py ${opt_outDir}/${app}.trace ${app_path} ${app_path}.binanlys ${opt_outDir}/${app}.trace.final
+mv ${opt_outDir}/${app}.trace.final ${opt_outDir}/${app}.trace
+mv ${opt_outDir}/${app}.trace.final_callGraph ${opt_outDir}/${app}.callpath

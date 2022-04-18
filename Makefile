@@ -36,7 +36,7 @@ info.local :
 
 check.local :
 
-all info:
+all info test:
 	@for dir in $(MK_SUBDIRS); \
         do \
            echo "Running \"make $@\" in $$dir"; \

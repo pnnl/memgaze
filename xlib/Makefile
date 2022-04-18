@@ -69,6 +69,10 @@ xlib_clean:
 xlib_distclean: xlib_clean
 # delete spack/etc
 
+test:
+	  echo $(MG_XLIB)
+	  echo $(MG_XLIB_ROOT)
+
 
 #****************************************************************************
 # Template Rules

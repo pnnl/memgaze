@@ -18,10 +18,10 @@ mkfile_defs := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 
 mkfile_defs_root := $(abspath $(dir $(mkfile_defs)))
 
+
 #****************************************************************************
 #MEMGAZE_ROOT := $(shell pwd)
-#MEMGAZE_ROOT = $(mkfile_defs_root)
-MEMGAZE_ROOT = /home/kili337/Projects/IPPD/gitlab/memgaze
+MEMGAZE_ROOT = $(mkfile_defs_root)
 MG_XLIB = $(MEMGAZE_ROOT)/xlib
 MG_XLIB_ROOT = $(MG_XLIB)/lib
 
