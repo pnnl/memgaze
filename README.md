@@ -36,23 +36,23 @@ MemGaze has four main steps.
   - Generates HPCToolkit structure file
 
   ```
-  libexec/memgaze-inst-cat <tracedir>/<app>.binanlys.log <tracedir>/<app>.binanlys0   [[FIXME: was ip_converter.py]]
+  libexec/memgaze-inst-cat <tracedir>/<app>.binanlys.log <tracedir>/<app>.binanlys0
   ```
 
 
 2. Trace memory behavior of application `<app>`, which is normally
    `<inst-dir>/<app>`. Generates output in `<trace-dir>`, which
-   defaults to `./memgaze-<app>-trace-b<bufsz>-p<period>`. [[FIXME]]
+   defaults to `./memgaze-<app>-trace-b<bufsz>-p<period>`.
 
    By default collect a sampled trace with period <period>; if period
    is 0 then collect a full (non-sampled) trace. Sample event can be
    either load-based or time-based.
 
    ```
-   memgaze-run -p <period or 0> -b <bufsz> [-e pt-load | pt-time | ldlat] [-o <trace-dir>] -- <app> <app-args> [[FIXME: what is 0 and <LOAD>?]]
+   memgaze-run -p <period or 0> -b <bufsz> [-e pt-load | pt-time | ldlat] [-o <trace-dir>] -- <app> <app-args>
    ```
    
-   Important contents of `<trace-dir>`: [[FIXME]]
+   Important contents of `<trace-dir>`:
    - `<memgaze.config>`: Configuration arguments
    - `<app>.perf`      : Tracing data (Linux perf)
    
@@ -66,7 +66,7 @@ MemGaze has four main steps.
    memgaze-xtrace <trace-dir>
    ```
 
-  New contents of `<trace-dir>`: [[FIXME]]
+  New contents of `<trace-dir>`:
   - `<app>.trace`    : Memory references
   - `<app>.callpath` : Call paths
 
@@ -78,7 +78,7 @@ MemGaze has four main steps.
   - Remove data collection errors from trace
   - Separate memory references and call paths
   ```
-  libexec/memgaze-xtrace-normalize <trace-dir>.trace [[FIXME && called from memgaze-xtrace]]
+  libexec/memgaze-xtrace-normalize <trace-dir>.trace [[FIXME: called from memgaze-xtrace]]
   ./add_base_IP.py <trace-dir>.trace.clean <app>_PTW <tracedir>/<app>.binanlys_Fixed <trace-dir>.trace.final [[FIXME: move into memgaze-xtrace-normalize]]
   ```
 
@@ -87,24 +87,11 @@ MemGaze has four main steps.
    footprint metrics. As inputs, takes `<trace-dir>` and `<inst-dir>`
 
    ```
-   memgaze-analyze -t <trace-dir> -s <inst-dir> [-o <output>] [[FIXME]]
-  
-   [[FIXME: old]] memgaze-analyze -t <trace> -l <binanlys> -s <hpcstruct> -o <output> -m <1(load) | 0(time)> -p <period> -c <callpath>
+   memgaze-analyze -t <trace-dir> -s <inst-dir> [-o <output>]
    ```
   
   [[FIXME]] -f func: poor man's inclusive and masked-bit
   
-
-
-FIXME
-----------------------------------------
-
-Execute entire pipeline [[FIXME: kill]]
-
-  ```
-  memgaze-all <FOLDER> <BIN> <ARGS> <0(time)/1(load)> <BufferSIZE(def=8192)> <PERIOD(def=37500000)> <MaskedBits(def=0)> <FUNCTION-NAME if need to focus> 
-  ```
-
 
 -----------------------------------------------------------------------------
 Linux Perf
