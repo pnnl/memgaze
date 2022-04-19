@@ -169,23 +169,33 @@ realmain(int argc, char* const* argv)
   // ------------------------------------------------------------
 
   // *** TODO: key new code #1 ***
+  
+  if (false /*interval tree*/) {
+    // convert interval tree; cf makeCCTPath()
+  }
+  
+  // ------------------------------------------------------------
+  // 1c. Create CCT from each LBR call path fragment
+  //     (CCT is CCT::Call and CCT::Stmt)
+  // ------------------------------------------------------------
 
   // <hpctk>/src/lib/prof/CallPath-Profile.cpp:192, Profile::merge()
   // <hpctk>/src/lib/prof/CCT-Tree.cpp:166, Tree::merge()
   // <hpctk>/src/lib/prof/CCT-Tree.cpp:816, ANode::mergeDeep()
-  
-  
-  for (/* each LBR path */ int i = 0 ; i < 1 ; ++i) {
-    Prof::CCT::ANode* path_root = makeCCTPath(/*LBR path*/ NULL, n_metrics);
 
-    uint x_newMetricBegIdx = 0;
-    Prof::CCT::MergeContext mergeCtxt(prof->cct(), /*doTrackCPIds*/false);
+  if (false /*LBR*/) {
+    for (/* each LBR path */ int i = 0 ; i < 1 ; ++i) {
+      Prof::CCT::ANode* path_root = makeCCTPath(/*LBR path*/ NULL, n_metrics);
       
-    Prof::CCT::MergeEffectList* mrgEffects =
-      cct_root->mergeDeep(path_root, x_newMetricBegIdx, mergeCtxt);
-
-    delete path_root;
-    delete mrgEffects;
+      uint x_newMetricBegIdx = 0;
+      Prof::CCT::MergeContext mergeCtxt(prof->cct(), /*doTrackCPIds*/false);
+      
+      Prof::CCT::MergeEffectList* mrgEffects =
+        cct_root->mergeDeep(path_root, x_newMetricBegIdx, mergeCtxt);
+      
+      delete path_root;
+      delete mrgEffects;
+    }
   }
   
   // tallent: unsure
@@ -198,7 +208,7 @@ realmain(int argc, char* const* argv)
   args.makeDatabaseDir();
 
   // ------------------------------------------------------------
-  // 2. Add static structure
+  // 3. Add static structure
   //    (Add CCT::Proc and CCT::Loop)
   // ------------------------------------------------------------
 
@@ -217,7 +227,7 @@ realmain(int argc, char* const* argv)
   Analysis::CallPath::transformCudaCFGMain(*prof);
   
   // -------------------------------------------------------
-  // 3a. Create footprint metrics for canonical CCT
+  // 4a. Create footprint metrics for canonical CCT
   // -------------------------------------------------------
 
   // *** TODO: key new code #2 ***
@@ -230,7 +240,7 @@ realmain(int argc, char* const* argv)
 
 
   // -------------------------------------------------------
-  // 3b. Prune and normalize canonical CCT
+  // 4b. Prune and normalize canonical CCT
   // -------------------------------------------------------
 
   // tallent: may need to update
@@ -249,7 +259,7 @@ realmain(int argc, char* const* argv)
 
 
   // ------------------------------------------------------------
-  // 4. Generate Experiment database
+  // 5. Generate Experiment database
   //    INVARIANT: database dir already exists
   // ------------------------------------------------------------
 
