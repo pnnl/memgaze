@@ -49,8 +49,8 @@ xlib_spack:
 
 
 xlib_dyninst_patch:
-	  rm $(MG_XLIB_SPACK_ROOT)/etc/spack/packages.yaml && \
-	$(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse --source --overwrite -y dyninst@12.0.1 
+	rm $(MG_XLIB_SPACK_ROOT)/etc/spack/packages.yaml && \
+	$(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse --source --overwrite -y dyninst@12.0.1
 #  patch binaryEdit.C dyninst.patch
 #  rebuild dyninst
 
