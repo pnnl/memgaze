@@ -169,6 +169,10 @@ realmain(int argc, char* const* argv)
   // ------------------------------------------------------------
 
   // *** TODO: key new code #1 ***
+
+  // <hpctk>/src/lib/prof/CallPath-Profile.cpp:192, Profile::merge()
+  // <hpctk>/src/lib/prof/CCT-Tree.cpp:166, Tree::merge()
+  // <hpctk>/src/lib/prof/CCT-Tree.cpp:816, ANode::mergeDeep()
   
   if (false /*interval tree*/) {
     // convert interval tree; cf makeCCTPath()
@@ -306,9 +310,7 @@ makeCCTPath(MyXFrame* path, uint n_metrics)
   
   Prof::CCT::ANode* parent = path_root;
 
-  // FIXME: Iterator is cl
-  s
-    onceptually iterating through frames + sample
+  // FIXME: Iterator is conceptually iterating through frames + sample
   // even though the pseudo type has frames.
   
   for (MyXFrame* frame = frame_outer; frame != NULL ;
