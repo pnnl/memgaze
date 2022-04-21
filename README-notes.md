@@ -8,23 +8,20 @@ MemGaze Consolidation
 
 * Consolidation and documentation:
 
-  - [[todo]]
-    - script to zip each trace file: "for each file f, gzip f"
-
-  - PALM -> MEMGAZE
-
-  - [[done]] Archive of traces for MemGaze paper with updated naming scheme and only needed files
-    nuke: /DATA/Projects/MemGaze
-    - ICS-EVERYTHING has data for all runs, as well as perf's data files. Expect to delete.
-    
+  - [[exe details for experiments, incl. miniVite]]
+  
   - [[working]] memgaze-run:
+    - set dyninst rt
     - methods: pt, ldlat [[support ldlat in pipeline?]]
     - scope:   application vs. system-wide; add LBR
 
-  - [[working]] Notes on Intel PT and changes
+  - [[todo]] Notes on Linux, Intel PT, and 'perf'. patch to 'perf script'.
+    Within 'perf script' (user-level) hack to non-linked/related ip pointer.
 
 
 * [[almost]] Better build (can build 'externals' with spack)
+  
+   [[ask Xiaozhu Meng]]
   
   - Leverage HPCToolkit's DynInst, xed, etc with HPCToolkit's spack recipe.
 
@@ -41,12 +38,14 @@ MemGaze Consolidation
     Alternatives: 1) Re-run MemGaze's static binary analysis on the
     new code within the binary. 2) Propose a DynInst interface for
     exporting the details of the mapping.
-  
 
-  - **Linux perf**: Within 'perf script' (user-level) hack to
-    non-linked/related ip pointer.
-  
-  
+
+* [[done]] Archive of traces for MemGaze paper with updated naming scheme and only needed files
+    nuke: /DATA/Projects/MemGaze
+    - ICS-EVERYTHING: data for all runs, incl. perf's data. Expect to delete.
+
+* ??? script to zip each trace file: "for each file f, gzip f"
+
 * Bugs:
   - mem-anlys only reads one auxiliary file even if multiple are needed
     - results in some instructions with unknown laod classes

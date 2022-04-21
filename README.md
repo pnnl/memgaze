@@ -55,9 +55,6 @@ MemGaze has four main steps.
    Important contents of `<trace-dir>`:
    - `<memgaze.config>`: Configuration arguments
    - `<app>.perf`      : Tracing data (Linux perf)
-   
-   [[FIXME]] cf. `<palm>/palm-task/palm-task-memlat. 
-
 
 3. Translate tracing and profiling data within `<trace-dir>` into open
    formats and place results therein.
