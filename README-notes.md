@@ -8,20 +8,28 @@ MemGaze Consolidation
 
 * Consolidation and documentation:
 
-  - [[exe details for experiments, incl. miniVite]]
+  - [[new]] exe details for experiments, incl. miniVite
+  
+  - [[new]] /DATA/Projects/MemGaze:
+    delete all "overhead" results and keep data-locality results
+    
+    add instrumented C++ library; 
+    what does FILTERED mean: using perf-filter (build-local-map-counter + ???)
+    what does THISONE
+    
+    please fix permissions for PTW files
   
   - [[working]] memgaze-run:
     - set dyninst rt
     - methods: pt, ldlat [[support ldlat in pipeline?]]
     - scope:   application vs. system-wide; add LBR
-
+    
   - [[todo]] Notes on Linux, Intel PT, and 'perf'. patch to 'perf script'.
     Within 'perf script' (user-level) hack to non-linked/related ip pointer.
 
+   [[new]] ask Xiaozhu Meng
 
 * [[almost]] Better build (can build 'externals' with spack)
-  
-   [[ask Xiaozhu Meng]]
   
   - Leverage HPCToolkit's DynInst, xed, etc with HPCToolkit's spack recipe.
 
