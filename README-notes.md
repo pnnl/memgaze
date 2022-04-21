@@ -25,7 +25,9 @@ MemGaze Consolidation
     - scope:   application vs. system-wide; add LBR
     
   - [[todo]] Notes on Linux, Intel PT, and 'perf'. patch to 'perf script'.
-    Within 'perf script' (user-level) hack to non-linked/related ip pointer.
+    - 'perf script' patch (user-level) hack to non-linked/related ip pointer.
+    
+    [[new]] delete mem-trace
 
    [[new]] ask Xiaozhu Meng
 
