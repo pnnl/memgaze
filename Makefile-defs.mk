@@ -23,7 +23,7 @@ mkfile_defs_root := $(abspath $(dir $(mkfile_defs)))
 
 MEMGAZE_ROOT = $(mkfile_defs_root)
 
-PREFIX ?= $(MEMGAZE_ROOT)/bin
+PREFIX ?= $(MEMGAZE_ROOT)/install
 
 MG_XLIB = $(MEMGAZE_ROOT)/xlib
 MG_XLIB_ROOT = $(MG_XLIB)/lib
