@@ -8,6 +8,8 @@ MemGaze Consolidation
 
 * Consolidation and documentation:
 
+  - Do we want [[mem-trace]]?
+
   - [[new]] exe details for experiments, incl. miniVite
   
   - [[new]] /DATA/Projects/MemGaze:
