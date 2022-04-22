@@ -12,6 +12,7 @@ MemGaze Consolidation
     - distribute contenst of 'bin'
     - add mem-trace
     - add install to PREFIX
+    - 'Makefile' Do not need loop -- auto-handled by MK_SUBDIRS
 
   - [[new]] exe details for experiments, incl. miniVite
   
