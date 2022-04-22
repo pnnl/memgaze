@@ -43,7 +43,7 @@ info.local :
 install.local :
 	$(INSTALL) -d $(PREFIX)/bin
 	$(INSTALL) -d $(PREFIX)/bin/libexec
-	$(INSTALL) memgaze-run memgaze-xtrace $(PREFIX)/bin
-	$(INSTALL) memgaze-xtrace-normalize perf-script-intel-pt.py  perf-script-ldlat.py $(PREFIX)/bin/libexec
+	$(INSTALL) memgaze-inst memgaze-analyze memgaze-run memgaze-xtrace $(PREFIX)/bin
+	$(INSTALL) memgaze-inst-cat memgaze-xtrace-normalize perf-script-intel-pt.py  perf-script-ldlat.py $(PREFIX)/bin/libexec
 
 check.local :
