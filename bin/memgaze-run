@@ -28,6 +28,7 @@ Usage: ${scriptCmd} [options] [--] <app> [app-args]
 Options:
   -h / --help   => print help
   -e / --event  => collection type for period 0 for time based and 1 for load based (def=1)
+  -e / --event  => collection type for <pt-load> <pt-time> <ldlat> (def=pt-load)
   -b / --buffer => buffers size in bytes (def=8192)
   -p / --period => period for sampling ( 0 for full trace) (def=0)
   -o / --output => output folder name (def=<app>-trace-b<buffer>-p<period>
@@ -107,11 +108,15 @@ mkdir ${opt_output}
 echo "collecting data for $bin with $args"
 if [ ${opt_period} -ne ${zero} ]
 then
-  if [ ${opt_method} -eq ${zero} ]
+  if [ ${opt_method} -eq 'pt-load' ]
   then
     ${perf_path} record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e ref-cycles/period=${opt_period},aux-sample-size=${opt_buffer},call-graph=lbr/u -o ${opt_output}/${opt_output}.data -- "$@"
-  else  
+  elif [ ${opt_method} -eq 'pt-time' ]
+  then
     ${perf_path} record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cpu/umask=0x81,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer},call-graph=lbr/u -o ${opt_output}/${opt_output}.perf -- "$@"
+  elif [ ${opt_method} -eq 'ldlat' ]
+  then
+    ${perf_path} record -W -d -e cpu/mem-loads,ldlat=1,period=${opt_period}/upp -o ${opt_output}/${opt_output}.perf -- "$@"
   fi
 fi 
 

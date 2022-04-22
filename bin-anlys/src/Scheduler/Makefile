@@ -39,6 +39,7 @@ DYNINST_CXXFLAGS = \
 	-I$(BOOST_INC) \
 	-I$(TBB_INC) \
 	-I$(LIBIBERTY_INC) \
+	-I$(LIBELF_INC) \
 	-I$(BINUTILS_INC)
 
 DYNINST_LDFLAGS = \
@@ -49,8 +50,8 @@ DYNINST_LDFLAGS = \
 	-lpatchAPI \
 	-linstructionAPI \
 	-lstackwalk \
-	-lpcontrol \
 	-ldynElf \
+	-lpcontrol \
 	-ldynDwarf \
 	-lboost_system \
 	-lcommon

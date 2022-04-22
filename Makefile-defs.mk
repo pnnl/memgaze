@@ -22,6 +22,7 @@ mkfile_defs_root := $(abspath $(dir $(mkfile_defs)))
 #****************************************************************************
 #MEMGAZE_ROOT := $(shell pwd)
 MEMGAZE_ROOT = $(mkfile_defs_root)
+#MEMGAZE_ROOT = /home/kili337/Projects/IPPD/gitlab/memgaze/
 MG_XLIB = $(MEMGAZE_ROOT)/xlib
 MG_XLIB_ROOT = $(MG_XLIB)/lib
 
@@ -37,6 +38,7 @@ DYNINSTAPI_RT_LIB=$(DYNINST_LIB)/libdyninstAPI_RT.so
 LIBDWARF_LIB = $(MG_XLIB_ROOT)/libdwarf-20180129/lib
 
 LIBELF_LIB = $(MG_XLIB_ROOT)/elfutils-0.186/lib
+LIBELF_INC = $(MG_XLIB_ROOT)/elfutils-0.186/include
 
 BOOST_ROOT = $(MG_XLIB_ROOT)/boost-1.77.0
 BOOST_INC = $(BOOST_ROOT)/include
