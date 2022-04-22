@@ -38,9 +38,10 @@ install.local :
 
 check.local :
 
-all info test:
-	@for dir in $(MK_SUBDIRS); \
-        do \
-           echo "Running \"make $@\" in $$dir"; \
-           (cd $$dir && $(MAKE) $@ ); \
-        done
+# DEPRECATE
+# all info test:
+# 	@for dir in $(MK_SUBDIRS); \
+#         do \
+#            echo "Running \"make $@\" in $$dir"; \
+#            (cd $$dir && $(MAKE) $@ ); \
+#         done
