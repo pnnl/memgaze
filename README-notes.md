@@ -14,6 +14,8 @@ MemGaze Consolidation
     - add install to PREFIX
     - 'Makefile' Do not need loop -- auto-handled by MK_SUBDIRS
 
+    - remove fixed paths to your world...
+
   - [[new]] exe details for experiments, incl. miniVite
   
   - [[new]] /DATA/Projects/MemGaze:
