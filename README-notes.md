@@ -8,7 +8,10 @@ MemGaze Consolidation
 
 * Consolidation and documentation:
 
-  - Do we want [[mem-trace]]?
+  - [[new]]:
+    - distribute contenst of 'bin'
+    - add mem-trace
+    - add install to PREFIX
 
   - [[new]] exe details for experiments, incl. miniVite
   

@@ -114,4 +114,7 @@ include ../Makefile-template.mk
 
 info.local :
 
+install.local :
+#	cp $(PREFIX)/
+
 check.local :
