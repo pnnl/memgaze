@@ -1,11 +1,27 @@
 #!/bin/bash
-set -x
+# -*- mode: sh -*-
+
+#*BeginPNNLCopyright*********************************************************
+#
+# $HeadURL$
+# $Id: 0cae9f95d9ed0841bbf77c91eef5f3d4c9a73f2e $
+#
+#***********************************************************EndPNNLCopyright*
+
+#set -x
+
+scriptPath0="${BASH_SOURCE[0]}" # works when script is sourced (unlike $0)
+scriptPath=$(readlink -f "${scriptPath0}")
+scriptCmd=${scriptPath##*/} # cf. $(basename ...)
+scriptDir=${scriptPath%/*}  # cf. $(dirname ...)
+
+#****************************************************************************
+
 perf_path='/home/kili337/src/linux-5.5.9/tools/perf/perf'
 zero=0
 opt_period=0
 opt_method=1
 opt_buffer=8192
-scriptCmd="memgaze-run"
 
 #****************************************************************************
 # Parse arguments
