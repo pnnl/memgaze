@@ -34,6 +34,8 @@ include Makefile-template.mk
 
 info.local :
 
+install.local :
+
 check.local :
 
 all info test:
