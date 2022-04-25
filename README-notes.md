@@ -29,8 +29,6 @@ MemGaze Consolidation
   - [[todo]] Notes on Linux, Intel PT, and 'perf'. patch to 'perf script'.
     - 'perf script' patch (user-level) hack to non-linked/related ip pointer.
     
-    [[new]] delete mem-trace
-
    [[new]] ask Xiaozhu Meng
 
 * [[almost]] Better build (can build 'externals' with spack)
