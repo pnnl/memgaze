@@ -11,14 +11,14 @@ MemGaze Consolidation
   - [[new]] exe details for experiments, incl. miniVite
   
   - [[new]] /DATA/Projects/MemGaze:
-    delete all "overhead" results and keep data-locality results
+
+    - copy data-locality results and delete delete "overhead" results
+    - add instrumented C++ library; 
     
-    add instrumented C++ library; 
-    what does FILTERED mean: using perf-filter (build-local-map-counter + ???)
-    what does THISONE
+   'focused'  - 'poor man's inclusive'
+   'filtered' - 'perf filter with build-local-map-counter as single region'
     
     please fix permissions for PTW files
-  
 
   - [[working]] memgaze-run:
     - remove fixed paths to your world...
