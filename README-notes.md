@@ -8,14 +8,6 @@ MemGaze Consolidation
 
 * Consolidation and documentation:
 
-  - [[new]]:
-    - distribute contenst of 'bin'
-    - add mem-trace
-    - add install to PREFIX
-    - 'Makefile' Do not need loop -- auto-handled by MK_SUBDIRS
-
-    - remove fixed paths to your world...
-
   - [[new]] exe details for experiments, incl. miniVite
   
   - [[new]] /DATA/Projects/MemGaze:
@@ -27,7 +19,9 @@ MemGaze Consolidation
     
     please fix permissions for PTW files
   
+
   - [[working]] memgaze-run:
+    - remove fixed paths to your world...
     - set dyninst rt
     - methods: pt, ldlat [[support ldlat in pipeline?]]
     - scope:   application vs. system-wide; add LBR
