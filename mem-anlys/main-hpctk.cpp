@@ -116,15 +116,28 @@ realmain(int argc, char* const* argv)
   // 2. A CCT is a forest of partial call paths from LBR.
   //
   //
-  // Metrics:
+  // Metrics for each CCT interpretation.
   //
-  // To represent footprint metrics, insert final/summary metrics at
-  // each node (interior + leaf). (Metrics cannot simply be at the
-  // leaf.) Use computed metrics for the other views.
+  // 1. Execution interval tree. 
   //
-  // For time intervals, have one metric be the midpoint time so we can sort by time.
+  //    - Directly represent footprint metrics at each each node of
+  //      "CCT" (interior + leaf).
+  //      Prof::Metric::ADesc::ComputedTy_Final, Prof::Metric::ADesc::TyIncl
+  //      <hpctk>/src/lib/analysis/CallPath.cpp:1152 makeReturnCountMetric()
+  //      - Interval id: time-interval midpoint to sort by time/order
+  //      - Footprint*: 1-1 correspondance with execution interval tree metrics
   //
-  // Cf. `makeReturnCountMetric`, `Prof::Metric::ADesc::ComputedTy_Final`
+  //    - Computed metrics for the other views...
+
+  // <hpctk>/src/lib/prof/Metric-Mgr.cpp:274, Mgr::makeSummaryMetric()
+  // <hpctk>/src/lib/prof/Metric-Mgr.cpp:409, Mgr::makeSummaryMetricIncr()
+
+  // <hpctk>/src/lib/analysis/CallPath-MetricComponentsFact.cpp:246
+  // MPIBlameShiftIdlenessFact::make()
+  
+  // 2. CCT: 
+  //
+  //
   //
   // ------------------------------------------------------------
 
@@ -235,7 +248,7 @@ realmain(int argc, char* const* argv)
   // -------------------------------------------------------
 
   // *** TODO: key new code #2 ***
-  
+
   // Post-order traversal (i.e., children before parents):
   //   compute footprint metrics from sets of trace  samples
 
