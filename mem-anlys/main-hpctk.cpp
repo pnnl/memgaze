@@ -140,6 +140,9 @@ realmain(int argc, char* const* argv)
   //
   // 2. A CCT is a forest of partial call paths from LBR. The call path will be correct for the first load; after that could be a return/call that we miss.
   //
+  //    ??? Try to infer return or new call? Instantiate "temporal
+  //    frames" within LBR's leaf or around it?
+  
   //    ??? Can we develop Notion of "Temporal-calling context" 
   //
   //
