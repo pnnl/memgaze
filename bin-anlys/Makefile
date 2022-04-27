@@ -1,6 +1,6 @@
 # -*-Mode: makefile;-*-
 include ../Makefile-defs.mk
-include miami.config
+##include miami.config
 
 MIAMI_TARGET ?= $(MEMGAZE_MIAMI_ROOT)
 VAR_FILES = $(wildcard $(MIAMI_TARGET)/etc/vars/vars_*)

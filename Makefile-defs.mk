@@ -23,6 +23,9 @@ mkfile_defs_root := $(abspath $(dir $(mkfile_defs)))
 
 MEMGAZE_ROOT = $(mkfile_defs_root)
 
+MEMGAZE_MIAMI_ROOT := $(MEMGAZE_ROOT)/bin-anlys
+MIAMI_TARGET = $(MEMGAZE_MIAMI_ROOT)/install
+
 PREFIX ?= $(MEMGAZE_ROOT)/install
 
 MG_XLIB = $(MEMGAZE_ROOT)/xlib
@@ -36,6 +39,7 @@ DYNINST_ROOT = $(MG_XLIB_ROOT)/dyninst-12.0.1
 DYNINST_INC = $(DYNINST_ROOT)/include
 DYNINST_LIB = $(DYNINST_ROOT)/lib
 DYNINSTAPI_RT_LIB=$(DYNINST_LIB)/libdyninstAPI_RT.so
+export DYNINSTAPI_RT_LIB=$(DYNINST_LIB)/libdyninstAPI_RT.so
 
 LIBDWARF_LIB = $(MG_XLIB_ROOT)/libdwarf-20180129/lib
 
@@ -47,9 +51,17 @@ BOOST_INC = $(BOOST_ROOT)/include
 BOOST_LIB = $(BOOST_ROOT)/lib
 
 XED_ROOT=$(MG_XLIB_ROOT)/intel-xed-12.0.1
+XED_INC = $(XED_ROOT)/include
+XED_LIB = $(XED_ROOT)/lib
+
 BINUTILS_ROOT=$(MG_XLIB_ROOT)/binutils-2.36.1
+BINUTILS_INC = $(BINUTILS_ROOT)/include
+
 LIBIBERTY_INC=$(BINUTILS_ROOT)/include/libiberty/
+
 TBB_ROOT=$(MG_XLIB_ROOT)/intel-tbb-2020.3
+TBB_INC = $(TBB_ROOT)/include
+TBB_LIB = $(TBB_ROOT)/lib
 
 
 
