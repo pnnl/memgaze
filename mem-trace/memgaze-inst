@@ -5,26 +5,23 @@ scriptPath=$(readlink -f "${scriptPath0}")
 scriptCmd=${scriptPath##*/} # cf. $(basename ...)
 scriptDir=${scriptPath%/*}  # cf. $(dirname ...)
 
-perf_path='${scriptDir}/../xlib/perf/linux-5.5.9/tools/perf/perf'
-DYNINST_ROOT='{scriptDir}/../xlib/lib/dyninst-12.0.1'
-DYNINST_LIB='${DYNINST_ROOT}/lib'
+perf_path="${scriptDir}/../xlib/perf/linux-5.5.9/tools/perf/perf"
+DYNINST_ROOT="{scriptDir}/../xlib/lib/dyninst-12.0.1"
+DYNINST_LIB="${DYNINST_ROOT}/lib"
 export DYNINSTAPI_RT_LIB=${DYNINST_LIB}/libdyninstAPI_RT.so
+hpcstuct="${scriptDir}/../xlib/lib/hpctoolkit-2022.01.15/bin/hpcstruct"
 
 
 set -x
 opt_outDir=''
 opt_app=''
-instrumentor_path='../bin-anlys/install/bin/miami'
+instrumentor_path="${scriptDir}/../bin-anlys/install/bin/miami"
 opt_loads='1'
 opt_stores='0'
 opt_strided='1'
 opt_indirect='1'
 opt_frame='0'
 opt_analysis_file=''
-#hpcstuct="/home/kili337/tools/hpctoolkit_linemap/bin/hpcstruct"
-currDir=`pwd`
-hpcstuct="${currDir}/../xlib/lib/hpctoolkit-2022.01.15/bin/hpcstruct"
-scriptCmd="./memgaze-inst"
 
 #****************************************************************************
 # Parse arguments
@@ -48,11 +45,11 @@ Options:
   -h / --help   => prints help
   -o / --output => output directory path
   -i / --app    => input binary (required)
-  -l / --loads  => load analysis (1 to do 0 to skip)
-  -s / --stores => store analysis (1 to do 0 to skip)
-  -t / --strided => strided analysis (req -l and/or -s to set 1) (1 to do 0 to skip)
-  -n / --indirect => indirect analysis (req -l and/or -s to set 1) (1 to do 0 to skip)
-  -f / --frame  => frame analysis (req -l and/or -s to set 1) (1 to do 0 to skip)
+  -l / --loads  => load analysis (1 to do 0 to skip def:1)
+  -s / --stores => store analysis (1 to do 0 to skip def:0)
+  -t / --strided => strided analysis (req -l and/or -s to set 1) (1 to do 0 to skip def:1)
+  -n / --indirect => indirect analysis (req -l and/or -s to set 1) (1 to do 0 to skip def:1)
+  -f / --frame  => frame analysis (req -l and/or -s to set 1) (1 to do 0 to skip def:0)
 
 EOF
     exit 0

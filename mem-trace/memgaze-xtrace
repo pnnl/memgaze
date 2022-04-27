@@ -16,9 +16,9 @@ export DYNINSTAPI_RT_LIB=${DYNINST_LIB}/libdyninstAPI_RT.so
 
 opt_outDir=''
 opt_app=''
-perf_path='/home/kili337/src/linux-5.5.9/tools/perf/perf'
-scriptCmd="./memgaze-xtrace"
-SCRIPT="./libexec/perf-script-intel-pt.py"
+#perf_path='/home/kili337/src/linux-5.5.9/tools/perf/perf'
+#scriptCmd="./memgaze-xtrace"
+SCRIPT="${scriptDir}/perf-script-intel-pt.py"
 
 
 #****************************************************************************

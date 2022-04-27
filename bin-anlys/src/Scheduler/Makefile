@@ -1,7 +1,7 @@
 # -*-Mode: makefile;-*-
 
 include ../../../Makefile-defs.mk
-#include ../../miami.config
+include ../../miami.config
 
 #****************************************************************************
 
