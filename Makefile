@@ -18,8 +18,11 @@ include Makefile-defs.mk
 #****************************************************************************
 
 MK_SUBDIRS = \
-	xlib \
-	bin-anlys  
+	bin-anlys \
+  mem-anlys \
+  mem-trace
+
+#	xlib
 
 #****************************************************************************
 # Template Rules
@@ -38,10 +41,3 @@ install.local :
 
 check.local :
 
-# DEPRECATE
-# all info test:
-# 	@for dir in $(MK_SUBDIRS); \
-#         do \
-#            echo "Running \"make $@\" in $$dir"; \
-#            (cd $$dir && $(MAKE) $@ ); \
-#         done

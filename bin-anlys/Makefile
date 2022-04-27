@@ -1,10 +1,36 @@
 # -*-Mode: makefile;-*-
+
+#*BeginPNNLCopyright*********************************************************
+#
+# $HeadURL$
+# $Id$
+#
+#***********************************************************EndPNNLCopyright*
+
+#****************************************************************************
+# Package defs
+#****************************************************************************
+
 include ../Makefile-defs.mk
+
+#****************************************************************************
+
 ##include miami.config
 
 MIAMI_TARGET ?= $(MEMGAZE_MIAMI_ROOT)
 VAR_FILES = $(wildcard $(MIAMI_TARGET)/etc/vars/vars_*)
 
+
+#****************************************************************************
+# Template Rules
+#****************************************************************************
+
+#include ../Makefile-template.mk
+
+
+#****************************************************************************
+# Local Rules
+#****************************************************************************
 
 all:
 	@# remove any existing individual vars files
@@ -24,6 +50,8 @@ ifneq ($(MIAMI_TARGET),$(MEMGAZE_MIAMI_ROOT))
 else
 	@echo "Installing in place"
 endif
+
+install.local :
 
 clean cleanall info:
 	cd src && $(MAKE) $@ MIAMI_KIT=1
