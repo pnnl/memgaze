@@ -25,8 +25,7 @@ VAR_FILES = $(wildcard $(MIAMI_TARGET)/etc/vars/vars_*)
 # Template Rules
 #****************************************************************************
 
-#include ../Makefile-template.mk
-
+include ../Makefile-template.mk
 
 #****************************************************************************
 # Local Rules
@@ -51,9 +50,10 @@ else
 	@echo "Installing in place"
 endif
 
-install.local :
-
 clean cleanall info:
 	cd src && $(MAKE) $@ MIAMI_KIT=1
 
 distclean: cleanall
+
+install.local :
+
