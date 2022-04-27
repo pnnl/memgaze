@@ -100,29 +100,51 @@ realmain(int argc, char* const* argv)
 {
   // ------------------------------------------------------------
   // Two interpretations of HPCToolkit's CCT for call path profiles.
+  // 
+  // HPCToolkit's CCT goes through two phases. Our conversion targets
+  // the "pre-structure" tree.
+  // - Pre-structure: CCT consists of callsites (return addresses) for
+  //   interior nodes; and samples for leaf nodes.
+  // - Post-structure: Procedure frames, etc are added.
+  //
   //
   // 1. A CCT is MemGaze's execution interval tree, where nested time
-  //    intervals form "time" call paths. That is, a parent and child
-  //    time interval in MemGaze is a caller and callee, respectively
-  //    in a CCT. Leaf nodes represent samples/loads and correspond
-  //    directly to a sample at the load.
+  //    intervals form "time" call paths. Thus:
+  //    - A MemGaze "time interval" node forms a CCT "t-interval" callsite
+  //      node in the pre-structure CCT, which will be given a "t-interval"
+  //      frame node in the post-structure CCT.
+  //    - A MemGaze "sample" (load) node forms a CCT "sample" node.
   //
-  //    * "Callers View": A sample's parent's "procedure name" is the
-  //      most likely likely neighbors (before/after). This provides a
-  //      sequencing relationship. Could continue to name ancestors by
-  //      more distant time relationships...
+  //    - ??? Most samples have loads from many procedures. To provide
+  //      some "calling" context, add "temporal" callsites (inducing
+  //      "temporal" frames) to represent temporally associated frames
+  //      (and likely callers). The "temporal" frame is a sequencing
+  //      relationship. Could continue to add "temporal" ancestors by
+  //      more distant time relationships, assuming a sensible method.
+  //   
+  //      A sample's "temporal" callsite is its "likely temporal
+  //      neighbor (before|after)". It refers to code.
   //
-  //      ??? How to define most dominant? How many loads (or
-  //      "frames") before/after is still "near"? Do we try to infer
-  //      ancestors?
+  //      ??? A load-group will be a series of loads with (mostly) the
+  //      same frame, gaps < g loads
   //
-  //    * "Flat View" has normal meaning for exclusive. It's
-  //      "inclusive" metrics are now w.r.t. time-correspondence.
-
-  //    The static source code information for a time interval is
-  //    found in a pseudo load module where the callsite IP for a time
-  //    interval is the interval's midpoint (which will be
-  //    unique). The interval's procedure name is the time interval
+  //      ??? The "temporal" callsites within a sample correspond to:
+  //      Find most frequent frame between the load-groups. This frame
+  //      forms a "temporal" callsite for the samples within its
+  //      lifetime. The sample remainder is formed from the leftover
+  //      loads, i.e., outside the lifetime. Iterate until no
+  //      remainder.
+  //
+  //    * "Callers View": For samples, view calling "temporal frames"
+  //      and "t-interval frames".
+  //
+  //    * "Flat View" has normal meaning for exclusive. Its
+  //      "inclusive" metrics are now w.r.t. time correspondence.
+  //
+  //    The static source code information for a "t-interval frame" is found
+  //    in a "t-interval load module" (pseudo) where the callsite IP for a
+  //    t-interval is the interval's midpoint (which will be
+  //    unique). The t-interval's procedure name is the time interval
   //    string.
   //
   //    Metrics: 
@@ -138,14 +160,16 @@ realmain(int argc, char* const* argv)
   //    * For other views, metrics can be *average* for all aggregated scopes.
   //
   //
-  // 2. A CCT is a forest of partial call paths from LBR. The call path will be correct for the first load; after that could be a return/call that we miss.
+  // 2. A CCT is a forest of partial call paths from LBR. The call
+  //    path will be correct for the first load; after that we could
+  //    miss a return/call.
   //
-  //    ??? Try to infer return or new call? Instantiate "temporal
-  //    frames" within LBR's leaf or around it?
-  
-  //    ??? Can we develop Notion of "Temporal-calling context" 
+  //    ??? Try to infer return/call?
   //
+  //    ??? instantiate "temporal frames" within LBR's leaf or around
+  //    it? Develop notion of "Temporal-calling context".
   //
+  // 
   //
   //
   // <hpctk>/src/lib/prof/Metric-Mgr.cpp:274, Mgr::makeSummaryMetric()

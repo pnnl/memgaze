@@ -15,7 +15,8 @@ MemGaze Consolidation
     - copy data-locality results and delete delete "overhead" results
     - add instrumented C++ library; 
     
-   'focused'  - 'poor man's inclusive'
+   'focused'  - 'poor man's inclusive' ??? clustering phase, mostly BLMC
+   
    'filtered' - 'perf filter with build-local-map-counter as single region'
     
     please fix permissions for PTW files
@@ -29,9 +30,12 @@ MemGaze Consolidation
   - [[todo]] Notes on Linux, Intel PT, and 'perf'. patch to 'perf script'.
     - 'perf script' patch (user-level) hack to non-linked/related ip pointer.
     
-   [[new]] ask Xiaozhu Meng
 
 * [[almost]] Better build (can build 'externals' with spack)
+
+   [[new]] ask Xiaozhu Meng
+
+   - Release-2022.04.15
   
   - Leverage HPCToolkit's DynInst, xed, etc with HPCToolkit's spack recipe.
 
