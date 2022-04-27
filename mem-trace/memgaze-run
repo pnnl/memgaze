@@ -26,7 +26,7 @@ echo $DYNINSTAPI_RT_LIB
 echo $perf_path
 #****************************************************************************
 
-#perf_path='/home/kili337/src/linux-5.5.9/tools/perf/perf'
+
 zero=0
 opt_period=0
 opt_method=1
