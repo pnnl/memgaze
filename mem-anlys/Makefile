@@ -115,6 +115,7 @@ include ../Makefile-template.mk
 info.local :
 
 install.local :
-#	cp $(PREFIX)/
+	$(INSTALL) -d $(PREFIX_LIBEXEC)
+	$(INSTALL) memgaze-analyze $(PREFIX_LIBEXEC)
 
 check.local :

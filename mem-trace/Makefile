@@ -41,9 +41,9 @@ include ../Makefile-template.mk
 info.local :
 
 install.local :
-	$(INSTALL) -d $(PREFIX)/bin
-	$(INSTALL) -d $(PREFIX)/bin/libexec
-	$(INSTALL) memgaze-inst memgaze-analyze memgaze-run memgaze-xtrace $(PREFIX)/bin
-	$(INSTALL) memgaze-inst-cat memgaze-xtrace-normalize perf-script-intel-pt.py  perf-script-ldlat.py $(PREFIX)/bin/libexec
+	$(INSTALL) -d $(PREFIX_BIN)
+	$(INSTALL) -d $(PREFIX_LIBEXEC)
+	$(INSTALL) memgaze-inst memgaze-analyze memgaze-run memgaze-xtrace $(PREFIX_BIN)
+	$(INSTALL) memgaze-inst-cat memgaze-xtrace-normalize perf-script-intel-pt.py  perf-script-ldlat.py $(PREFIX_LIBEXEC)
 
 check.local :
