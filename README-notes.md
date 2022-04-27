@@ -13,21 +13,17 @@ MemGaze Consolidation
   - [[new]] /DATA/Projects/MemGaze:
 
     - copy data-locality results and delete delete "overhead" results
-    - add instrumented C++ library; 
+    - please fix permissions for PTW files
     
-   'focused'  - 'poor man's inclusive' ??? clustering phase, mostly BLMC
-   
-   'filtered' - 'perf filter with build-local-map-counter as single region'
-    
-    please fix permissions for PTW files
+   'focused' : "poor man's inclusive for f: first-to-last instance of f (BLMC)
+   'filtered': perf filter with build-local-map-counter as single region
 
   - [[working]] memgaze-run:
     - remove fixed paths to your world...
-    - set dyninst rt
     - methods: pt, ldlat [[support ldlat in pipeline?]]
     - scope:   application vs. system-wide; add LBR
     
-  - [[todo]] Notes on Linux, Intel PT, and 'perf'. patch to 'perf script'.
+  - [[todo]] Notes on Linux, Intel PT, and 'perf'. patch to 'perf script'
     - 'perf script' patch (user-level) hack to non-linked/related ip pointer.
     
 
