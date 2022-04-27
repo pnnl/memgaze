@@ -13,21 +13,13 @@
 
 include ../Makefile-defs.mk
 
-# FIXME: correct and part of defs
-#MEMGAZE_ROOT := $(shell pwd)/..
-
-# FIXME: Part of defs
-#MG_XLIB = $(MEMGAZE_ROOT)/xlib
-
-# MG_XLIB_ROOT: Bulid files for MemGaze XLIB
-#MG_XLIB_ROOT       = $(MG_XLIB)
-
 
 #****************************************************************************
 # Recursion
 #****************************************************************************
 
 # MK_SUBDIRS =
+
 
 #****************************************************************************
 # Xlib
@@ -63,6 +55,9 @@ xlib_dyninst_patch:
 xlib_hpctoolkit:
 	$(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse  hpctoolkit@2022.01.15 -papi -mpi
 
+
+#****************************************************************************
+
 xlib_build: xlib_spack #xlib_dyninst_patch
   ARCH="$(shell $(MG_XLIB_SPACK_ROOT)/bin/spack arch)" && \
 	  cd $(MG_XLIB_ROOT) && \
@@ -75,10 +70,6 @@ xlib_clean:
 xlib_distclean: xlib_clean
 # delete spack/etc
 
-test:
-	  echo $(MG_XLIB)
-	  echo $(MG_XLIB_ROOT)
-
 
 #****************************************************************************
 # Template Rules
@@ -90,9 +81,13 @@ include ../Makefile-template.mk
 # Local Rules
 #****************************************************************************
 
-install.local : xlib_build
+xlib : xlib_build
+
+install.local :
 
 info.local :
+	echo $(MG_XLIB)
+	echo $(MG_XLIB_ROOT)
 
 check.local :
 
