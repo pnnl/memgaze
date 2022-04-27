@@ -35,6 +35,12 @@ include ../Makefile-defs.mk
 
 MG_XLIB_SPACK_ROOT = $(MG_XLIB_ROOT)/spack
 
+xlib_perf:
+	mkdir -p $(PERF_ROOT) && \
+        cd $(PERF_ROOT) && \
+        if [ ! -d "$(PERF_ROOT)/linux-5.5.9" ]; then wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.5.9.tar.gz && tar -xf linux-5.5.9.tar.gz && rm linux-5.5.9.tar.gz && \
+        patch $(PERF_ROOT)/linux-5.5.9/tools/perf/util/scripting-engines/trace-event-python.c $(MG_XLIB)/linux-perf/perf-script.patch; fi  && \
+        cd linux-5.5.9/tools/perf && make
 
 xlib_spack:
 	mkdir -p $(MG_XLIB_ROOT) && \
@@ -94,4 +100,4 @@ clean : xlib_clean
 
 distclean : xlib_distclean
 
-all : xlib_spack xlib_hpctoolkit 
+all : xlib_spack xlib_hpctoolkit xlib_perf 

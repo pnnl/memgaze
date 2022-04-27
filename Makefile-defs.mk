@@ -63,6 +63,7 @@ TBB_ROOT=$(MG_XLIB_ROOT)/intel-tbb-2020.3
 TBB_INC = $(TBB_ROOT)/include
 TBB_LIB = $(TBB_ROOT)/lib
 
+PERF_ROOT =  $(MG_XLIB)/perf
 
 
 #****************************************************************************

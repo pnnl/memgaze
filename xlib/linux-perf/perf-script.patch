@@ -1,5 +1,5 @@
---- vanilla_linux/linux-5.5.9/tools/perf/util/scripting-engines/trace-event-python.c	2020-03-11 23:18:49.000000000 -0700
-+++ linux-5.5.9/tools/perf/util/scripting-engines/trace-event-python.c	2021-02-18 13:40:47.661426289 -0800
+--- a/linux-5.5.9/tools/perf/util/scripting-engines/trace-event-python.c	2020-03-11 23:18:49.000000000 -0700
++++ b/linux-5.5.9/tools/perf/util/scripting-engines/trace-event-python.c	2021-02-18 13:40:47.661426289 -0800
 @@ -745,9 +745,24 @@
  			_PyLong_FromLong(sample->tid));
  	pydict_set_item_string_decref(dict_sample, "cpu",
