@@ -107,37 +107,49 @@ realmain(int argc, char* const* argv)
   //    in a CCT. Leaf nodes represent samples/loads and correspond
   //    directly to a sample at the load.
   //
+  //    * "Callers View": A sample's parent's "procedure name" is the
+  //      most likely likely neighbors (before/after). This provides a
+  //      sequencing relationship. Could continue to name ancestors by
+  //      more distant time relationships...
+  //
+  //      ??? How to define most dominant? How many loads (or
+  //      "frames") before/after is still "near"? Do we try to infer
+  //      ancestors?
+  //
+  //    * "Flat View" has normal meaning for exclusive. It's
+  //      "inclusive" metrics are now w.r.t. time-correspondence.
+
   //    The static source code information for a time interval is
   //    found in a pseudo load module where the callsite IP for a time
   //    interval is the interval's midpoint (which will be
   //    unique). The interval's procedure name is the time interval
   //    string.
   //
-  // 2. A CCT is a forest of partial call paths from LBR.
+  //    Metrics: 
   //
+  //    * For CCT, directly represent footprint metrics at each each
+  //      node of "CCT" (interior + leaf).
   //
-  // Metrics for each CCT interpretation.
-  //
-  // 1. Execution interval tree. 
-  //
-  //    - Directly represent footprint metrics at each each node of
-  //      "CCT" (interior + leaf).
   //      Prof::Metric::ADesc::ComputedTy_Final, Prof::Metric::ADesc::TyIncl
   //      <hpctk>/src/lib/analysis/CallPath.cpp:1152 makeReturnCountMetric()
   //      - Interval id: time-interval midpoint to sort by time/order
   //      - Footprint*: 1-1 correspondance with execution interval tree metrics
   //
-  //    - Computed metrics for the other views...
-
+  //    * For other views, metrics can be *average* for all aggregated scopes.
+  //
+  //
+  // 2. A CCT is a forest of partial call paths from LBR. The call path will be correct for the first load; after that could be a return/call that we miss.
+  //
+  //    ??? Can we develop Notion of "Temporal-calling context" 
+  //
+  //
+  //
+  //
   // <hpctk>/src/lib/prof/Metric-Mgr.cpp:274, Mgr::makeSummaryMetric()
   // <hpctk>/src/lib/prof/Metric-Mgr.cpp:409, Mgr::makeSummaryMetricIncr()
-
+  //
   // <hpctk>/src/lib/analysis/CallPath-MetricComponentsFact.cpp:246
   // MPIBlameShiftIdlenessFact::make()
-  
-  // 2. CCT: 
-  //
-  //
   //
   // ------------------------------------------------------------
 
