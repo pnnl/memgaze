@@ -33,10 +33,6 @@ PREFIX_LIBEXEC = $(PREFIX)/libexec
 
 #-----------------------------------------------------------
 
-# FIXME:
-# xlib_config
-# perf_config
-
 MG_XLIB_ROOT ?= $(MG_XLIB)/lib
 
 DYNINST_ROOT = $(MG_XLIB_ROOT)/dyninst-12.0.1
