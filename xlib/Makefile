@@ -30,12 +30,14 @@ MG_XLIB_SPACK_ROOT = $(MG_XLIB_ROOT)/spack
 XLIB_HPCTK = hpctoolkit@2022.01.15 -papi -mpi
 
 xlib_build: xlib_spack xlib_dyninst_patch xlib_hpctoolkit
+	@$(PRINTF) $(_msg_infoGrp)
   ARCH="$(shell $(MG_XLIB_SPACK_ROOT)/bin/spack arch)" && \
 	cd $(MG_XLIB_ROOT) && \
 	$(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse --source $(XLIB_HPCTK)
 
 
 xlib_spack:
+	@$(PRINTF) $(_msg_infoGrp)
 	mkdir -p $(MG_XLIB_ROOT) && \
 	cd $(MG_XLIB_ROOT) && \
 	if [ ! -d "$(MG_XLIB_SPACK_ROOT)" ]; then \
@@ -48,6 +50,7 @@ xlib_spack:
 
 
 xlib_dyninst_patch:
+	@$(PRINTF) $(_msg_infoGrp)
 	rm $(MG_XLIB_SPACK_ROOT)/etc/spack/packages.yaml && \
 	$(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse --source --overwrite -y dyninst@12.0.1
 #  patch binaryEdit.C dyninst.patch
@@ -55,6 +58,7 @@ xlib_dyninst_patch:
 
 
 xlib_hpctoolkit:
+	@$(PRINTF) $(_msg_infoGrp)
 	$(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse $(XLIB_HPCTK)
 
 
@@ -70,6 +74,7 @@ xlib_distclean: xlib_clean
 MG_PERF = $(MG_PERF_ROOT)/linux-5.5.9
 
 perf:
+	@$(PRINTF) $(_msg_infoGrp)
 	mkdir -p $(MG_PERF_ROOT) && \
   cd $(MG_PERF_ROOT) && \
   if [[ ! -d "$(MG_PERF)" ]]; then \
