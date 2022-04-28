@@ -7,7 +7,7 @@ Prerequisites
 =============================================================================
 
 Environment
-  - GCC 4+
+  - GCC ...
 
 
 Building & Installing
@@ -20,8 +20,9 @@ Building & Installing
 
 2. ```
    cd <memgaze>
-   make install
+   make PREFIX=<install-prefix> install
    ```
+
 
 Using
 =============================================================================

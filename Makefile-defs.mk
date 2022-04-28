@@ -23,26 +23,23 @@ mkfile_defs_root := $(abspath $(dir $(mkfile_defs)))
 
 MEMGAZE_ROOT = $(mkfile_defs_root)
 
-MEMGAZE_MIAMI_ROOT := $(MEMGAZE_ROOT)/bin-anlys
-MIAMI_TARGET = $(MEMGAZE_MIAMI_ROOT)/install
+#-----------------------------------------------------------
 
-PREFIX ?= $(MEMGAZE_ROOT)/install
+PREFIX        ?= $(MEMGAZE_ROOT)/install
 PREFIX_BIN     = $(PREFIX)/bin
 PREFIX_LIBEXEC = $(PREFIX)/libexec
 
+#-----------------------------------------------------------
 
-MG_XLIB = $(MEMGAZE_ROOT)/xlib
+MG_XLIB      = $(MEMGAZE_ROOT)/xlib
 MG_XLIB_ROOT = $(MG_XLIB)/lib
 
-#MEMGAZE_EXT_ROOT = $(MEMGAZE_ROOT)/../../palm-externals/trunk
-
-MEMGAZE_EXT_HPCTKEXT_ROOT ?= $(MG_XLIB_ROOT)/hpctoolkit-2022.01.15
-
 DYNINST_ROOT = $(MG_XLIB_ROOT)/dyninst-12.0.1
-DYNINST_INC = $(DYNINST_ROOT)/include
-DYNINST_LIB = $(DYNINST_ROOT)/lib
-DYNINSTAPI_RT_LIB=$(DYNINST_LIB)/libdyninstAPI_RT.so
-export DYNINSTAPI_RT_LIB=$(DYNINST_LIB)/libdyninstAPI_RT.so
+DYNINST_INC  = $(DYNINST_ROOT)/include
+DYNINST_LIB  = $(DYNINST_ROOT)/lib
+
+#FIXME DYNINSTAPI_RT_LIB=$(DYNINST_LIB)/libdyninstAPI_RT.so
+#FIXME export DYNINSTAPI_RT_LIB=$(DYNINST_LIB)/libdyninstAPI_RT.so
 
 LIBDWARF_LIB = $(MG_XLIB_ROOT)/libdwarf-20180129/lib
 
@@ -50,23 +47,33 @@ LIBELF_LIB = $(MG_XLIB_ROOT)/elfutils-0.186/lib
 LIBELF_INC = $(MG_XLIB_ROOT)/elfutils-0.186/include
 
 BOOST_ROOT = $(MG_XLIB_ROOT)/boost-1.77.0
-BOOST_INC = $(BOOST_ROOT)/include
-BOOST_LIB = $(BOOST_ROOT)/lib
+BOOST_INC  = $(BOOST_ROOT)/include
+BOOST_LIB  = $(BOOST_ROOT)/lib
 
-XED_ROOT=$(MG_XLIB_ROOT)/intel-xed-12.0.1
-XED_INC = $(XED_ROOT)/include
-XED_LIB = $(XED_ROOT)/lib
+XED_ROOT = $(MG_XLIB_ROOT)/intel-xed-12.0.1
+XED_INC  = $(XED_ROOT)/include
+XED_LIB  = $(XED_ROOT)/lib
 
-BINUTILS_ROOT=$(MG_XLIB_ROOT)/binutils-2.36.1
-BINUTILS_INC = $(BINUTILS_ROOT)/include
+BINUTILS_ROOT = $(MG_XLIB_ROOT)/binutils-2.36.1
+BINUTILS_INC  = $(BINUTILS_ROOT)/include
 
-LIBIBERTY_INC=$(BINUTILS_ROOT)/include/libiberty/
+LIBIBERTY_INC = $(BINUTILS_ROOT)/include/libiberty/
 
-TBB_ROOT=$(MG_XLIB_ROOT)/intel-tbb-2020.3
-TBB_INC = $(TBB_ROOT)/include
-TBB_LIB = $(TBB_ROOT)/lib
+TBB_ROOT = $(MG_XLIB_ROOT)/intel-tbb-2020.3
+TBB_INC  = $(TBB_ROOT)/include
+TBB_LIB  = $(TBB_ROOT)/lib
 
-PERF_ROOT =  $(MG_XLIB)/perf
+#-----------------------------------------------------------
+
+PERF_ROOT = $(MG_XLIB)/perf
+
+#-----------------------------------------------------------
+
+MEMGAZE_MIAMI_ROOT := $(MEMGAZE_ROOT)/bin-anlys
+MIAMI_TARGET = $(MEMGAZE_MIAMI_ROOT)/install
+
+# FIXME: unused?
+MEMGAZE_EXT_HPCTKEXT_ROOT ?= $(MG_XLIB_ROOT)/hpctoolkit-2022.01.15
 
 
 #****************************************************************************
