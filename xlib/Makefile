@@ -29,12 +29,8 @@ MG_XLIB_SPACK_ROOT = $(MG_XLIB_ROOT)/spack
 
 XLIB_HPCTK = hpctoolkit@2022.01.15 -papi -mpi
 
-xlib_build: xlib_spack xlib_dyninst_patch xlib_hpctoolkit
+xlib_build: xlib_spack xlib_hpctoolkit xlib_dyninst_patch
 	@$(PRINTF) $(_msg_infoGrp)
-  ARCH="$(shell $(MG_XLIB_SPACK_ROOT)/bin/spack arch)" 
-#	cd $(MG_XLIB_ROOT) && \
-	$(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse --source $(XLIB_HPCTK)
-
 
 xlib_spack:
 	@$(PRINTF) $(_msg_infoGrp)
@@ -46,20 +42,25 @@ xlib_spack:
 	cp $(MG_XLIB_SRC)/config-lib/config.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/ && \
 	cp $(MG_XLIB_SRC)/config-lib/memgaze.patch $(MG_XLIB_SPACK_ROOT)/var/spack/repos/builtin/packages/dyninst && \
 	cp $(MG_XLIB_SRC)/config-lib/package.py $(MG_XLIB_SPACK_ROOT)/var/spack/repos/builtin/packages/dyninst && \
-	cp $(MG_XLIB_SRC)/config-lib/packages.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/
+	cp $(MG_XLIB_SRC)/config-lib/hpctoolkit-packages.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/
+
+
+# config.yaml:   New Spack root.  Update of Spack's version.
+# package.py:    DynInst patching (memgaze.patch). Update of Spack's version.
+# hpctoolkit-packages.yaml: HPCToolkit's packages
+
+# ARCH="$(shell $(MG_XLIB_SPACK_ROOT)/bin/spack arch)"
+
+
+xlib_hpctoolkit:
+	@$(PRINTF) $(_msg_infoGrp)
+	$(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse --source $(XLIB_HPCTK)
 
 
 xlib_dyninst_patch:
 	@$(PRINTF) $(_msg_infoGrp)
 	rm $(MG_XLIB_SPACK_ROOT)/etc/spack/packages.yaml && \
 	$(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse --source --overwrite -y dyninst@12.0.1
-#  patch binaryEdit.C dyninst.patch
-#  rebuild dyninst
-
-
-xlib_hpctoolkit:
-	@$(PRINTF) $(_msg_infoGrp)
-	$(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse $(XLIB_HPCTK)
 
 
 xlib_clean:
