@@ -29,8 +29,10 @@ MG_XLIB_SPACK_ROOT = $(MG_XLIB_ROOT)/spack
 
 XLIB_HPCTK = hpctoolkit@2022.01.15 -papi -mpi
 
+
 xlib_build: xlib_spack xlib_hpctoolkit xlib_dyninst_patch
 	@$(PRINTF) $(_msg_infoGrp)
+
 
 xlib_spack:
 	@$(PRINTF) $(_msg_infoGrp)
@@ -43,7 +45,6 @@ xlib_spack:
 	cp $(MG_XLIB_SRC)/config-lib/memgaze.patch $(MG_XLIB_SPACK_ROOT)/var/spack/repos/builtin/packages/dyninst && \
 	cp $(MG_XLIB_SRC)/config-lib/package.py $(MG_XLIB_SPACK_ROOT)/var/spack/repos/builtin/packages/dyninst && \
 	cp $(MG_XLIB_SRC)/config-lib/hpctoolkit-packages.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/packages.yaml
-
 
 # config.yaml:   New Spack root.  Update of Spack's version.
 # package.py:    DynInst patching (memgaze.patch). Update of Spack's version.
