@@ -21,6 +21,9 @@ MemGaze Consolidation
   - [[working]] memgaze-run:
     - remove fixed paths to your world...
     - methods: pt, ldlat [[support ldlat in pipeline?]]
+    
+    - currently always collects lbr?
+    
     - scope:   application vs. system-wide; add LBR
     
   - [[todo]] Notes on Linux, Intel PT, and 'perf'. patch to 'perf script'
@@ -30,6 +33,9 @@ MemGaze Consolidation
 * [[almost]] Better build (can build 'externals' with spack)
 
    [[new]] ask Xiaozhu Meng
+   
+   -- how does 'xlib_dyninst_patch' work?
+   -- why do we need 'xlib_hpctoolkit' and 'xlib_build' rule?
 
    - Release-2022.04.15
   
