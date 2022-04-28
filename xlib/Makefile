@@ -41,10 +41,10 @@ xlib_spack:
 	if [ ! -d "$(MG_XLIB_SPACK_ROOT)" ]; then \
 	  git clone -c feature.manyFiles=true https://github.com/spack/spack.git; \
 	fi && \
-	cp $(MG_XLIB)/config-lib/config.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/ && \
-	cp $(MG_XLIB)/config-lib/memgaze.patch $(MG_XLIB_SPACK_ROOT)/var/spack/repos/builtin/packages/dyninst && \
-	cp $(MG_XLIB)/config-lib/package.py $(MG_XLIB_SPACK_ROOT)/var/spack/repos/builtin/packages/dyninst && \
-	cp $(MG_XLIB)/config-lib/packages.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/
+	cp $(MG_XLIB_SRC)/config-lib/config.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/ && \
+	cp $(MG_XLIB_SRC)/config-lib/memgaze.patch $(MG_XLIB_SPACK_ROOT)/var/spack/repos/builtin/packages/dyninst && \
+	cp $(MG_XLIB_SRC)/config-lib/package.py $(MG_XLIB_SPACK_ROOT)/var/spack/repos/builtin/packages/dyninst && \
+	cp $(MG_XLIB_SRC)/config-lib/packages.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/
 
 
 xlib_dyninst_patch:
@@ -67,20 +67,20 @@ xlib_distclean: xlib_clean
 
 #****************************************************************************
 
-MG_PERF = $(PERF_ROOT)/linux-5.5.9
+MG_PERF = $(MG_PERF_ROOT)/linux-5.5.9
 
 perf:
-	mkdir -p $(PERF_ROOT) && \
-  cd $(PERF_ROOT) && \
+	mkdir -p $(MG_PERF_ROOT) && \
+  cd $(MG_PERF_ROOT) && \
   if [[ ! -d "$(MG_PERF)" ]]; then \
 	  wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.5.9.tar.gz && \
 	  tar -xf linux-5.5.9.tar.gz && rm linux-5.5.9.tar.gz && \
-	  patch $(MG_PERF)/tools/perf/util/scripting-engines/trace-event-python.c $(MG_XLIB)/config-perf/perf-script.patch; \
+	  patch $(MG_PERF)/tools/perf/util/scripting-engines/trace-event-python.c $(MG_XLIB_SRC)/config-perf/perf-script.patch; \
 	fi && \
   cd $(MG_PERF)/tools/perf && make
 
 perf_distclean:
-	$(RM) -r $(PERF_ROOT)
+	$(RM) -r $(MG_PERF_ROOT)
 
 
 #****************************************************************************
@@ -96,8 +96,8 @@ include ../Makefile-template.mk
 install.local : xlib_build perf
 
 info.local :
-	echo $(MG_XLIB)
 	echo $(MG_XLIB_ROOT)
+	echo $(MG_PERF_ROOT)
 
 check.local :
 
