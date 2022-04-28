@@ -42,7 +42,7 @@ xlib_spack:
 	cp $(MG_XLIB_SRC)/config-lib/config.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/ && \
 	cp $(MG_XLIB_SRC)/config-lib/memgaze.patch $(MG_XLIB_SPACK_ROOT)/var/spack/repos/builtin/packages/dyninst && \
 	cp $(MG_XLIB_SRC)/config-lib/package.py $(MG_XLIB_SPACK_ROOT)/var/spack/repos/builtin/packages/dyninst && \
-	cp $(MG_XLIB_SRC)/config-lib/hpctoolkit-packages.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/
+	cp $(MG_XLIB_SRC)/config-lib/hpctoolkit-packages.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/packages.yaml
 
 
 # config.yaml:   New Spack root.  Update of Spack's version.
