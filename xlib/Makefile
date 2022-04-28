@@ -25,14 +25,15 @@ include ../Makefile-defs.mk
 # Xlib
 #****************************************************************************
 
+
 MG_XLIB_SPACK_ROOT = $(MG_XLIB_ROOT)/spack
 
-xlib_perf:
-	mkdir -p $(PERF_ROOT) && \
-    cd $(PERF_ROOT) && \
-    if [ ! -d "$(PERF_ROOT)/linux-5.5.9" ]; then wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.5.9.tar.gz && tar -xf linux-5.5.9.tar.gz && rm linux-5.5.9.tar.gz && \
-    patch $(PERF_ROOT)/linux-5.5.9/tools/perf/util/scripting-engines/trace-event-python.c $(MG_XLIB)/linux-perf/perf-script.patch; fi  && \
-    cd linux-5.5.9/tools/perf && make
+XLIB_HPCTK = hpctoolkit@2022.01.15 -papi -mpi
+
+xlib_build: xlib_spack xlib_dyninst_patch xlib_hpctoolkit
+  ARCH="$(shell $(MG_XLIB_SPACK_ROOT)/bin/spack arch)" && \
+	  cd $(MG_XLIB_ROOT) && \
+	  $(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse  --source $(XLIB_HPCTK)
 
 
 xlib_spack:
@@ -53,16 +54,9 @@ xlib_dyninst_patch:
 #  patch binaryEdit.C dyninst.patch
 #  rebuild dyninst
 
+
 xlib_hpctoolkit:
-	$(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse  hpctoolkit@2022.01.15 -papi -mpi
-
-
-#****************************************************************************
-
-xlib_build: xlib_spack xlib_dyninst_patch xlib_hpctoolkit
-  ARCH="$(shell $(MG_XLIB_SPACK_ROOT)/bin/spack arch)" && \
-	  cd $(MG_XLIB_ROOT) && \
-	  $(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse  --source hpctoolkit@2022.01.15 -papi -mpi
+	$(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse  $(XLIB_HPCTK)
 
 
 xlib_clean:
@@ -70,6 +64,16 @@ xlib_clean:
 
 xlib_distclean: xlib_clean
 # delete spack/etc
+
+
+#****************************************************************************
+
+linux_perf:
+	mkdir -p $(PERF_ROOT) && \
+    cd $(PERF_ROOT) && \
+    if [ ! -d "$(PERF_ROOT)/linux-5.5.9" ]; then wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.5.9.tar.gz && tar -xf linux-5.5.9.tar.gz && rm linux-5.5.9.tar.gz && \
+    patch $(PERF_ROOT)/linux-5.5.9/tools/perf/util/scripting-engines/trace-event-python.c $(MG_XLIB)/linux-perf/perf-script.patch; fi  && \
+    cd linux-5.5.9/tools/perf && make
 
 
 #****************************************************************************
@@ -82,7 +86,7 @@ include ../Makefile-template.mk
 # Local Rules
 #****************************************************************************
 
-install.local : xlib_build xlib_perf
+install.local : xlib_build linux_perf
 
 info.local :
 	echo $(MG_XLIB)
