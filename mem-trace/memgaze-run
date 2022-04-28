@@ -117,9 +117,11 @@ fi
 #****************************************************************************
 
 app=$@
+
 IFS=' '
 read -a strarr <<< "$app"
 app_path=${strarr[0]}
+
 IFS='/'
 read -a strarr <<< "$app_path"
 app=${strarr[-1]}
@@ -132,8 +134,13 @@ fi
 
 mkdir ${opt_output}
 
+
+#-----------------------------------------------------------
+# launch
+#-----------------------------------------------------------
+
 echo "collecting data for $bin with $args"
-if [ ${opt_period} -ne ${zero} ] ; then
+if (( ${opt_period} > ${zero} )) ; then
   if [[ ${opt_method} = 'pt-load' ]] ; then
 
     ${perf_path} record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e ref-cycles/period=${opt_period},aux-sample-size=${opt_buffer},call-graph=lbr/u -o ${opt_output}/${opt_output}.data -- "$@"
@@ -149,9 +156,15 @@ if [ ${opt_period} -ne ${zero} ] ; then
   fi
 fi 
 
-if [ ${opt_period} -eq ${zero} ] ; then
+if (( ${opt_period} == ${zero} )) ; then
    ${perf_path} record -m 4M,4M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -o ${opt_output}/${opt_output}.perf -- "$@"
 fi
+
+
+#-----------------------------------------------------------
+# output directory
+#-----------------------------------------------------------
+
 cat <<EOF > ${opt_output}/memgaze.config
 -p ${opt_period}
 -m ${opt_method}
