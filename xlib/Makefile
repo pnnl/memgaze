@@ -41,10 +41,10 @@ xlib_spack:
 	if [ ! -d "$(MG_XLIB_SPACK_ROOT)" ]; then \
 	  git clone -c feature.manyFiles=true https://github.com/spack/spack.git; \
 	fi && \
-	cp $(MG_XLIB)/config.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/ && \
-	cp $(MG_XLIB)/memgaze.patch $(MG_XLIB_SPACK_ROOT)/var/spack/repos/builtin/packages/dyninst && \
-	cp $(MG_XLIB)/package.py $(MG_XLIB_SPACK_ROOT)/var/spack/repos/builtin/packages/dyninst && \
-	cp $(MG_XLIB)/packages.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/
+	cp $(MG_XLIB)/config-lib/config.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/ && \
+	cp $(MG_XLIB)/config-lib/memgaze.patch $(MG_XLIB_SPACK_ROOT)/var/spack/repos/builtin/packages/dyninst && \
+	cp $(MG_XLIB)/config-lib/package.py $(MG_XLIB_SPACK_ROOT)/var/spack/repos/builtin/packages/dyninst && \
+	cp $(MG_XLIB)/config-lib/packages.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/
 
 
 xlib_dyninst_patch:
@@ -75,7 +75,7 @@ perf:
   if [[ ! -d "$(MG_PERF)" ]]; then \
 	  wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.5.9.tar.gz && \
 	  tar -xf linux-5.5.9.tar.gz && rm linux-5.5.9.tar.gz && \
-	  patch $(MG_PERF)/tools/perf/util/scripting-engines/trace-event-python.c $(MG_XLIB)/linux-perf/perf-script.patch; \
+	  patch $(MG_PERF)/tools/perf/util/scripting-engines/trace-event-python.c $(MG_XLIB)/config-perf/perf-script.patch; \
 	fi && \
   cd $(MG_PERF)/tools/perf && make
 
