@@ -23,6 +23,8 @@ mkfile_defs_root := $(abspath $(dir $(mkfile_defs)))
 
 MEMGAZE_ROOT = $(mkfile_defs_root)
 
+MG_XLIB      = $(MEMGAZE_ROOT)/xlib
+
 #-----------------------------------------------------------
 
 PREFIX        ?= $(MEMGAZE_ROOT)/install
@@ -31,8 +33,7 @@ PREFIX_LIBEXEC = $(PREFIX)/libexec
 
 #-----------------------------------------------------------
 
-MG_XLIB      = $(MEMGAZE_ROOT)/xlib
-MG_XLIB_ROOT = $(MG_XLIB)/lib
+MG_XLIB_ROOT ?= $(MG_XLIB)/lib
 
 DYNINST_ROOT = $(MG_XLIB_ROOT)/dyninst-12.0.1
 DYNINST_INC  = $(DYNINST_ROOT)/include
