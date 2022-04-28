@@ -31,8 +31,8 @@ XLIB_HPCTK = hpctoolkit@2022.01.15 -papi -mpi
 
 xlib_build: xlib_spack xlib_dyninst_patch xlib_hpctoolkit
 	@$(PRINTF) $(_msg_infoGrp)
-  ARCH="$(shell $(MG_XLIB_SPACK_ROOT)/bin/spack arch)" && \
-	cd $(MG_XLIB_ROOT) && \
+  ARCH="$(shell $(MG_XLIB_SPACK_ROOT)/bin/spack arch)" 
+#	cd $(MG_XLIB_ROOT) && \
 	$(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse --source $(XLIB_HPCTK)
 
 
