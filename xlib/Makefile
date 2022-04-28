@@ -41,7 +41,7 @@ xlib_spack:
 	mkdir -p $(MG_XLIB_ROOT) && \
 	cd $(MG_XLIB_ROOT) && \
 	if [ ! -d "$(MG_XLIB_SPACK_ROOT)" ]; then \
-	  git clone -c feature.manyFiles=true https://github.com/spack/spack.git; \
+	  git clone -c feature.manyFiles=true https://github.com/spack/spack.git ; \
 	fi && \
 	cp $(MG_XLIB_SRC)/config-lib/config.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/ && \
 	cp $(MG_XLIB_SRC)/config-lib/memgaze.patch $(MG_XLIB_SPACK_ROOT)/var/spack/repos/builtin/packages/dyninst && \
