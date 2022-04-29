@@ -44,18 +44,25 @@ MIAMI_TARGET       = $(MEMGAZE_MIAMI_ROOT)/install
 
 MG_XLIB_ROOT ?= $(MG_XLIB_SRC)/lib
 
+BOOST_ROOT = $(MG_XLIB_ROOT)/boost-1.77.0
+BOOST_INC  = $(BOOST_ROOT)/include
+BOOST_LIB  = $(BOOST_ROOT)/lib
+
+TBB_ROOT = $(MG_XLIB_ROOT)/intel-tbb-2020.3
+TBB_INC  = $(TBB_ROOT)/include
+TBB_LIB  = $(TBB_ROOT)/lib
+
 DYNINST_ROOT = $(MG_XLIB_ROOT)/dyninst-12.0.1
 DYNINST_INC  = $(DYNINST_ROOT)/include
 DYNINST_LIB  = $(DYNINST_ROOT)/lib
 
+LIBDWARF_INC = $(MG_XLIB_ROOT)/libdwarf-20180129/include
 LIBDWARF_LIB = $(MG_XLIB_ROOT)/libdwarf-20180129/lib
 
-LIBELF_LIB = $(MG_XLIB_ROOT)/elfutils-0.186/lib
-LIBELF_INC = $(MG_XLIB_ROOT)/elfutils-0.186/include
+LIBELF_ROOT = $(MG_XLIB_ROOT)/elfutils-0.186
 
-BOOST_ROOT = $(MG_XLIB_ROOT)/boost-1.77.0
-BOOST_INC  = $(BOOST_ROOT)/include
-BOOST_LIB  = $(BOOST_ROOT)/lib
+LIBELF_INC = $(MG_XLIB_ROOT)/elfutils-0.186/include
+LIBELF_LIB = $(MG_XLIB_ROOT)/elfutils-0.186/lib
 
 XED_ROOT = $(MG_XLIB_ROOT)/intel-xed-12.0.1
 XED_INC  = $(XED_ROOT)/include
@@ -66,9 +73,6 @@ BINUTILS_INC  = $(BINUTILS_ROOT)/include
 
 LIBIBERTY_INC = $(BINUTILS_ROOT)/include/libiberty/
 
-TBB_ROOT = $(MG_XLIB_ROOT)/intel-tbb-2020.3
-TBB_INC  = $(TBB_ROOT)/include
-TBB_LIB  = $(TBB_ROOT)/lib
 
 #-----------------------------------------------------------
 

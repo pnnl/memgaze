@@ -1,7 +1,7 @@
 # -*-Mode: makefile;-*-
 
 include ../../../Makefile-defs.mk
-#include ../../miami.config
+include ../../miami.config
 
 #****************************************************************************
 
@@ -36,14 +36,19 @@ LEX  = flex
 
 DYNINST_CXXFLAGS = \
 	-I$(DYNINST_INC) \
-	-I$(BOOST_INC) \
 	-I$(TBB_INC) \
-	-I$(LIBIBERTY_INC) \
+	-I$(BOOST_INC) \
+	-I$(LIBDWARF_INC) \
 	-I$(LIBELF_INC) \
+	-I$(LIBIBERTY_INC) \
 	-I$(BINUTILS_INC)
 
 DYNINST_LDFLAGS = \
-	-L$(DYNINST_LIB) -Wl,-rpath $(DYNINST_LIB) \
+	-L$(DYNINST_LIB)  -Wl,-rpath $(DYNINST_LIB) \
+	-L$(TBB_LIB)      -Wl,-rpath $(TBB_LIB) \
+	-L$(BOOST_LIB)    -Wl,-rpath $(BOOST_LIB) \
+	-L$(LIBDWARF_LIB) -Wl,-rpath $(LIBDWARF_LIB) \
+	-L$(LIBELF_LIB)   -Wl,-rpath $(LIBELF_LIB) \
 	-ldyninstAPI \
 	-lsymtabAPI \
 	-lparseAPI \
@@ -62,8 +67,9 @@ XED_LDFLAGS = \
 	-lxed
 
 BINUTILS_CFLAGS = \
-        -I$(BINUTILS_ROOT)/include \
+	-I$(BINUTILS_ROOT)/include \
 	-I$(LIBIBERTY_INC) 
+
 BINUTILS_LDFLAGS = \
 	-L$(BINUTILS_ROOT)/lib -L$(BINUTILS_ROOT)/lib64 \
 	-lbfd -liberty -lz
@@ -291,10 +297,10 @@ $(TOOLS): $(OBJS) $(SAMAIN_OBJS)
 
 $(SA_TOOLS): $(OBJS) $(SAMAIN_OBJS)
 	$(LINKER) $(LINK_EXE) $@ $(OBJS) $(SAMAIN_OBJS) $(DBG) \
-	$(DYNINST_LDFLAGS) \
-	$(XED_LDFLAGS) \
-	$(BINUTILS_LDFLAGS) \
-	-Wl,--as-needed -ldl
+	  $(DYNINST_LDFLAGS) \
+	  $(XED_LDFLAGS) \
+	  $(BINUTILS_LDFLAGS) \
+	  -Wl,--as-needed -ldl
 
 $(SA_WRAPPER) : $(SA_TOOLS)
 	@sed -e 's/XTOOLVARX/$(TOOL_VAR)/g' -e 's/XTOOLLIBX/$(TOOL_ROOTS)/g' $(BINSCRIPT) > $(BINDIR)$(TOOL_ROOTS)
