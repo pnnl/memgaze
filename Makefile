@@ -19,8 +19,8 @@ include Makefile-defs.mk
 
 MK_SUBDIRS = \
 	bin-anlys \
-  mem-anlys \
-  mem-trace
+	mem-anlys \
+	mem-trace
 
 #	xlib
 

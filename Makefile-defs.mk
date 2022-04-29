@@ -23,14 +23,23 @@ mkfile_defs_root := $(abspath $(dir $(mkfile_defs)))
 
 MEMGAZE_ROOT = $(mkfile_defs_root)
 
-MG_XLIB_SRC  = $(MEMGAZE_ROOT)/xlib
-
-#-----------------------------------------------------------
-
 PREFIX        ?= $(MEMGAZE_ROOT)/install
 PREFIX_BIN     = $(PREFIX)/bin
 PREFIX_LIBEXEC = $(PREFIX)/libexec
 
+
+#-----------------------------------------------------------
+# MemGaze source/internal structure
+#-----------------------------------------------------------
+
+MG_XLIB_SRC  = $(MEMGAZE_ROOT)/xlib
+
+MEMGAZE_MIAMI_ROOT := $(MEMGAZE_ROOT)/bin-anlys
+MIAMI_TARGET       = $(MEMGAZE_MIAMI_ROOT)/install
+
+
+#-----------------------------------------------------------
+# MemGaze dependences
 #-----------------------------------------------------------
 
 MG_XLIB_ROOT ?= $(MG_XLIB_SRC)/lib
@@ -38,9 +47,6 @@ MG_XLIB_ROOT ?= $(MG_XLIB_SRC)/lib
 DYNINST_ROOT = $(MG_XLIB_ROOT)/dyninst-12.0.1
 DYNINST_INC  = $(DYNINST_ROOT)/include
 DYNINST_LIB  = $(DYNINST_ROOT)/lib
-
-#FIXME DYNINSTAPI_RT_LIB=$(DYNINST_LIB)/libdyninstAPI_RT.so
-#FIXME export DYNINSTAPI_RT_LIB=$(DYNINST_LIB)/libdyninstAPI_RT.so
 
 LIBDWARF_LIB = $(MG_XLIB_ROOT)/libdwarf-20180129/lib
 
@@ -67,14 +73,6 @@ TBB_LIB  = $(TBB_ROOT)/lib
 #-----------------------------------------------------------
 
 MG_PERF_ROOT ?= $(MG_XLIB_SRC)/perf
-
-#-----------------------------------------------------------
-
-MEMGAZE_MIAMI_ROOT := $(MEMGAZE_ROOT)/bin-anlys
-MIAMI_TARGET = $(MEMGAZE_MIAMI_ROOT)/install
-
-# FIXME: unused?
-MEMGAZE_EXT_HPCTKEXT_ROOT ?= $(MG_XLIB_ROOT)/hpctoolkit-2022.01.15
 
 
 #****************************************************************************
