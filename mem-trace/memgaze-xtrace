@@ -115,7 +115,7 @@ while IFS= read -r line; do
 done < ${opt_app}/memgaze.config
 
 IFS='/' read -a apps <<< $app_path
-app=${apps[1]}
+app=${apps[-1]}
 echo "app: $app"
 
 
@@ -123,8 +123,8 @@ echo "app: $app"
 
 
 ${perf_path} script --script=${SCRIPT} -i ${opt_app}/${dataFile} > ${opt_outDir}/${app}.trace
-cat ${opt_outDir}/${app}.trace |grep -v error > ${opt_outDir}/${app}.trace.clean
+cat ${opt_outDir}/${app}.trace | grep -v error &> ${opt_outDir}/${app}.trace.clean
 mv ${opt_outDir}/${app}.trace.clean ${opt_outDir}/${app}.trace
-./libexec/memgaze-xtrace-normalize ${opt_outDir}/${app}.trace ${app_path} ${app_path}.binanlys ${opt_outDir}/${app}.trace.final
+${scriptDir}/memgaze-xtrace-normalize ${opt_outDir}/${app}.trace ${app_path} ${app_path}.binanlys ${opt_outDir}/${app}.trace.final
 mv ${opt_outDir}/${app}.trace.final ${opt_outDir}/${app}.trace
 mv ${opt_outDir}/${app}.trace.final_callGraph ${opt_outDir}/${app}.callpath
