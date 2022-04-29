@@ -12,10 +12,9 @@
 #****************************************************************************
 
 include ../Makefile-defs.mk
+##include miami.config
 
 #****************************************************************************
-
-##include miami.config
 
 MIAMI_TARGET ?= $(MEMGAZE_MIAMI_ROOT)
 
