@@ -44,6 +44,8 @@ MIAMI_TARGET       = $(MEMGAZE_MIAMI_ROOT)/install
 
 MG_XLIB_ROOT ?= $(MG_XLIB_SRC)/lib
 
+HPCTK_ROOT = $(MG_XLIB_ROOT)/hpctoolkit-2022.01.15
+
 BOOST_ROOT = $(MG_XLIB_ROOT)/boost-1.77.0
 BOOST_INC  = $(BOOST_ROOT)/include
 BOOST_LIB  = $(BOOST_ROOT)/lib

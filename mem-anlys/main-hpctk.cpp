@@ -27,7 +27,7 @@ using std::string;
 
 #include <include/gcc-attr.h>
 
-#include "Args.hpp"
+#include <tool/hpcprof/Args.hpp>
 
 #include <lib/analysis/CallPath-CudaCFG.hpp>
 #include <lib/analysis/CallPath.hpp>

@@ -62,43 +62,41 @@ $(mg_analyze)_LDADD =
 
 # Spack-based: source + configure, 2021.10.15
 
-HPCTOOLKIT_ROOT ?= /files0/kili337/IntelPT/spack/opt/spack/linux-centos7-skylake_avx512/gcc-7.1.0/hpctoolkit-2021.10.15-gxyejpvcuclo4pp7dust3ym3f7runqze
+#HPCTK_ROOT = /files0/kili337/IntelPT/spack/opt/spack/linux-centos7-skylake_avx512/gcc-7.1.0/hpctoolkit-2021.10.15-gxyejpvcuclo4pp7dust3ym3f7runqze
 
-HPCTOOLKIT_LIB = $(HPCTOOLKIT_ROOT)/lib
-HPCTOOLKIT_INC = $(HPCTOOLKIT_ROOT)/share/hpctoolkit/src/src
-HPCTOOLKIT_ARGS = $(HPCTOOLKIT_ROOT)/share/hpctoolkit/src/src/tool/hpcprof
+HPCTK_LIB  = $(HPCTK_ROOT)/lib
+HPCTK_SRC  = $(HPCTK_ROOT)/share/hpctoolkit/src/src
 
-HPCTOOLKIT_CXXFLAGS = \
-	-I$(HPCTOOLKIT_INC) \
-	-I$(HPCTOOLKIT_ARGS) \
+HPCTK_CXXFLAGS = \
+	-I$(HPCTK_SRC)
 
-HPCTOOLKIT_LDFLAGS = \
-        -L$(HPCTOOLKIT_LIB) -Wl,-rpath $(HPCTOOLKIT_LIB)
+HPCTK_LDFLAGS = \
+        -L$(HPCTK_LIB) -Wl,-rpath $(HPCTK_LIB)
 
 # FIXME: LDADD from <hpctk>/src/tool/hpcprof/Makefile.am
-HPCTOOLKIT_LDADD =
+HPCTK_LDADD =
 
 
 #----------------------------------------------------------------------------
 
 mg_hpctk := memgaze-hpctk
 
-MK_PROGRAMS_CXX += # $(mg_hpctk)
+MK_PROGRAMS_CXX += #$(mg_hpctk)
 
 $(mg_hpctk)_SRCS = \
 	main-hpctk.cpp
 
 $(mg_hpctk)_CXXFLAGS = \
 	-g -O3 \
-  $(HPCTOOLKIT_CXXFLAGS)
+  $(HPCTK_CXXFLAGS)
 
 $(mg_hpctk)_LDFLAGS = \
-  $(HPCTOOLKIT_LDFLAGS)
+  $(HPCTK_LDFLAGS)
 
 $(mg_hpctk)_LIBS =
 
 $(mg_hpctk)_LDADD = \
-  $(HPCTOOLKIT_LDADD)
+  $(HPCTK_LDADD)
 
 
 #****************************************************************************
