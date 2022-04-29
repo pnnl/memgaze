@@ -130,7 +130,7 @@ cp ${opt_app} ${opt_outDir}
 
 ${instrumentor_path}   --bin_path ${opt_outDir}/${opt_app}  --load_class 1 --inst_loads=${opt_loads} --inst_stores=${opt_stores} --inst_strided=${opt_strided} --inst_indirect=${opt_indirect} --inst_frame=${opt_frame} --lcFile=${opt_outDir}/${opt_app}_PTW.binanlys &> ${opt_outDir}/${opt_app}_PTW.binanlys.log 
 
-./libexec/memgaze-inst-cat ${opt_outDir}/${opt_app}_PTW.binanlys.log ${opt_outDir}/${opt_app}_PTW.binanlys
+${scriptDir}/memgaze-inst-cat ${opt_outDir}/${opt_app}_PTW.binanlys.log ${opt_outDir}/${opt_app}_PTW.binanlys
 cd ${opt_outDir}
 ${hpcstuct} ${opt_app}_PTW
 cd ..

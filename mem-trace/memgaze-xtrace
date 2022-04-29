@@ -6,9 +6,9 @@ scriptPath=$(readlink -f "${scriptPath0}")
 scriptCmd=${scriptPath##*/} # cf. $(basename ...)
 scriptDir=${scriptPath%/*}  # cf. $(dirname ...)
 
-perf_path='${scriptDir}/../xlib/perf/linux-5.5.9/tools/perf/perf'
-DYNINST_ROOT='{scriptDir}/../xlib/lib/dyninst-12.0.1'
-DYNINST_LIB='${DYNINST_ROOT}/lib'
+perf_path="${scriptDir}/../xlib/perf/linux-5.5.9/tools/perf/perf"
+DYNINST_ROOT="${scriptDir}/../xlib/lib/dyninst-12.0.1"
+DYNINST_LIB="${DYNINST_ROOT}/lib"
 export DYNINSTAPI_RT_LIB=${DYNINST_LIB}/libdyninstAPI_RT.so
 
 
@@ -122,7 +122,7 @@ echo "app: $app"
 
 
 
-${perf_path} script --script=./libexec/intel-pt-events.py -i ${opt_app}/${dataFile} > ${opt_outDir}/${app}.trace
+${perf_path} script --script=${SCRIPT} -i ${opt_app}/${dataFile} > ${opt_outDir}/${app}.trace
 cat ${opt_outDir}/${app}.trace |grep -v error > ${opt_outDir}/${app}.trace.clean
 mv ${opt_outDir}/${app}.trace.clean ${opt_outDir}/${app}.trace
 ./libexec/memgaze-xtrace-normalize ${opt_outDir}/${app}.trace ${app_path} ${app_path}.binanlys ${opt_outDir}/${app}.trace.final
