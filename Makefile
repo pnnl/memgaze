@@ -35,8 +35,7 @@ include Makefile-template.mk
 #****************************************************************************
 
 info.local :
-	@$(PRINTF) "MG_XLIB_ROOT=$(MG_XLIB_ROOT)\n"
-	@$(PRINTF) "MG_PERF_ROOT=$(MG_PERF_ROOT)\n"
+	@$(PRINTF) $(mg_info)
 
 install.local :
 

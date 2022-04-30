@@ -94,6 +94,12 @@ MG_PERF_ROOT ?= $(MG_XLIB_SRC)/perf
 # 
 #****************************************************************************
 
+mg_info = "$(_msg_sep2)\nMG_XLIB_ROOT=$(MG_XLIB_ROOT)\nMG_PERF_ROOT=$(MG_PERF_ROOT)\n$(_msg_sep2)\n"
+
+#****************************************************************************
+# 
+#****************************************************************************
+
 # mk_foreach_file_pair: Given (a) a list of file pairs "src tgt" where
 #   'src' is a source (must exist) and 'tgt' is a target; and (b) a
 #   command; execute "<command> <src> <tgt>"
