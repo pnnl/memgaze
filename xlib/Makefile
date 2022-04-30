@@ -27,7 +27,10 @@ include ../Makefile-defs.mk
 
 XLIB_SPACK = $(MG_XLIB_ROOT)/spack
 
-SPACK_HPCTK = hpctoolkit@2022.01.15 -papi -mpi
+XLIB_CFG   = $(MG_XLIB_SRC)/config-lib
+
+MY_HPCTK   = hpctoolkit@2022.01.15 -papi -mpi
+MY_DYNINST = dyninst@12.0.1
 
 
 xlib: xlib_spack xlib_hpctoolkit xlib_dyninst_patch
@@ -40,23 +43,24 @@ xlib_spack:
 	if [ ! -d "$(XLIB_SPACK)" ]; then \
 	  git clone -c feature.manyFiles=true https://github.com/spack/spack.git ; \
 	fi && \
-	cp $(MG_XLIB_SRC)/config-lib/config.yaml $(XLIB_SPACK)/etc/spack/ && \
-	cp $(MG_XLIB_SRC)/config-lib/memgaze.patch $(XLIB_SPACK)/var/spack/repos/builtin/packages/dyninst && \
-	cp $(MG_XLIB_SRC)/config-lib/package.py $(XLIB_SPACK)/var/spack/repos/builtin/packages/dyninst && \
-	cp $(MG_XLIB_SRC)/config-lib/hpctoolkit-packages.yaml $(XLIB_SPACK)/etc/spack/packages.yaml
+	cp $(XLIB_CFG)/config.yaml   $(XLIB_SPACK)/etc/spack/ && \
+	cp $(XLIB_CFG)/hpctk-pkgs.yaml $(XLIB_SPACK)/etc/spack/packages.yaml && \
+	cp $(XLIB_CFG)/dyninst.py      $(XLIB_SPACK)/var/spack/repos/builtin/packages/dyninst/package.py && \
+	cp $(XLIB_CFG)/dyninst.patch   $(XLIB_SPACK)/var/spack/repos/builtin/packages/dyninst/memgaze.patch
+
 
 # platform: "$(XLIB_SPACK)/bin/spack arch"
 
 
 xlib_hpctoolkit:
 	@$(PRINTF) $(_msg_infoGrp)
-	$(XLIB_SPACK)/bin/spack install --reuse --source $(SPACK_HPCTK)
+	$(XLIB_SPACK)/bin/spack install --reuse --source $(MY_HPCTK)
 
 
 xlib_dyninst_patch:
 	@$(PRINTF) $(_msg_infoGrp)
 	$(RM) $(XLIB_SPACK)/etc/spack/packages.yaml && \
-	$(XLIB_SPACK)/bin/spack install --reuse --source --overwrite -y dyninst@12.0.1
+	$(XLIB_SPACK)/bin/spack install --reuse --source --overwrite -y $(MY_DYNINST)
 
 
 xlib_clean:
