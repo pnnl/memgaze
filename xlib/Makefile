@@ -36,12 +36,12 @@ MY_HPCTK   = hpctoolkit@2022.01.15 -papi -mpi
 MY_DYNINST = dyninst@12.0.1
 
 
-xlib: xlib_spack xlib_hpctoolkit xlib_dyninst_patch
+xlib : info xlib_spack xlib_hpctoolkit xlib_dyninst_patch
 	@$(PRINTF) $(_msg_infoGrp)
 # platform: "$(XLIB_SPACK)/bin/spack arch"
 
 
-xlib_spack:
+xlib_spack :
 	@$(PRINTF) $(_msg_infoGrp)
 	mkdir -p $(MG_XLIB_ROOT) && cd $(MG_XLIB_ROOT) && \
 	if [ ! -d "$(XLIB_SPACK)" ]; then \
@@ -53,21 +53,21 @@ xlib_spack:
 	cp $(XLIB_CFG)/dyninst.patch   $(SPK_DYNINST)/memgaze.patch
 
 
-xlib_hpctoolkit:
+xlib_hpctoolkit :
 	@$(PRINTF) $(_msg_infoGrp)
 	$(XLIB_SPACK)/bin/spack install --reuse --source $(MY_HPCTK)
 
 
-xlib_dyninst_patch:
+xlib_dyninst_patch :
 	@$(PRINTF) $(_msg_infoGrp)
 	$(RM) $(SPK_ETC)/packages.yaml && \
 	$(XLIB_SPACK)/bin/spack install --reuse --source --overwrite -y $(MY_DYNINST)
 
 
-xlib_clean:
+xlib_clean : info
 # delete build files
 
-xlib_distclean: xlib_clean
+xlib_distclean : info xlib_clean
 	$(RM) -r $(MG_XLIB_ROOT)
 
 
@@ -75,7 +75,7 @@ xlib_distclean: xlib_clean
 
 MG_PERF = $(MG_PERF_ROOT)/linux-5.5.9
 
-perf:
+perf : info
 	@$(PRINTF) $(_msg_infoGrp)
 	mkdir -p $(MG_PERF_ROOT) && \
   cd $(MG_PERF_ROOT) && \
@@ -86,7 +86,7 @@ perf:
 	fi && \
   cd $(MG_PERF)/tools/perf && make
 
-perf_distclean:
+perf_distclean : info
 	$(RM) -r $(MG_PERF_ROOT)
 
 
