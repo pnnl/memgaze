@@ -29,7 +29,7 @@ XLIB_SPACK = $(MG_XLIB_ROOT)/spack
 
 XLIB_CFG   = $(MG_XLIB_SRC)/config-lib
 
-SPK_ETC     = $(XLIB_SPACK)/etc/spack/
+SPK_ETC     = $(XLIB_SPACK)/etc/spack
 SPK_DYNINST = $(XLIB_SPACK)/var/spack/repos/builtin/packages/dyninst
 
 MY_HPCTK   = hpctoolkit@2022.01.15 -papi -mpi
@@ -103,8 +103,7 @@ include ../Makefile-template.mk
 install.local : xlib perf
 
 info.local :
-	@$(PRINTF) "MG_XLIB_ROOT=$(MG_XLIB_ROOT)\n"
-	@$(PRINTF) "MG_PERF_ROOT=$(MG_PERF_ROOT)\n"
+	@$(PRINTF) $(mg_info)
 
 check.local :
 
