@@ -65,7 +65,7 @@ Libraries
 
   - config.yaml:     Update of Spack's version to change 'root' dir names
   - hpctk-pkgs.yaml: HPCToolkit's "packages.yaml"
-  - package.py:      DynInst patching (memgaze.patch). Update of Spack's version.
+  - dyninst.py:      Control DynInst patching. Update of Spack's version.
   - dyninst.patch:   DynInst patch
 
 - DynInst patch
