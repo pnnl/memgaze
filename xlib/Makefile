@@ -103,7 +103,7 @@ include ../Makefile-template.mk
 install.local : xlib perf
 
 info.local :
-	@$(PRINTF) $(mg_info)
+	@$(PRINTF) $(msg_info)
 
 check.local :
 

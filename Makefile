@@ -35,7 +35,7 @@ include Makefile-template.mk
 #****************************************************************************
 
 info.local :
-	@$(PRINTF) $(mg_info)
+	@$(PRINTF) $(msg_info)
 
 install.local :
 

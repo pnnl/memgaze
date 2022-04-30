@@ -18,6 +18,7 @@ MemGaze Consolidation
     - remove fixed paths to your world...
     - methods: pt, ldlat [[support ldlat in pipeline?]]
     - currently always collects lbr?
+    - what is -g? "period=1"?
 
   - Build:
     - Are we building hpctoolkit twice? Why not patch dyninst first and then build once?

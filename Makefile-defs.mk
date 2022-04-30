@@ -94,7 +94,7 @@ MG_PERF_ROOT ?= $(MG_XLIB_SRC)/perf
 # 
 #****************************************************************************
 
-mg_info = "$(_msg_sep2)\nMG_XLIB_ROOT=$(MG_XLIB_ROOT)\nMG_PERF_ROOT=$(MG_PERF_ROOT)\n$(_msg_sep2)\n"
+msg_info = "$(_msg_sep2)\nMG_XLIB_ROOT=$(MG_XLIB_ROOT)\nMG_PERF_ROOT=$(MG_PERF_ROOT)\n$(_msg_sep2)\n"
 
 #****************************************************************************
 # 
