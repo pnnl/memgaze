@@ -103,8 +103,8 @@ include ../Makefile-template.mk
 install.local : xlib perf
 
 info.local :
-	echo $(MG_XLIB_ROOT)
-	echo $(MG_PERF_ROOT)
+	@$(PRINTF) "MG_XLIB_ROOT=$(MG_XLIB_ROOT)\n"
+	@$(PRINTF) "MG_PERF_ROOT=$(MG_PERF_ROOT)\n"
 
 check.local :
 

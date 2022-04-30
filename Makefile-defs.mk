@@ -13,7 +13,7 @@
 # Nathan Tallent
 #****************************************************************************
 
-# Auto-discover root directory (may need make 3.81+)
+# auto-discover root directory (may need make 3.81+)
 mkfile_defs := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 
 mkfile_defs_root := $(abspath $(dir $(mkfile_defs)))
@@ -34,17 +34,24 @@ PREFIX_LIBEXEC = $(PREFIX)/libexec
 
 MG_XLIB_SRC  = $(MEMGAZE_ROOT)/xlib
 
+# TODO: clean
 MEMGAZE_MIAMI_ROOT := $(MEMGAZE_ROOT)/bin-anlys
 MIAMI_TARGET       = $(MEMGAZE_MIAMI_ROOT)/install
 
 
 #-----------------------------------------------------------
-# MemGaze dependences
+# MemGaze dependences: libraries
 #-----------------------------------------------------------
 
 MG_XLIB_ROOT ?= $(MG_XLIB_SRC)/lib
 
+#-----------------------------------------------------------
+
 HPCTK_ROOT = $(MG_XLIB_ROOT)/hpctoolkit-2022.01.15
+HPCTK_LIB  = $(HPCTK_ROOT)/lib
+HPCTK_SRC  = $(HPCTK_ROOT)/share/hpctoolkit/src/src
+
+#-----------------------------------------------------------
 
 BOOST_ROOT = $(MG_XLIB_ROOT)/boost-1.77.0
 BOOST_INC  = $(BOOST_ROOT)/include
@@ -76,6 +83,8 @@ BINUTILS_INC  = $(BINUTILS_ROOT)/include
 LIBIBERTY_INC = $(BINUTILS_ROOT)/include/libiberty/
 
 
+#-----------------------------------------------------------
+# MemGaze dependences: Linux Perf
 #-----------------------------------------------------------
 
 MG_PERF_ROOT ?= $(MG_XLIB_SRC)/perf

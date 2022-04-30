@@ -241,7 +241,7 @@ $(_localTargetL_post) : %$(_localTargetSfx) : \
 
 $(_subdirTargetL_post) : %$(_subdirTargetSfx_post) :
 ifdef DEBUG
-	@printf $(_msg_target_dbg)
+	@$(PRINTF) $(_msg_target_dbg)
 endif
 	@tgt=$(*D) && dir=$(*F) \
 	  && $(MAKE) -C $${dir} $${tgt}
@@ -262,7 +262,7 @@ $(MK_TARGETS_PRE) : % : \
 .SECONDEXPANSION:
 $(_subdirTargetL_pre) : %$(_subdirTargetSfx_pre) : $$(*D)$$(_localTargetSfx)
 ifdef DEBUG
-	@printf $(_msg_target_dbg)
+	@$(PRINTF) $(_msg_target_dbg)
 endif
 	@tgt=$(*D) && dir=$(*F) \
 	  && $(MAKE) -C $${dir} $${tgt}

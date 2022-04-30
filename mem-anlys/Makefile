@@ -60,12 +60,9 @@ $(mg_analyze)_LDADD =
 
 #****************************************************************************
 
-# Spack-based: source + configure, 2021.10.15
+# Run configure: $(HPCTK_SRC)/.spack/spack-build-02-configure-out.txt
 
-#HPCTK_ROOT = /files0/kili337/IntelPT/spack/opt/spack/linux-centos7-skylake_avx512/gcc-7.1.0/hpctoolkit-2021.10.15-gxyejpvcuclo4pp7dust3ym3f7runqze
-
-HPCTK_LIB  = $(HPCTK_ROOT)/lib
-HPCTK_SRC  = $(HPCTK_ROOT)/share/hpctoolkit/src/src
+#OLD: HPCTK_ROOT = /files0/kili337/IntelPT/spack/opt/spack/linux-centos7-skylake_avx512/gcc-7.1.0/hpctoolkit-2021.10.15-gxyejpvcuclo4pp7dust3ym3f7runqze
 
 HPCTK_CXXFLAGS = \
 	-I$(HPCTK_SRC)
