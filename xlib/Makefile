@@ -25,9 +25,9 @@ include ../Makefile-defs.mk
 # Xlib
 #****************************************************************************
 
-MG_XLIB_SPACK_ROOT = $(MG_XLIB_ROOT)/spack
+XLIB_SPACK = $(MG_XLIB_ROOT)/spack
 
-XLIB_HPCTK = hpctoolkit@2022.01.15 -papi -mpi
+SPACK_HPCTK = hpctoolkit@2022.01.15 -papi -mpi
 
 
 xlib: xlib_spack xlib_hpctoolkit xlib_dyninst_patch
@@ -36,32 +36,27 @@ xlib: xlib_spack xlib_hpctoolkit xlib_dyninst_patch
 
 xlib_spack:
 	@$(PRINTF) $(_msg_infoGrp)
-	mkdir -p $(MG_XLIB_ROOT) && \
-	cd $(MG_XLIB_ROOT) && \
-	if [ ! -d "$(MG_XLIB_SPACK_ROOT)" ]; then \
+	mkdir -p $(MG_XLIB_ROOT) && cd $(MG_XLIB_ROOT) && \
+	if [ ! -d "$(XLIB_SPACK)" ]; then \
 	  git clone -c feature.manyFiles=true https://github.com/spack/spack.git ; \
 	fi && \
-	cp $(MG_XLIB_SRC)/config-lib/config.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/ && \
-	cp $(MG_XLIB_SRC)/config-lib/memgaze.patch $(MG_XLIB_SPACK_ROOT)/var/spack/repos/builtin/packages/dyninst && \
-	cp $(MG_XLIB_SRC)/config-lib/package.py $(MG_XLIB_SPACK_ROOT)/var/spack/repos/builtin/packages/dyninst && \
-	cp $(MG_XLIB_SRC)/config-lib/hpctoolkit-packages.yaml $(MG_XLIB_SPACK_ROOT)/etc/spack/packages.yaml
+	cp $(MG_XLIB_SRC)/config-lib/config.yaml $(XLIB_SPACK)/etc/spack/ && \
+	cp $(MG_XLIB_SRC)/config-lib/memgaze.patch $(XLIB_SPACK)/var/spack/repos/builtin/packages/dyninst && \
+	cp $(MG_XLIB_SRC)/config-lib/package.py $(XLIB_SPACK)/var/spack/repos/builtin/packages/dyninst && \
+	cp $(MG_XLIB_SRC)/config-lib/hpctoolkit-packages.yaml $(XLIB_SPACK)/etc/spack/packages.yaml
 
-# config.yaml:   New Spack root.  Update of Spack's version.
-# package.py:    DynInst patching (memgaze.patch). Update of Spack's version.
-# hpctoolkit-packages.yaml: HPCToolkit's packages
-
-# ARCH="$(shell $(MG_XLIB_SPACK_ROOT)/bin/spack arch)"
+# platform: "$(XLIB_SPACK)/bin/spack arch"
 
 
 xlib_hpctoolkit:
 	@$(PRINTF) $(_msg_infoGrp)
-	$(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse --source $(XLIB_HPCTK)
+	$(XLIB_SPACK)/bin/spack install --reuse --source $(SPACK_HPCTK)
 
 
 xlib_dyninst_patch:
 	@$(PRINTF) $(_msg_infoGrp)
-	$(RM) $(MG_XLIB_SPACK_ROOT)/etc/spack/packages.yaml && \
-	$(MG_XLIB_SPACK_ROOT)/bin/spack install --reuse --source --overwrite -y dyninst@12.0.1
+	$(RM) $(XLIB_SPACK)/etc/spack/packages.yaml && \
+	$(XLIB_SPACK)/bin/spack install --reuse --source --overwrite -y dyninst@12.0.1
 
 
 xlib_clean:

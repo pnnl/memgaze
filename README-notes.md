@@ -6,61 +6,32 @@ $Id$
 MemGaze Consolidation
 =============================================================================
 
-* Consolidation and documentation:
+* [[todo]]
 
-  - [[new]] exe details for experiments, incl. miniVite
+  - launch details for experiments, incl. miniVite
   
-  - [[new]] /DATA/Projects/MemGaze:
-
-    - copy data-locality results and delete delete "overhead" results
-    - please fix permissions for PTW files
+  - nuke: /DATA/Projects/MemGaze
+    - keep data-locality results and delete "overhead" results
+    - fix permissions for PTW files
     
-   'focused' : "poor man's inclusive for f: first-to-last instance of f (BLMC)
-   'filtered': perf filter with build-local-map-counter as single region
-
-  - [[working]] memgaze-run:
+  - run scripts: memgaze-*:
     - remove fixed paths to your world...
     - methods: pt, ldlat [[support ldlat in pipeline?]]
-    
     - currently always collects lbr?
-    
-    - scope:   application vs. system-wide; add LBR
-    
-  - [[todo]] Notes on Linux, Intel PT, and 'perf'. patch to 'perf script'
+
+  - Build:
+    - Are we building hpctoolkit twice? Why not patch dyninst first and then build once?
+    - use official DynInst? ask Xiaozhu Meng
+    - autoconfigure hpctk source tree?
+
+  - Perf/Intel PT and application vs. system-wide
     - 'perf script' patch (user-level) hack to non-linked/related ip pointer.
-    
-
-* [[almost]] Better build (can build 'externals' with spack)
-
-   [[new]] ask Xiaozhu Meng
-   
-   -- how does 'xlib_dyninst_patch' work?
-   -- why do we need 'xlib_hpctoolkit' and 'xlib_build' rule?
-
-   - Release-2022.04.15
-  
-  - Leverage HPCToolkit's DynInst, xed, etc with HPCToolkit's spack recipe.
-
-  - Must apply one hack/patch to DynInst:
-    New Dyninst master provides source line mapping for instrumented
-    code (now in master), which hpcstruct can read.
-
-    However, to gather instruction classes, we still need (more
-    precisely, want) the mapping.  The MemGaze instrumentor determines
-    instruction classes from the original binary, but we also need the
-    classes for the corresponding new/instrumented ins. Currently,
-    we use a one-line hack in Dyninst to print the mapping.
-    
-    Alternatives: 1) Re-run MemGaze's static binary analysis on the
-    new code within the binary. 2) Propose a DynInst interface for
-    exporting the details of the mapping.
+    - See "Other notes": --per-thread???
 
 
-* [[done]] Archive of traces for MemGaze paper with updated naming scheme and only needed files
-    nuke: /DATA/Projects/MemGaze
-    - ICS-EVERYTHING: data for all runs, incl. perf's data. Expect to delete.
+* Minor:
+  - Try Release-2022.04.15 (2022.04.15)
 
-* ??? script to zip each trace file: "for each file f, gzip f"
 
 * Bugs:
   - mem-anlys only reads one auxiliary file even if multiple are needed
