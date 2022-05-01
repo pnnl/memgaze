@@ -21,7 +21,7 @@ MemGaze Consolidation
     - what is -g? "period=1"?
 
   - Build:
-    - Are we building hpctoolkit twice? Why not patch dyninst first and then build once?
+    - Why doesn't dyninst patch occur on first install/build of hpctk? Can we pull source only and then build?
     - use official DynInst? ask Xiaozhu Meng
     - autoconfigure hpctk source tree?
 
