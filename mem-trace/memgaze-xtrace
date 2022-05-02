@@ -99,19 +99,15 @@ while IFS= read -r line; do
     echo "Text read from file: $line"
     words=($line)
     echo "option: ${words[0]} var: ${words[1]}"
-    if [[ ${words[0]} == '-b' ]]
-    then
+    if [[ ${words[0]} == '-b' ]] ; then
       app_path=${words[1]}
     fi
-    if [[ ${words[0]} == '-data' ]]
-    then
+    if [[ ${words[0]} == '-data' ]] ; then
       dataFile=${words[1]}
     fi
-    if [[ ${words[0]} == '-m' ]]
-    then
-      if [[ ${words[1]} == 'ldlat' ]]
-      then
-        SCRIPT="${scriptDir}/perf-script-ldlat.py"
+    if [[ ${words[0]} == '-m' ]] ; then
+      if [[ ${words[1]} == 'ldlat' ]]; then
+        SCRIPT="${scriptDir}/perf-script-intel-ldlat.py"
       fi
     fi
 done < ${opt_app}/memgaze.config
