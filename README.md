@@ -68,7 +68,7 @@ MemGaze has four main steps.
   - `<app>.callpath` : Call paths
 
 
-  - Extract data file with perf-script using [[FIXME: libexec/perf-script-intel-pt.py or libexec/perf-script-ldlat.py]]
+  - Extract data file with perf-script using [[FIXME: libexec/perf-script-*]]
 
   - Convert IP offsets (from perf script) to full static IPs and combine two-address loads into single trace entry.
   - Remove data collection errors from trace
