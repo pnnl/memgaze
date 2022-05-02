@@ -90,8 +90,7 @@ done
 #    die "no command to monitor"
 #fi
 
-if [ -z ${opt_outDir} ]
-then
+if [ -z ${opt_outDir} ] ; then
   opt_outDir=${opt_app}
 fi
 
