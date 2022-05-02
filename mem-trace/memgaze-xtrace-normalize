@@ -13,7 +13,7 @@ def twos_comp(val, bits):
 #arg input file , binary, lc file,  output file
 def main():
   if len(sys.argv) != 5:
-    print ("Run as following\n./add_base_IP.py <input trace> <binary path> <fixed LC_file> <output trace>")
+    print ("Run as following\n./memgaze-xtrace-normalize <input trace> <binary path> <binanlys file> <output trace>")
 
   print (sys.argv[1]) 
   print (sys.argv[2]) 

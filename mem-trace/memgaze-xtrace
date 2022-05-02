@@ -6,12 +6,14 @@ scriptPath=$(readlink -f "${scriptPath0}")
 scriptCmd=${scriptPath##*/} # cf. $(basename ...)
 scriptDir=${scriptPath%/*}  # cf. $(dirname ...)
 
-perf_path="${scriptDir}/../xlib/perf/linux-5.5.9/tools/perf/perf"
-DYNINST_ROOT="${scriptDir}/../xlib/lib/dyninst-12.0.1"
+MG_XLIB_ROOT="${MG_XLIB_ROOT:-${scriptDir}/../xlib/lib}"
+MG_PERF_ROOT="${MG_PERF_ROOT:-${scriptDir}/../xlib/perf}"
+
+perf_path="${MG_PERF_ROOT}/linux-5.5.9/tools/perf/perf"
+DYNINST_ROOT="${MG_XLIB_ROOT}/dyninst-12.0.1"
 DYNINST_LIB="${DYNINST_ROOT}/lib"
+
 export DYNINSTAPI_RT_LIB=${DYNINST_LIB}/libdyninstAPI_RT.so
-
-
 
 
 opt_outDir=''
@@ -109,7 +111,7 @@ while IFS= read -r line; do
     then
       if [[ ${words[1]} == 'ldlat' ]]
       then
-        SCRIPT="./libexec/perf-script-ldlat.py"
+        SCRIPT="${scriptDir}/perf-script-ldlat.py"
       fi
     fi
 done < ${opt_app}/memgaze.config
