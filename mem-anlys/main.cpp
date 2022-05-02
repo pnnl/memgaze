@@ -319,7 +319,16 @@ int main(int argc, char* argv[], const char* envp[]) {
   string classificationInputFile = opps.getCmdOption("-l");
   string hpcStructInputFile = opps.getCmdOption("-s");
   string outputFile = opps.getCmdOption("-o");
-  int is_load = strtol(opps.getCmdOption("-m").c_str(),NULL,10);
+  //int is_load = strtol(opps.getCmdOption("-m").c_str(),NULL,10);
+  int is_load = 0;
+  int is_LDLAT = 0;
+  string mode = opps.getCmdOption("-m");
+  if (mode == "pt-load"){
+    is_load = 1;
+  } else if (mode == "ldlat"){
+    is_LDLAT = 1;
+    is_load = 0;
+  }
   unsigned long startIP =0 ;
   vector <unsigned long> endIPs ;
   period  =  strtol(opps.getCmdOption("-p").c_str(), NULL, 10);
