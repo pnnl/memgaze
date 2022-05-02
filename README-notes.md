@@ -8,17 +8,15 @@ MemGaze Consolidation
 
 * [[todo]]
 
-  - launch details for experiments, incl. miniVite
-  
   - nuke: /DATA/Projects/MemGaze
     - keep data-locality results and delete "overhead" results
-    - fix permissions for PTW files
     
   - run scripts: memgaze-*:
-    - remove fixed paths to your world...
-    - methods: pt, ldlat [[support ldlat in pipeline?]]
-    - currently always collects lbr?
-    - what is -g? "period=1"?
+    - memgaze-xtrace: libexec
+
+    ?? do not always collect call graph
+    ?? analysis with ldlat
+
 
   - Build:
     - Why doesn't dyninst patch occur on first install/build of hpctk? Can we pull source only and then build?

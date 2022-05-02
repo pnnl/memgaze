@@ -68,14 +68,12 @@ MemGaze has four main steps.
   - `<app>.callpath` : Call paths
 
 
-  - Extract data file with perf-script using [[FIXME: libexec/perf-script-*]]
-
+  - Extract data file with perf-script using `libexec/perf-script-*`
   - Convert IP offsets (from perf script) to full static IPs and combine two-address loads into single trace entry.
   - Remove data collection errors from trace
   - Separate memory references and call paths
   ```
-  libexec/memgaze-xtrace-normalize <trace-dir>.trace [[FIXME: called from memgaze-xtrace]]
-  ./add_base_IP.py <trace-dir>.trace.clean <app>_PTW <tracedir>/<app>.binanlys_Fixed <trace-dir>.trace.final [[FIXME: move into memgaze-xtrace-normalize]]
+  libexec/memgaze-xtrace-normalize <trace-dir>.trace
   ```
 
 
@@ -86,9 +84,8 @@ MemGaze has four main steps.
    memgaze-analyze -t <trace-dir> -s <inst-dir> [-o <output>]
    ```
   
-  [[FIXME]] -f func: poor man's inclusive and masked-bit
+  [[FIXME]] -f func: focus trace on 'func' by keeping all load between first and last instance of func.
   
-
 
 -----------------------------------------------------------------------------
 Trace format

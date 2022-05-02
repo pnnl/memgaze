@@ -151,6 +151,11 @@ echo "collecting data for $bin with $args"
 
 if [[ ${opt_method} =~ pt-* ]] ; then
 
+    # mmap region for perf's data: -m
+    # call graph: -g + 'call-graph=lbr' in event
+    # ring buffer: 'opt_buffer'
+    # fup_on_ptw: enable ip for each PT packet
+
     event_ptw="intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u"
     
     if (( ${opt_period} == ${zero} )) ; then
@@ -161,8 +166,8 @@ if [[ ${opt_method} =~ pt-* ]] ; then
 
         case "${opt_method}" in
             pt-load )
-                ${perf_path} record -m 2M,2M -e "${event_ptw}" -g \
-                  -e cpu/umask=0x81,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer},call-graph=lbr/u -o "${out_fnm}" -- "$@"
+                # umask=0x81,event=0xd0: retired_loads
+                ${perf_path} record -m 2M,2M -e "${event_ptw}" -g -e cpu/umask=0x81,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer},call-graph=lbr/u -o "${out_fnm}" -- "$@"
                 break
                 ;;
 
