@@ -10,14 +10,14 @@ MemGaze Consolidation
 
   - nuke: /DATA/Projects/MemGaze
     - keep data-locality results and delete "overhead" results
-    
-  - run scripts: memgaze-*:
-    - memgaze-*: libexec
-    - do not always collect call graph
 
   - Build:
     - can we now use official DynInst? ask Xiaozhu Meng
     - autoconfigure hpctk source tree?
+    
+  - run scripts: memgaze-*:
+    - memgaze-*: libexec
+    - do not always collect call graph
 
   - Perf/Intel PT and application vs. system-wide
     - 'perf script' patch (user-level) hack to non-linked/related ip pointer.
