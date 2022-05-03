@@ -35,6 +35,7 @@ MemGaze has four main steps.
     IP to instrumented IP (`libexec/memgaze-inst-cat`)
   - Generates HPCToolkit structure file
 
+  Uses:
   ```
   libexec/memgaze-inst-cat <tracedir>/<app>.binanlys.log <tracedir>/<app>.binanlys0
   ```
@@ -67,12 +68,14 @@ MemGaze has four main steps.
   - `<app>.trace`    : Memory references
   - `<app>.callpath` : Call paths
 
-
-  - Extract data file with perf-script using `libexec/perf-script-*`
+  - Extract data file with perf-script
   - Convert IP offsets (from perf script) to full static IPs and combine two-address loads into single trace entry.
   - Remove data collection errors from trace
   - Separate memory references and call paths
+  
+  Uses:
   ```
+  perf script libexec/perf-script-*
   libexec/memgaze-xtrace-normalize <trace-dir>.trace
   ```
 
@@ -84,7 +87,8 @@ MemGaze has four main steps.
    memgaze-analyze -t <trace-dir> -s <inst-dir> [-o <output>]
    ```
   
-  [[FIXME]] -f func: focus trace on 'func' by keeping all load between first and last instance of func.
+   Note: -f <func>: focus trace on 'func' by retaining all accesses
+   between first and last instance of <func>
   
 
 -----------------------------------------------------------------------------
