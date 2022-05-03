@@ -6,33 +6,45 @@ $Id$
 Linux Perf
 =============================================================================
 
-- Using kernel 5.5.9: no changes needed.
+- Intel PT works with kernel 5.5.9, no changes needed.
+  - Although we played with perf's kernel driver, we are not using it
     
-- Modifications to Linux perf (user level):
-  - perf script (static ip address instead of dynamic)
-  - we played with perf driver, but are not using it
+- Minor patch/modification to Linux perf's user level tool for "perf script"
+  - convert the dynamic ip to a static ip, to attribute to binary
 
 - Perf examples
 
   - Intel PT, sampling based on loads:
   ```
-  perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e cpu/umask=0x81,event=0xd0,period=<period>,aux-sample-size=<bufsz>,call-graph=lbr/u -o ${bin}.data -- <app>
+  perf record -m 2M,2M -o ${bin}.data
+    -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u 
+    -e cpu/umask=0x81,event=0xd0,period=<period>,aux-sample-size=<bufsz>,call-graph=lbr/u -g
+    -- <app>
   ```
 
   - Intel PT, sampling based on time:
   ```
-  perf record -m 2M,2M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u -g -e ref-cycles/period=<period>,aux-sample-size=<bufsz>,call-graph=lbr/u -- <app>
+  perf record -m 2M,2M -o ${bin}.data
+    -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u
+    -e ref-cycles/period=<period>,aux-sample-size=<bufsz>,call-graph=lbr/u -g 
+    -- <app>
   ```
 
   - Intel PT, enabling/disabling PT instructions via hardware code filter:
   ```
-  perf record -m 4M,4M -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u --filter 'filter @distBuildLocalMapCounters' -o ${bin}.data -- <app>
+  perf record -m 4M,4M -o ${bin}.data \
+    -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u
+    --filter 'filter @distBuildLocalMapCounters'  -- <app>
   ```
+
+  - Intel PT, system-wide [[FIXME]]:
+
 
   - Intel Load Latency-based (sparse) data addresses:
   ```
   perf record -W -d -e cpu/mem-loads,ldlat=1,period=100/upp -- <app>
   ```
+
 
   - Use 'perf script' to extract trace from Intel PT
   ```
@@ -44,13 +56,13 @@ Linux Perf
   perf script --script=perf-script-intel-pt.py -i <trace>
   ```
 
-- Other notes (???)
 
-  - without --per-thread, perf opens a fd on each core because it has a buffer/event per cpu; size (129 pages  4 k)
+- Other notes:
 
-  - perf-event-disable (ioctl) should have an effect when it returns (write to msr)
-
-  - libunwind happens in userland: perf copies context/stack into its buffer
+  - Call paths: On our Atom-based (J5005) test machine, it appears
+    that collecting call paths using LBR is not supported. Therefore,
+    '-g' defaults to libunwind. libunwind occurs in user-space and
+    perf copies context/stack into its buffer.
 
 
 -----------------------------------------------------------------------------

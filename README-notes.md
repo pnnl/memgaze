@@ -8,9 +8,14 @@ MemGaze Consolidation
 
 * [[todo]]
 
+  - paper:
+    - overhead results: do not collect call graph???
+    - how good is exclusive function attribution on new minivite trace?
+    - analyze parallelism: single vs. multi-thread runs for minivite
+
   - nuke: /DATA/Projects/MemGaze
     - keep data-locality results and delete "overhead" results
-
+    
   - Build:
     - can we now use official DynInst? ask Xiaozhu Meng
     - autoconfigure hpctk source tree?
@@ -18,19 +23,20 @@ MemGaze Consolidation
     
   - run scripts: memgaze-*:
     - memgaze-*: libexec
-    - do not always collect call graph
+    
+    - example for system-wide collection?
+    
+    - on nuke, the 'lbr' spec is ignored? any warning?
+    
+    ??? without --per-thread, perf opens a fd on each core because it has a buffer/event per cpu; size (129 pages  4 k)
 
-  - Perf/Intel PT and application vs. system-wide
-    - 'perf script' patch (user-level) hack to non-linked/related ip pointer.
-    - See "Other notes": --per-thread???
-
+    ??? perf-event-disable (ioctl) should have an effect when it returns (write to msr)
 
 * Minor:
   - Try Release-2022.04.15 (2022.04.15)
 
-
 * Bugs:
-  - mem-anlys only reads one auxiliary file even if multiple are needed
+  - mem-anlys only reads only one load-classification file even if multiple are needed
     - results in some instructions with unknown laod classes
 
   - Our window analysis algorithm uses pre-selected bins to create the histogram. Due to the variation of sample sizes window sizes also vary. This can create a binning anomaly at the largest one or two window sizes. Since \fpSym  should never get smaller in a larger window, we force each bin to take the maximum of the current and previous windows. This anomaly only happens when there are constant loads instrumented for our quantitative approach. To address this issue we are working on a more detailed fix.
