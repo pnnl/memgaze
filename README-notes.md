@@ -14,6 +14,7 @@ MemGaze Consolidation
   - Build:
     - can we now use official DynInst? ask Xiaozhu Meng
     - autoconfigure hpctk source tree?
+    - dependences for perf?
     
   - run scripts: memgaze-*:
     - memgaze-*: libexec
