@@ -12,20 +12,12 @@ MemGaze Consolidation
     - keep data-locality results and delete "overhead" results
     
   - run scripts: memgaze-*:
-    - memgaze-xtrace: libexec
-
-    [[later]] ?? do not always collect call graph
-    [[later]] ?? analysis with ldlat
-
+    - memgaze-*: libexec
+    - do not always collect call graph
 
   - Build:
-    - Why doesn't dyninst patch occur on first install/build of hpctk? Can we pull source only and then build?
-
-    - use official DynInst? ask Xiaozhu Meng
-    
+    - can we now use official DynInst? ask Xiaozhu Meng
     - autoconfigure hpctk source tree?
-    
-   [[Order]]: Able to build HPCToolkit and then DynInst. Reverse doesn't seem to work.
 
   - Perf/Intel PT and application vs. system-wide
     - 'perf script' patch (user-level) hack to non-linked/related ip pointer.
