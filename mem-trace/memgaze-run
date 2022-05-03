@@ -20,13 +20,13 @@ scriptDir=${scriptPath%/*}  # cf. $(dirname ...)
 MG_XLIB_ROOT="${MG_XLIB_ROOT:-${scriptDir}/../xlib/lib}"
 MG_PERF_ROOT="${MG_PERF_ROOT:-${scriptDir}/../xlib/perf}"
 
-perf_path="${MG_PERF_ROOT}/linux-5.5.9/tools/perf/perf"
+perf="${MG_PERF_ROOT}/linux-5.5.9/tools/perf/perf"
 DYNINST_ROOT="${MG_XLIB_ROOT}/dyninst-12.0.1"
 DYNINST_LIB="${DYNINST_ROOT}/lib"
 export DYNINSTAPI_RT_LIB=${DYNINST_LIB}/libdyninstAPI_RT.so
 
 echo $DYNINSTAPI_RT_LIB
-echo $perf_path
+echo $perf
 
 #****************************************************************************
 
@@ -146,49 +146,51 @@ mkdir ${opt_output}
 
 out_fnm="${opt_output}/${opt_output}.perf"
 
-echo "collecting data for $bin with $args"
+printf "${scriptCmd}: collecting data for $bin with $args\n"
 
 
 if [[ ${opt_method} =~ pt-* ]] ; then
 
-    # mmap region for perf's data: -m
-    # call graph: -g + 'call-graph=lbr' in event
-    # ring buffer: 'opt_buffer'
-    # fup_on_ptw: enable ip for each PT packet
+    # mmap for perf's data:  -m
+    # PT ring buffer size:   'aux-sample-size' in event
+    # PT records ip for ptw: 'fup_on_ptw' in event
+    # call graph:            -g + 'call-graph=lbr' in event
+    # retired_loads:         umask=0x81,event=0xd0
 
     event_ptw="intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u"
+    event_smpl=""
     
+    opt_callpath="-g"
+    opt_callpath_lbr=",call-graph=lbr"
+
+    case "${opt_method}" in
+        pt-load )
+            event_smpl="cpu/umask=0x81,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
+            break
+            ;;
+
+        pt-time )
+            event_smpl="ref-cycles/period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
+            break
+            ;;
+
+        * )
+            die "invalid trace method '${opt_method}'"
+            break
+            ;;
+    esac
+
     if (( ${opt_period} == ${zero} )) ; then
-
-        ${perf_path} record -m 4M,4M -e "${event_ptw}" -o "${out_fnm}" -- "$@"
-
+        ${perf} record -o "${out_fnm}" -m 4M,4M \
+                -e ${event_ptw} -- "$@"
     else
-
-        case "${opt_method}" in
-            pt-load )
-                # umask=0x81,event=0xd0: retired_loads
-                ${perf_path} record -m 2M,2M -e "${event_ptw}" -g -e cpu/umask=0x81,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer},call-graph=lbr/u -o "${out_fnm}" -- "$@"
-                break
-                ;;
-
-            pt-time )
-                ${perf_path} record -m 2M,2M -e "${event_ptw}" -g \
-                  -e ref-cycles/period=${opt_period},aux-sample-size=${opt_buffer},call-graph=lbr/u -o "${out_fnm}" -- "$@"
-                break
-                ;;
-
-            * )
-                die "invalid trace method '${opt_method}'"
-                break
-                ;;
-        esac
-
+        ${perf} record -o "${out_fnm}" -m 2M,2M \
+                -e ${event_ptw} -e ${event_smpl} ${opt_callpath} -- "$@"
     fi
 
 elif [[ ${opt_method} = 'ldlat' ]] ; then
-      
-    ${perf_path} record -W -d -e cpu/mem-loads,ldlat=1,period=${opt_period}/upp -o "${out_fnm}" -- "$@"
-
+    ${perf} record -o "${out_fnm}" -W -d \
+            -e cpu/mem-loads,ldlat=1,period=${opt_period}/upp -- "$@"
 fi
 
 
