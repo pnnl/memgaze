@@ -18,22 +18,23 @@ scriptDir=${scriptPath%/*}  # cf. $(dirname ...)
 #****************************************************************************
 
 MG_XLIB_ROOT="${MG_XLIB_ROOT:-${scriptDir}/../xlib/lib}"
-#MG_PERF_ROOT="${MG_PERF_ROOT:-${scriptDir}/../xlib/perf}"
+MG_PERF_ROOT="${MG_PERF_ROOT:-${scriptDir}/../xlib/perf}"
+
+#-----------------------------------------------------------
+
+mg_anal="../mem-anlys/memgaze-analyze"
 
 #****************************************************************************
 
 opt_outDir=''
 opt_trace_dir=''
 opt_inst_dir=''
-instrumentor_path="${scriptDir}../bin-anlys/install/bin/miami"
 opt_loads='1'
 opt_stores='0'
 opt_strided='1'
 opt_indirect='1'
 opt_frame='0'
 opt_analysis_file=''
-hpcstuct="${scriptDir}/../xlib/lib/hpctoolkit-2022.01.15/bin/hpcstruct"
-
 
 #****************************************************************************
 # Parse arguments
@@ -95,9 +96,11 @@ while [[ $# -gt 0 ]] ; do
     esac
 done
 
+
 #-----------------------------------------------------------
 # required args
 #-----------------------------------------------------------
+
 #if [[ -z $1 ]] ; then
 #    die "no command to monitor"
 #fi
@@ -108,6 +111,11 @@ mode=''
 period=''
 callpath=''
 
+
+
+#****************************************************************************
+# 
+#****************************************************************************
 
 while IFS=' ' read -r type value; do
     echo "type: $type value: $value"
@@ -133,5 +141,5 @@ while IFS=' ' read -r type value; do
 done < ${opt_trace_dir}/memgaze.config 
 
 
-../mem-anlys/memgaze-analyze -t $trace -l $binanlys -s $hpcstruct -o $output -m $mode -p $period -c $callpath
+${mg_anal} -t $trace -l $binanlys -s $hpcstruct -o $output -m $mode -p $period -c $callpath
 
