@@ -64,6 +64,14 @@ Linux Perf
     '-g' defaults to libunwind. libunwind occurs in user-space and
     perf copies context/stack into its buffer.
 
+  - With perf's --per-thread there is a data file per cpu.
+   
+  - Without --per-thread, perf opens a fd on each core because it has
+    a buffer/event per cpu (default size is 129 pages @ 4k each page)
+    
+  - Internal perf driver: Can use 'perf-event-enable/disable" (ioctl)
+    to enable/disable a perf event.
+
 
 -----------------------------------------------------------------------------
 Libraries

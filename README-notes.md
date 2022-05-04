@@ -11,9 +11,9 @@ MemGaze Consolidation
   - paper:
     - overhead results: do not collect call graph???
 
-    - exclusive aggregated view
-    - inclusive trace for f: all accesses between first/last instantiation of f
-    - exclusive trace for f: accesses for first/last instantiation of f
+    - exclusive aggreagation/metics for all functions
+    - inclusive trace for function f: all accesses between first/last instantiation of f
+    - exclusive trace function f: accesses for first/last instantiation of f
 
     - analyze parallelism: single vs. multi-thread runs for minivite
 
@@ -33,12 +33,7 @@ MemGaze Consolidation
   - nuke: /DATA/Projects/MemGaze
     - keep data-locality results and delete "overhead" results
 
-
-    ??? 
-    With --per-thread there is a data file per cpu.
-    Without --per-thread, perf opens a fd on each core because it has a buffer/event per cpu; size (129 pages  4 k)
-    
-    Internal perf driver: Can use 'perf-event-enable/disable" (ioctl) to enable/disable a perf event.
+    ???
     
 
 * Minor:
