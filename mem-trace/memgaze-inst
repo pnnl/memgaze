@@ -1,31 +1,54 @@
 #!/bin/bash
-set -x
+# -*- mode: sh -*-
+
+#*BeginPNNLCopyright*********************************************************
+#
+# $HeadURL$
+# $Id: 0cae9f95d9ed0841bbf77c91eef5f3d4c9a73f2e $
+#
+#***********************************************************EndPNNLCopyright*
+
+# set -x
 
 scriptPath0="${BASH_SOURCE[0]}" # works when script is sourced (unlike $0)
 scriptPath=$(readlink -f "${scriptPath0}")
 scriptCmd=${scriptPath##*/} # cf. $(basename ...)
 scriptDir=${scriptPath%/*}  # cf. $(dirname ...)
 
+#****************************************************************************
+
 MG_XLIB_ROOT="${MG_XLIB_ROOT:-${scriptDir}/../xlib/lib}"
 MG_PERF_ROOT="${MG_PERF_ROOT:-${scriptDir}/../xlib/perf}"
 
-perf_path="${MG_PERF_ROOT}/linux-5.5.9/tools/perf/perf"
+#-----------------------------------------------------------
+
+mg_inst="${scriptDir}/../libexec/bin/memgaze-instrumentor"
+
+mg_inst_cat="${scriptDir}/memgaze-inst-cat"
+
+
 DYNINST_ROOT="${MG_XLIB_ROOT}/dyninst-12.0.1"
 DYNINST_LIB="${DYNINST_ROOT}/lib"
 export DYNINSTAPI_RT_LIB=${DYNINST_LIB}/libdyninstAPI_RT.so
-hpcstuct="${MG_XLIB_ROOT}/hpctoolkit-2022.01.15/bin/hpcstruct"
 
+hpcstruct="${MG_XLIB_ROOT}/hpctoolkit-2022.01.15/bin/hpcstruct"
+
+#-----------------------------------------------------------
+
+echo ${DYNINSTAPI_RT_LIB}
+echo ${hpcstruct}
+
+#****************************************************************************
 
 opt_outDir=''
-opt_app=''
-#instrumentor_path="${scriptDir}/../bin-anlys/install/bin/miami"
-instrumentor_path="${scriptDir}/../libexec/bin/memgaze-instrumentor"
 opt_loads='1'
 opt_stores='0'
 opt_strided='1'
 opt_indirect='1'
 opt_frame='0'
 opt_analysis_file=''
+
+opt_app=''
 
 #****************************************************************************
 # Parse arguments
@@ -62,6 +85,7 @@ EOF
 #-----------------------------------------------------------
 # optional arguments
 #-----------------------------------------------------------
+
 while [[ $# -gt 0 ]] ; do
 
     arg="$1"
@@ -77,7 +101,7 @@ while [[ $# -gt 0 ]] ; do
             shift # past value
             ;;
         
-	-i | --app )
+        -i | --app )
             opt_app="$1"
             shift # past value
             ;;
@@ -107,7 +131,7 @@ while [[ $# -gt 0 ]] ; do
             shift # past value
             ;;
 
-	-- )
+	      -- )
             break
             ;;
 
@@ -118,8 +142,10 @@ while [[ $# -gt 0 ]] ; do
     esac
 done
 
+#-----------------------------------------------------------
 # required args
 #-----------------------------------------------------------
+
 if [[ -z ${opt_app} ]] ; then
     die "no binary to instrument"
 fi
@@ -131,19 +157,31 @@ app=${strarr[-1]}
 IFS=''
 
 
-if [ -z ${opt_outDir} ]
-then
-  opt_outDir="memgaze-${app}"
+if [[ -z ${opt_outDir} ]] ; then
+    opt_outDir="memgaze-${app}"
 fi
+
+#****************************************************************************
+# 
+#****************************************************************************
 
 mkdir ${opt_outDir}
 
 cp ${opt_app} ${opt_outDir}
 
-${instrumentor_path}   --bin_path ${opt_outDir}/${app}  --load_class 1 --inst_loads=${opt_loads} --inst_stores=${opt_stores} --inst_strided=${opt_strided} --inst_indirect=${opt_indirect} --inst_frame=${opt_frame} --lcFile=${opt_outDir}/${app}_PTW.binanlys &> ${opt_outDir}/${app}_PTW.binanlys.log 
+app_new="${opt_app}_PTW"
 
-${scriptDir}/memgaze-inst-cat ${opt_outDir}/${app}_PTW.binanlys.log ${opt_outDir}/${app}_PTW.binanlys
-cd ${opt_outDir}
-${hpcstuct} ${app}_PTW
-cd ..
-mv ${opt_outDir}/${app}_PTW.binanlys_Fixed ${opt_outDir}/${app}_PTW.binanlys 
+${mg_inst} --bin_path ${opt_outDir}/${app}  --load_class 1 \
+           --inst_loads=${opt_loads} \
+           --inst_stores=${opt_stores} \
+           --inst_strided=${opt_strided} \
+           --inst_indirect=${opt_indirect} \
+           --inst_frame=${opt_frame} \
+           --lcFile=${opt_outDir}/${app_new}.binanlys \
+    &> ${opt_outDir}/${app_new}.binanlys.log
+
+${mg_inst_cat} ${opt_outDir}/${app_new}.binanlys.log ${opt_outDir}/${app_new}.binanlys
+
+${hpcstruct} ${opt_outDir}/${app_new} -o ${opt_outDir}/${app_new}.hpcstruct
+
+mv ${opt_outDir}/${app_new}.binanlys_Fixed ${opt_outDir}/${app_new}.binanlys
