@@ -30,9 +30,8 @@ mg_xtrace_norm="${scriptDir}/memgaze-xtrace-normalize"
 
 #****************************************************************************
 
+opt_inDir=''
 opt_outDir=''
-opt_app=''
-
 
 #****************************************************************************
 # Parse arguments
@@ -78,12 +77,12 @@ while [[ $# -gt 0 ]] ; do
             shift # past value
             ;;
         
-	-i | --input )
-            opt_app="$1"
+	      -i | --input )
+            opt_inDir="$1"
             shift # past value
             ;;
 
-	-- )
+	      -- )
             break
             ;;
 
@@ -94,17 +93,14 @@ while [[ $# -gt 0 ]] ; do
     esac
 done
 
+
 #-----------------------------------------------------------
 # required args
 #-----------------------------------------------------------
 
-if [ -z ${opt_outDir} ] ; then
-  opt_outDir=${opt_app}
+if [[ -z ${opt_outDir} ]] ; then
+  opt_outDir=${opt_inDir}
 fi
-
-#****************************************************************************
-# 
-#****************************************************************************
 
 perf_script="${perf_script_dir}/perf-script-intel-pt.py"
 
@@ -123,14 +119,19 @@ while IFS= read -r line; do
         perf_script="${perf_script_dir}/perf-script-intel-ldlat.py"
       fi
     fi
-done < ${opt_app}/memgaze.config
+done < ${opt_inDir}/memgaze.config
 
 IFS='/' read -a apps <<< $app_path
 app=${apps[-1]}
+
+
+#****************************************************************************
+# 
+#****************************************************************************
+
 echo "app: $app"
 
-
-${perf} script --script=${perf_script} -i ${opt_app}/${dataFile} > ${opt_outDir}/${app}.trace
+${perf} script --script=${perf_script} -i ${opt_inDir}/${dataFile} > ${opt_outDir}/${app}.trace
 
 cat ${opt_outDir}/${app}.trace | grep -v error &> ${opt_outDir}/${app}.trace.clean
 

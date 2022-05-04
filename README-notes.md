@@ -22,11 +22,11 @@ MemGaze Consolidation
     - dependences for perf?
     
   - run scripts: memgaze-*:
+    - memgaze-inst: name output binary
+    
     - memgaze-*: libexec
-    
-    - example for system-wide collection?
-    
-    - on nuke, the 'lbr' spec is ignored? any warning?
+      - example for system-wide collection?
+      - on nuke, the 'lbr' spec is ignored? any warning?
     
     ??? without --per-thread, perf opens a fd on each core because it has a buffer/event per cpu; size (129 pages  4 k)
 

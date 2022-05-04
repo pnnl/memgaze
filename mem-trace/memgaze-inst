@@ -137,6 +137,7 @@ then
 fi
 
 mkdir ${opt_outDir}
+
 cp ${opt_app} ${opt_outDir}
 
 ${instrumentor_path}   --bin_path ${opt_outDir}/${app}  --load_class 1 --inst_loads=${opt_loads} --inst_stores=${opt_stores} --inst_strided=${opt_strided} --inst_indirect=${opt_indirect} --inst_frame=${opt_frame} --lcFile=${opt_outDir}/${app}_PTW.binanlys &> ${opt_outDir}/${app}_PTW.binanlys.log 

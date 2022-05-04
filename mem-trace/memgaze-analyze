@@ -75,17 +75,17 @@ while [[ $# -gt 0 ]] ; do
             shift # past value
             ;;
         
-	-t | --trace-dir )
+	      -t | --trace-dir )
             opt_trace_dir="$1"
             shift # past value
             ;;
 
-	-s | --inst-dir )
+	      -s | --inst-dir )
             opt_inst_dir="$1"
             shift # past value
             ;;
 
-	-- )
+	      -- )
             break
             ;;
 
@@ -104,6 +104,7 @@ done
 #if [[ -z $1 ]] ; then
 #    die "no command to monitor"
 #fi
+
 trace=''
 binanlys=''
 hpcstruct=''
@@ -111,35 +112,27 @@ mode=''
 period=''
 callpath=''
 
+while IFS=' ' read -r type value; do
+    echo "type: $type value: $value"
+    if [[ $type == "-m" ]] ; then 
+      mode=$value
+    elif [[ $type == "-p" ]] ; then
+      period=$value
+    elif [[ $type == "-t" ]] ;then
+      trace=$value
+    elif [[ $type == "-b" ]] ;then
+      binanlys=$value
+    elif [[ $type == "-h" ]] ;then
+      hpcstruct=$value
+    elif [[ $type == "-c" ]] ;then
+      callpath=$value
+    fi
+done < ${opt_trace_dir}/memgaze.config 
 
 
 #****************************************************************************
 # 
 #****************************************************************************
 
-while IFS=' ' read -r type value; do
-    echo "type: $type value: $value"
-    if [[ $type == "-m" ]]
-    then 
-      mode=$value
-    elif [[ $type == "-p" ]]
-    then 
-      period=$value
-    elif [[ $type == "-t" ]]
-    then 
-      trace=$value
-    elif [[ $type == "-b" ]]
-    then 
-      binanlys=$value
-    elif [[ $type == "-h" ]]
-    then 
-      hpcstruct=$value
-    elif [[ $type == "-c" ]]
-    then 
-      callpath=$value
-    fi
-done < ${opt_trace_dir}/memgaze.config 
-
-
-${mg_anal} -t $trace -l $binanlys -s $hpcstruct -o $output -m $mode -p $period -c $callpath
+${mg_anal} -t ${trace} -l ${binanlys} -s ${hpcstruct} -o ${output} -m ${mode} -p ${period} -c ${callpath}
 
