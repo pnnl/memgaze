@@ -27,8 +27,8 @@ MemGaze Consolidation
 
   - Build:
     - can we now use official DynInst? ask Xiaozhu Meng
-    - autoconfigure hpctk source tree?
     - dependences for perf?
+    - autoconfigure hpctk source tree?
 
   - nuke: /DATA/Projects/MemGaze
     - keep data-locality results and delete "overhead" results
