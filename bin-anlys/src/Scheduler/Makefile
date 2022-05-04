@@ -82,7 +82,7 @@ TOOL_CFLAGS =
 
 #****************************************************************************
 
-TOOL_ROOTS = miami
+TOOL_ROOTS = memgaze-instrumentor
 TOOL_VAR = vars_sched
 TOOL_OBJ_DIR = scheduler
 BINSCRIPT = $(MEMGAZE_MIAMI_ROOT)/src/tools/run_static.in
@@ -91,7 +91,8 @@ BINSCRIPT = $(MEMGAZE_MIAMI_ROOT)/src/tools/run_static.in
 MIAMI_TARGET ?= $(MEMGAZE_MIAMI_ROOT)/install
 BINDIR = $(MIAMI_TARGET)/bin/
 EXEDIR = $(BINDIR)libexec/
-OBJDIR = $(MEMGAZE_MIAMI_ROOT)/objs/
+#OBJDIR = $(MEMGAZE_MIAMI_ROOT)/objs/
+OBJDIR = $(MIAMI_TARGET)/objs/
 ETCDIR = $(MIAMI_TARGET)/etc
 VARSDIR = $(ETCDIR)/vars
 ifeq ($(MIAMI_KIT),1)

@@ -36,7 +36,8 @@ MG_XLIB_SRC  = $(MEMGAZE_ROOT)/xlib
 
 # TODO: clean
 MEMGAZE_MIAMI_ROOT := $(MEMGAZE_ROOT)/bin-anlys
-MIAMI_TARGET       = $(MEMGAZE_MIAMI_ROOT)/install
+#MIAMI_TARGET       = $(MEMGAZE_MIAMI_ROOT)/install
+MIAMI_TARGET       = $(PREFIX_LIBEXEC)
 
 
 #-----------------------------------------------------------
