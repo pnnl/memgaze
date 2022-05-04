@@ -10,27 +10,36 @@ MemGaze Consolidation
 
   - paper:
     - overhead results: do not collect call graph???
-    - how good is exclusive function attribution on new minivite trace?
+
+    - exclusive aggregated view
+    - inclusive trace for f: all accesses between first/last instantiation of f
+    - exclusive trace for f: accesses for first/last instantiation of f
+
     - analyze parallelism: single vs. multi-thread runs for minivite
 
-  - nuke: /DATA/Projects/MemGaze
-    - keep data-locality results and delete "overhead" results
+  - run scripts: memgaze-*:
+    - memgaze-inst:
+      - -o to name output binary '-memgaze'
+      - mg_inst_cat
     
+    - memgaze-*: libexec
+      - example for system-wide collection?
+
   - Build:
     - can we now use official DynInst? ask Xiaozhu Meng
     - autoconfigure hpctk source tree?
     - dependences for perf?
-    
-  - run scripts: memgaze-*:
-    - memgaze-inst: name output binary
-    
-    - memgaze-*: libexec
-      - example for system-wide collection?
-      - on nuke, the 'lbr' spec is ignored? any warning?
-    
-    ??? without --per-thread, perf opens a fd on each core because it has a buffer/event per cpu; size (129 pages  4 k)
 
-    ??? perf-event-disable (ioctl) should have an effect when it returns (write to msr)
+  - nuke: /DATA/Projects/MemGaze
+    - keep data-locality results and delete "overhead" results
+
+
+    ??? 
+    With --per-thread there is a data file per cpu.
+    Without --per-thread, perf opens a fd on each core because it has a buffer/event per cpu; size (129 pages  4 k)
+    
+    Internal perf driver: Can use 'perf-event-enable/disable" (ioctl) to enable/disable a perf event.
+    
 
 * Minor:
   - Try Release-2022.04.15 (2022.04.15)
