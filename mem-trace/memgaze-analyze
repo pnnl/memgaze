@@ -114,7 +114,7 @@ callpath=''
 
 while IFS=' ' read -r type value; do
     echo "type: $type value: $value"
-    if [[ $type == "-m" ]] ; then 
+    if [[ $type == "-m" ]] ; then
       mode=$value
     elif [[ $type == "-p" ]] ; then
       period=$value
