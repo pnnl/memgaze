@@ -11,7 +11,7 @@ MemGaze Consolidation
   - paper:
     - overhead results: do not collect call graph???
 
-    - exclusive aggreagation/metics for all functions
+    - exclusive aggregation/metrics for all functions
     - inclusive trace for function f: all accesses between first/last instantiation of f
     - exclusive trace function f: accesses for first/last instantiation of f
 
