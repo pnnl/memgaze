@@ -94,6 +94,13 @@ MemGaze Structure
     palm-task: hpctoolkit run + fp analysis on database xml file
 
 
+-----------------------------------------------------------------------------
+Notes
+=============================================================================
+
+* New code in the instrumented binary will have show limited source line information (e.g., through objdump or hpcstruct). However, it is possible to do the mapping with our load-classification data and the line map from the original binary.
+
+
 =============================================================================
 MemGaze/bin-anlys: Changes from MIAMI-NW (newest first)
 =============================================================================
