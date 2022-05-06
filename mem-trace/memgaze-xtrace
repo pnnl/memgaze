@@ -17,14 +17,14 @@ scriptDir=${scriptPath%/*}  # cf. $(dirname ...)
 
 #****************************************************************************
 
-MG_XLIB_ROOT="${MG_XLIB_ROOT:-${scriptDir}/../xlib/lib}"
-MG_PERF_ROOT="${MG_PERF_ROOT:-${scriptDir}/../xlib/perf}"
+MG_XLIB_ROOT="${MG_XLIB_ROOT:-${scriptDir}/../../xlib/lib}"
+MG_PERF_ROOT="${MG_PERF_ROOT:-${scriptDir}/../../xlib/perf}"
 
 #-----------------------------------------------------------
 
 perf="${MG_PERF_ROOT}/linux-5.5.9/tools/perf/perf"
 
-perf_script_dir="${scriptDir}" # FIXME
+perf_script_dir="${scriptDir}/../libexec"
 
 mg_xtrace_norm="${scriptDir}/memgaze-xtrace-normalize"
 
@@ -77,7 +77,7 @@ while [[ $# -gt 0 ]] ; do
             shift # past value
             ;;
         
-	      -i | --input )
+	-i | --input )
             opt_inDir="$1"
             shift # past value
             ;;

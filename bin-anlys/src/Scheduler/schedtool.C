@@ -80,6 +80,7 @@ const int inst_frame = 922; //"inst_frame", "", "instrument only frame/constant 
 const int linemap = 923; //"linemap", "", "specify instumented binary to print linemap.");
 const int lcFile = 924; //"lc_file", "", "prints load classifications to a file.");
 const int funcList = 925; //"func_list", "", "list of functions to analyze (required).");
+const int outBinName = 926; //"out_bin_name", "", "specify instrumented binary name( def= <bin>-memgaze)";
 
 
  
@@ -122,6 +123,7 @@ std::string KnobFpPath = ""; //"fp_path", "", "path containing instruction footp
 std::string KnobDumpFile = ""; //dump_file, "", "file name to dwar scheduling dump""
 std::string KnobLinemap = ""; //"linemap", "", "specify instrumented binary to print linemap.");
 std::string KnobLcFile = ""; //"lc_file", "", "prints load classifications to a file.");
+std::string KnobOutBinName = ""; //"out_bin_name", "", "specify instrumented binary name (def:<bin>-memgaze)");
 std::vector<std::string> KnobFuncList; //"func_list", "", "list of functions to analyze (required).");
 /*
  * Compute an application's instruction execution cost by re-scheduling
@@ -349,7 +351,11 @@ static int parse_opt (int key, char *arg, struct argp_state *state)
             KnobLcFile.assign(arg);
             break;
         }
-
+        case outBinName:
+        {
+            KnobOutBinName.assign(arg);
+            break;
+        }
         case funcList:
         {
           KnobFuncList.push_back(arg);
@@ -402,6 +408,7 @@ int parse_args(int argc , char * argv[]){
         { "inst_frame", inst_frame, "BOOL", 1, "Instrument Frame/Constant Load/Stores (Default=0)"},
         { "linemap", linemap, "STRING", 0, "specify an instrumented binary to print Linemap."},
         { "lcFile ", lcFile, "STRING", 0, "prints load classifications to a file."},
+        { "outBinName ", outBinName, "STRING", 0, "specify instumented binary name (def:<bin>-memgaze)"},
         //{ "func_list", funcList, "STRING", 0, "List of functions to analyze (required)."},
         { "func_list", funcList, "INTEGER", 0, "List of functions to analyze (required)."},
         {0}
@@ -476,6 +483,7 @@ main (int argc, char *argv[])
     std::cout<<"CALLIng to add line map.\n";
     mo->addLinemap(KnobLinemap);
     mo->addLcFile(KnobLcFile);
+    mo->addOutBinName(KnobOutBinName);
   
     int numFunclist = KnobFuncList.size();
     if (numFunclist > 0)

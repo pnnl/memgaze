@@ -92,6 +92,7 @@ namespace MIAMI
       bool printLinemap; //print linemap 
       string linemapFile; //path of  instrumented binary as input file 
       string lcFile; //path of load classification output File 
+      string outBinName; //Hold the intrumented binary name
       FILE *lcFILE;
       bool lcFileExist;
       //std::map<std::string, int> funcList;
@@ -510,6 +511,11 @@ namespace MIAMI
       }
      }
     
+    void addOutBinName(const string& _outBinName){
+      if (_outBinName.length()>1){
+         outBinName = _outBinName;
+      }
+     }
      void addBlockPath(const string& blkPath){
          if (blkPath.length()){
             block_path = blkPath;

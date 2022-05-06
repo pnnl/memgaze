@@ -17,14 +17,14 @@ scriptDir=${scriptPath%/*}  # cf. $(dirname ...)
 
 #****************************************************************************
 
-MG_XLIB_ROOT="${MG_XLIB_ROOT:-${scriptDir}/../xlib/lib}"
-MG_PERF_ROOT="${MG_PERF_ROOT:-${scriptDir}/../xlib/perf}"
+MG_XLIB_ROOT="${MG_XLIB_ROOT:-${scriptDir}/../../xlib/lib}"
+MG_PERF_ROOT="${MG_PERF_ROOT:-${scriptDir}/../../xlib/perf}"
 
 #-----------------------------------------------------------
 
 mg_inst="${scriptDir}/../libexec/bin/memgaze-instrumentor"
 
-mg_inst_cat="${scriptDir}/memgaze-inst-cat"
+mg_inst_cat="${scriptDir}/../memgaze-inst-cat"
 
 
 DYNINST_ROOT="${MG_XLIB_ROOT}/dyninst-12.0.1"
@@ -47,6 +47,7 @@ opt_strided='1'
 opt_indirect='1'
 opt_frame='0'
 opt_analysis_file=''
+opt_instBin_name=''
 
 opt_app=''
 
@@ -72,6 +73,7 @@ Options:
   -h / --help   => prints help
   -o / --output => output directory path
   -i / --app    => input binary (required)
+  -b / --outapp => instrumented binary name (def: <bin>-memgaze)
   -l / --loads  => load analysis (1 to do 0 to skip def:1)
   -s / --stores => store analysis (1 to do 0 to skip def:0)
   -t / --strided => strided analysis (req -l and/or -s to set 1) (1 to do 0 to skip def:1)
@@ -103,6 +105,11 @@ while [[ $# -gt 0 ]] ; do
         
         -i | --app )
             opt_app="$1"
+            shift # past value
+            ;;
+
+        -b | --outapp )
+            opt_instBin_name="$1"
             shift # past value
             ;;
 
@@ -161,6 +168,11 @@ if [[ -z ${opt_outDir} ]] ; then
     opt_outDir="memgaze-${app}"
 fi
 
+
+if [[ -z ${opt_instBin_name} ]] ; then
+    opt_instBin_name="${app}-memgaze"
+fi
+
 #****************************************************************************
 # 
 #****************************************************************************
@@ -169,19 +181,18 @@ mkdir ${opt_outDir}
 
 cp ${opt_app} ${opt_outDir}
 
-app_new="${opt_app}_PTW"
-
 ${mg_inst} --bin_path ${opt_outDir}/${app}  --load_class 1 \
            --inst_loads=${opt_loads} \
            --inst_stores=${opt_stores} \
            --inst_strided=${opt_strided} \
            --inst_indirect=${opt_indirect} \
            --inst_frame=${opt_frame} \
-           --lcFile=${opt_outDir}/${app_new}.binanlys \
-    &> ${opt_outDir}/${app_new}.binanlys.log
+           --lcFile=${opt_outDir}/${opt_instBin_name}.binanlys \
+           --outBinName=${opt_outDir}/${opt_instBin_name} \
+    &> ${opt_outDir}/${opt_instBin_name}.binanlys.log
 
-${mg_inst_cat} ${opt_outDir}/${app_new}.binanlys.log ${opt_outDir}/${app_new}.binanlys
+${mg_inst_cat} ${opt_outDir}/${opt_instBin_name}.binanlys.log ${opt_outDir}/${opt_instBin_name}.binanlys
 
-${hpcstruct} ${opt_outDir}/${app_new} -o ${opt_outDir}/${app_new}.hpcstruct
+${hpcstruct} ${opt_outDir}/${opt_instBin_name} -o ${opt_outDir}/${opt_instBin_name}.hpcstruct
 
-mv ${opt_outDir}/${app_new}.binanlys_Fixed ${opt_outDir}/${app_new}.binanlys
+mv ${opt_outDir}/${opt_instBin_name}.binanlys_Fixed ${opt_outDir}/${opt_instBin_name}.binanlys

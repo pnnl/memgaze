@@ -631,7 +631,12 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
          newimg->dyninstAnalyzeRoutines(fd,prog, mo);
 //write this image back to a file
          BPatch_binaryEdit* BPapp = static_cast<BPatch_binaryEdit*>(newimg->getDyninstApp());
-         std::string newName = iname+"_PTW";
+         std::string newName;
+         if (mo->outBinName.size() >0 ){
+            newName = mo->outBinName; 
+         } else {
+            newName = iname+"-memgaze";
+         }
          std::cout << "Start Writing to a file\n";
          BPapp->writeFile(newName.c_str());
 std::cout<<"I wrote to a file named "<<newName<<" image: "<<iname<<std::endl;
@@ -704,7 +709,14 @@ std::cout<<"OZGURDBG in load_classes"<<std::endl;
 
 //write this image back to a file
          BPatch_binaryEdit* BPapp = static_cast<BPatch_binaryEdit*>(newimg->getDyninstApp());
-         std::string newName = iname+"_PTW";
+
+         std::string newName;
+         if (mo->outBinName.size() >0 ){
+            newName = mo->outBinName; 
+         } else {
+            newName = iname+"-memgaze";
+         }
+
          std::cout << "Start Writing to a file\n";
          BPapp->writeFile(newName.c_str());
 std::cout<<"OZGURDBG::I Wrote to a file named "<<newName<<" image: "<<iname<<std::endl;

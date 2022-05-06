@@ -17,8 +17,8 @@ scriptDir=${scriptPath%/*}  # cf. $(dirname ...)
 
 #****************************************************************************
 
-MG_XLIB_ROOT="${MG_XLIB_ROOT:-${scriptDir}/../xlib/lib}"
-MG_PERF_ROOT="${MG_PERF_ROOT:-${scriptDir}/../xlib/perf}"
+MG_XLIB_ROOT="${MG_XLIB_ROOT:-${scriptDir}/../../xlib/lib}"
+MG_PERF_ROOT="${MG_PERF_ROOT:-${scriptDir}/../../xlib/perf}"
 
 #-----------------------------------------------------------
 
