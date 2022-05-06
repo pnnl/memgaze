@@ -11,30 +11,27 @@ MemGaze Consolidation
   - paper:
     - overhead results: do not collect call graph???
 
-    - exclusive aggregation/metrics for all functions
+    - exclusive function analysis: only accesses for f
+      - Internally, results in slices of accesses; could add diagnostic interval analysis
+      - Could generate trace
+    
     - inclusive trace for function f: all accesses between first/last instantiation of f
-    - exclusive trace function f: accesses for first/last instantiation of f
-
+    
     - analyze parallelism: single vs. multi-thread runs for minivite
 
+  - try newer DynInst (Release-2022.04.15)? ask Xiaozhu Meng
+
   - run scripts: memgaze-*:
-    - memgaze-inst:
-      - -o to name output binary '-memgaze'
-      - mg_inst_cat
-    
     - memgaze-*: libexec
-      - example for system-wide collection?
+      - xlib/README.md: example for system-wide collection?
 
   - Build:
-    - can we now use official DynInst? ask Xiaozhu Meng
     - dependences for perf?
     - autoconfigure hpctk source tree?
 
   - nuke: /DATA/Projects/MemGaze
     - keep data-locality results and delete "overhead" results
 
-* Minor:
-  - Try Release-2022.04.15 (2022.04.15)
 
 * Bugs:
   - mem-anlys only reads only one load-classification file even if multiple are needed

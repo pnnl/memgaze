@@ -100,6 +100,7 @@ Libraries
   - dyninst.patch:   DynInst patch
 
 - DynInst patch
+  https://github.com/dyninst/
 
   Currently, we must apply one hack/patch to DynInst.
   
