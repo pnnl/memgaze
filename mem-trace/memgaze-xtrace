@@ -26,7 +26,7 @@ perf="${MG_PERF_ROOT}/linux-5.5.9/tools/perf/perf"
 
 perf_script_dir="${scriptDir}/../libexec"
 
-mg_xtrace_norm="${scriptDir}/memgaze-xtrace-normalize"
+mg_xtrace_norm="${scriptDir}/../libexec/memgaze-xtrace-normalize"
 
 #****************************************************************************
 
@@ -53,7 +53,7 @@ Usage: ${scriptCmd} [options]
 
 Options:
   -h / --help   => print help
-  -o / --output => name of output directory
+  -o / --output => name of output directory (def: input dir)
   -i / --input  => directory for perf data
 EOF
     exit 0

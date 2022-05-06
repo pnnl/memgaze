@@ -24,7 +24,7 @@ MG_PERF_ROOT="${MG_PERF_ROOT:-${scriptDir}/../../xlib/perf}"
 
 mg_inst="${scriptDir}/../libexec/bin/memgaze-instrumentor"
 
-mg_inst_cat="${scriptDir}/../memgaze-inst-cat"
+mg_inst_cat="${scriptDir}/../libexec/memgaze-inst-cat"
 
 
 DYNINST_ROOT="${MG_XLIB_ROOT}/dyninst-12.0.1"

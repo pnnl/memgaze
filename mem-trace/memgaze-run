@@ -26,13 +26,13 @@ perf="${MG_PERF_ROOT}/linux-5.5.9/tools/perf/perf"
 
 #-----------------------------------------------------------
 
-echo ${perf}
+#echo ${perf}
 
 #****************************************************************************
 
 zero=0
 opt_period=0
-opt_method=1
+opt_method='pt-load'
 opt_buffer=8192
 
 #****************************************************************************
@@ -122,10 +122,12 @@ fi
 #****************************************************************************
 
 app=$@
+args=''
 
 IFS=' '
 read -a strarr <<< "$app"
 app_path=${strarr[0]}
+args=${strarr[1]}
 
 IFS='/'
 read -a strarr <<< "$app_path"
@@ -146,7 +148,7 @@ mkdir ${opt_output}
 
 out_fnm="${opt_output}/${opt_output}.perf"
 
-printf "${scriptCmd}: collecting data for $bin with $args\n"
+printf "${scriptCmd}: collecting data for $app with $args\n"
 
 
 if [[ ${opt_method} =~ pt-* ]] ; then
