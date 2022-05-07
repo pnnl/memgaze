@@ -22,7 +22,6 @@ MG_PERF_ROOT="${MG_PERF_ROOT:-${scriptDir}/../../xlib/perf}"
 
 #-----------------------------------------------------------
 
-#mg_anal="../mem-anlys/memgaze-analyze"
 mg_anal="${scriptDir}/../libexec/memgaze-analyze"
 
 #****************************************************************************
