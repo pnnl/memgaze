@@ -276,7 +276,7 @@ int main(int argc, char* argv[], const char* envp[]) {
   //Setting Option Parser
   CmdOptionParser opps(argc, argv);
   if (opps.cmdOptionExists("-h")){
-    cout << "-t Trace File\n-l Load Classification File\n-s hpcstruct File\n-o Graph Output File\n-m Mode o for time based and 1 for load based\n-p Period\n-f Focus Function Name\n-b block size mask def 0xffffffffffff\n-c CallPath File\n-h Help"<<endl;
+    cout << "-t Trace File\n-l Load Classification File\n-s hpcstruct File\n-o Graph Output File\n-m Mode o for time based and 1 for load based\n-p Period\n-f Focus Function Name\n-b block size mask def 0xffffffffffff\n-c CallPath File\n-d detailed function view\n-h Help"<<endl;
     return 1;
   }
 
@@ -319,6 +319,7 @@ int main(int argc, char* argv[], const char* envp[]) {
   string classificationInputFile = opps.getCmdOption("-l");
   string hpcStructInputFile = opps.getCmdOption("-s");
   string outputFile = opps.getCmdOption("-o");
+  int is_detailed = strtol(opps.getCmdOption("-d").c_str(),NULL,10);
   //int is_load = strtol(opps.getCmdOption("-m").c_str(),NULL,10);
   int is_load = 0;
   int is_LDLAT = 0;
@@ -1043,6 +1044,7 @@ int main(int argc, char* argv[], const char* envp[]) {
   Window * fullT;
   cout << "Building tree Forest size  "<<forest.size()<<endl;
   fullT = buildTree(&forest );
+  //TODO FUNCVIEW create forest for each function's trace and sent build tree similart to this.
 //      cout << "Size of head node is "<<fullT->getSize()<<endl;
   if (fullT == NULL)
     cout << "ERROR ROOT IS NULL\n";
@@ -1059,10 +1061,10 @@ int main(int argc, char* argv[], const char* envp[]) {
   //printTree(fullT , &treeFPavgMap, period,  fullT->windowID.second, false , is_load); 
 
 //Here we will calculate the FP for each function seperately 
-  if (do_reuse){
+//  if (do_reuse){
 //    multiplier = ((float)window_size + (float)skip_size)/(float)window_size; //MEAN & MEDIAN        3
 //    cout << "MULTIPLIERS: 3="<<multiplier;
-    multiplier = ((float)window_size + (float)skip_size2)/(float)window_size; //MEAN & from MEAN    4
+//    multiplier = ((float)window_size + (float)skip_size2)/(float)window_size; //MEAN & from MEAN    4
 //    cout << " 4="<<multiplier;
 //    multiplier = ((float)window_size + (float)zSize1)/(float)window_size; //MEAN & from MEdian      5
 //    cout << " 5="<<multiplier;
@@ -1070,13 +1072,17 @@ int main(int argc, char* argv[], const char* envp[]) {
 //    cout << " 2="<<multiplier;
 //    multiplier = ((float)wSize1 + (float)zSize1)/(float)wSize1; //MEDIAN & From MEDIANs               1
 //    cout << " 1="<<multiplier<< endl;
-  } else {
+//  } else {
+//    multiplier = 1; 
+//  } 
+  if (is_LDLAT || !do_reuse){
     multiplier = 1; 
-  } 
+  }
   
   cout << "Function based Flat FP with mutiplier:"<<multiplier<<endl;
   float local_multiplier= 0;
-  for (auto it= funcMAP.begin();it !=funcMAP.end();it++){
+  for (auto it= funcMAP.begin();it !=funcMAP.end();it++){//TODO actually here first buila a tree for
+                                                         //each function then print tree
     if (it->second->timeVec.size() > 0){
       (*it).second->calcFP();
   //    cout << "getting Local Multiplier for function "<<(*it).second->name<<endl;
@@ -1086,26 +1092,26 @@ int main(int argc, char* argv[], const char* envp[]) {
   //    cout << "General Multipliler = "<<multiplier<<endl;
   //    cout << (*it).second->name << " StartIP:"<<hex<<(*it).second->startIP<<dec <<" Size:"<< it->second->timeVec.size() << " FP:"<<(*it).second->fp*multiplier << " lds:"<<(*it).second->totalLoads ;
   //    cout<<" Strided:"<<diagMap[1]*multiplier <<" Indirect:"<<diagMap[2]*multiplier <<" Constant:"<<diagMap[0]*multiplier <<" Unknown:"<<diagMap[-1]*multiplier<<endl;
-      cout << (*it).second->name << " StartIP: "<<hex<<(*it).second->startIP<<dec <<" Size: "<< it->second->timeVec.size() << " FP: "<<(*it).second->fp*local_multiplier << " lds: "<<(*it).second->totalLoads ;
+//      cout << (*it).second->name << " StartIP: "<<hex<<(*it).second->startIP<<dec <<" Size: "<< it->second->timeVec.size() << " FP: "<<(*it).second->fp*local_multiplier << " lds: "<<(*it).second->totalLoads ;
+//      cout<<" Strided: "<<diagMap[1]*local_multiplier <<" Indirect: "<<diagMap[2]*local_multiplier<<" Constant: "<<diagMap[0]*local_multiplier <<" Unknown: "<<diagMap[-1]*local_multiplier;
+//      cout << " Local multiplier = "<<local_multiplier<<endl;
+//      local_multiplier = multiplier2;
+//      cout << (*it).second->name << " M2 StartIP: "<<hex<<(*it).second->startIP<<dec <<" Size: "<< it->second->timeVec.size() << " FP: "<<(*it).second->fp*local_multiplier << " lds: "<<(*it).second->totalLoads ;
+//      cout<<" Strided: "<<diagMap[1]*local_multiplier <<" Indirect: "<<diagMap[2]*local_multiplier<<" Constant: "<<diagMap[0]*local_multiplier <<" Unknown: "<<diagMap[-1]*local_multiplier;
+//      cout << " Local multiplier = "<<local_multiplier<<endl;
+//     local_multiplier = multiplier_ld_median;
+//      cout << (*it).second->name << " Med StartIP: "<<hex<<(*it).second->startIP<<dec <<" Size: "<< it->second->timeVec.size() << " FP: "<<(*it).second->fp*local_multiplier << " lds: "<<(*it).second->totalLoads ;
+//      cout<<" Strided: "<<diagMap[1]*local_multiplier <<" Indirect: "<<diagMap[2]*local_multiplier<<" Constant: "<<diagMap[0]*local_multiplier <<" Unknown: "<<diagMap[-1]*local_multiplier;
+//      cout << " Local multiplier = "<<local_multiplier<<endl;
+//     local_multiplier = multiplier_ld_mean;
+//      cout << (*it).second->name << " Mean StartIP: "<<hex<<(*it).second->startIP<<dec <<" Size: "<< it->second->timeVec.size() << " FP: "<<(*it).second->fp*local_multiplier << " lds: "<<(*it).second->totalLoads ;
+//      cout<<" Strided: "<<diagMap[1]*local_multiplier <<" Indirect: "<<diagMap[2]*local_multiplier<<" Constant: "<<diagMap[0]*local_multiplier <<" Unknown: "<<diagMap[-1]*local_multiplier;
+//      cout << " Local multiplier = "<<local_multiplier<<endl;
+     //local_multiplier = multiplier_ld_from_totals;
+     local_multiplier = multiplier2;
+      cout << (*it).second->name << " tot StartIP: "<<hex<<(*it).second->startIP<<" EndIP: "<< (*it).second->endIP<<dec <<" Size: "<< it->second->timeVec.size() << " FP: "<<(*it).second->fp*local_multiplier << " lds: "<<(*it).second->timeVec.size()*imp_to_all_ratio*local_multiplier<<" collected/total: "<<imp_to_all_ratio;
       cout<<" Strided: "<<diagMap[1]*local_multiplier <<" Indirect: "<<diagMap[2]*local_multiplier<<" Constant: "<<diagMap[0]*local_multiplier <<" Unknown: "<<diagMap[-1]*local_multiplier;
-      cout << " Local multiplier = "<<local_multiplier<<endl;
-      local_multiplier = multiplier2;
-      cout << (*it).second->name << " M2 StartIP: "<<hex<<(*it).second->startIP<<dec <<" Size: "<< it->second->timeVec.size() << " FP: "<<(*it).second->fp*local_multiplier << " lds: "<<(*it).second->totalLoads ;
-      cout<<" Strided: "<<diagMap[1]*local_multiplier <<" Indirect: "<<diagMap[2]*local_multiplier<<" Constant: "<<diagMap[0]*local_multiplier <<" Unknown: "<<diagMap[-1]*local_multiplier;
-      cout << " Local multiplier = "<<local_multiplier<<endl;
-     local_multiplier = multiplier_ld_median;
-      cout << (*it).second->name << " Med StartIP: "<<hex<<(*it).second->startIP<<dec <<" Size: "<< it->second->timeVec.size() << " FP: "<<(*it).second->fp*local_multiplier << " lds: "<<(*it).second->totalLoads ;
-      cout<<" Strided: "<<diagMap[1]*local_multiplier <<" Indirect: "<<diagMap[2]*local_multiplier<<" Constant: "<<diagMap[0]*local_multiplier <<" Unknown: "<<diagMap[-1]*local_multiplier;
-      cout << " Local multiplier = "<<local_multiplier<<endl;
-     local_multiplier = multiplier_ld_mean;
-      cout << (*it).second->name << " Mean StartIP: "<<hex<<(*it).second->startIP<<dec <<" Size: "<< it->second->timeVec.size() << " FP: "<<(*it).second->fp*local_multiplier << " lds: "<<(*it).second->totalLoads ;
-      cout<<" Strided: "<<diagMap[1]*local_multiplier <<" Indirect: "<<diagMap[2]*local_multiplier<<" Constant: "<<diagMap[0]*local_multiplier <<" Unknown: "<<diagMap[-1]*local_multiplier;
-      cout << " Local multiplier = "<<local_multiplier<<endl;
-     local_multiplier = multiplier_ld_from_totals;
-      cout << (*it).second->name << " tot StartIP: "<<hex<<(*it).second->startIP<<dec <<" Size: "<< it->second->timeVec.size() << " FP: "<<(*it).second->fp*local_multiplier << " lds: "<<(*it).second->totalLoads ;
-      cout<<" Strided: "<<diagMap[1]*local_multiplier <<" Indirect: "<<diagMap[2]*local_multiplier<<" Constant: "<<diagMap[0]*local_multiplier <<" Unknown: "<<diagMap[-1]*local_multiplier;
-      cout << " Local multiplier = "<<local_multiplier<<endl;
-
+      cout << " Multiplier = "<<local_multiplier<<" Growth Rate: "<<((*it).second->fp*local_multiplier)/((*it).second->timeVec.size()*imp_to_all_ratio*local_multiplier)<<endl;
 
 
 
