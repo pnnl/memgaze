@@ -8,7 +8,9 @@
 #
 #***********************************************************EndPNNLCopyright*
 
- set -x
+set -x
+
+hostName=`hostname -s`
 
 scriptPath0="${BASH_SOURCE[0]}" # works when script is sourced (unlike $0)
 scriptPath=$(readlink -f "${scriptPath0}")
@@ -31,8 +33,6 @@ DYNINST_LIB="${DYNINST_ROOT}/lib"
 export DYNINSTAPI_RT_LIB="${DYNINST_LIB}/libdyninstAPI_RT.so"
 export LD_LIBRARY_PATH="${DYNINST_LIB}"
 
-echo $LD_LIBRARY_PATH
-echo $DYNINSTAPI_RT_LIB
 #echo ${perf}
 
 #****************************************************************************
@@ -198,8 +198,13 @@ if [[ ${opt_method} =~ pt-* ]] ; then
     fi
 
 elif [[ ${opt_method} = 'ldlat' ]] ; then
+    event_ldlat="cpu/mem-loads,ldlat=1,period=${opt_period}/upp"
+    if [[ ${hostName} = 'nuke' ]] ; then
+      event_ldlat="cpu/umask=0x01,event=0xcd,ldlat=3,period=${opt_period}/upp"
+    fi
     ${perf} record -o "${out_fnm}" -W -d \
-            -e cpu/mem-loads,ldlat=1,period=${opt_period}/upp -- "$@"
+            -e ${event_ldlat} -- "$@"
+            #-e cpu/mem-loads,ldlat=1,period=${opt_period}/upp -- "$@"
 fi
 
 
