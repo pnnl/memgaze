@@ -32,8 +32,10 @@ XLIB_CFG   = $(MG_XLIB_SRC)/config-lib
 SPK_ETC     = $(XLIB_SPACK)/etc/spack
 SPK_DYNINST = $(XLIB_SPACK)/var/spack/repos/builtin/packages/dyninst
 
-MY_HPCTK   = hpctoolkit@2022.01.15 -papi -mpi
-MY_DYNINST = dyninst@12.0.1
+#MY_HPCTK   = hpctoolkit@2022.01.15 -papi -mpi
+MY_HPCTK   = hpctoolkit@2022.05.15 -papi -mpi
+#MY_DYNINST = dyninst@12.0.1
+MY_DYNINST = dyninst@12.1.0
 
 
 xlib : info xlib_spack xlib_hpctoolkit xlib_dyninst_patch

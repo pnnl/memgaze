@@ -78,6 +78,7 @@ class Dyninst(CMakePackage):
     patch('v9.3.2-auto.patch', when='@9.3.2 %gcc@:4.7')
     patch('tribool.patch', when='@9.3.0:10.0.0 ^boost@1.69:')
     patch('memgaze.patch', when='@12.0.1')
+    patch('memgaze.patch', when='@12.1.0')
 
     # No Mac support (including apple-clang)
     conflicts('platform=darwin', msg='macOS is not supported')
@@ -98,6 +99,11 @@ class Dyninst(CMakePackage):
     @when('@12.0.1')
     def patch(self):
         patch('memgaze.patch', when='@12.0.1')
+    
+    @when('@12.1.0')
+    def patch(self):
+        patch('memgaze.patch', when='@12.1.0')
+
 
     # Versions 9.3.x used cotire, but have no knob to turn it off.
     # Cotire has no real use for one-time builds and can break

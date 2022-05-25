@@ -48,7 +48,8 @@ MG_XLIB_ROOT ?= $(MG_XLIB_SRC)/lib
 
 #-----------------------------------------------------------
 
-HPCTK_ROOT = $(MG_XLIB_ROOT)/hpctoolkit-2022.01.15
+#HPCTK_ROOT = $(MG_XLIB_ROOT)/hpctoolkit-2022.01.15
+HPCTK_ROOT = $(MG_XLIB_ROOT)/hpctoolkit-2022.05.15
 HPCTK_LIB  = $(HPCTK_ROOT)/lib
 HPCTK_SRC  = $(HPCTK_ROOT)/share/hpctoolkit/src/src
 
@@ -62,7 +63,8 @@ TBB_ROOT = $(MG_XLIB_ROOT)/intel-tbb-2020.3
 TBB_INC  = $(TBB_ROOT)/include
 TBB_LIB  = $(TBB_ROOT)/lib
 
-DYNINST_ROOT = $(MG_XLIB_ROOT)/dyninst-12.0.1
+#DYNINST_ROOT = $(MG_XLIB_ROOT)/dyninst-12.0.1
+DYNINST_ROOT = $(MG_XLIB_ROOT)/dyninst-12.1.0
 DYNINST_INC  = $(DYNINST_ROOT)/include
 DYNINST_LIB  = $(DYNINST_ROOT)/lib
 
@@ -74,11 +76,13 @@ LIBELF_ROOT = $(MG_XLIB_ROOT)/elfutils-0.186
 LIBELF_INC = $(LIBELF_ROOT)/include
 LIBELF_LIB = $(LIBELF_ROOT)/lib
 
-XED_ROOT = $(MG_XLIB_ROOT)/intel-xed-12.0.1
+#XED_ROOT = $(MG_XLIB_ROOT)/intel-xed-12.0.1
+XED_ROOT = $(MG_XLIB_ROOT)/intel-xed-2022.04.17
 XED_INC  = $(XED_ROOT)/include
 XED_LIB  = $(XED_ROOT)/lib
 
-BINUTILS_ROOT = $(MG_XLIB_ROOT)/binutils-2.36.1
+#BINUTILS_ROOT = $(MG_XLIB_ROOT)/binutils-2.36.1
+BINUTILS_ROOT = $(MG_XLIB_ROOT)/binutils-2.38
 BINUTILS_INC  = $(BINUTILS_ROOT)/include
 
 LIBIBERTY_INC = $(BINUTILS_ROOT)/include/libiberty/

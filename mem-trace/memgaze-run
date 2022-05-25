@@ -8,7 +8,7 @@
 #
 #***********************************************************EndPNNLCopyright*
 
-# set -x
+ set -x
 
 scriptPath0="${BASH_SOURCE[0]}" # works when script is sourced (unlike $0)
 scriptPath=$(readlink -f "${scriptPath0}")
@@ -26,6 +26,13 @@ perf="${MG_PERF_ROOT}/linux-5.5.9/tools/perf/perf"
 
 #-----------------------------------------------------------
 
+DYNINST_ROOT="${MG_XLIB_ROOT}/dyninst-12.1.0"
+DYNINST_LIB="${DYNINST_ROOT}/lib"
+export DYNINSTAPI_RT_LIB="${DYNINST_LIB}/libdyninstAPI_RT.so"
+export LD_LIBRARY_PATH="${DYNINST_LIB}"
+
+echo $LD_LIBRARY_PATH
+echo $DYNINSTAPI_RT_LIB
 #echo ${perf}
 
 #****************************************************************************
