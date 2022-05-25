@@ -1127,7 +1127,9 @@ int main(int argc, char* argv[], const char* envp[]) {
   //multiplier2 = multiplier_ld_mean;
   //multiplier2 = multiplier_ld_median;
   multiplier2 = multiplier_ld_from_totals;
-  if (multiplier2 < 1 ){
+  if (is_LDLAT){
+    multiplier2 =1;
+  } else if (multiplier2 < 1 ){
     multiplier2 =1;
   } 
   long int lds = timeVec.size()*total_ld_multiplier;
@@ -1269,6 +1271,9 @@ int main(int argc, char* argv[], const char* envp[]) {
     imp_func->calcFP();
     cout << " Start time: "<< sTime <<" End time: "<<eTime<<endl;
     local_multiplier =  imp_func->getMultiplier(period, is_load);
+    if (is_LDLAT){
+      local_multiplier = 1;
+    }
     imp_func->getFPDiag(&diagMap);
     cout << imp_func->name << " StartIP: "<<hex<<imp_func->startIP<<dec <<" Size: "<<imp_func->timeVec.size() << " FP: "<<imp_func->fp*local_multiplier << " lds: "<<imp_func->totalLoads ;
 
