@@ -77,7 +77,12 @@ xlib_distclean : info xlib_clean
 
 MG_PERF = $(MG_PERF_ROOT)/linux-5.5.9
 
-perf : info
+perf_libs: 
+	$(XLIB_SPACK)/bin/spack install --reuse zstd@1.5.2 libcap@2.64 babeltrace@1.2.4 && \
+	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(MG_XLIB_ROOT)/zstd-1.5.2/lib:$(MG_XLIB_ROOT)/libcap-2.64/lib:$(MG_XLIB_ROOT)/babeltrace-1.2.4/lib 
+
+
+perf : info 
 	@$(PRINTF) $(_msg_infoGrp)
 	mkdir -p $(MG_PERF_ROOT) && \
   cd $(MG_PERF_ROOT) && \
@@ -85,8 +90,9 @@ perf : info
 	  wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.5.9.tar.gz && \
 	  tar -xf linux-5.5.9.tar.gz && rm linux-5.5.9.tar.gz && \
 	  patch $(MG_PERF)/tools/perf/util/scripting-engines/trace-event-python.c $(MG_XLIB_SRC)/config-perf/perf-script.patch ; \
+	  patch $(MG_PERF)/scripts/bpf_helpers_doc.py $(MG_XLIB_SRC)/config-perf/perf-python.patch ; \
 	fi && \
-  cd $(MG_PERF)/tools/perf && make
+  cd $(MG_PERF)/tools/perf && make 
 
 perf_distclean : info
 	$(RM) -r $(MG_PERF_ROOT)
