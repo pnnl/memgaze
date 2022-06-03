@@ -6,6 +6,30 @@ $Id$
 MemGaze Consolidation
 =============================================================================
 
+Notes for perf:
+
+%%   perf script -h ns
+
+Check for throttling:
+   perf report -D, go to end, grep THROTTLE
+   
+   % System-wide and multi-threading: task-clock vs. cpu-clock
+
+%%   task: on context switch, does not count (e.g., when task blocks)
+%%   cpu: attach (tsc, fixed frequency, doesn't vary)
+  
+%%   tsc is sync acrross all cores
+%%   cpuinfo. mytt{REF_CYC} ticks at tsc rate but stops when cpu goes in low power
+  
+%%   [[use mytt{REF_CYC} instead of task-clock]]
+%%   [[use -a to attach mytt{REF_CYC} to cpu]]
+%%   [[use cpu-clock to count time between context switches]]
+  
+%% - in system mode: is cpu-clock global/aligned
+
+----------------------------------------
+
+
 * [[todo]]
 
   - exclusive function analysis: only accesses for f
