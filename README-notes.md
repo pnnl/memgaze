@@ -8,14 +8,11 @@ MemGaze Consolidation
 
 * [[todo]]
 
-  - paper:
-    - overhead results: do not collect call graph???
-
-    - exclusive function analysis: only accesses for f
+  - exclusive function analysis: only accesses for f
       - Internally, results in slices of accesses; could add diagnostic interval analysis
       - Could generate trace
     
-    - inclusive trace for function f: all accesses between first/last instantiation of f
+  - inclusive trace for function f: all accesses between first/last instantiation of f
     
     - analyze parallelism: single vs. multi-thread runs for minivite
 
@@ -95,7 +92,7 @@ MemGaze Structure
 Notes
 =============================================================================
 
-* Instrumentation: The instrumented binary (via DynInst) will show limited/no source line information using standard tools such as objdump or hpcstruct. However, it does contain some form of mapping from instrumented to origial code in original binary. It is possible to do the mapping with our load-classification data and the line map from the original binary.
+* Instrumentation: The instrumented binary (via DynInst) will show limited/no source *line* information using standard tools such as objdump or hpcstruct. However, it does contain some a mapping of functions from instrumented to origial code in original binary, which hpcstruct (but not objdump) can read. It is possible to do the mapping with our load-classification data and the line map from the original binary.
 
 
 =============================================================================
