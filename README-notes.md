@@ -29,10 +29,10 @@ Check for throttling:
 
 ----------------------------------------
 
-
 * [[todo]]
 
-  - exclusive function analysis: only accesses for f
+  - memgaze-analyze: will now print historam and exclusive function analysis summary (average over whole trace) for all function
+
       - Internally, results in slices of accesses; could add diagnostic interval analysis
       - Could generate trace
     
