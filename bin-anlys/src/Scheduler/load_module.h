@@ -29,7 +29,19 @@
 #include "hashmaps.h"
 #include "dense_container.h"
 
-#include <BPatch.h> // must be included after miami headers to compile
+//#include <BPatch.h> // must be included after miami headers to compile
+//#include "PatchMgr.h"
+
+#include "BPatch.h"
+#include "BPatch_function.h"
+#include "BPatch_object.h"
+#include "BPatch_image.h"
+#include "BPatch_point.h"
+
+#include "PatchMgr.h"
+#include "PatchModifier.h"
+#include "Point.h"
+#include "Snippet.h"
 
 namespace MIAMI
 {
@@ -142,7 +154,21 @@ public:
 //   int dyninstAnalyzeRoutine(BPatch_function func, ProgScope *prog, const MiamiOptions *mo);
    int dyninstAnalyzeRoutines(FILE *fd , ProgScope *prog, const MiamiOptions *mo);
    int dyninstAnalyzeRoutines(ProgScope *prog, const MiamiOptions *mo);
+   int dyninstAnalyzeRoutines(ProgScope *prog, const MiamiOptions *mo, Dyninst::PatchAPI::Patcher* patcher);//OZGURDYNFIX
    int loadFPfile(std::string name, ProgScope *prog, const MiamiOptions *mo);
+   void setPatchMgrPtr (Dyninst::PatchAPI::PatchMgrPtr _patchMgrPtr){
+      patchMgrPtr = _patchMgrPtr; 
+   }
+   Dyninst::PatchAPI::PatchMgrPtr getPatchMgrPtr(){
+      return patchMgrPtr;
+   }
+
+   void setPatcher (Dyninst::PatchAPI::Patcher* _patcher){
+      patcher = _patcher; 
+   }
+   Dyninst::PatchAPI::Patcher* getPatcher(){
+      return patcher;
+   }
    BPatch_binaryEdit* getDyninstBinEdit(){
       return static_cast<BPatch_binaryEdit*>(dyn_app);
    }
@@ -205,6 +231,8 @@ private:
    //BPatch_binaryEdit* dyn_app;   
    BPatch_addressSpace* dyn_app;   
    BPatch_image* dyn_image;
+   Dyninst::PatchAPI::Patcher* patcher;
+   Dyninst::PatchAPI::PatchMgrPtr patchMgrPtr;
    InstLatMap instLats;
   
    InstlvlMap emptyLevelMap; 

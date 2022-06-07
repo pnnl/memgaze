@@ -27,11 +27,24 @@
 #include "miami_options.h"
 #include "miami_containers.h"
 #include "instruction_class.h"
-#include <BPatch.h>
+//#include <BPatch.h>
 //OZGURS
+
+#include "BPatch.h"
+#include "BPatch_function.h"
+#include "BPatch_object.h"
+#include "BPatch_image.h"
+#include "BPatch_point.h"
+
+#include "PatchMgr.h"
+#include "PatchModifier.h"
+#include "Point.h"
+#include "Snippet.h"
+
 //#include "routine.h"
 #include "miami_types.h"
 #include "DGBuilder.h"
+
 using namespace MIAMI;
 using namespace MIAMI_DG;
 //OZGURE
@@ -77,6 +90,7 @@ public:
    // main analysis function. Compute BB/edge counts, reconstruct executed paths,
    // compute schedule for paths.
    int main_analysis(ImageScope *img, const MiamiOptions *mo);
+   int main_analysis(ImageScope *img, const MiamiOptions *mo, Dyninst::PatchAPI::Patcher* patcher);//OZGURDYNFIX
    LoadModule* InLoadModule() const;
    
    // check if routine should be analyzed
@@ -97,11 +111,20 @@ public:
    
 private:
    const char * ComputeObjectNameForRef(addrtype pc, int32_t memop);
-
+   
+   int build_loops_for_interval2(ScopeImplementation *pscope, RIFGNodeId node, 
+           TarjanIntervals *tarj, MiamiRIFG* mCfg, int marker, int level, 
+           int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges, Dyninst::PatchAPI::Patcher* patcher);//OZGURDYNFIX
+ 
    int build_loops_for_interval(ScopeImplementation *pscope, RIFGNodeId node, 
            TarjanIntervals *tarj, MiamiRIFG* mCfg, int marker, int level, 
            int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges);
-   
+
+   void constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
+            int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges,
+            TarjanIntervals *tarj, MiamiRIFG* mCfg, Dyninst::PatchAPI::Patcher* patcher );//TODO Remove this line OZGURDYNFIX
+
+
    void constructLoops(ScopeImplementation *pscope, CFG::Node *b, int marker,
             int no_fpga_acc, CFG::AddrEdgeMMap *entryEdges, CFG::AddrEdgeMMap *callEntryEdges,
             TarjanIntervals *tarj, MiamiRIFG* mCfg);//TODO Remove this line

@@ -629,6 +629,7 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
 //From here I planing to follow v1 path to create routines vy using dyninst.  
 //std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
          newimg->dyninstAnalyzeRoutines(fd,prog, mo);
+         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
 //write this image back to a file
          BPatch_binaryEdit* BPapp = static_cast<BPatch_binaryEdit*>(newimg->getDyninstApp());
          std::string newName;
@@ -638,6 +639,12 @@ MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, ad
             newName = iname+"-memgaze";
          }
          std::cout << "Start Writing to a file\n";
+         Dyninst::PatchAPI::Patcher* patcher =  newimg->getPatcher();
+//        Dyninst::PatchAPI::PatchMgrPtr patchMgr = Dyninst::PatchAPI::convert(BPapp);
+//         Dyninst::PatchAPI::Patcher patcher(patchMgr);
+         if(!patcher->commit()){
+          std::cout <<"PATCHERISNOTWORKING2"<<std::endl;
+         }
          BPapp->writeFile(newName.c_str());
 std::cout<<"I wrote to a file named "<<newName<<" image: "<<iname<<std::endl;
       }
@@ -690,7 +697,14 @@ std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std
 std::cout<<"OZGURDBG in load_classes"<<std::endl;
          //newimg->loadFromFile(fd, false);  // do not parse routines now
          newimg->createDyninstImage(bpatch);
-         newimg->dyninstAnalyzeRoutines(prog, mo);
+         //OZGURDYNFIXS
+         BPatch_binaryEdit* BPapp = static_cast<BPatch_binaryEdit*>(newimg->getDyninstApp());
+         Dyninst::PatchAPI::PatchMgrPtr patchMgr = Dyninst::PatchAPI::convert(BPapp); 
+         Dyninst::PatchAPI::Patcher patcher(patchMgr);
+         newimg->dyninstAnalyzeRoutines(prog, mo, &patcher);
+         //OZGURDYNFIXe
+         //newimg->dyninstAnalyzeRoutines(prog, mo);
+         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
 //After here We were using palm way to create each routine
 //      /*OZGURS trying to loop in routines This is DBG turn this off when you are done*/
 //         std::vector<BPatch_function *> funcs;
@@ -708,17 +722,39 @@ std::cout<<"OZGURDBG in load_classes"<<std::endl;
 //         }
 
 //write this image back to a file
-         BPatch_binaryEdit* BPapp = static_cast<BPatch_binaryEdit*>(newimg->getDyninstApp());
+//         BPatch_binaryEdit* BPapp = static_cast<BPatch_binaryEdit*>(newimg->getDyninstApp());
+         std::cout<<std::dec<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
 
          std::string newName;
+         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
          if (mo->outBinName.size() >0 ){
+         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
             newName = mo->outBinName; 
+         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
          } else {
+         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
             newName = iname+"-memgaze";
+         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
          }
-
+         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
+//        Dyninst::PatchAPI::PatchMgrPtr patchMgr = Dyninst::PatchAPI::convert(BPapp);
+//        Dyninst::PatchAPI::PatchMgrPtr patchMgr = newimg->getPatchMgrPtr();
+//         Dyninst::PatchAPI::Patcher patcher(patchMgr);
+//         Dyninst::PatchAPI::Patcher* patcher =newimg->getPatcher();
+         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
+        
+         if (!patcher.commit()){
+         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
+          std::cout <<"PATCHERISNOTWORKING2"<<std::endl;
+         } else {
+          std::cout<<"DID I COMMIT???"<<std::endl;
+         }
+         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
+//
          std::cout << "Start Writing to a file\n";
+         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
          BPapp->writeFile(newName.c_str());
+         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
 std::cout<<"OZGURDBG::I Wrote to a file named "<<newName<<" image: "<<iname<<std::endl;
       } else {
          newimg->createDyninstImage(bpatch);
