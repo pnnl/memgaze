@@ -1736,7 +1736,7 @@ Routine::build_loops_for_interval2 (ScopeImplementation *pscope, RIFGNodeId node
    {
       if (tarj->NodeIsLoopHeader(kid))
       { //OZGURS
-         CFG::Node *nn = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
+//OZGURDEL?         CFG::Node *nn = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
 //        std::cout<<"kid is header starts:"<<std::hex<<nn->getStartAddress()<<std::dec<<std::endl;
 //        std::cout<<"Loop index:"<<tarj->LoopIndex(kid)<<" Level:"<<tarj->GetLevel(kid)<<std::endl; 
          //E
@@ -2069,7 +2069,7 @@ Routine::build_loops_for_interval (ScopeImplementation *pscope, RIFGNodeId node,
    {
       if (tarj->NodeIsLoopHeader(kid))
       { //OZGURS
-         CFG::Node *nn = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
+//OZGURDEL?         CFG::Node *nn = static_cast<CFG::Node*>(mCfg->GetRIFGNode(kid));
 //        std::cout<<"kid is header starts:"<<std::hex<<nn->getStartAddress()<<std::dec<<std::endl;
 //        std::cout<<"Loop index:"<<tarj->LoopIndex(kid)<<" Level:"<<tarj->GetLevel(kid)<<std::endl; 
          //E
@@ -3680,7 +3680,7 @@ Routine::calculateFP(SchedDG *sch, RIFGNodeId node,
    int kid ;
    float tempFP = 0;
    MIAMI_DG::DGBuilder * thisSch = static_cast<DGBuilder*>(sch);
-   MIAMI_DG::DGBuilder * loadSch = static_cast<DGBuilder*>(sch);
+//OZGURDEL?   MIAMI_DG::DGBuilder * loadSch = static_cast<DGBuilder*>(sch);
    CFG::Node *b = static_cast<CFG::Node*>(mCfg->GetRIFGNode(node));
    
    if(tarj->GetLevel(node) == 0){
@@ -5230,7 +5230,7 @@ Routine::createDyninstFunction() // todo: better error checking
    }
    if (dyn_func != NULL){
 
-      Dyninst::ParseAPI::CodeSource* codeSrc = Dyninst::ParseAPI::convert(dyn_func)->obj()->cs();
+//OZGURDEL?      Dyninst::ParseAPI::CodeSource* codeSrc = Dyninst::ParseAPI::convert(dyn_func)->obj()->cs();
       BPatch_flowGraph *fg = dyn_func->getCFG();
       std::set<BPatch_basicBlock*> blks;
       fg->getAllBasicBlocks(blks);
@@ -5240,7 +5240,7 @@ Routine::createDyninstFunction() // todo: better error checking
          (*dyn_addrToBlock)[std::make_pair(blk->getStartAddress(),blk->getEndAddress())]=blk;
          (*dyn_addrToBlkNo)[std::make_pair(blk->getStartAddress(),blk->getEndAddress())]=blkCnt++;
 
-         uint8_t* addr =(uint8_t*)codeSrc->getPtrToInstruction(blk->getStartAddress());
+//OZGURDEL?         uint8_t* addr =(uint8_t*)codeSrc->getPtrToInstruction(blk->getStartAddress());
          int i =0;
          while ((unsigned int*)(blk->getStartAddress() + i) < (unsigned int*)blk->getEndAddress()){
             int len = 15;

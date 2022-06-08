@@ -26,9 +26,9 @@
 #include "InstructionDecoder.hpp"
 
 //#include "dyninst-insn-xlate.hpp"
-//extern "C" {
-// #include "xed-interface.h"
-//}
+extern "C" {
+ #include "xed-interface.h"
+}
 
 using namespace MIAMI;
 
@@ -573,6 +573,7 @@ DGBuilder::~DGBuilder()
 } xed_reg_enum_t;
 */
 
+/*
 
 typedef enum { 
   XED_REG_INVALID, 
@@ -903,7 +904,7 @@ typedef enum {
   XED_REG_ZMM_FIRST =XED_REG_ZMM0, 
   XED_REG_ZMM_LAST =XED_REG_ZMM31 
 } xed_reg_enum_t;
-
+*/
 int tryCount = 0;
 void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::PatchAPI::Point* new_point, Node *nn){
 
@@ -1397,21 +1398,21 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
    //Dyninst::PatchAPI::Patcher* patcher = img->getPatcher();
 //SOMETEST DELETEIT
 //   Dyninst::PatchAPI::Snippet::Ptr nop5 = NOPSnippet5::create(new NOPSnippet5());
-   Dyninst::PatchAPI::Snippet::Ptr ptrEAX  = PTWriteSnippetEAX::create(new PTWriteSnippetEAX());
-   BPatch_Vector<BPatch_point*> *entry_pts = funcs[0]->findPoint(BPatch_locEntry);
-     for (auto pit = entry_pts->begin(); pit != entry_pts->end(); pit++){
-       loadPtr = *pit;
-       //patcher.add(Dyninst::PatchAPI::PushBackCommand::create(loadPtr, nop5));
-       lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
-       //lps->pushBack(ptrEAX);
-       patcher->add(Dyninst::PatchAPI::PushBackCommand::create(lps, ptrEAX));
-       //addPTWSnippet(lps , dynAddApp);
-       //if (patcher.commit()){
-       // std::cout<<"COMMITSUCCESS>>>>"<<rout->Name()<<std::endl;
-       //} else {
-       // std::cout<<"COMMITNOTSUCCESS>>"<<rout->Name()<<std::endl;
-       //}
-    }
+//   Dyninst::PatchAPI::Snippet::Ptr ptrEAX  = PTWriteSnippetEAX::create(new PTWriteSnippetEAX());
+//   BPatch_Vector<BPatch_point*> *entry_pts = funcs[0]->findPoint(BPatch_locEntry);
+//     for (auto pit = entry_pts->begin(); pit != entry_pts->end(); pit++){
+//       loadPtr = *pit;
+//       //patcher.add(Dyninst::PatchAPI::PushBackCommand::create(loadPtr, nop5));
+//       lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+//       //lps->pushBack(ptrEAX);
+//       patcher->add(Dyninst::PatchAPI::PushBackCommand::create(lps, ptrEAX));
+//       //addPTWSnippet(lps , dynAddApp);
+//       //if (patcher.commit()){
+//       // std::cout<<"COMMITSUCCESS>>>>"<<rout->Name()<<std::endl;
+//       //} else {
+//       // std::cout<<"COMMITNOTSUCCESS>>"<<rout->Name()<<std::endl;
+//       //}
+//    }
                     
  
 //Adding ptwrite 0 to entry and exit points of the fuction.

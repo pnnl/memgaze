@@ -1146,7 +1146,7 @@ LoadModule::createDyninstImage(BPatch& bpatch)
 //   }
    cout<<__func__<<" trying to open binary named "<<img_name.c_str()<<endl;
    //bpatch.setRelocateJumpTable(true); //FIXME:dyninst
-   BPatch_addressSpace* app = bpatch.openBinary(img_name.c_str(),false);
+//OZGURDEL?   BPatch_addressSpace* app = bpatch.openBinary(img_name.c_str(),false);
    //BPatch_binaryEdit* app = bpatch.openBinary(img_name.c_str(),false);
    dyn_app = bpatch.openBinary(img_name.c_str(),false);
 //   dyn_image = app->getImage();
@@ -1274,11 +1274,11 @@ int LoadModule::dyninstAnalyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOpt
      std::cout<<std::dec<<"IDONTCAREXXX"<<std::endl; 
    size_t res;
    int ires;
-   if (ires < 0)  // error
-   {
-      perror ("Changing offset to start of routine area failed");
-      return (-1);
-   }
+//   if (ires < 0)  // error
+//   {
+//      perror ("Changing offset to start of routine area failed");
+//      return (-1);
+//   }
 
    // next get the number of routines
    uint32_t numRoutines = 0;

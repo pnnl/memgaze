@@ -529,6 +529,9 @@ void MIAMI_Driver::printLinemapInfo(){
        	std::cout<<"Starting to Pring Line map for "<<file<<std::endl;
        	Dyninst::SymtabAPI::Symtab *obj = NULL;
       	bool err = Dyninst::SymtabAPI::Symtab::openFile(obj, file);
+        if (err){
+          std::cout<<"Error opening object file with SymtabAPI"<<std::endl;
+        }
        	Dyninst::SymtabAPI::Module mod;
        	vector<Dyninst::SymtabAPI::Module *> ret;
        	//obj->findModuleByName(mod, "");

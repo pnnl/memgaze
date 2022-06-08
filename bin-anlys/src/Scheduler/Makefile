@@ -357,7 +357,7 @@ machdesc.lex.c: machine_description.l
 $(OBJDIR)$(TOOL_OBJ_DIR)/%.o : %.cpp
 	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ) $@ $<
 $(OBJDIR)$(TOOL_OBJ_DIR)/%.o : %.C
-	$(CXX) $(TOOL_CXXFLAGS) $(CXXFLAGS) $(COMP_OBJ) $@ $<
+	$(CXX) $(TOOL_CXXFLAGS) $(XED_CFLAGS)  $(CXXFLAGS) $(COMP_OBJ) $@ $<
 
 $(OBJDIR)$(TOOL_OBJ_DIR)/%.o : %.c
 	$(CC) $(TOOL_CFLAGS) $(CFLAGS) $(COMP_OBJ) $@ $<
