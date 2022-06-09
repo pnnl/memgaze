@@ -12550,8 +12550,8 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
                depLevels->push_back(newDep);
                std::cout<<__func__<<" Line"<<__LINE__<<" 1 Node id:"<<nn->getId()<<" Node Lvl:"<<nn->getLevel()<<" ADDED lvl"<<newDep.level<<" Offset:"<<newDep.offset<<std::endl;
                //TEST
-               coeff_t testOffset = offset;
-               ucoeff_t valueDen;
+//OZGURDYNDELETE               coeff_t testOffset = offset;
+//OZGURDYNDELETE               ucoeff_t valueDen;
                if(nnSrcRegs.size()>1 && nn->getLevel() !=0){
                   std::cout<<"Go Again!! Node: "<<nn->getId()<<" has more then 1 src registers and has dep to offset: "<<offset<<" and level: "<<level<<std::endl;
                   goto AGAIN;
@@ -12559,7 +12559,7 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
                   //do the for loop from previous level or call previous level function.
                   IncomingEdgesIterator ieit(nn);
                   while ((bool)ieit){
-                     Node *inn = ieit->source();
+//OZGURDYNDELETE                     Node *inn = ieit->source();
                     // recursive_check_dep_to_this_loop(*nnrit ,inn, level, index , depLevels)
                     // recursive_check_dep_to_this_loop(nnSrcRegs , inn, inn->getLevel(), inn->getLoopIndex() , depLevels);
                      ++ieit;
@@ -12593,8 +12593,8 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
                      std::cout<<__func__<<" Line"<<__LINE__<<" 2 Node id:"<<nn->getId()<<" Node Lvl:"<<nn->getLevel()<<" ADDED lvl"<<newDep.level<<" Offset:"<<newDep.offset<<std::endl;
                      
                      //TEST
-                     coeff_t testOffset = offset;
-                     ucoeff_t valueDen;
+//OZGURDYNDELETE                     coeff_t testOffset = offset;
+//OZGURDYNDELETE                     ucoeff_t valueDen;
                      if(nnSrcRegs.size()>1 && nn->getLevel() !=0){
                         std::cout<<"GO AGAIN! 2 Node: "<<nn->getId()<<" has more then 1 src registers and has dep to offset: "<<offset<<" and level: "<<level<<std::endl;
                         goto AGAIN;
@@ -12602,7 +12602,7 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
                         //do the for loop from previous level or call previous level function.
                         IncomingEdgesIterator ieit(nn);
                         while ((bool)ieit){
-                           Node *inn = ieit->source();
+//OZGURDYNDELETE                           Node *inn = ieit->source();
                            //recursive_check_dep_to_this_loop(nnSrcRegs , inn, inn->getLevel(), inn->getLoopIndex() , depLevels);
                            ++ieit;
                         }
@@ -12622,8 +12622,8 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
                            std::cout<<__func__<<" Line"<<__LINE__<<" 3 Node id:"<<nn->getId()<<" Node Lvl:"<<nn->getLevel()<<" ADDED lvl"<<newDep.level<<" Offset:"<<newDep.offset<<std::endl;
               
                            //TEST
-                           coeff_t testOffset = offset;
-                           ucoeff_t valueDen;
+//OZGURDYNDELETE                           coeff_t testOffset = offset;
+//OZGURDYNDELETE                           ucoeff_t valueDen;
                            if(nnSrcRegs.size()>1 && nn->getLevel() !=0){
                               std::cout<<"GO AGIAN! 3 Node: "<<nn->getId()<<" has more then 1 src registers and has dep to offset: "<<offset<<" and level: "<<i<<std::endl;
                               goto AGAIN;
@@ -12631,7 +12631,7 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
                               //do the for loop from previous level or call previous level function.
                               IncomingEdgesIterator ieit(nn);
                               while ((bool)ieit){
-                                 Node *inn = ieit->source();
+//OZGURDYNDELETE                                 Node *inn = ieit->source();
                                 // recursive_check_dep_to_this_loop(nnSrcRegs , inn, inn->getLevel(), inn->getLoopIndex() , depLevels);
                                  ++ieit;
                               }
@@ -12650,8 +12650,8 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
                      std::cout<<__func__<<" Line"<<__LINE__<<" 4 Node id:"<<nn->getId()<<" Node Lvl:"<<nn->getLevel()<<" ADDED lvl"<<newDep.level<<" Offset:"<<newDep.offset<<std::endl;
                      
                      //TEST
-                     coeff_t testOffset = offset;
-                     ucoeff_t valueDen;
+//OZGURDYNDELETE                     coeff_t testOffset = offset;
+//OZGURDYNDELETE                     ucoeff_t valueDen;
                      if(nnSrcRegs.size()>1 && nn->getLevel() !=0){
                         std::cout<<"GO AGAIN! 4 Node: "<<nn->getId()<<" has more then 1 src registers and has dep to offset: "<<offset<<" and level: "<<nn->getLevel()<<std::endl;
                         goto AGAIN;
@@ -12659,7 +12659,7 @@ bool SchedDG::Node::recursive_check_dep_to_this_loop(register_info inSrcReg ,Nod
                         //do the for loop from previous level or call previous level function.
                         IncomingEdgesIterator ieit(nn);
                         while ((bool)ieit){
-                           Node *inn = ieit->source();
+//OZGURDYNDELETE                           Node *inn = ieit->source();
                         //   recursive_check_dep_to_this_loop(nnSrcRegs , inn, inn->getLevel(), inn->getLoopIndex() , depLevels);
                            ++ieit;
                         }
@@ -12708,7 +12708,7 @@ AGAIN:
    std::cout<<__func__<<" Line"<<__LINE__<<" Going Again Node id:"<<nn->getId()<<" Node Lvl:"<<nn->getLevel()<<std::endl;
    bool ret = false;
    RInfoList nnDestRegs = nn->destRegs;
-   RInfoList::iterator irit = nnDestRegs.begin();
+//OZGURDYNDELETE   RInfoList::iterator irit = nnDestRegs.begin();
 //   for( ; irit!=nnDestRegs.end() ; ++irit ) {
    std::cout<<"_____1_____\n";
 //      if (inSrcReg.name == irit->name){//TODO if no match still go back on dependencieis

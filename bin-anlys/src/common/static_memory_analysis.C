@@ -471,7 +471,7 @@ ReferenceSlice::SliceOut(PrivateCFG::Node *b, int uop_idx, const register_info& 
    assert(uop_idx>=0 && uop_idx<num_uops);
    const uOp_t& uop = ucc->UopAtIndex(uop_idx);
    uOp_t& uop_ozgur = ucc->UopAtIndex_Ozgur(uop_idx);
-   DecodedInstruction *dinst_ozgur = uop_ozgur.dinst;
+//OZGURDYNDELETE   DecodedInstruction *dinst_ozgur = uop_ozgur.dinst;
    addrtype pc = uop.dinst->pc;
    
 #if DEBUG_STATIC_MEMORY

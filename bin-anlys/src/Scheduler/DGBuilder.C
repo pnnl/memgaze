@@ -1320,7 +1320,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
   }   
 
    BPatch_image* image =  img->getDyninstImage();
-   BPatch_addressSpace* dynAddApp =  img->getDyninstApp();
+//OZGURDYNDELETE   BPatch_addressSpace* dynAddApp =  img->getDyninstApp();
    BPatch_Vector<BPatch_function*> funcs;
    BPatch_point* loadPtr;
    Dyninst::Address daddr;
@@ -1349,7 +1349,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
    }
    
   
-   BPatch_binaryEdit *DynApp = img->getDyninstBinEdit();
+//OZGURDYNDELETE   BPatch_binaryEdit *DynApp = img->getDyninstBinEdit();
 //Adding support for strided loads //Original code stops here
 //Only instrument first 5 iteration and last iteration
 //First add necessary variables and funtions
@@ -1450,7 +1450,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
    double frame_sts = 0;
    double strided_sts = 0;
    double indirect_sts = 0;
-   int total_frame_lds = 0;
+//OZGURDYNDELETE   int total_frame_lds = 0;
    int disp = 0;
    int scale = 1;
    std::cout<<"Address\ttype\tclass\n";
@@ -1493,7 +1493,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
 //      }
 
       Node *fnn = fnit;
-tryagain:
+//OZGURDYNDELETE tryagain:
       std::cout<<"OZGURDBG::instrumenting node:0x"<<std::hex<<fnn->getAddress()<<std::dec << " try:"<<tryCount<<std::endl;
       if (fnn->isInstructionNode() && fnn->getType() >0){
          if(fnn->is_load_instruction() && mo->inst_loads){
@@ -1536,7 +1536,7 @@ tryagain:
                   {
                      //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
                      //fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
-                     fprintf(mo->lcFILE, "%x 0 %x %x 0\n",(fnn->getAddress()),disp,scale);
+                     fprintf(mo->lcFILE, "%lx 0 %x %x 0\n",(fnn->getAddress()),disp,scale);
                   }
                   std::cout<<"OZGURDBG Instrumenting Frame Load\n";
                   if (func_exist){
@@ -1581,7 +1581,7 @@ tryagain:
                         {
                             //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
                             //fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
-                            fprintf(mo->lcFILE, "%x 0 %x %x 0\n",(fnn->getAddress()),disp,scale);
+                            fprintf(mo->lcFILE, "%lx 0 %x %x 0\n",(fnn->getAddress()),disp,scale);
                         }
                   std::cout<<"OZGURDBG Instrumenting Constant Load\n";
                         if (func_exist){
@@ -1622,7 +1622,7 @@ tryagain:
                           //fprintf(mo->lcFILE, "%x 1 %x %x\n",(fnn->getAddress()),disp,scale);
 //                          fprintf(mo->lcFILE, "%x 1 %x %x %d\n",(fnn->getAddress()),disp,scale,total_frame_lds);
                           blockInstrumentedMapIter = blockInstrumentedMap.lower_bound(fnn->getAddress());
-                          fprintf(mo->lcFILE, "%x 1 %x %x %d\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second);
+                          fprintf(mo->lcFILE, "%lx 1 %x %x %d\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second);
                           blockInstrumentedMapIter->second=0;
 //                          total_frame_lds = 0;
                       }
@@ -1669,7 +1669,7 @@ tryagain:
 //                      fprintf(mo->lcFILE, "%x 2 %x %x %d\n",(fnn->getAddress()),disp,scale,total_frame_lds);
 //                      total_frame_lds = 0;
                       blockInstrumentedMapIter = blockInstrumentedMap.lower_bound(fnn->getAddress());
-                      fprintf(mo->lcFILE, "%x 2 %x %x %d\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second);
+                      fprintf(mo->lcFILE, "%lx 2 %x %x %d\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second);
                       blockInstrumentedMapIter->second=0;
 
                   }    
@@ -1704,7 +1704,7 @@ tryagain:
                   {
                       //fprintf(mo->lcFILE, "%x 0\n",fnn->getAddress());
                       //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
-                      fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
+                      fprintf(mo->lcFILE, "%lx 0 %x %x\n",(fnn->getAddress()),disp,scale);
                   }    
                   if (func_exist){
                      daddr= fnn->getAddress();
@@ -1731,7 +1731,7 @@ tryagain:
                         {
                             //fprintf(mo->lcFILE, "%x 0\n",fnn->getAddress());
                             //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
-                            fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
+                            fprintf(mo->lcFILE, "%lx 0 %x %x\n",(fnn->getAddress()),disp,scale);
                         }    
                         if (func_exist){
                            daddr= fnn->getAddress();
@@ -1753,7 +1753,7 @@ tryagain:
                      {
                         //fprintf(mo->lcFILE, "%x 1\n",fnn->getAddress());
                         //fprintf(mo->lcFILE, "%x 1 %x\n",(fnn->getAddress()),valueNum);
-                        fprintf(mo->lcFILE, "%x 1 %x %x\n",(fnn->getAddress()),disp,scale);
+                        fprintf(mo->lcFILE, "%lx 1 %x %x\n",(fnn->getAddress()),disp,scale);
                      }    
                      if (func_exist){
                         daddr= fnn->getAddress();
@@ -1773,7 +1773,7 @@ tryagain:
                   {
                       //fprintf(mo->lcFILE, "%x 2\n",fnn->getAddress());
                       //fprintf(mo->lcFILE, "%x 2 %x\n",(fnn->getAddress()),valueNum);
-                      fprintf(mo->lcFILE, "%x 2 %x %x\n",(fnn->getAddress()),disp,scale);
+                      fprintf(mo->lcFILE, "%lx 2 %x %x\n",(fnn->getAddress()),disp,scale);
                   }    
                   if (func_exist){
                      daddr= fnn->getAddress();
@@ -1817,7 +1817,7 @@ tryagain:
               if (xxy->is_scalar_stack_reference()){
                 if (mo->lcFileExist){
                   //fprintf(mo->lcFILE, "%x 0 %x %x %d\n",(xxy->getAddress()),disp,scale);
-                  fprintf(mo->lcFILE, "%x 0 0 0 %d\n",(xxy->getAddress()),blockInstrumentedMapIter->second-1);
+                  fprintf(mo->lcFILE, "%lx 0 0 0 %d\n",(xxy->getAddress()),blockInstrumentedMapIter->second-1);
                   blockInstrumentedMapIter->second = 0;
                 }
                   std::cout<<"OZGURDBG Instrumenting Frame Load at"<<std::hex<<xxy->getAddress()<<std::dec<<std::endl;
@@ -1843,7 +1843,7 @@ tryagain:
                   if(nn->getType() > 0 && nn->is_scalar_stack_reference()){
                      if (mo->lcFileExist){
                         //fprintf(mo->lcFILE, "%x 0 %x %x 0\n",(xxy->getAddress()),disp,scale);
-                        fprintf(mo->lcFILE, "%x 0 0 0 %d\n",(xxy->getAddress()),blockInstrumentedMapIter->second-1);
+                        fprintf(mo->lcFILE, "%lx 0 0 0 %d\n",(xxy->getAddress()),blockInstrumentedMapIter->second-1);
                         blockInstrumentedMapIter->second = 0;
                     }
                   std::cout<<"OZGURDBG Instrumenting Constant Load at"<<std::hex<<xxy->getAddress()<<std::dec<<std::endl;
@@ -1984,7 +1984,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
   }   
 
    BPatch_image* image =  img->getDyninstImage();
-   BPatch_addressSpace* dynAddApp =  img->getDyninstApp();
+//OZGURDYNDELETE   BPatch_addressSpace* dynAddApp =  img->getDyninstApp();
    BPatch_Vector<BPatch_function*> funcs;
    BPatch_point* loadPtr;
    Dyninst::Address daddr;
@@ -2013,7 +2013,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
    }
    
   
-   BPatch_binaryEdit *DynApp = img->getDyninstBinEdit();
+//OZGURDYNDELETE   BPatch_binaryEdit *DynApp = img->getDyninstBinEdit();
 //Adding support for strided loads //Original code stops here
 //Only instrument first 5 iteration and last iteration
 //First add necessary variables and funtions
@@ -2077,8 +2077,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
        // std::cout<<"COMMITNOTSUCCESS>>"<<rout->Name()<<std::endl;
        //}
     }
-    return 1;
-/*                    
+                    
  
 //Adding ptwrite 0 to entry and exit points of the fuction.
 //   if(func_exist){
@@ -2115,7 +2114,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
    double frame_sts = 0;
    double strided_sts = 0;
    double indirect_sts = 0;
-   int total_frame_lds = 0;
+//OZGURDYNDELETE   int total_frame_lds = 0;
    int disp = 0;
    int scale = 1;
    std::cout<<"Address\ttype\tclass\n";
@@ -2158,7 +2157,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
 //      }
 
       Node *fnn = fnit;
-tryagain:
+//OZGURDYNDELETE tryagain:
       std::cout<<"OZGURDBG::instrumenting node:0x"<<std::hex<<fnn->getAddress()<<std::dec << " try:"<<tryCount<<std::endl;
       if (fnn->isInstructionNode() && fnn->getType() >0){
          if(fnn->is_load_instruction() && mo->inst_loads){
@@ -2201,7 +2200,7 @@ tryagain:
                   {
                      //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
                      //fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
-                     fprintf(mo->lcFILE, "%x 0 %x %x 0\n",(fnn->getAddress()),disp,scale);
+                     fprintf(mo->lcFILE, "%lx 0 %x %x 0\n",(fnn->getAddress()),disp,scale);
                   }
                   std::cout<<"OZGURDBG Instrumenting Frame Load\n";
                   if (func_exist){
@@ -2213,8 +2212,7 @@ tryagain:
                         } else {
                            lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
                         }
-                        //addPTWSnippet(&patcher, lps , fnn);
-                        addPTWSnippet(patcher, lps , fnn);
+                        addPTWSnippet(&patcher, lps , fnn);
 //                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
 //                        lps->pushBack(lfence);
                      }
@@ -2246,7 +2244,7 @@ tryagain:
                         {
                             //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
                             //fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
-                            fprintf(mo->lcFILE, "%x 0 %x %x 0\n",(fnn->getAddress()),disp,scale);
+                            fprintf(mo->lcFILE, "%lx 0 %x %x 0\n",(fnn->getAddress()),disp,scale);
                         }
                   std::cout<<"OZGURDBG Instrumenting Constant Load\n";
                         if (func_exist){
@@ -2258,7 +2256,7 @@ tryagain:
                               } else {
                                  lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
                               }
-                              addPTWSnippet(patcher, lps , fnn);
+                              addPTWSnippet(&patcher, lps , fnn);
 //                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
 //                        lps->pushBack(lfence);
 
@@ -2287,7 +2285,7 @@ tryagain:
                           //fprintf(mo->lcFILE, "%x 1 %x %x\n",(fnn->getAddress()),disp,scale);
 //                          fprintf(mo->lcFILE, "%x 1 %x %x %d\n",(fnn->getAddress()),disp,scale,total_frame_lds);
                           blockInstrumentedMapIter = blockInstrumentedMap.lower_bound(fnn->getAddress());
-                          fprintf(mo->lcFILE, "%x 1 %x %x %d\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second);
+                          fprintf(mo->lcFILE, "%lx 1 %x %x %d\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second);
                           blockInstrumentedMapIter->second=0;
 //                          total_frame_lds = 0;
                       }
@@ -2303,7 +2301,7 @@ tryagain:
                               std::cout<<"OZGURDBG Instrumenting Strided Load >>> After<<<\n";
                               lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
                            }
-                           addPTWSnippet(patcher, lps , fnn);
+                           addPTWSnippet(&patcher, lps , fnn);
 //                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
 //                        lps->pushBack(lfence);
 
@@ -2334,7 +2332,7 @@ tryagain:
 //                      fprintf(mo->lcFILE, "%x 2 %x %x %d\n",(fnn->getAddress()),disp,scale,total_frame_lds);
 //                      total_frame_lds = 0;
                       blockInstrumentedMapIter = blockInstrumentedMap.lower_bound(fnn->getAddress());
-                      fprintf(mo->lcFILE, "%x 2 %x %x %d\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second);
+                      fprintf(mo->lcFILE, "%lx 2 %x %x %d\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second);
                       blockInstrumentedMapIter->second=0;
 
                   }    
@@ -2349,7 +2347,7 @@ tryagain:
                         } else {
                            lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
                         }
-                        addPTWSnippet(patcher, lps , fnn);
+                        addPTWSnippet(&patcher, lps , fnn);
 //                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
 //                        lps->pushBack(lfence);
 
@@ -2369,14 +2367,14 @@ tryagain:
                   {
                       //fprintf(mo->lcFILE, "%x 0\n",fnn->getAddress());
                       //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
-                      fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
+                      fprintf(mo->lcFILE, "%lx 0 %x %x\n",(fnn->getAddress()),disp,scale);
                   }    
                   if (func_exist){
                      daddr= fnn->getAddress();
                      loadPtr = funcs[0]->findPoint(daddr);
                      if (loadPtr){
                         lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
-                        addPTWSnippet(patcher, lps , fnn);
+                        addPTWSnippet(&patcher, lps , fnn);
                      }
                }
                }
@@ -2396,14 +2394,14 @@ tryagain:
                         {
                             //fprintf(mo->lcFILE, "%x 0\n",fnn->getAddress());
                             //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
-                            fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
+                            fprintf(mo->lcFILE, "%lx 0 %x %x\n",(fnn->getAddress()),disp,scale);
                         }    
                         if (func_exist){
                            daddr= fnn->getAddress();
                            loadPtr = funcs[0]->findPoint(daddr);
                            if (loadPtr){
                               lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
-                              addPTWSnippet(patcher, lps , fnn);
+                              addPTWSnippet(&patcher, lps , fnn);
                            }
                         }
                      }
@@ -2418,14 +2416,14 @@ tryagain:
                      {
                         //fprintf(mo->lcFILE, "%x 1\n",fnn->getAddress());
                         //fprintf(mo->lcFILE, "%x 1 %x\n",(fnn->getAddress()),valueNum);
-                        fprintf(mo->lcFILE, "%x 1 %x %x\n",(fnn->getAddress()),disp,scale);
+                        fprintf(mo->lcFILE, "%lx 1 %x %x\n",(fnn->getAddress()),disp,scale);
                      }    
                      if (func_exist){
                         daddr= fnn->getAddress();
                         loadPtr = funcs[0]->findPoint(daddr);
                         if (loadPtr){
                            lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
-                           addPTWSnippet(patcher, lps , fnn);
+                           addPTWSnippet(&patcher, lps , fnn);
                         }
                      }
                   }
@@ -2438,14 +2436,14 @@ tryagain:
                   {
                       //fprintf(mo->lcFILE, "%x 2\n",fnn->getAddress());
                       //fprintf(mo->lcFILE, "%x 2 %x\n",(fnn->getAddress()),valueNum);
-                      fprintf(mo->lcFILE, "%x 2 %x %x\n",(fnn->getAddress()),disp,scale);
+                      fprintf(mo->lcFILE, "%lx 2 %x %x\n",(fnn->getAddress()),disp,scale);
                   }    
                   if (func_exist){
                      daddr= fnn->getAddress();
                      loadPtr = funcs[0]->findPoint(daddr);
                      if (loadPtr){
                         lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
-                           addPTWSnippet(patcher, lps , fnn);
+                           addPTWSnippet(&patcher, lps , fnn);
                      }
                   }
                }
@@ -2482,7 +2480,7 @@ tryagain:
               if (xxy->is_scalar_stack_reference()){
                 if (mo->lcFileExist){
                   //fprintf(mo->lcFILE, "%x 0 %x %x %d\n",(xxy->getAddress()),disp,scale);
-                  fprintf(mo->lcFILE, "%x 0 0 0 %d\n",(xxy->getAddress()),blockInstrumentedMapIter->second-1);
+                  fprintf(mo->lcFILE, "%lx 0 0 0 %d\n",(xxy->getAddress()),blockInstrumentedMapIter->second-1);
                   blockInstrumentedMapIter->second = 0;
                 }
                   std::cout<<"OZGURDBG Instrumenting Frame Load at"<<std::hex<<xxy->getAddress()<<std::dec<<std::endl;
@@ -2495,7 +2493,7 @@ tryagain:
                         } else {
                            lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
                         }
-                        addPTWSnippet(patcher, lps , xxy);
+                        addPTWSnippet(&patcher, lps , xxy);
 //                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
 //                        lps->pushBack(lfence);
                      }
@@ -2508,7 +2506,7 @@ tryagain:
                   if(nn->getType() > 0 && nn->is_scalar_stack_reference()){
                      if (mo->lcFileExist){
                         //fprintf(mo->lcFILE, "%x 0 %x %x 0\n",(xxy->getAddress()),disp,scale);
-                        fprintf(mo->lcFILE, "%x 0 0 0 %d\n",(xxy->getAddress()),blockInstrumentedMapIter->second-1);
+                        fprintf(mo->lcFILE, "%lx 0 0 0 %d\n",(xxy->getAddress()),blockInstrumentedMapIter->second-1);
                         blockInstrumentedMapIter->second = 0;
                     }
                   std::cout<<"OZGURDBG Instrumenting Constant Load at"<<std::hex<<xxy->getAddress()<<std::dec<<std::endl;
@@ -2521,7 +2519,7 @@ tryagain:
                           } else {
                              lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
                           }
-                          addPTWSnippet(patcher, lps , xxy);
+                          addPTWSnippet(&patcher, lps , xxy);
 //                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
 //                        lps->pushBack(lfence);
 
@@ -2546,7 +2544,7 @@ tryagain:
    std::cout<<"Testing mem Instructions Final:\nTotal loads:"<<total_lds<<"\tframe:"<<frame_lds<<"\tstrided:"<<strided_lds<<"\tindirect:"<<indirect_lds<<std::endl;
    std::cout<<"Total stores:"<<total_sts<<"\tframe:"<<frame_sts<<"\tstrided:"<<strided_sts<<"\tindirect:"<<indirect_sts<<std::endl;
    return 1;
-*/}
+}
 
 //ozgurS
 float DGBuilder::calculateMemoryData(int level, int index , std::map<int, double> levelExecCounts){
