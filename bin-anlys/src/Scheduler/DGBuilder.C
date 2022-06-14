@@ -220,7 +220,7 @@ DGBuilder::DGBuilder(Routine* _routine, PathID _pathId,
    //   calculateMemoryData(-1);
 
    // delete the decoded instructions stored in builtNodes
-   //OZGUR TODO I am moving deleting this to the destructer since I will need dInsts later. 
+   // I am moving deleting this to the destructer since I will need dInsts later. 
    //builtNodes.map(deleteInstsInMap, NULL);
 }
 
@@ -231,8 +231,9 @@ DGBuilder::~DGBuilder()
    // I need to delete all the decoded instructions stored in builtNodes
    // Perhaps I can delete them even earlier, after the graph is build. 
    // I am not going to use the buildNodes hashMap after that.
+   
    // builtNodes is emptied at the end of the constructor now.
-   //OZGUR TODO I am emptying buildNodes here since I need it after constructor too.
+   // I am emptying buildNodes here since I need it after constructor too.
    builtNodes.map(deleteInstsInMap, NULL);
 }
 
@@ -932,17 +933,6 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
    Dyninst::PatchAPI::Snippet::Ptr nop5 = NOPSnippet5::create(new NOPSnippet5());
    Dyninst::PatchAPI::Snippet::Ptr nop1 = NOPSnippet1::create(new NOPSnippet1());
 
-//TESTING nop for error
-//patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, nop1));
-//if (patcher->commit()){
-//  std::cout<<"OZGURYETER commit working"<<std::endl;
-//} else {
-//  std::cout<<"OZGURYETER commit NOT working"<<std::endl;
-//}
-//new_point->pushBack(ptrR15);
-//TESTING nop5 for error
-//patcher->add(Dyninst::PatchAPI::PushBackCommand::create(new_point, nop5));
-
 
    int reg;
    RInfoList srcreg = nn->getSrcReg();
@@ -1079,7 +1069,6 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
    }
    
    int control = 0 ;
-   cerr << "OZGURTESTREG\n";
    if (nn->is_load_instruction()){
       nnrit = srcreg.begin();
       for( ; nnrit!=srcreg.end() ; ++nnrit ) {
@@ -1205,19 +1194,7 @@ void DGBuilder::addPTWSnippet(Dyninst::PatchAPI::Patcher *patcher, Dyninst::Patc
       }
 //   new_point->pushBack(nop5);
 //   new_point->pushBack(nop5);
-
-
    }
-//      tryCount++;
-//      std::cout<<"PTWCOUNT: "<<tryCount <<std::endl;
-//std::cout<<"OZGURDEBUG::InsertSniplet try: "<< tryCount <<std::endl;
-//   bool cmt = patcher->commit();
-//   if (!cmt && tryCount < 10){
-//      std::cout<<"OZGURERROR::commit try: "<< tryCount <<std::endl;
-//      tryCount++;
-//      addPTWSnippet(patcher, new_point, nn);
-//   }
-//  return cmt;
 }
 
 float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::CFG::Node** ba , int numBlocks, Dyninst::PatchAPI::Patcher* patcher){
@@ -1229,24 +1206,17 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
    std::map<unsigned long, std::map<unsigned long, int>> blockMap;
    std::map<unsigned long, int> blockInstrumentedMap;
    if (!mo->funcList.empty()){
-//      std::map<const string, int>::const_iterator testfuncListIter = mo->funcList.begin();
-      std::map<int, int>::const_iterator testfuncListIter = mo->funcList.begin();
-      while (testfuncListIter!= mo->funcList.end()){
-        std::cout << " OZGURDEBUGFNAMESINLIST: "<<std::hex<<testfuncListIter->first<<std::dec<<std::endl;
-        testfuncListIter++;
-      }
-      
       //std::map<const string, int>::const_iterator funcListIter = mo->funcList.find(rout->Name());
       std::map<int, int>::const_iterator funcListIter = mo->funcList.find(rout->start_addr);
       if (funcListIter != mo->funcList.end()){
-         std::cout<<"OZGURDEBUGFLIST Printing Load Classification for function: "<<rout->Name()<<std::endl;    
+         std::cout<<"Printing Load Classification for function: "<<rout->Name()<<std::endl;    
       } else {
-         std::cout<<"OZGURDEBUGFLIST This is wrong function\n I was looking for "<<rout->Name()<<std::endl;
+         std::cout<<"This is wrong function\n I was looking for "<<rout->Name()<<std::endl;
          return 0;
       }  
    }
  
-   std::cout << "OZGURDBGX3 #Blocks: "<<numBlocks;
+   std::cout << "#Blocks: "<<numBlocks;
    for( int i=0 ; i<numBlocks ; ++i )
    {
       std::cout << "\n\tBlock["<<i<<"] 's startAddres: "<< std::hex<<ba[i]->getStartAddress()<<
@@ -1320,14 +1290,12 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
   }   
 
    BPatch_image* image =  img->getDyninstImage();
-//OZGURDYNDELETE   BPatch_addressSpace* dynAddApp =  img->getDyninstApp();
    BPatch_Vector<BPatch_function*> funcs;
    BPatch_point* loadPtr;
    Dyninst::Address daddr;
    Dyninst::PatchAPI::Point* lps;
    std::vector<Dyninst::PatchAPI::Point*> points ; 
    bool func_exist = true;   
-// i  std::cout<<"OZGURDBG::func name is : "<<rout->Name()<<std::endl;
    if(mo->func_name.length()){
       if (mo->func_name == rout->Name()){
          std::cout<<"Printing Load Classification for function: "<<mo->func_name<<std::endl;
@@ -1349,7 +1317,6 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
    }
    
   
-//OZGURDYNDELETE   BPatch_binaryEdit *DynApp = img->getDyninstBinEdit();
 //Adding support for strided loads //Original code stops here
 //Only instrument first 5 iteration and last iteration
 //First add necessary variables and funtions
@@ -1391,29 +1358,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
    int before = 1;
 
 //Original Code continues from here
-   //Dyninst::PatchAPI::PatchMgrPtr patchMgr = Dyninst::PatchAPI::convert(DynApp);
-//   Dyninst::PatchAPI::PatchMgrPtr patchMgr = img->getPatchMgrPtr();
-//   Dyninst::PatchAPI::Patcher patcher(patchMgr);
-
-   //Dyninst::PatchAPI::Patcher* patcher = img->getPatcher();
-//SOMETEST DELETEIT
-//   Dyninst::PatchAPI::Snippet::Ptr nop5 = NOPSnippet5::create(new NOPSnippet5());
-//   Dyninst::PatchAPI::Snippet::Ptr ptrEAX  = PTWriteSnippetEAX::create(new PTWriteSnippetEAX());
-//   BPatch_Vector<BPatch_point*> *entry_pts = funcs[0]->findPoint(BPatch_locEntry);
-//     for (auto pit = entry_pts->begin(); pit != entry_pts->end(); pit++){
-//       loadPtr = *pit;
-//       //patcher.add(Dyninst::PatchAPI::PushBackCommand::create(loadPtr, nop5));
-//       lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
-//       //lps->pushBack(ptrEAX);
-//       patcher->add(Dyninst::PatchAPI::PushBackCommand::create(lps, ptrEAX));
-//       //addPTWSnippet(lps , dynAddApp);
-//       //if (patcher.commit()){
-//       // std::cout<<"COMMITSUCCESS>>>>"<<rout->Name()<<std::endl;
-//       //} else {
-//       // std::cout<<"COMMITNOTSUCCESS>>"<<rout->Name()<<std::endl;
-//       //}
-//    }
-                    
+                   
  
 //Adding ptwrite 0 to entry and exit points of the fuction.
 //   if(func_exist){
@@ -1450,7 +1395,6 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
    double frame_sts = 0;
    double strided_sts = 0;
    double indirect_sts = 0;
-//OZGURDYNDELETE   int total_frame_lds = 0;
    int disp = 0;
    int scale = 1;
    std::cout<<"Address\ttype\tclass\n";
@@ -1469,32 +1413,25 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
             GFSliceVal oform = refF->base;
             GFSliceVal::iterator sliceVit;
             int ijk = 0;
-            std::cout<<" HAHAHA 0:0 num: "<<valueNum<<" den: "<<valueDen;
             for (sliceVit=oform.begin() ; sliceVit!=oform.end() ; ++sliceVit){
             ijk++;
               valueDen = sliceVit->ValueDen();
               valueNum = sliceVit->ValueNum();
-            std::cout<<" HAHAHA index:"<<ijk<<" num: "<<valueNum<<" den: "<<valueDen;
             }
-            std::cout<<" HAHAHA Before num: "<<valueNum<<" den: "<<valueDen;
             IsConstantFormula(oform, valueNum, valueDen); //TODO find a better way to get valueNum
             std::cout<<" After num: "<<valueNum<<" den: "<<valueDen<<std::endl;
             std::cout<<"ref->base: "<<oform<<std::endl;
             std::cout<<"consten Term of Formula is: "<<ConstantTermOfFormula(oform)<<std::endl;
             MIAMI::DecodedInstruction* &dInst = builtNodes[nn->getAddress()];
-//            MIAMI::DecodedInstruction* &dInst2 = builtNodes[nn->getAddress()+reloc_offset];
             std::cout<<"Decoded Instruction PC:"<<std::hex<<dInst->pc<<" Reloc:"<<reloc_offset<<" len:"<<std::dec<<dInst->len;
             std::cout<<std::hex<<" disp:"<<dInst->l_disp<<" scale:"<<dInst->l_scale<<std::dec<<std::endl;
             disp = dInst->l_disp;
             scale = dInst->l_scale;
-//            std::cout<<"Decoded Instruction PC:"<<std::hex<<dInst2->pc<<" Reloc:"<<reloc_offset<<" len:"<<std::dec<<dInst2->len;
-//            std::cout<<std::hex<<" disp:"<<dInst2->l_disp<<" scale:"<<dInst2->l_scale<<std::dec<<std::endl;
          }
 //      }
 
       Node *fnn = fnit;
-//OZGURDYNDELETE tryagain:
-      std::cout<<"OZGURDBG::instrumenting node:0x"<<std::hex<<fnn->getAddress()<<std::dec << " try:"<<tryCount<<std::endl;
+      std::cout<<"Instrumenting node:0x"<<std::hex<<fnn->getAddress()<<std::dec << " try:"<<tryCount<<std::endl;
       if (fnn->isInstructionNode() && fnn->getType() >0){
          if(fnn->is_load_instruction() && mo->inst_loads){
             srcreg = fnn->getSrcReg();
