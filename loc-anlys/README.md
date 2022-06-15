@@ -11,8 +11,11 @@ memCAM needs a memorytraces file to run
 Trace format - [IP loadAddr core initialtime\n]
 
 To run the analysis toolset using the default configuration and memorytraces
+
     ./memCAM memorytraces.out --analysis
+
 To list options
+
 	./memCAM --help
 
 
