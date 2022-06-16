@@ -3,18 +3,11 @@
 $Id$
 
 -----------------------------------------------------------------------------
-MemGaze Issues...
+MemGaze Issues
 =============================================================================
 
-* Documentation:
-  - memgaze-analyze's default output:
-    - execution window histograms
-    - function analysis summary (exclusive), averaged over whole trace, for all functions
-
-  - memgaze-analyze: "inclusive" analysis for a given function: analyze all accesses between first/last instantiation of f
-
 * Bugs:
-  - mem-anlys only reads only one load-classification file even if multiple are needed. This results in some instructions with unknown laod classes.
+  - The trace that comes out of perf-script (ie, memgaze-xtrace) looses the connection between the ip and the executable. So, if we instrument two binaries for the same program, we cannot correctly process one of them. Also, mem-anlys should read all load-classification files.
 
   - Our window analysis algorithm uses pre-selected bins to create the histogram. Due to the variation of sample sizes window sizes also vary. This can create a binning anomaly at the largest one or two window sizes. Since \fpSym  should never get smaller in a larger window, we force each bin to take the maximum of the current and previous windows. This anomaly only happens when there are constant loads instrumented for our quantitative approach. To address this issue we are working on a more detailed fix.
 
@@ -339,12 +332,12 @@ Miami dependency analysis
 In routine.C 
 line:1706       MIAMI_DG::DGBuilder *sch = NULL;
 line:1726          sch = new MIAMI_DG::DGBuilder(this, pathId,
-line:1753             MIAMI_DG::schedule_result_t res = sch->myComputeScheduleLatency(
+line:1753             MIAMI_DG::schedule_result_t res = sch->myComputeScheduleLatency()
 
 in Scheduler/SchedDG.C
 line:10306    retValues ret =  myMinSchedulingLengthDueToDependencies(memLatency, cpuLatency);
-line:11615             teit->sink()->myComputePathToLeaf(
-line 11897 SchedDG::Node::myComputePathToLeaf  
+line:11615             teit->sink()->myComputePathToLeaf()
+line 11897 SchedDG::Node::myComputePathToLeaf
 myComputePathToLeaf    function is a recursive function to visit all the edges on outgoing edge iterator.
 
 
@@ -358,7 +351,7 @@ line:153     fd = fopen(mo->cfg_file.c_str(), "rb");
 and keep using the fd on different functions. flow is as following 
 
 in Scheduler/schedtool.C
-line: 309        MIAMI::mdriver.LoadImage(
+line: 309        MIAMI::mdriver.LoadImage()
 
 in Scheduler/MiamiDriver.C
 line: 457 MIAMI_Driver::LoadImage(

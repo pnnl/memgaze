@@ -63,16 +63,22 @@ Linux Perf
 
 - Interpreting 'time stamps' within trace
 
-  System-wide and multi-threading: task-clock vs. cpu-clock
+  We use ref-cycles as opposed to the task-clock or the cpu-clock. The
+  benefits of ref-cycles are seen especially when monitoring
+  multi-threaded tasks or system-wide.
 
-  - task-clock: on context switch, does not count (e.g., when task blocks)
+  - task-clock: Software clock that on context switch, does not count
+    when task blocks
 
-  - cpu-clock:  attach (tsc, fixed frequency, doesn't vary)
-    - tsc is sync acrross all cores
-    - use cpu-clock to count time between context switches
+  - cpu-clock: Software clock that is attached to the cpu and not
+    task. (cpu-clock can be used to count time between context
+    switches.)
   
-  - REF_CYC event ticks at tsc rate but stops when cpu goes in low power
-    - use -a to attach REF_CYC to cpu
+  - ref-cycles: hardware clock that follows task. Ticks at the fixed,
+    tsc rate (but does stop when cpu goes in low power). The tsc is
+    synchronized acrross all cores.
+  
+  Note: when using -a, ensure using ref-cycles!
 
 
 - Other notes:
