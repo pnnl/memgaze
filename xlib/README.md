@@ -37,7 +37,10 @@ Linux Perf
     --filter 'filter @distBuildLocalMapCounters'  -- <app>
   ```
 
-  - Intel PT, system-wide [[FIXME]]:
+  - Intel PT, system-wide: To collect system wide you will need to add -a 
+  ```
+  perf record -a  -e <event(s)>
+  ```
 
 
   - Intel Load Latency-based (sparse) data addresses:
