@@ -13,7 +13,6 @@ MemGaze Issues...
 
   - memgaze-analyze: "inclusive" analysis for a given function: analyze all accesses between first/last instantiation of f
 
-
 * Bugs:
   - mem-anlys only reads only one load-classification file even if multiple are needed. This results in some instructions with unknown laod classes.
 
@@ -119,14 +118,14 @@ MemGaze/bin-anlys: Changes from MIAMI-NW (newest first)
   38         -I$(BOOST_INC) \
   39         -I$(TBB_INC)
 
-  /files0/kili337/TestBed/memgaze/memgaze/bin-anlys/src/common/source_file_mapping_binutils.C:168:9: note: suggested alternative: ‘bfd_set_section_flags’
+  `/files0/kili337/TestBed/memgaze/memgaze/bin-anlys/src/common/source_file_mapping_binutils.C`:168:9: note: suggested alternative: ‘bfd_set_section_flags’
       if ((bfd_get_section_flags (abfd, section) & SEC_ALLOC) == 0)
-  /files0/kili337/TestBed/memgaze/memgaze/bin-anlys/src/common/source_file_mapping_binutils.C:175:10: note: suggested alternative: ‘bfd_set_section_vma’
+  `/files0/kili337/TestBed/memgaze/memgaze/bin-anlys/src/common/source_file_mapping_binutils.C`:175:10: note: suggested alternative: ‘bfd_set_section_vma’
       vma = bfd_get_section_vma (abfd, section);
-  /files0/kili337/TestBed/memgaze/memgaze/bin-anlys/src/common/source_file_mapping_binutils.C:176:11: note: suggested alternative: ‘bfd_set_section_size’
+  `/files0/kili337/TestBed/memgaze/memgaze/bin-anlys/src/common/source_file_mapping_binutils.C`:176:11: note: suggested alternative: ‘bfd_set_section_size’
       size = bfd_get_section_size (section);
 
-  /files0/kili337/TestBed/memgaze/memgaze/bin-anlys/src/common/source_file_mapping_binutils.C:217:19: error: ‘bfd_get_section_vma’ was not declared in this scope
+  `/files0/kili337/TestBed/memgaze/memgaze/bin-anlys/src/common/source_file_mapping_binutils.C`:217:19: error: ‘bfd_get_section_vma’ was not declared in this scope
       addrtype vma = bfd_get_section_vma (info->abfd, section);  
 
   src/common/InstructionDecoder-xed-iclass.h
@@ -322,10 +321,10 @@ MIAMI-NW structure
   MIAMI's DGBuilder takes a CFG::Block of raw data and decodes
   it. (This seems to be the wrong order.)
 
-  - common/instr_info.H: information for an instruction
-  - common/instr_bins.H: IB = instruction-bin
-  - common/instruction_decoding.C: instruction decoding interface
-  - Scheduler/GenericInstruction.h
+  - `common/instr_info.H`: information for an instruction
+  - `common/instr_bins.H`: IB = instruction-bin
+  - `common/instruction_decoding.C`: instruction decoding interface
+  - `Scheduler/GenericInstruction.h`
   
   Any definition files for other microarchitectures?
 
