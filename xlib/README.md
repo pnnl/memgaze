@@ -57,6 +57,24 @@ Linux Perf
   ```
 
 
+- Check for throttling:
+  `perf report -D | grep THROTTLE`
+
+
+- Interpreting 'time stamps' within trace
+
+  System-wide and multi-threading: task-clock vs. cpu-clock
+
+  - task-clock: on context switch, does not count (e.g., when task blocks)
+
+  - cpu-clock:  attach (tsc, fixed frequency, doesn't vary)
+    - tsc is sync acrross all cores
+    - use cpu-clock to count time between context switches
+  
+  - REF_CYC event ticks at tsc rate but stops when cpu goes in low power
+    - use -a to attach REF_CYC to cpu
+
+
 - Other notes:
 
   - Call paths: On our Atom-based (J5005) test machine, it appears

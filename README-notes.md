@@ -3,85 +3,21 @@
 $Id$
 
 -----------------------------------------------------------------------------
-MemGaze Consolidation
+MemGaze Issues...
 =============================================================================
 
-Notes for perf:
+* Documentation:
+  - memgaze-analyze's default output:
+    - execution window histograms
+    - function analysis summary (exclusive), averaged over whole trace, for all functions
 
-%%   perf script -h ns
-
-Check for throttling:
-   perf report -D, go to end, grep THROTTLE
-   
-   % System-wide and multi-threading: task-clock vs. cpu-clock
-
-%%   task: on context switch, does not count (e.g., when task blocks)
-%%   cpu: attach (tsc, fixed frequency, doesn't vary)
-  
-%%   tsc is sync acrross all cores
-%%   cpuinfo. mytt{REF_CYC} ticks at tsc rate but stops when cpu goes in low power
-  
-%%   [[use mytt{REF_CYC} instead of task-clock]]
-%%   [[use -a to attach mytt{REF_CYC} to cpu]]
-%%   [[use cpu-clock to count time between context switches]]
-  
-%% - in system mode: is cpu-clock global/aligned
-
-----------------------------------------
-
-* [[todo]]
-
-  - memgaze-analyze: will now print historam and exclusive function analysis summary (average over whole trace) for all function
-
-      - Internally, results in slices of accesses; could add diagnostic interval analysis
-      - Could generate trace
-    
-  - inclusive trace for function f: all accesses between first/last instantiation of f
-    
-    - analyze parallelism: single vs. multi-thread runs for minivite
-
-  - try newer DynInst (Release-2022.04.15)? ask Xiaozhu Meng
-
-  - run scripts: memgaze-*:
-    - memgaze-*: libexec
-      - xlib/README.md: example for system-wide collection?
-
-  - Build:
-    - dependences for perf?
-    - autoconfigure hpctk source tree?
-
-  - nuke: /DATA/Projects/MemGaze
-    - keep data-locality results and delete "overhead" results
+  - memgaze-analyze: "inclusive" analysis for a given function: analyze all accesses between first/last instantiation of f
 
 
 * Bugs:
-  - mem-anlys only reads only one load-classification file even if multiple are needed
-    - results in some instructions with unknown laod classes
+  - mem-anlys only reads only one load-classification file even if multiple are needed. This results in some instructions with unknown laod classes.
 
   - Our window analysis algorithm uses pre-selected bins to create the histogram. Due to the variation of sample sizes window sizes also vary. This can create a binning anomaly at the largest one or two window sizes. Since \fpSym  should never get smaller in a larger window, we force each bin to take the maximum of the current and previous windows. This anomaly only happens when there are constant loads instrumented for our quantitative approach. To address this issue we are working on a more detailed fix.
-
-
------------------------------------------------------------------------------
-
-* Ruchi <nina222> branch to write execution interval tree as hpcviewer xml:
-
-  ~/1perf-lab/palm/memgaze-memanlys-ruchi/ (/files0/kili337/Nathan/intelPT_FP)
-  
-  See: 'ruchi-*.cpp' and test example in 'hpcviewer-data'
-
-```
-<MetricTable>
-    <Metric i="0" n="footprint" o="0" v="final" show="1" show-percent="1">
-      <Info><NV n="units" v="footprint"/><NV n="period" v="1"/></Info>
-    </Metric>
-</MetricTable>
-
-<PF i="2" ...>
-  <M n="0" v="<value"/>
-  <C i="3" s="212" l="0" v="0xd39f">
-    <PF i="4" ...>
-```
-
 
 
 =============================================================================
@@ -320,7 +256,6 @@ Xia's <huxi333> efforts on SeaPearl
   ~huxi333/palm/trunk/external3: Not useful. Attempted to work on 'CFGTool'
 
 
-
 =============================================================================
 MIAMI-NW structure
 =============================================================================
@@ -395,3 +330,73 @@ MIAMI-NW structure
   Any definition files for other microarchitectures?
 
 
+=============================================================================
+MIAMI-NW structure (Ozgur's notes)
+=============================================================================
+
+Miami dependency analysis
+-----------------------------------------------------------------------------
+
+In routine.C 
+line:1706       MIAMI_DG::DGBuilder *sch = NULL;
+line:1726          sch = new MIAMI_DG::DGBuilder(this, pathId,
+line:1753             MIAMI_DG::schedule_result_t res = sch->myComputeScheduleLatency(
+
+in Scheduler/SchedDG.C
+line:10306    retValues ret =  myMinSchedulingLengthDueToDependencies(memLatency, cpuLatency);
+line:11615             teit->sink()->myComputePathToLeaf(
+line 11897 SchedDG::Node::myComputePathToLeaf  
+myComputePathToLeaf    function is a recursive function to visit all the edges on outgoing edge iterator.
+
+
+Miami: Reading CFG file
+-----------------------------------------------------------------------------
+
+in   Scheduler/MiamiDriver.C
+line: 141 MIAMI_Driver::Initialize(MiamiOptions *_mo, int _pid)
+line:153     fd = fopen(mo->cfg_file.c_str(), "rb");
+
+and keep using the fd on different functions. flow is as following 
+
+in Scheduler/schedtool.C
+line: 309        MIAMI::mdriver.LoadImage(
+
+in Scheduler/MiamiDriver.C
+line: 457 MIAMI_Driver::LoadImage(
+line: 516       newimg->loadFromFile(fd, false);
+
+in Scheduler/load_module.C
+line: 59 LoadModule::loadFromFile(FILE *fd, bool parse_routines)
+line: 142 LoadModule::loadRoutineData(FILE *fd)
+line: 185 LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
+
+in Scheduler/routine.C
+line: 73 Routine::loadCFGFromFile(FILE *fd)
+
+in Scheduler/CFG.C
+line: 142 CFG::loadFromFile()
+
+
+-----------------------------------------------------------------------------
+
+I add a file at modsim-tools/palm-miami/HowToBuildPath.C which summarizes how it is building the path
+
+Also when it is building the path it uses a function call.
+   in: routine.C
+   line 3051 Routine::addBlock(..)
+to add a block to block-path in
+   BPMap *bpmtemp = new BPMap(); 
+then sends this block path map to  DGBuilder to build the Dependency Graph. 
+
+----------------------------------------
+
+For the Block_path analysis when we feed the blk_path to Miami, 
+it reads it at routine.C line: 1650 in func: myConstructPaths
+which getting called from routine.C line: 1461 in func: build_paths_for_intervals.
+
+----------------------------------------
+
+DGBuilder::computeMemoryDependenciesForOneIter()
+DGBuilder::computeMemoryDependenciesForManyIter()
+
+-----------------------------------------------------------------------------
