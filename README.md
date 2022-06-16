@@ -81,7 +81,7 @@ MemGaze has four main steps.
 
 
 4. Analyze memory behavior using execution interval tree and generate
-   footprint metrics. As inputs, takes `<trace-dir>` and `<inst-dir>`
+   memory-related metrics. As inputs, takes `<trace-dir>` and `<inst-dir>`
 
    ```
    memgaze-analyze -t <trace-dir> -s <inst-dir> [-o <output>]
