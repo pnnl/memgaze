@@ -29,7 +29,9 @@ using namespace std;
     spatialAccess=0; 
     spatialAccessMid=0; 
     spatialAccessTotalMid=0; 
-    spatialNext=0; 
+    spatialNext=0;
+    smplMiddle =0;
+    smplAvgSpatialMiddle=0.0;  
   }
   
   

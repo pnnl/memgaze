@@ -184,6 +184,17 @@ using namespace std;
           outFile << std::fixed << std::setprecision(3)  << vecDensity[j].second <<","<<vecDensity[j].first<<" ";
       }
       outFile<<endl;
+      vecDensity.clear();
+      for(j=0; j<vecSpatialResult.size(); j++) { 
+        vecDensity.push_back(make_pair((vecSpatialResult[j].second)->smplAvgSpatialMiddle,vecSpatialResult[j].first));
+        }
+      sort(vecDensity.begin(), vecDensity.end(), greater<>());
+      outFile << " Spatial Density in order ";
+      for(j=0; j<vecDensity.size(); j++) {
+          if(vecDensity[j].first >= 0.1)
+          outFile << std::fixed << std::setprecision(3)  << vecDensity[j].second <<","<<vecDensity[j].first<<" ";
+      }
+      outFile<<endl;
       
  /*     outFile << "Page "<< std::dec << blockID.second << " Spatial Probability ";
       for(j=0; j<vecSpatialResult.size(); j++) { 

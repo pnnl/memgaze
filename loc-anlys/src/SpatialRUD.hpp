@@ -35,8 +35,8 @@
 using namespace std;
 class SpatialRUD {
 public:
- uint32_t totalAccess;
- uint16_t spatialDistance;
+  uint32_t totalAccess;
+  uint16_t spatialDistance;
   uint16_t spatialTotalDistance;
   int      spatialMinDistance;
   int      spatialMaxDistance;
@@ -44,6 +44,8 @@ public:
   uint16_t spatialAccessMid;
   uint16_t spatialAccessTotalMid;
   uint16_t spatialNext;
+  uint16_t smplMiddle ;
+  double   smplAvgSpatialMiddle;
  
 //This class holds the Block's spatial results - spatial distance metrics
  SpatialRUD(uint32_t pageBlkID);
