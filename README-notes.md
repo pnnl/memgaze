@@ -328,6 +328,7 @@ MIAMI-NW structure (Ozgur's notes)
 
 Miami dependency analysis
 -----------------------------------------------------------------------------
+Following is still there but it is old ( from latency analysis time:
 
 In routine.C 
 line:1706       MIAMI_DG::DGBuilder *sch = NULL;
@@ -368,27 +369,5 @@ line: 73 Routine::loadCFGFromFile(FILE *fd)
 in Scheduler/CFG.C
 line: 142 CFG::loadFromFile()
 
-
------------------------------------------------------------------------------
-
-I add a file at modsim-tools/palm-miami/HowToBuildPath.C which summarizes how it is building the path
-
-Also when it is building the path it uses a function call.
-   in: routine.C
-   line 3051 Routine::addBlock(..)
-to add a block to block-path in
-   BPMap *bpmtemp = new BPMap(); 
-then sends this block path map to  DGBuilder to build the Dependency Graph. 
-
-----------------------------------------
-
-For the Block_path analysis when we feed the blk_path to Miami, 
-it reads it at routine.C line: 1650 in func: myConstructPaths
-which getting called from routine.C line: 1461 in func: build_paths_for_intervals.
-
-----------------------------------------
-
-DGBuilder::computeMemoryDependenciesForOneIter()
-DGBuilder::computeMemoryDependenciesForManyIter()
 
 -----------------------------------------------------------------------------
