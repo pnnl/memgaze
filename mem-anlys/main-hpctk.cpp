@@ -377,8 +377,8 @@ makeCCTPath(MyXFrame* path, uint n_metrics)
     // ----------------------------------------
     if (isSampleOrLoad) {
       // TODO:
-      Prof::LoadMap::LMId_t lmId = Prof::LoadMap::LMId_NULL; // TODO: pseudo-LM
-      VMA ip = HPCRUN_FMT_LMIp_NULL; // TODO: pseudo ip within pseudo-LM
+      Prof::LoadMap::LMId_t lmId = Prof::LoadMap::LMId_NULL; // TODO: LM for load
+      VMA ip = HPCRUN_FMT_LMIp_NULL; // TODO load's ip within LM
 
       node = makeCCTLeaf(lmId, ip, n_metrics);
     }
@@ -387,8 +387,8 @@ makeCCTPath(MyXFrame* path, uint n_metrics)
     // ----------------------------------------
     else {
       // TODO:
-      Prof::LoadMap::LMId_t lmId = Prof::LoadMap::LMId_NULL; // TODO: LM for load
-      VMA ip = HPCRUN_FMT_LMIp_NULL; // TODO load's ip within LM
+      Prof::LoadMap::LMId_t lmId = Prof::LoadMap::LMId_NULL; // TODO: pseudo-LM
+      VMA ip = HPCRUN_FMT_LMIp_NULL; // TODO: pseudo ip within pseudo-LM
 
       node = makeCCTFrame(lmId, ip, n_metrics);
     }
