@@ -191,7 +191,7 @@ using namespace std;
       sort(vecDensity.begin(), vecDensity.end(), greater<>());
       outFile << " Spatial Density in order ";
       for(j=0; j<vecDensity.size(); j++) {
-          if(vecDensity[j].first >= 0.005)
+          if(vecDensity[j].first >= 0.001)
           outFile << std::fixed << std::setprecision(3)  << vecDensity[j].second <<","<<vecDensity[j].first<<" ";
       }
       outFile<<endl;

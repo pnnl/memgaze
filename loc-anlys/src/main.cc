@@ -591,7 +591,7 @@ int main(int argc, char ** argv){
   // Also, stack loads are getting filtered in trace
   // Minivite - Single threaded - stack starts at 0x7f
   // Others - multi-threaded stack starts at 0x7ff
-  heapAddrEnd = stol("7f0000000000",0,16); // stack region is getting included in mid-point 
+  heapAddrEnd = stol("7ff000000000",0,16); // stack region is getting included in mid-point 
                    // 7f2e6579f441
   vector<double> Rud; 
   vector<double> sampleRud; 
