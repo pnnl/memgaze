@@ -68,7 +68,7 @@ Linux Perf
 
   We use ref-cycles as opposed to the task-clock or the cpu-clock. The
   benefits of ref-cycles are seen especially when monitoring
-  multi-threaded tasks or system-wide.
+  multi-threaded tasks or system-wide. (Cf. `perf record -k/--clockid`)
 
   - task-clock: Software clock that on context switch, does not count
     when task blocks
