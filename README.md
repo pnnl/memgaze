@@ -81,15 +81,18 @@ MemGaze has four main steps.
 
 
 4. Analyze memory behavior using execution interval tree and generate
-   footprint metrics. As inputs, takes `<trace-dir>` and `<inst-dir>`
+   memory-related metrics. As inputs, takes `<trace-dir>` and `<inst-dir>`
 
    ```
    memgaze-analyze -t <trace-dir> -s <inst-dir> [-o <output>]
    ```
-  
-   Note: -f <func>: focus trace on 'func' by retaining all accesses
-   between first and last instance of <func>
-  
+
+  Currently, memgaze-analyze's default output includes two parts:
+  - execution window histograms
+  - function analysis summary (exclusive), averaged over whole trace, for all functions
+
+   Note: -f <func>: Focus the above analysis on 'func', i.e., the effective trace includes all accesses between first and last instance of <func>.
+   
 
 -----------------------------------------------------------------------------
 Trace format

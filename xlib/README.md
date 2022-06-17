@@ -37,7 +37,10 @@ Linux Perf
     --filter 'filter @distBuildLocalMapCounters'  -- <app>
   ```
 
-  - Intel PT, system-wide [[FIXME]]:
+  - Intel PT, system-wide: To collect system wide, omit <app> and use -a
+  ```
+  perf record -a  -e <event(s)>
+  ```
 
 
   - Intel Load Latency-based (sparse) data addresses:
@@ -55,6 +58,30 @@ Linux Perf
   ```
   perf script --script=perf-script-intel-pt.py -i <trace>
   ```
+
+
+- Check for throttling:
+  `perf report -D | grep THROTTLE`
+
+
+- Interpreting 'time stamps' within trace
+
+  We use ref-cycles as opposed to the task-clock or the cpu-clock. The
+  benefits of ref-cycles are seen especially when monitoring
+  multi-threaded tasks or system-wide. (Cf. `perf record -k/--clockid`)
+
+  - task-clock: Software clock that on context switch, does not count
+    when task blocks
+
+  - cpu-clock: Software clock that is attached to the cpu and not
+    task. (cpu-clock can be used to count time between context
+    switches.)
+  
+  - ref-cycles: hardware clock that follows task. Ticks at the fixed,
+    tsc rate (but does stop when cpu goes in low power). The tsc is
+    synchronized acrross all cores.
+  
+  Note: when using -a, ensure using ref-cycles!
 
 
 - Other notes:
