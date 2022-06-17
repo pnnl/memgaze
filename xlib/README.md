@@ -37,7 +37,7 @@ Linux Perf
     --filter 'filter @distBuildLocalMapCounters'  -- <app>
   ```
 
-  - Intel PT, system-wide: To collect system wide you will need to add -a 
+  - Intel PT, system-wide: To collect system wide, omit <app> and use -a
   ```
   perf record -a  -e <event(s)>
   ```
