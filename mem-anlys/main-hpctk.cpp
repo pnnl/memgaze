@@ -445,6 +445,8 @@ makeCCTLeaf(Prof::LoadMap::LMId_t lmId, VMA ip, uint n_metrics)
   Prof::Metric::IData metricData(n_metrics);
 
   // TODO: map 'node' to trace sample
+
+  // TODO: within a sample, all instances of same IP become one hpctk leaf node
   
   return new Prof::CCT::Stmt(NULL, cpId, as_info, lmId, ip, opIdx, &lip,
                              metricData);
