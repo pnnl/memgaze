@@ -143,7 +143,7 @@ using namespace std;
       printf("*** Page %d: area %08lx-%08lx Access %d Lifetime %d\n", blockID.second, addrMin, addrMax, totalAccess, lifetime );
       outFile << "*** Page "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<<" Access " 
           << std::dec << totalAccess <<" Lifetime "<< lifetime << endl;
-      outFile << "Page "<< std::dec << blockID.second << " spatial Next ";
+/*      outFile << "Page "<< std::dec << blockID.second << " spatial Next ";
       for(j=0; j<vecSpatialResult.size(); j++) { 
          if(((vecSpatialResult[j].second)->spatialNext!=0)) 
           outFile << std::dec << vecSpatialResult[j].first <<","<<(vecSpatialResult[j].second)->spatialNext<<" ";
@@ -161,19 +161,31 @@ using namespace std;
           outFile << std::dec << vecSpatialResult[j].first <<","<<(vecSpatialResult[j].second)->spatialAccess<<" ";
       }
       outFile<<endl;
-      outFile << "Page "<< std::dec << blockID.second << " spatial Middle ";
+      outFile << " spatial Middle ";
       for(j=0; j<vecSpatialResult.size(); j++) { 
          if(((vecSpatialResult[j].second)->spatialAccessTotalMid!=0)) 
           outFile << std::dec << vecSpatialResult[j].first <<","<<(vecSpatialResult[j].second)->spatialAccessTotalMid<<" ";
       }
       outFile<<endl;
-      outFile << "Page "<< std::dec << blockID.second << " Spatial Density ";
+*/
+      vector<pair<double, uint32_t>> vecDensity;
+      //outFile << " Spatial Density ";
       for(j=0; j<vecSpatialResult.size(); j++) { 
-         if(((vecSpatialResult[j].second)->spatialAccessTotalMid!=0)) 
-          outFile << std::fixed << std::setprecision(3)  << vecSpatialResult[j].first <<","<<(double)((vecSpatialResult[j].second)->spatialAccessTotalMid)/lifetime<<" ";
+         if(((vecSpatialResult[j].second)->spatialAccessTotalMid!=0))  {
+       //   outFile << std::fixed << std::setprecision(3)  << vecSpatialResult[j].first <<","<<(double)((vecSpatialResult[j].second)->spatialAccessTotalMid)/lifetime<<" ";
+        vecDensity.push_back(make_pair(((double)((vecSpatialResult[j].second)->spatialAccessTotalMid)/lifetime),vecSpatialResult[j].first));
+        }
+      }
+      //outFile<<endl;
+      sort(vecDensity.begin(), vecDensity.end(), greater<>());
+      outFile << " Spatial Density in order ";
+      for(j=0; j<vecDensity.size(); j++) {
+          if(vecDensity[j].first >= 0.1)
+          outFile << std::fixed << std::setprecision(3)  << vecDensity[j].second <<","<<vecDensity[j].first<<" ";
       }
       outFile<<endl;
-      outFile << "Page "<< std::dec << blockID.second << " Spatial Probability ";
+      
+ /*     outFile << "Page "<< std::dec << blockID.second << " Spatial Probability ";
       for(j=0; j<vecSpatialResult.size(); j++) { 
          if(((vecSpatialResult[j].second)->spatialAccess!=0)) 
           outFile << std::fixed << std::setprecision(3)  << vecSpatialResult[j].first <<","<<(double)((vecSpatialResult[j].second)->spatialAccess)/totalAccess<<" ";
@@ -191,6 +203,7 @@ using namespace std;
           outFile << std::fixed << std::setprecision(3) << vecSpatialResult[j].first <<","<<(double)((vecSpatialResult[j].second)->spatialNext)/totalAccess<<" ";
       }
       outFile<<endl;
+  */
 
       int printDebug =1;
       if(printDebug){

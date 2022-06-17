@@ -4,7 +4,7 @@
 using std::list;
 // Global variables for threshold values
 int32_t lvlConstBlockSize = 2; // Level for setting constant blocksize in zoom
-double zoomThreshold = 0.10; // Threshold for access count - to include in zoom
+double zoomThreshold = 0.02; // Threshold for access count - to include in zoom
 uint64_t heapAddrEnd ; // 
 uint64_t lastLvlBlockWidth; // Added for ZoomRUD analysis - option to set last level's block width
 uint64_t zoomLastLvlPageWidth ; // Added for ZoomRUD analysis - option to set last Zoom level's page width
@@ -551,6 +551,7 @@ int main(int argc, char ** argv){
   std::list<Memblock > spatialOSPageList;
   std::list<Memblock>::iterator itrRegion;
   std::list<Memblock>::iterator itrOSPage;
+  vector<pair<uint64_t, uint64_t>> setRegionAddr;
   int zoomin = 0;
   int zoominTimes = 0;
   ofstream zoomInFile_det;
@@ -623,7 +624,7 @@ int main(int argc, char ** argv){
           vecBlockInfo.push_back(newBlock);
         }
         printf("Size of vector BlockInfo %ld\n", vecBlockInfo.size());
-	  	  analysisReturn=memoryAnalysis( vecInstAddr, memarea, coreNumber, 0, out, vecBlockInfo); //spatialResult =0
+	  	  analysisReturn=spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, out, vecBlockInfo,false, setRegionAddr); //spatialResult =0
         if(analysisReturn ==-1)
           return -1;
         for(i = 0; i< memarea.blockCount; i++){
@@ -671,7 +672,7 @@ int main(int argc, char ** argv){
                                               memarea.blockCount, 0); // spatialResult=0
           vecBlockInfo.push_back(newBlock);
         }
-		    analysisReturn= memoryAnalysis( vecInstAddr, memarea, coreNumber, 0, out, vecBlockInfo); // spatialResult=0
+		    analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, out, vecBlockInfo,false, setRegionAddr); // spatialResult=0
         if(analysisReturn ==-1)
           return -1;
         for(i = 0; i< memarea.blockCount; i++){
@@ -740,8 +741,8 @@ int main(int argc, char ** argv){
   // 3. Calculate spatial correlational RUD at OS page level - using 64 B cache line 
   if(spatialResult == 1)
   {
-    vector<pair<uint64_t, uint64_t>> setRegionAddr;
     uint64_t minRegionAddr, maxRegionAddr;
+    setRegionAddr.clear();
     // STEP 1 - Calculate spatial correlational RUD at data object (region) level
     for (itrRegion=spatialRegionList.begin(); itrRegion != spatialRegionList.end(); ++itrRegion){
  	    thisPage = *itrRegion; 
@@ -801,7 +802,7 @@ int main(int argc, char ** argv){
                                               memarea.blockCount, 0); 
           vecBlockInfo.push_back(newBlock);
         }
-		    analysisReturn= memoryAnalysis( vecInstAddr, memarea, coreNumber, 0, out, vecBlockInfo); // spatialResult=0
+		    analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, out, vecBlockInfo,false, setRegionAddr); // spatialResult=0
         if(analysisReturn ==-1)
           return -1;
 	      pageTotalAccess.clear();
