@@ -13,6 +13,7 @@ _OBJ=main.o BlockInfo.o SpatialRUD.o
 OBJ=$(patsubst %,$(SRC)/%,$(_OBJ))
 
 APP=memCAM
+#APP=memgaze-loc-analysis
 
 %.o: %.cc $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $< 
