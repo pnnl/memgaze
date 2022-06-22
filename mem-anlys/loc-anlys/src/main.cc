@@ -591,7 +591,7 @@ int main(int argc, char ** argv){
   // Also, stack loads are getting filtered in trace
   // Minivite - Single threaded - stack starts at 0x7f
   // Others - multi-threaded stack starts at 0x7ff
-  heapAddrEnd = stol("7ff000000000",0,16); // stack region is getting included in mid-point 
+  heapAddrEnd = stol("7f0000000000",0,16); // stack region is getting included in mid-point 
                    // 7f2e6579f441
   vector<double> Rud; 
   vector<double> sampleRud; 
@@ -752,8 +752,11 @@ int main(int argc, char ** argv){
     }
     sort(setRegionAddr.begin(), setRegionAddr.end());
     for(uint32_t k=0; k<setRegionAddr.size(); k++)
-      printf("Spatial set min %lx max %lx \n", setRegionAddr[k].first, setRegionAddr[k].second);
-
+      printf("main Spatial set min-max %d %lx-%lx \n", k, setRegionAddr[k].first, setRegionAddr[k].second);
+    if(setRegionAddr.size() ==0) {
+      printf("In Spatial Analysis Step 1 - Region address list is empty\n");
+      return 0;
+    }
     memarea.min = setRegionAddr[0].first;
     memarea.max = setRegionAddr[(setRegionAddr.size()-1)].second;
     memarea.blockCount = setRegionAddr.size();

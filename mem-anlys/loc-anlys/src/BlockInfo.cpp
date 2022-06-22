@@ -140,9 +140,9 @@ using namespace std;
     //vector <pair<uint32_t, class SpatialRUD*>> vecSpatialResult;
     vector <pair<uint32_t, class SpatialRUD*>>::iterator itrSpRUD;
     if(totalAccess != 0 && lifetime !=0){
-      printf("*** Page %d: area %08lx-%08lx Access %d Lifetime %d\n", blockID.second, addrMin, addrMax, totalAccess, lifetime );
-      outFile << "*** Page "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<<" Access " 
-          << std::dec << totalAccess <<" Lifetime "<< lifetime << endl;
+      printf("*** Page %d: area %08lx-%08lx  Lifetime %d Access %d \n", blockID.second, addrMin, addrMax, lifetime, totalAccess);
+      outFile << "*** Page "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<< std::dec <<" Lifetime "<< lifetime 
+              <<" Access " << totalAccess << " " ;
 /*      outFile << "Page "<< std::dec << blockID.second << " spatial Next ";
       for(j=0; j<vecSpatialResult.size(); j++) { 
          if(((vecSpatialResult[j].second)->spatialNext!=0)) 
@@ -180,10 +180,10 @@ using namespace std;
       sort(vecDensity.begin(), vecDensity.end(), greater<>());
       outFile << " Spatial Density in order ";
       for(j=0; j<vecDensity.size(); j++) {
-          if(vecDensity[j].first >= 0.1)
+          if(j<3)
           outFile << std::fixed << std::setprecision(3)  << vecDensity[j].second <<","<<vecDensity[j].first<<" ";
       }
-      outFile<<endl;
+      //outFile<<endl;
       vecDensity.clear();
       for(j=0; j<vecSpatialResult.size(); j++) { 
         vecDensity.push_back(make_pair((vecSpatialResult[j].second)->smplAvgSpatialMiddle,vecSpatialResult[j].first));
@@ -191,8 +191,8 @@ using namespace std;
       sort(vecDensity.begin(), vecDensity.end(), greater<>());
       outFile << " Spatial Density in order ";
       for(j=0; j<vecDensity.size(); j++) {
-          if(vecDensity[j].first >= 0.001)
-          outFile << std::fixed << std::setprecision(3)  << vecDensity[j].second <<","<<vecDensity[j].first<<" ";
+          if(j<3)
+          outFile << std::fixed << std::setprecision(6)  << vecDensity[j].second <<","<<vecDensity[j].first<<" ";
       }
       outFile<<endl;
       
