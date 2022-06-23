@@ -170,9 +170,10 @@ using namespace std;
 */
       vector<pair<double, uint32_t>> vecDensity;
       //outFile << " Spatial Density ";
+      /*
+      // Doesnt depict the exact relation between desnisty and lifetime - correctly
       for(j=0; j<vecSpatialResult.size(); j++) { 
          if(((vecSpatialResult[j].second)->spatialAccessTotalMid!=0))  {
-       //   outFile << std::fixed << std::setprecision(3)  << vecSpatialResult[j].first <<","<<(double)((vecSpatialResult[j].second)->spatialAccessTotalMid)/lifetime<<" ";
         vecDensity.push_back(make_pair(((double)((vecSpatialResult[j].second)->spatialAccessTotalMid)/lifetime),vecSpatialResult[j].first));
         }
       }
@@ -184,16 +185,22 @@ using namespace std;
           outFile << std::fixed << std::setprecision(3)  << vecDensity[j].second <<","<<vecDensity[j].first<<" ";
       }
       //outFile<<endl;
+      */
       vecDensity.clear();
-      for(j=0; j<vecSpatialResult.size(); j++) { 
-        vecDensity.push_back(make_pair((vecSpatialResult[j].second)->smplAvgSpatialMiddle,vecSpatialResult[j].first));
+      double selfSpatialDensity=0.0;
+      for(j=0; j<vecSpatialResult.size(); j++) {
+        if(vecSpatialResult[j].first != blockID.second) 
+          vecDensity.push_back(make_pair((vecSpatialResult[j].second)->smplAvgSpatialMiddle,vecSpatialResult[j].first));
+        else
+         selfSpatialDensity= (vecSpatialResult[j].second)->smplAvgSpatialMiddle; 
         }
       sort(vecDensity.begin(), vecDensity.end(), greater<>());
       outFile << " Spatial Density in order ";
       for(j=0; j<vecDensity.size(); j++) {
           if(j<3)
-          outFile << std::fixed << std::setprecision(6)  << vecDensity[j].second <<","<<vecDensity[j].first<<" ";
+          outFile << std::fixed << std::setprecision(3)  << vecDensity[j].second <<","<<vecDensity[j].first<<" ";
       }
+      if(selfSpatialDensity!=0.0) outFile << " Self "<< std::fixed << std::setprecision(3)  << blockID.second <<","<< selfSpatialDensity ; 
       outFile<<endl;
       
  /*     outFile << "Page "<< std::dec << blockID.second << " Spatial Probability ";

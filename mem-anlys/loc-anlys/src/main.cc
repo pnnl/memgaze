@@ -4,7 +4,7 @@
 using std::list;
 // Global variables for threshold values
 int32_t lvlConstBlockSize = 2; // Level for setting constant blocksize in zoom
-double zoomThreshold = 0.02; // Threshold for access count - to include in zoom
+double zoomThreshold = 0.10; // Threshold for access count - to include in zoom
 uint64_t heapAddrEnd ; // 
 uint64_t lastLvlBlockWidth; // Added for ZoomRUD analysis - option to set last level's block width
 uint64_t zoomLastLvlPageWidth ; // Added for ZoomRUD analysis - option to set last Zoom level's page width
@@ -181,12 +181,19 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
   }
   if(zoomOption ==3)
   {
-
     int cntListAdd=0;
      for(i = 0; i<memarea.blockCount; i++  ){
       if(pageTotalAccess.at(i) !=0 )
       {
-        if(pageTotalAccess.at(i) >= sortPageAccess.at(2) && cntListAdd <3 ) 
+        uint32_t cmpAccess;
+        if(sortPageAccess.size()>=3)
+          cmpAccess = sortPageAccess.at(2);
+        else if (sortPageAccess.size()>=2)
+          cmpAccess = sortPageAccess.at(1);
+        else
+          cmpAccess = sortPageAccess.at(0);
+          
+        if((pageTotalAccess.at(i) >= cmpAccess) && (cntListAdd <3) ) 
             // 10% misses hot blocks in highly active object
             // ((double)pageTotalAccess.at(i)>=(double)zoomThreshold*totalaccessT))
         {
@@ -355,7 +362,7 @@ int main(int argc, char ** argv){
         argi++;
 		  if (strcmp(memoryfile, "--help") == 0){
 			  printf("2-2-2022 updated, version 0.001, update zoom in @cxie\n");
-			  printf("using ./memCAM (memorytrace) [--analysis] [--memRange min-max] [--pnum #page] [--phyPage (size)] [--spatial] [--output outputfile] [--autoZoom] [--zoomAccess] [--zoomRUD] [--outputZoom zoomOutputFile] [--outputSpatial spatialOutputFile] [--blockWidth (size)] [--zoomStopPageWidth (size)] [--bottomUp] [--insn] [--model]\n");
+			  printf("using ./memCAM (memorytrace) [--analysis] [--memRange min-max] [--pnum #page] [--phyPage (size)] [--spatial] [--output outputfile] [--autoZoom] [--zoomAccess] [--zoomRUD] [--outputZoom zoomOutputFile] [--outputSpatial spatialOutputFile] [--blockWidth (size)] [--zoomStopPageWidth (size)] [--bottomUp] [--insn] [--heapAddrEnd address] [--model]\n");
 			  printf("--analysis	: set if enable analysis\n");
 			  printf("--memRange	min-max: zoom into memory range, ignore outage memory\n");
 			  printf("--pnum	Page Size Configuration: Change the number of pages within the memory trace range\n	Default 16\n");
@@ -368,6 +375,7 @@ int main(int argc, char ** argv){
 			  printf("--zoomRUD  : enable automatic zoomin for RUD \n");
 			  printf("--blockWidth  : Set block size in words (ex. 64 for 64 Bytes) for last level in zoomRUD analysis \n");
 			  printf("--zoomStopPageWidth : Set zoom Stop page width in words (ex. 16384 for 16384 Bytes) for last level in zoomRUD analysis \n");
+			  printf("--heapAddrEnd : Set heap address range - specify end (length of address 12), stack changes between 0x7f.. in single threaded to 0x7ff.. in multi-threaded application\n");
 			  printf("--insn  :Find instructions in memRange \n");
 			  printf("--bottomUp	: enable bottom-up analysis\n");
 			  return -1;
@@ -406,6 +414,10 @@ int main(int argc, char ** argv){
   TraceLine *ptrTraceLine;
   vector<BlockInfo *> vecBlockInfo;
   vector<BlockInfo *>::iterator itr_blk;
+  // Changed to include stack also - threaded application's heap is mapped to 0x7...
+  // Minivite - Single threaded - stack starts at 0x7f
+  // Others - multi-threaded stack starts at 0x7ff
+  heapAddrEnd = stol("7f0000000000",0,16); // stack region is getting included in mid-point 
 
 	//get parameters
   while(argc > argi){
@@ -516,6 +528,11 @@ int main(int argc, char ** argv){
 			printf("Using Page size for zoom stop level in zoomRUD %ld \n", zoomLastLvlPageWidth);
 		  argi++;
 		}
+		if (strcmp(qpoint, "--heapAddrEnd") == 0){
+      heapAddrEnd = stol(argv[argi],0,16); // stack region is getting included in mid-point 
+			printf("Using heap address range to max of %lx \n", heapAddrEnd);
+		  argi++;
+		}
 		if (strcmp(qpoint, "--insn") == 0){
 			printf("--insn  : Find instructions for %s in memRange ", memoryfile);
 			printf("%08lx-%08lx\n",user_min,user_max);
@@ -555,15 +572,19 @@ int main(int argc, char ** argv){
   int zoomin = 0;
   int zoominTimes = 0;
   ofstream zoomInFile_det;
-  if(outZoom==1)
-    zoomInFile_det.open(outputFileZoom, std::ofstream::out | std::ofstream::trunc);
-  else
-    zoomInFile_det.open("zoomIn.out", std::ofstream::out | std::ofstream::trunc);
+  if( autoZoom ==1 ) {
+    if(outZoom==1)
+      zoomInFile_det.open(outputFileZoom, std::ofstream::out | std::ofstream::trunc);
+    else
+      zoomInFile_det.open("zoomIn.out", std::ofstream::out | std::ofstream::trunc);
+  }
   ofstream spatialOutFile;
-  if(outSpatial==1)
-    spatialOutFile.open(outputFileSpatial, std::ofstream::out | std::ofstream::trunc);
-  else
-    spatialOutFile.open("spatialRUD.out", std::ofstream::out | std::ofstream::trunc);
+  if (spatialResult ==1 ) {
+    if(outSpatial==1)
+      spatialOutFile.open(outputFileSpatial, std::ofstream::out | std::ofstream::trunc);
+    else
+      spatialOutFile.open("spatialRUD.out", std::ofstream::out | std::ofstream::trunc);
+  }
   uint32_t i=0;
   Memblock thisPage;
 	thisPage.level=1;
@@ -586,13 +607,6 @@ int main(int argc, char ** argv){
 		  memarea.blockCount =  ceil((memarea.max - memarea.min)/(double)pageSize);
 		  memarea.blockSize = pageSize;
   }
-  //heapAddrEnd = memarea.min+((memarea.max - memarea.min)/2) ; 
-  // Changed to include stack also - threaded application's heap is mapped to 0x7...
-  // Also, stack loads are getting filtered in trace
-  // Minivite - Single threaded - stack starts at 0x7f
-  // Others - multi-threaded stack starts at 0x7ff
-  heapAddrEnd = stol("7f0000000000",0,16); // stack region is getting included in mid-point 
-                   // 7f2e6579f441
   vector<double> Rud; 
   vector<double> sampleRud; 
   vector<uint32_t> pageTotalAccess; 
@@ -751,8 +765,8 @@ int main(int argc, char ** argv){
       setRegionAddr.push_back(make_pair(minRegionAddr, maxRegionAddr));
     }
     sort(setRegionAddr.begin(), setRegionAddr.end());
-    for(uint32_t k=0; k<setRegionAddr.size(); k++)
-      printf("main Spatial set min-max %d %lx-%lx \n", k, setRegionAddr[k].first, setRegionAddr[k].second);
+    //for(uint32_t k=0; k<setRegionAddr.size(); k++)
+    //  printf("main Spatial set min-max %d %lx-%lx \n", k, setRegionAddr[k].first, setRegionAddr[k].second);
     if(setRegionAddr.size() ==0) {
       printf("In Spatial Analysis Step 1 - Region address list is empty\n");
       return 0;
