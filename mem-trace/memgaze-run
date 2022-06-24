@@ -218,5 +218,6 @@ cat <<EOF > ${opt_output}/memgaze.config
 -m ${opt_method}
 -b ${app_path}
 -data ${opt_output}.perf
+-size ${opt_buffer}
 EOF
 
