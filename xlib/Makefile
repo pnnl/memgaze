@@ -54,9 +54,10 @@ xlib_spack :
 	  git clone -c feature.manyFiles=true https://github.com/spack/spack.git ; \
 	fi && \
 	cp $(XLIB_CFG)/config.yaml     $(SPK_ETC)/ && \
-	cp $(XLIB_CFG)/hpctk-pkgs.yaml $(SPK_ETC)/packages.yaml && \
-	cp $(XLIB_CFG)/dyninst.py      $(SPK_DYNINST)/package.py && \
-	cp $(XLIB_CFG)/dyninst.patch   $(SPK_DYNINST)/memgaze.patch
+        $(XLIB_SPACK)/bin/spack install ca-certificates-mozilla
+#	cp $(XLIB_CFG)/hpctk-pkgs.yaml $(SPK_ETC)/packages.yaml && \
+#	cp $(XLIB_CFG)/dyninst.py      $(SPK_DYNINST)/package.py && \
+#	cp $(XLIB_CFG)/dyninst.patch   $(SPK_DYNINST)/memgaze.patch
 
 xlib_hpctoolkit_dev :
 	@$(PRINTF) $(_msg_infoGrp)
@@ -66,12 +67,15 @@ xlib_hpctoolkit_dev :
 
 xlib_hpctoolkit :
 	@$(PRINTF) $(_msg_infoGrp)
+	cp $(XLIB_CFG)/hpctk-pkgs.yaml $(SPK_ETC)/packages.yaml && \
 	$(XLIB_SPACK)/bin/spack install --reuse --source $(MY_HPCTK)
 
 
 xlib_dyninst_patch :
 	@$(PRINTF) $(_msg_infoGrp)
 	$(RM) $(SPK_ETC)/packages.yaml && \
+	cp $(XLIB_CFG)/dyninst.py      $(SPK_DYNINST)/package.py && \
+	cp $(XLIB_CFG)/dyninst.patch   $(SPK_DYNINST)/memgaze.patch && \
 	$(XLIB_SPACK)/bin/spack install --reuse --source --overwrite -y $(MY_DYNINST)
 
 
