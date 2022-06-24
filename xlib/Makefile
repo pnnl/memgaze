@@ -62,7 +62,8 @@ xlib_spack :
 xlib_hpctoolkit_dev :
 	@$(PRINTF) $(_msg_infoGrp)
 	cp $(XLIB_CFG)/hpctk-dev-pkgs.yaml $(SPK_ETC)/packages.yaml && \
-	$(XLIB_SPACK)/bin/spack install --reuse --source $(MY_HPCTK_DEV)
+	$(XLIB_SPACK)/bin/spack install --reuse --source $(MY_HPCTK_DEV) && \
+        $(XLIB_SPACK)/bin/spack install --reuse binutils@2.38
 
 
 xlib_hpctoolkit :
