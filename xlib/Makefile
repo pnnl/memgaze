@@ -32,10 +32,14 @@ XLIB_CFG   = $(MG_XLIB_SRC)/config-lib
 SPK_ETC     = $(XLIB_SPACK)/etc/spack
 SPK_DYNINST = $(XLIB_SPACK)/var/spack/repos/builtin/packages/dyninst
 
-#MY_HPCTK   = hpctoolkit@2022.01.15 -papi -mpi
+MY_HPCTK_DEV   = hpctoolkit@develop -papi -mpi
 MY_HPCTK   = hpctoolkit@2022.05.15 -papi -mpi
 #MY_DYNINST = dyninst@12.0.1
 MY_DYNINST = dyninst@12.1.0
+
+xlib_dev : info xlib_spack xlib_hpctoolkit_dev xlib_dyninst_patch
+	@$(PRINTF) $(_msg_infoGrp)
+# platform: "$(XLIB_SPACK)/bin/spack arch"
 
 
 xlib : info xlib_spack xlib_hpctoolkit xlib_dyninst_patch
@@ -53,6 +57,11 @@ xlib_spack :
 	cp $(XLIB_CFG)/hpctk-pkgs.yaml $(SPK_ETC)/packages.yaml && \
 	cp $(XLIB_CFG)/dyninst.py      $(SPK_DYNINST)/package.py && \
 	cp $(XLIB_CFG)/dyninst.patch   $(SPK_DYNINST)/memgaze.patch
+
+xlib_hpctoolkit_dev :
+	@$(PRINTF) $(_msg_infoGrp)
+	cp $(XLIB_CFG)/hpctk-dev-pkgs.yaml $(SPK_ETC)/packages.yaml && \
+	$(XLIB_SPACK)/bin/spack install --reuse --source $(MY_HPCTK_DEV)
 
 
 xlib_hpctoolkit :
@@ -107,6 +116,7 @@ include ../Makefile-template.mk
 #****************************************************************************
 # Local Rules
 #****************************************************************************
+develop: xlib_dev perf 
 
 install.local : xlib perf
 
