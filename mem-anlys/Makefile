@@ -89,7 +89,7 @@ HPCTK_LDADD = #\
 
 mg_hpctk := memgaze-hpctk
 
-MK_PROGRAMS_CXX += $(mg_hpctk)
+MK_PROGRAMS_CXX += #$(mg_hpctk)
 
 $(mg_hpctk)_SRCS = \
 	main-hpctk2.cpp
