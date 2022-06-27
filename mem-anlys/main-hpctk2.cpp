@@ -27,19 +27,23 @@ using std::string;
 
 #include <include/gcc-attr.h>
 
-#include <tool/hpcprof/Args.hpp>
+#include <tool/hpcprof/args.hpp>
 
-#include <lib/analysis/CallPath-CudaCFG.hpp>
-#include <lib/analysis/CallPath.hpp>
-#include <lib/analysis/Util.hpp>
+#include <lib/profile/pipeline.hpp>
+#include <lib/profile/source.hpp>
+#include <lib/profile/scope.hpp>
+#include <lib/profile/module.hpp>
+#include "lib/profile/sinks/sparsedb.hpp"
+#include "lib/profile/finalizers/denseids.hpp"
+#include "lib/profile/finalizers/directclassification.hpp"
 
 #include <lib/prof/CallPath-Profile.hpp>
-//#include <lib/analysis/CCT-Tree.hpp>
-
 
 #include <lib/support/diagnostics.h>
 #include <lib/support/RealPathMgr.hpp>
 
+using namespace hpctoolkit;
+namespace fs = stdshim::filesystem;
 
 //*************************** Forward Declarations ***************************
 
@@ -51,20 +55,25 @@ realmain(int argc, char* const* argv);
 // tallent: opaque (FIXME)
 class MyXFrame;
 
-static Prof::CCT::ANode*
-makeCCTPath(MyXFrame* path, uint n_metrics);
+//static Prof::CCT::ANode*
+//makeCCTPath(MyXFrame* path, uint n_metrics);
 
-static Prof::CCT::ANode*
-makeCCTFrame(Prof::LoadMap::LMId_t lmId, VMA ip, uint n_metrics);
+//static Prof::CCT::ANode*
+//makeCCTFrame(Prof::LoadMap::LMId_t lmId, VMA ip, uint n_metrics);
 
-static Prof::CCT::ANode*
-makeCCTLeaf(Prof::LoadMap::LMId_t lmId, VMA ip, uint n_metrics);
+//static Prof::CCT::ANode*
+//makeCCTLeaf(Prof::LoadMap::LMId_t lmId, VMA ip, uint n_metrics);
 
-static Prof::CCT::ANode*
-makeCCTRoot(uint n_metrics);
+//static Prof::CCT::ANode*
+//makeCCTRoot(uint n_metrics);
 
 
 // tallent: typical exception wrapper
+
+template<class T, class... Args>
+static std::unique_ptr<T> make_unique_x(Args&&... args) {
+  return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
 
 int
 main(int argc, char* const* argv) 
