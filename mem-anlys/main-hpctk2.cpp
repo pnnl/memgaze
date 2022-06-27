@@ -179,6 +179,8 @@ realmain(int argc, char* const* argv)
   // ------------------------------------------------------------
   //
   // ProfilePipeline: The monolithic thing that drives everything. Can reuse.
+  //   A ProfilePipeline consists of pieline Sources, pipeline Sinks,
+  //   and pipeline Finalizers that transform the Sources to Sinks.
   //   https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/lib/profile/pipeline.hpp
   // 
   // ProfileSource: A virtual class we should implement.
@@ -186,7 +188,7 @@ realmain(int argc, char* const* argv)
   // 
   // Hpcrun4: Complex example of a ProfileSource:
   //   https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/lib/profile/sources/hpcrun4.cpp
-  //
+  // 
   // ------------------------------------------------------------
 
 
