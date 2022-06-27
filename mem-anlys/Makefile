@@ -72,8 +72,18 @@ HPCTK_LDFLAGS = \
         -L$(HPCTK_LIB) -Wl,-rpath $(HPCTK_LIB)
 
 # FIXME: LDADD from <hpctk>/src/tool/hpcprof/Makefile.am
-HPCTK_LDADD =
-
+HPCTK_LDADD = \
+        @HOST_LIBTREPOSITORY@ \
+        $(HPCLIB_Profile) \
+        $(HPCLIB_ProfileStandalone) \
+        $(HPCLIB_ProfLean) \
+        $(HPCLIB_SupportLean) \
+        $(MY_ELF_DWARF) \
+        @LZMA_LDFLAGS_STAT@ \
+        @XERCES_LDLIBS@ \
+        @LIBIBERTY_LIBS@ \
+        @BOOST_LFLAGS@ \
+        @HOST_HPCPROF_LDFLAGS@ 
 
 #----------------------------------------------------------------------------
 
