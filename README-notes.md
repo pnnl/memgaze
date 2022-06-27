@@ -326,7 +326,7 @@ MIAMI-NW structure
 MIAMI-NW structure (Ozgur's notes)
 =============================================================================
 
-Miami dependency analysis
+MIAMI dependency analysis
 -----------------------------------------------------------------------------
 Following is still there but it is old ( from latency analysis time:
 
@@ -342,7 +342,7 @@ line 11897 SchedDG::Node::myComputePathToLeaf
 myComputePathToLeaf    function is a recursive function to visit all the edges on outgoing edge iterator.
 
 
-Miami: Reading CFG file
+MIAMI: Reading CFG file
 -----------------------------------------------------------------------------
 
 in   Scheduler/MiamiDriver.C
