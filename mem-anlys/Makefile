@@ -72,7 +72,7 @@ HPCTK_LDFLAGS = \
         -L$(HPCTK_LIB) -Wl,-rpath $(HPCTK_LIB)
 
 # FIXME: LDADD from <hpctk>/src/tool/hpcprof/Makefile.am
-HPCTK_LDADD = \
+HPCTK_LDADD = #\
         @HOST_LIBTREPOSITORY@ \
         $(HPCLIB_Profile) \
         $(HPCLIB_ProfileStandalone) \
@@ -92,7 +92,7 @@ mg_hpctk := memgaze-hpctk
 MK_PROGRAMS_CXX += #$(mg_hpctk)
 
 $(mg_hpctk)_SRCS = \
-	main-hpctk.cpp
+	main-hpctk2.cpp
 
 $(mg_hpctk)_CXXFLAGS = \
 	-g -O3 \
@@ -117,6 +117,7 @@ include ../Makefile-template.mk
 #****************************************************************************
 # Local Rules
 #****************************************************************************
+
 
 info.local :
 
