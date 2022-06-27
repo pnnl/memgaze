@@ -267,7 +267,6 @@ MIAMI-NW structure
   -> `DGBuilder::computeMemoryInformationForPath()`
      -> `SchedDG::find_memory_parallelism()`
   
-
 * Calls [some] to instruction decoding:
   `main()` [schedtool.C]
   -> `MIAMI_Driver::LoadImage()`
@@ -326,48 +325,62 @@ MIAMI-NW structure
 MIAMI-NW structure (Ozgur's notes)
 =============================================================================
 
-MIAMI dependency analysis
+Dependency analysis
 -----------------------------------------------------------------------------
-Following is still there but it is old ( from latency analysis time:
 
-In routine.C 
-line:1706       MIAMI_DG::DGBuilder *sch = NULL;
-line:1726          sch = new MIAMI_DG::DGBuilder(this, pathId,
-line:1753             MIAMI_DG::schedule_result_t res = sch->myComputeScheduleLatency()
+In routine.C:
+```
+line:1706  MIAMI_DG::DGBuilder *sch = NULL;
+line:1726     sch = new MIAMI_DG::DGBuilder(this, pathId,
+line:1753        MIAMI_DG::schedule_result_t res = sch->myComputeScheduleLatency()
+```
 
-in Scheduler/SchedDG.C
+In Scheduler/SchedDG.C:
+```
 line:10306    retValues ret =  myMinSchedulingLengthDueToDependencies(memLatency, cpuLatency);
 line:11615             teit->sink()->myComputePathToLeaf()
-line 11897 SchedDG::Node::myComputePathToLeaf
+line:11897 SchedDG::Node::myComputePathToLeaf
 myComputePathToLeaf    function is a recursive function to visit all the edges on outgoing edge iterator.
+```
 
 
-MIAMI: Reading CFG file
+Reading CFG file
 -----------------------------------------------------------------------------
 
-in   Scheduler/MiamiDriver.C
+In Scheduler/MiamiDriver.C
+```
 line: 141 MIAMI_Driver::Initialize(MiamiOptions *_mo, int _pid)
 line:153     fd = fopen(mo->cfg_file.c_str(), "rb");
+```
 
-and keep using the fd on different functions. flow is as following 
+Keep using the fd on different functions. Flow is as following:
 
-in Scheduler/schedtool.C
+In Scheduler/schedtool.C
+```
 line: 309        MIAMI::mdriver.LoadImage()
+```
 
-in Scheduler/MiamiDriver.C
+In Scheduler/MiamiDriver.C
+```
 line: 457 MIAMI_Driver::LoadImage(
 line: 516       newimg->loadFromFile(fd, false);
+```
 
-in Scheduler/load_module.C
+In Scheduler/load_module.C
+```
 line: 59 LoadModule::loadFromFile(FILE *fd, bool parse_routines)
 line: 142 LoadModule::loadRoutineData(FILE *fd)
 line: 185 LoadModule::loadOneRoutine(FILE *fd, uint32_t r)
+```
 
-in Scheduler/routine.C
+In Scheduler/routine.C
+```
 line: 73 Routine::loadCFGFromFile(FILE *fd)
+```
 
-in Scheduler/CFG.C
+In Scheduler/CFG.C
+```
 line: 142 CFG::loadFromFile()
-
+```
 
 -----------------------------------------------------------------------------
