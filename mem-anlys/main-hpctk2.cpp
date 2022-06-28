@@ -258,8 +258,10 @@ MemGazeSource::make()
   // Load modules
   // ------------------------------------------------------------
 
-  // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L325
+  //https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/source.hpp#L103 ???
+  ProfilePipeline::Source sink;
 
+  // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L325 
   // for each load module:
   {
   Module& lm = sink.module(lm.name); // [[ASK]]
