@@ -34,6 +34,8 @@ using std::string;
 #include <lib/profile/scope.hpp>
 #include <lib/profile/module.hpp>
 #include <lib/profile/sinks/sparsedb.hpp>
+#include "lib/profile/sinks/hpctracedb2.hpp"
+#include <lib/profile/sinks/experimentxml4.hpp>
 #include <lib/profile/finalizers/denseids.hpp>
 #include <lib/profile/finalizers/directclassification.hpp>
 
@@ -218,7 +220,7 @@ realmain(int argc, char* const* argv)
   ProfilePipeline::Settings pipeSettings;
 
   // 'PipelineSource' objects for each input source
-  for(auto& sp : args.sources) pipelineB << std::move(sp.first);
+  for(auto& sp : args.sources) pipeSettings << std::move(sp.first);
 
   // 'ProfileFinalizer' objects for hpcstruct [[we can reuse]]
   for(auto& sp : args.structs) pipeSettings << std::move(sp.first); // add structure files
@@ -233,6 +235,7 @@ realmain(int argc, char* const* argv)
   pipeSettings << dc;
 
   // The "experiment.xml" file
+  std::unique_ptr<sinks::HPCTraceDB2> tdb;
   pipeSettings << make_unique_x<sinks::ExperimentXML4>(args.output, args.include_sources, tdb.get());
 
   // "trace.db"
@@ -336,10 +339,13 @@ ProfileSource()
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L255
 
   // settings: name and description
-
+  
+  //hpctoolkit uses metric_desc_t m; m.name; m.description;
+  Metric::Settings settings{"name", "description"};
   Metric& metric = sink.metric(settings);
 
-  ThreadAttributes tattrs.idTuple(...);
+  ThreadAttributes tattrs;
+  tattrs.idTuple(/*...*/);
   PerThreadTemporary& thread = sink.thread(tattrs);
 
   
@@ -359,10 +365,12 @@ ProfileSource()
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L539
 
   // Metric "location"
+  std::optional<ProfilePipeline::Source::AccumulatorsRef> accum;
   accum = sink.accumulateTo(thread, node /* context ref */);
 
   // Metric value
-  accum->add(metric, v /*double*/);
+  double v = 1;
+  accum->add(metric, v);
 
   // add post-processing?
 
