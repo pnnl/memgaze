@@ -216,9 +216,14 @@ realmain(int argc, char* const* argv)
 
   // Get the main core of the Pipeline set up.
   ProfilePipeline::Settings pipeSettings;
+
+  // 'PipelineSource' objects for each input source
+  for(auto& sp : args.sources) pipelineB << std::move(sp.first);
+
+  // 'ProfileFinalizer' objects for hpcstruct [[we can reuse]]
   for(auto& sp : args.structs) pipeSettings << std::move(sp.first); // add structure files
   
-  // Provide Ids for things from the void [[ASK]]
+  // Provide Ids for things from the void
   finalizers::DenseIds dids;
   pipeSettings << dids;
 
@@ -227,14 +232,20 @@ realmain(int argc, char* const* argv)
   finalizers::DirectClassification dc(args.dwarfMaxSize);
   pipeSettings << dc;
 
-  // [[ASK]]: inputs?
+  // The "experiment.xml" file
+  pipeSettings << make_unique_x<sinks::ExperimentXML4>(args.output, args.include_sources, tdb.get());
+
+  // "trace.db"
+  
+  // "profile.db", "cct.db"
   pipeSettings << make_unique_x<sinks::SparseDB>(args.output);
+
 
   // ------------------------------------------------------------
   // 1. Reuse ProfilePipeline
   // ------------------------------------------------------------
 
-  // Create the Pipeline, let the fun begin.
+  // Create the Pipeline, let the fun begin
   ProfilePipeline pipeline(std::move(pipeSettings), args.threads);
 
   // Drain the Pipeline, and make everything happen.
@@ -258,8 +269,7 @@ realmain(int argc, char* const* argv)
 
 
 bool
-make()
-//MemGazeSource::make()
+ProfileSource()
 {
   // ------------------------------------------------------------
   // Load modules
@@ -276,7 +286,7 @@ make()
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L325 
   // for each load module:
   //{
-  Module& lm = sink.module(lm_name); // [[ASK]]
+  Module& lm = sink.module(lm_name);
   //}
 
   // ------------------------------------------------------------
@@ -304,18 +314,55 @@ make()
   //{
   // Initially all nodes have type 'Scope::point'. When structure is
   // added, they are converted to Scope::line.
-  Context& c = sink.context(root, {Relation::call, Scope()}).second; // what is second?? 
+
+  // Context: The context of a node with its parent.
+  
+  // https://github.com/HPCToolkit/hpctoolkit/blob/2092e539f5584528abec371e8c4bf6f4076ffe14/src/lib/profile/pipeline.hpp#L317
+
+  // '<sink>.context(...).first' is the node's parent Context after expansion (corresponds to Relation (edge property))
+  // '<sink>.context(...).second' is the node's Context after expansion
+
+  Scope s1 = Scope(lm, lm_ip); // creates Scope::point
+  Context& n1 = sink.context(root, {Relation::call, s1}).second;
 
   Scope scope = Scope(lm, lm_ip); // creates Scope::point
-  Context& n = sink.context(c, {Relation::call, scope}).second;
+  Context& node = sink.context(n1, {Relation::call, scope}).second;
   //}
   
   // ------------------------------------------------------------
-  // Metrics
+  // Create "Metric" object
   // ------------------------------------------------------------
-  
-  // raw vs. aggregation
 
+  // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L255
+
+  // settings: name and description
+
+  Metric& metric = sink.metric(settings);
+
+  ThreadAttributes tattrs.idTuple(...);
+  PerThreadTemporary& thread = sink.thread(tattrs);
+
+  
+  // ------------------------------------------------------------
+  // Attribute metric values
+  // ------------------------------------------------------------
+
+  // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L519
+
+  // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L526
+
+  // cid = context-id-from-file;
+  // auto node_it = nodes.find(cid);
+
+  // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L534
+
+  // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L539
+
+  // Metric "location"
+  accum = sink.accumulateTo(thread, node /* context ref */);
+
+  // Metric value
+  accum->add(metric, v /*double*/);
 
   // add post-processing?
 
