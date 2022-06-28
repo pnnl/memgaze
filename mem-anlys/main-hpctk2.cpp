@@ -43,7 +43,6 @@ using std::string;
 #include <lib/support/RealPathMgr.hpp>
 
 using namespace hpctoolkit;
-namespace fs = stdshim::filesystem;
 
 //*************************** Forward Declarations ***************************
 
@@ -67,14 +66,13 @@ class MyXFrame;
 //static Prof::CCT::ANode*
 //makeCCTRoot(uint n_metrics);
 
-
-// tallent: typical exception wrapper
-
+//https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/tool/hpcprof/main.cpp#L64
 template<class T, class... Args>
 static std::unique_ptr<T> make_unique_x(Args&&... args) {
   return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
+// tallent: typical exception wrapper
 int
 main(int argc, char* const* argv) 
 {
