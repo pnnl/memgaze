@@ -33,9 +33,11 @@ using std::string;
 #include <lib/profile/source.hpp>
 #include <lib/profile/scope.hpp>
 #include <lib/profile/module.hpp>
-#include "lib/profile/sinks/sparsedb.hpp"
-#include "lib/profile/finalizers/denseids.hpp"
-#include "lib/profile/finalizers/directclassification.hpp"
+#include <lib/profile/sinks/sparsedb.hpp>
+#include <lib/profile/finalizers/denseids.hpp>
+#include <lib/profile/finalizers/directclassification.hpp>
+
+//#include <lib/prof-lean/hpcrun-fmt.h>
 
 #include <lib/prof/CallPath-Profile.hpp>
 
@@ -53,6 +55,10 @@ realmain(int argc, char* const* argv);
 
 // tallent: opaque (FIXME)
 class MyXFrame;
+//class MemGazeSource {
+//  public:
+//    bool make();
+//};
 
 //static Prof::CCT::ANode*
 //makeCCTPath(MyXFrame* path, uint n_metrics);
@@ -252,7 +258,8 @@ realmain(int argc, char* const* argv)
 
 
 bool
-MemGazeSource::make()
+make()
+//MemGazeSource::make()
 {
   // ------------------------------------------------------------
   // Load modules
@@ -261,11 +268,16 @@ MemGazeSource::make()
   //https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/source.hpp#L103 ???
   ProfilePipeline::Source sink;
 
+  //https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L323 ???
+  //loadmap_entry_t lm;
+  std::string lm_name = "dummy name";  
+  uint64_t lm_ip = 11;
+
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L325 
   // for each load module:
-  {
-  Module& lm = sink.module(lm.name); // [[ASK]]
-  }
+  //{
+  Module& lm = sink.module(lm_name); // [[ASK]]
+  //}
 
   // ------------------------------------------------------------
   // CCT root (from ProfileSource())
@@ -289,13 +301,14 @@ MemGazeSource::make()
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L448
 
   // for each node in tree, where parent begins with 'root'
-  {
+  //{
   // Initially all nodes have type 'Scope::point'. When structure is
   // added, they are converted to Scope::line.
-  Scope& scope = Scope(lm, lm_ip); // creates Scope::point
+  Context& c = sink.context(root, {Relation::call, Scope()}).second; // what is second?? 
 
-  Context& n = sink.context(parent, {Relation::call, scope});
-  }
+  Scope scope = Scope(lm, lm_ip); // creates Scope::point
+  Context& n = sink.context(c, {Relation::call, scope}).second;
+  //}
   
   // ------------------------------------------------------------
   // Metrics
