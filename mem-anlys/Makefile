@@ -66,7 +66,7 @@ $(mg_analyze)_LDADD =
 #OLD: HPCTK_ROOT = /files0/kili337/IntelPT/spack/opt/spack/linux-centos7-skylake_avx512/gcc-7.1.0/hpctoolkit-2021.10.15-gxyejpvcuclo4pp7dust3ym3f7runqze
 
 HPCTK_CXXFLAGS = \
-	-I$(HPCTK_DEV_SRC) 
+	-I$(HPCTK_DEV_SRC) -std=c++17 #HPCToolkit requires C++17
 
 HPCTK_LDFLAGS = \
         -L$(HPCTK_DEV_LIB) -Wl,-rpath $(HPCTK_DEV_LIB)
