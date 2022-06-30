@@ -17,6 +17,7 @@
 #****************************************************************************
 
 include ../Makefile-defs.mk
+#include ../xlib/lib/hpctoolkit-develop/share/hpctoolkit/src/src/Makefile.in
 
 #****************************************************************************
 # Recursion
@@ -66,45 +67,58 @@ $(mg_analyze)_LDADD =
 #OLD: HPCTK_ROOT = /files0/kili337/IntelPT/spack/opt/spack/linux-centos7-skylake_avx512/gcc-7.1.0/hpctoolkit-2021.10.15-gxyejpvcuclo4pp7dust3ym3f7runqze
 
 HPCTK_CXXFLAGS = \
-	-I$(HPCTK_DEV_SRC) -std=c++17 #HPCToolkit requires C++17
+	-I$(HPCTK_DEV_SRC)  #HPCToolkit requires C++17
 
 HPCTK_LDFLAGS = \
-        -L$(HPCTK_DEV_LIB) -Wl,-rpath $(HPCTK_DEV_LIB)
+        -L$(HPCTK_DEV_LIB) -Wl,-rpath $(HPCTK_DEV_LIB) 
 
 # FIXME: LDADD from <hpctk>/src/tool/hpcprof/Makefile.am
-HPCTK_LDADD = #\
-        $(HPCLIB_Profile) \
-        $(HPCLIB_ProfileStandalone) \
-        $(HPCLIB_ProfLean) \
-        $(HPCLIB_SupportLean) \
-        $(MY_ELF_DWARF) \
-        @HOST_LIBTREPOSITORY@ \
-        @LZMA_LDFLAGS_STAT@ \
-        @XERCES_LDLIBS@ \
-        @LIBIBERTY_LIBS@ \
-        @BOOST_LFLAGS@ \
-        @HOST_HPCPROF_LDFLAGS@ 
+HPCTK_LDADD = \
+	$(HPCTKLIB_Profile)/$(HPCTKLIB_Profile_a) \
+	$(HPCTKLIB_ProfileStandalone)/$(HPCTKLIB_ProfileStandalone_a) \
+	$(HPCTKLIB_ProfLean)/$(HPCTKLIB_ProfLean_a) \
+	$(HPCTKLIB_SupportLean)/$(HPCTKLIB_SupportLean_a) \
+	$(HPCTKLIB_Support)/$(HPCTKLIB_Support_a) \
+	$(HPCTKLIB_Binutils)/$(HPCTKLIB_Binutils_a) \
+	$(HPCTKLIB_Prof)/$(HPCTKLIB_Prof_a)
 
+LIBELF_LDFLAGS= \
+	-L$(LIBELF_LIB) -Wl,-rpath $(LIBELF_LIB) \
+	-ldw \
+	-lelf
+
+LIBIBERTY_LDFLAGS= \
+	-L$(LIBIBERTY_LIB) -Wl,-rpath $(LIBIBERTY_LIB) \
+	-liberty
+
+XERCES_LDFLAGS = \
+	-L$(XERCES_LIB) -Wl,-rpath $(XERCES_LIB) \
+	-lxerces-c
 #----------------------------------------------------------------------------
 
-mg_hpctk := memgaze-hpctk
+mg_hpctk := memgaze-hpctk2
 
-MK_PROGRAMS_CXX += #$(mg_hpctk)
+MK_PROGRAMS_CXX += $(mg_hpctk)
 
 $(mg_hpctk)_SRCS = \
-	main-hpctk2.cpp
+	main-hpctk2.cpp $(HPCTK_DEV_SRC)/tool/hpcprof/args.cpp
 
 $(mg_hpctk)_CXXFLAGS = \
-	-g -O3 \
-  $(HPCTK_CXXFLAGS)
+	-g -O3 -std=c++17 -pthread -fopenmp \
+  	$(HPCTK_CXXFLAGS)
 
 $(mg_hpctk)_LDFLAGS = \
-  $(HPCTK_LDFLAGS)
+  	$(HPCTK_LDFLAGS) \
+	$(LIBELF_LDFLAGS) \
+	$(XERCES_LDFLAGS)
 
-$(mg_hpctk)_LIBS =
+$(mg_hpctk)_LIBS = \
 
 $(mg_hpctk)_LDADD = \
-  $(HPCTK_LDADD)
+  	$(HPCTK_LDADD) \
+  	$(LIBIBERTY_LDFLAGS) \
+ 	$(LZMA_LIB) \
+	-lstdc++fs
 
 
 #****************************************************************************

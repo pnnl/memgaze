@@ -34,7 +34,6 @@ using std::string;
 #include <lib/profile/scope.hpp>
 #include <lib/profile/module.hpp>
 #include <lib/profile/sinks/sparsedb.hpp>
-#include "lib/profile/sinks/hpctracedb2.hpp"
 #include <lib/profile/sinks/experimentxml4.hpp>
 #include <lib/profile/finalizers/denseids.hpp>
 #include <lib/profile/finalizers/directclassification.hpp>
@@ -235,8 +234,7 @@ realmain(int argc, char* const* argv)
   pipeSettings << dc;
 
   // The "experiment.xml" file
-  std::unique_ptr<sinks::HPCTraceDB2> tdb;
-  pipeSettings << make_unique_x<sinks::ExperimentXML4>(args.output, args.include_sources, tdb.get());
+  pipeSettings << make_unique_x<sinks::ExperimentXML4>(args.output, args.include_sources, nullptr);
 
   // "trace.db"
   
