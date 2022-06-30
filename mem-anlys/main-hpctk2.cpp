@@ -56,10 +56,6 @@ realmain(int argc, char* const* argv);
 
 // tallent: opaque (FIXME)
 class MyXFrame;
-//class MemGazeSource {
-//  public:
-//    bool make();
-//};
 
 //static Prof::CCT::ANode*
 //makeCCTPath(MyXFrame* path, uint n_metrics);
@@ -234,10 +230,9 @@ realmain(int argc, char* const* argv)
   pipeSettings << dc;
 
   // The "experiment.xml" file
+  // The last parameter is for traceDB. We should use nullptr.
   pipeSettings << make_unique_x<sinks::ExperimentXML4>(args.output, args.include_sources, nullptr);
 
-  // "trace.db"
-  
   // "profile.db", "cct.db"
   pipeSettings << make_unique_x<sinks::SparseDB>(args.output);
 
@@ -338,12 +333,19 @@ ProfileSource()
 
   // settings: name and description
   
-  //hpctoolkit uses metric_desc_t m; m.name; m.description;
+  // hpctoolkit uses metric_desc_t m; m.name; m.description;
   Metric::Settings settings{"name", "description"};
   Metric& metric = sink.metric(settings);
 
+  // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L381
+  std::vector<pms_id_t> ids;
+  // https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/lib/prof-lean/id-tuple.h#L116
+  // struct pms_id_t: uint16_t kind, uint64_t physical index, uint64_t logical index
+  pms_id_t id = {1, 1, 0};
+  ids.push_back(id);
+  
   ThreadAttributes tattrs;
-  tattrs.idTuple(/*...*/);
+  tattrs.idTuple(ids);
   PerThreadTemporary& thread = sink.thread(tattrs);
 
   
