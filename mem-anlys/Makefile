@@ -75,9 +75,9 @@ HPCTK_LDFLAGS = \
 # FIXME: LDADD from <hpctk>/src/tool/hpcprof/Makefile.am
 HPCTK_LDADD = \
 	$(HPCTKLIB_Profile)/$(HPCTKLIB_Profile_a) \
-	$(HPCTKLIB_ProfileStandalone)/$(HPCTKLIB_ProfileStandalone_a) \
-	$(HPCTKLIB_ProfLean)/$(HPCTKLIB_ProfLean_a) \
-	$(HPCTKLIB_SupportLean)/$(HPCTKLIB_SupportLean_a) \
+        $(HPCTKLIB_ProfileStandalone)/$(HPCTKLIB_ProfileStandalone_a) \
+        $(HPCTKLIB_ProfLean)/$(HPCTKLIB_ProfLean_a) \
+        $(HPCTKLIB_SupportLean)/$(HPCTKLIB_SupportLean_a) \
 	$(HPCTKLIB_Support)/$(HPCTKLIB_Support_a) \
 	$(HPCTKLIB_Binutils)/$(HPCTKLIB_Binutils_a) \
 	$(HPCTKLIB_Prof)/$(HPCTKLIB_Prof_a)
@@ -98,7 +98,7 @@ XERCES_LDFLAGS = \
 
 mg_hpctk := memgaze-hpctk2
 
-MK_PROGRAMS_CXX += $(mg_hpctk)
+MK_PROGRAMS_CXX += #$(mg_hpctk)
 
 $(mg_hpctk)_SRCS = \
 	main-hpctk2.cpp $(HPCTK_DEV_SRC)/tool/hpcprof/args.cpp
