@@ -84,7 +84,7 @@ class BlockInfo {
   int getMaxRUD(); 
 
   void printBlockInfo();
-  void printBlockSpatial(std::ofstream& outFile);
+  void printBlockSpatial(std::ofstream& outFile, uint64_t blockWidth);
   void printBlockRUD();
 
 };

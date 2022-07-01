@@ -4,10 +4,12 @@
 using std::list;
 // Global variables for threshold values
 int32_t lvlConstBlockSize = 2; // Level for setting constant blocksize in zoom
-double zoomThreshold = 0.10; // Threshold for access count - to include in zoom
+//double zoomThreshold = 0.10; // Threshold for access count - to include in zoom
+double zoomThreshold = 0.02; // Minivite uses this - Cluster paper data used different threshold values - to match regions to paper use this value 
 uint64_t heapAddrEnd ; // 
 uint64_t lastLvlBlockWidth; // Added for ZoomRUD analysis - option to set last level's block width
 uint64_t zoomLastLvlPageWidth ; // Added for ZoomRUD analysis - option to set last Zoom level's page width
+uint64_t OSPageSize = 4096;
 
 void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud, 
                   vector<uint32_t>& pageTotalAccess, uint32_t thresholdTotAccess, int *zoomin, Memblock curPage, 
@@ -783,21 +785,23 @@ int main(int argc, char ** argv){
       }
         // Correlational RUD analysis done at region based range - to identify co-existence of objects
 	   analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, out, vecBlockInfo, true, setRegionAddr); 
-       if(analysisReturn ==-1)
-          return -1;
-       spatialOutFile<< "***** New region starts " << " MemoryArea " << hex<< memarea.min << "-" << memarea.max 
-                   << " Block count " << std::dec << memarea.blockCount << endl; 
-        for(i = 0; i< memarea.blockCount; i++){
-          BlockInfo *curBlock = vecBlockInfo.at(i);
-          curBlock->printBlockSpatial(spatialOutFile);
-        }
+     if(analysisReturn ==-1) {
+      printf("Spatial Analysis at region level returned without results\n");
+      return -1;
+     }
+     spatialOutFile<< "***** New region starts " << " MemoryArea " << hex<< memarea.min << "-" << memarea.max 
+                   << " Region count " << std::dec << memarea.blockCount << endl; 
+     for(i = 0; i< memarea.blockCount; i++){
+         BlockInfo *curBlock = vecBlockInfo.at(i);
+         curBlock->printBlockSpatial(spatialOutFile,zoomLastLvlPageWidth);
+    }
     // END - STEP 1 
     // STEP 2 -  Zoom into objects to find OS page sized (4096 B) hot blocks
     for (itrRegion=spatialRegionList.begin(); itrRegion != spatialRegionList.end(); ++itrRegion){
  	    thisPage = *itrRegion; 
     	memarea.max = thisPage.max;
 	    memarea.min = thisPage.min;
-      memarea.blockSize = 4096; 
+      memarea.blockSize = OSPageSize; 
      	memarea.blockCount =  ceil((memarea.max - memarea.min)/(double)memarea.blockSize);
       /*
       // FOR 100 line trace - calculate SD at root level for verification
@@ -818,35 +822,37 @@ int main(int argc, char ** argv){
         BlockInfo *newBlock = new BlockInfo(blockID, memarea.min+(i*memarea.blockSize), memarea.min+((i+1)*memarea.blockSize-1), 
                                               memarea.blockCount, 0); 
           vecBlockInfo.push_back(newBlock);
-        }
-		    analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, out, vecBlockInfo,false, setRegionAddr); // spatialResult=0
-        if(analysisReturn ==-1)
+      }
+		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, out, vecBlockInfo,false, setRegionAddr); // spatialResult=0
+      if(analysisReturn ==-1) {
+          printf("Spatial Analysis Step 2 - Zoom into objects to find OS page sized (4096 B) hot blocks returned without results\n");
           return -1;
-	      pageTotalAccess.clear();
-        Rud.clear();
-        sampleRud.clear();
-        for(i = 0; i< memarea.blockCount; i++){
+      }
+	    pageTotalAccess.clear();
+      Rud.clear();
+      sampleRud.clear();
+      for(i = 0; i< memarea.blockCount; i++){
           BlockInfo *curBlock = vecBlockInfo.at(i);
           curBlock->printBlockRUD();
           pageTotalAccess.push_back(curBlock->getTotalAccess());
           sampleRud.push_back(curBlock->getSampleAvgRUD());
-        }
-        zoomOption =3;
-        findHotPage(memarea, zoomOption, sampleRud, pageTotalAccess,thresholdTotAccess, &zoomin, thisPage, zoomPageList);
-        while(!zoomPageList.empty()) {
+      }
+      zoomOption =3;
+      findHotPage(memarea, zoomOption, sampleRud, pageTotalAccess,thresholdTotAccess, &zoomin, thisPage, zoomPageList);
+      while(!zoomPageList.empty()) {
  				  thisPage = zoomPageList.front();
           printf(" in spatial zoom list %d thisPage.min %08lx thisPage.max %08lx \n", thisPage.level, thisPage.min, thisPage.max);
       		spatialOSPageList.push_back(thisPage);
  				  zoomPageList.pop_front();
-        }
       }
+    }
       // END - STEP 2
       // STEP 3 - Calculate spatial correlational RUD at OS page level - using 64 B cache line 
       for (itrOSPage=spatialOSPageList.begin(); itrOSPage != spatialOSPageList.end(); ++itrOSPage){
  	    thisPage = *itrOSPage; 
     	memarea.max = thisPage.max;
 	    memarea.min = thisPage.min;
-      memarea.blockSize = 64; 
+      memarea.blockSize = lastLvlBlockWidth; 
      	memarea.blockCount =  ceil((memarea.max - memarea.min)/(double)memarea.blockSize);
       printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx \n", thisPage.level, memarea.blockSize, memarea.blockCount, memarea.min, memarea.max);
       vecBlockInfo.clear();
@@ -860,15 +866,17 @@ int main(int argc, char ** argv){
 		  printf("Memory address min %lx max %lx ", memarea.min, memarea.max);
 			printf(" page number = %d ", memarea.blockCount);
 			printf(" page size =  %ld\n", memarea.blockSize);
-		    analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, out, vecBlockInfo, false, setRegionAddr);
-        if(analysisReturn ==-1)
-          return -1;
-        spatialOutFile << "***** New region starts " << " MemoryArea " << hex<< memarea.min << "-" << memarea.max
+		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, out, vecBlockInfo, false, setRegionAddr);
+      if(analysisReturn ==-1) {
+        printf("Spatial Analysis Step 2 - Zoom into objects to find OS page sized (4096 B) hot blocks returned without results\n");
+        return -1;
+      }
+      spatialOutFile << "***** New region starts " << " MemoryArea " << hex<< memarea.min << "-" << memarea.max
                    << " Block size " <<std::dec <<  memarea.blockSize << " Block count " << memarea.blockCount << endl; 
-        for(i = 0; i< memarea.blockCount; i++){
+      for(i = 0; i< memarea.blockCount; i++){
           BlockInfo *curBlock = vecBlockInfo.at(i);
-          curBlock->printBlockSpatial(spatialOutFile);
-        }
+          curBlock->printBlockSpatial(spatialOutFile, lastLvlBlockWidth);
+      }
     }
     // END - STEP 3
     spatialOutFile.close();
