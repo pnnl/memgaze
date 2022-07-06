@@ -3,6 +3,19 @@
 $Id$
 
 -----------------------------------------------------------------------------
+About
+=============================================================================
+
+As memory systems are the primary bottleneck in many workloads, effective hardware/software co-design requires a detailed understanding of memory behavior. Unfortunately, current analysis of word-level sequences of memory accesses incurs time slowdowns of O(100×).
+
+MemGaze is a memory analysis toolset that combines high-resolution trace analysis and low overhead measurement, both with respect to time and space. 
+
+MemGaze provides high-resolution by collecting world-level memory access traces, where the highest resolution supported is back-to-back sequences. In particular, it leverages emerging Processor Tracing support to collect data. It achieves low-overhead in space and time by leveraging sampling and various methods of hardware support for collecting traces.
+
+MemGaze provides several post-mortem trace processing methods, including multi-resolution analysis for locations vs. operations; accesses vs. spatio-temporal reuse, and reuse (distance, rate, volume) vs. access patterns.
+
+
+-----------------------------------------------------------------------------
 MemGaze Pipeline
 =============================================================================
 
