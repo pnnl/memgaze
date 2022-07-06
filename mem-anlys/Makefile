@@ -42,39 +42,20 @@ LIBCXX_LIB = $(dir $(shell $(CXX) -print-file-name=libstdc++.so))
 
 #****************************************************************************
 
-mg_analyze := memgaze-analyze
-
-MK_PROGRAMS_CXX = $(mg_analyze)
-
-$(mg_analyze)_SRCS = \
-	main.cpp \
-	Function.cpp \
-	Window.cpp
-
-$(mg_analyze)_CXXFLAGS = \
-	-g -O3
-
-$(mg_analyze)_LDFLAGS =
-
-$(mg_analyze)_LIBS =
-
-$(mg_analyze)_LDADD =
-
-#****************************************************************************
-
 # Run configure: $(HPCTK_SRC)/.spack/spack-build-02-configure-out.txt
 
 #OLD: HPCTK_ROOT = /files0/kili337/IntelPT/spack/opt/spack/linux-centos7-skylake_avx512/gcc-7.1.0/hpctoolkit-2021.10.15-gxyejpvcuclo4pp7dust3ym3f7runqze
+#HPCToolkit requires C++17
+HPCTK_CXXFLAGS = -I$(HPCTK_DEV_SRC) \
+	-std=c++17 -pthread -fopenmp
 
-HPCTK_CXXFLAGS = \
-	-I$(HPCTK_DEV_SRC)  #HPCToolkit requires C++17
+HPCTK_SRCS = MemgazeSource.cpp \
+	$(HPCTK_DEV_SRC)/tool/hpcprof/args.cpp
 
-HPCTK_LDFLAGS = \
-        -L$(HPCTK_DEV_LIB) -Wl,-rpath $(HPCTK_DEV_LIB) 
+HPCTK_LDFLAGS = -L$(HPCTK_DEV_LIB) -Wl,-rpath $(HPCTK_DEV_LIB) 
 
 # FIXME: LDADD from <hpctk>/src/tool/hpcprof/Makefile.am
-HPCTK_LDADD = \
-	$(HPCTKLIB_Profile)/$(HPCTKLIB_Profile_a) \
+HPCTK_LDADD = $(HPCTKLIB_Profile)/$(HPCTKLIB_Profile_a) \
         $(HPCTKLIB_ProfileStandalone)/$(HPCTKLIB_ProfileStandalone_a) \
         $(HPCTKLIB_ProfLean)/$(HPCTKLIB_ProfLean_a) \
         $(HPCTKLIB_SupportLean)/$(HPCTKLIB_SupportLean_a) \
@@ -94,32 +75,65 @@ LIBIBERTY_LDFLAGS= \
 XERCES_LDFLAGS = \
 	-L$(XERCES_LIB) -Wl,-rpath $(XERCES_LIB) \
 	-lxerces-c
-#----------------------------------------------------------------------------
 
-mg_hpctk := memgaze-hpctk2
+#****************************************************************************
 
-MK_PROGRAMS_CXX += #$(mg_hpctk)
+mg_analyze := memgaze-analyze
 
-$(mg_hpctk)_SRCS = \
-	main-hpctk2.cpp $(HPCTK_DEV_SRC)/tool/hpcprof/args.cpp
+MK_PROGRAMS_CXX = $(mg_analyze)
 
-$(mg_hpctk)_CXXFLAGS = \
-	-g -O3 -std=c++17 -pthread -fopenmp \
+$(mg_analyze)_SRCS = \
+	main.cpp \
+	Function.cpp \
+	Window.cpp \
+	$(HPCTK_SRCS)
+
+#HPCToolkit requires C++17, pthread, and omp
+$(mg_analyze)_CXXFLAGS = \
+	-g -O3 \
+	$(HPCTK_CXXFLAGS)	
+
+$(mg_analyze)_LDFLAGS = \
+	$(HPCTK_LDFLAGS) \
+	$(LIBELF_LDFLAGS) \
+	$(LIBIBERTY_LDFLAGS) \
+	$(XERCES_LDFLAGS)
+
+$(mg_analyze)_LIBS =
+
+# HPCToolkit requires -lstdc++fs
+$(mg_analyze)_LDADD = \
+	$(HPCTK_LDADD) \
+        $(LIBIBERTY_LDFLAGS) \
+        $(LZMA_LIB) \
+	-lstdc++fs
+
+#------------ UNCOMMENT BELOW TO SEPARATE MemgazeSource BUILD ------------
+
+#mg_hpctk := mg_hpctk
+
+#MK_PROGRAMS_CXX += $(mg_hpctk)
+
+#$(mg_hpctk)_SRCS = \
+	MemgazeSource.cpp $(HPCTK_DEV_SRC)/tool/hpcprof/args.cpp
+
+# -g -O3 already exist in $(mg_analyze)_CXXFLAGS
+#$(mg_hpctk)_CXXFLAGS = \
+	-std=c++17 -pthread -fopenmp \
   	$(HPCTK_CXXFLAGS)
 
-$(mg_hpctk)_LDFLAGS = \
+#$(mg_hpctk)_LDFLAGS = \
   	$(HPCTK_LDFLAGS) \
 	$(LIBELF_LDFLAGS) \
 	$(XERCES_LDFLAGS)
 
-$(mg_hpctk)_LIBS = \
+#$(mg_hpctk)_LIBS = \
 
-$(mg_hpctk)_LDADD = \
+#(mg_hpctk)_LDADD = \
   	$(HPCTK_LDADD) \
   	$(LIBIBERTY_LDFLAGS) \
  	$(LZMA_LIB) \
 	-lstdc++fs
-
 
 #****************************************************************************
 # Template Rules

@@ -25,37 +25,36 @@ using std::string;
 
 //*************************** User Include Files ****************************
 
-#include <include/gcc-attr.h>
+//#include <include/gcc-attr.h>
 
-#include <tool/hpcprof/args.hpp>
+//#include <tool/hpcprof/args.hpp>
 
-#include <lib/profile/pipeline.hpp>
-#include <lib/profile/source.hpp>
-#include <lib/profile/scope.hpp>
-#include <lib/profile/module.hpp>
-#include <lib/profile/sinks/sparsedb.hpp>
-#include <lib/profile/sinks/experimentxml4.hpp>
-#include <lib/profile/finalizers/denseids.hpp>
-#include <lib/profile/finalizers/directclassification.hpp>
-
+//#include <lib/profile/pipeline.hpp>
+//#include <lib/profile/source.hpp>
+//#include <lib/profile/scope.hpp>
+//#include <lib/profile/module.hpp>
+//#include <lib/profile/sinks/sparsedb.hpp>
+//#include <lib/profile/sinks/experimentxml4.hpp>
+//#include <lib/profile/finalizers/denseids.hpp>
+//#include <lib/profile/finalizers/directclassification.hpp>
 //#include <lib/prof-lean/hpcrun-fmt.h>
-
-#include <lib/prof/CallPath-Profile.hpp>
+//#include <lib/prof/CallPath-Profile.hpp>
+//#include <lib/profile/stdshim/filesystem.hpp>
+#include "MemgazeSource.hpp"
 
 #include <lib/support/diagnostics.h>
 #include <lib/support/RealPathMgr.hpp>
 
-using namespace hpctoolkit;
-
 //*************************** Forward Declarations ***************************
-
-static int
-realmain(int argc, char* const* argv);
+//using namespace hpctoolkit;
+// Moved to MemgazeSource.hpp
+//static int
+//realmain(int argc, char* const* argv);
 
 //****************************************************************************
 
 // tallent: opaque (FIXME)
-class MyXFrame;
+//class MyXFrame;
 
 //static Prof::CCT::ANode*
 //makeCCTPath(MyXFrame* path, uint n_metrics);
@@ -69,20 +68,28 @@ class MyXFrame;
 //static Prof::CCT::ANode*
 //makeCCTRoot(uint n_metrics);
 
-//https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/tool/hpcprof/main.cpp#L64
 template<class T, class... Args>
 static std::unique_ptr<T> make_unique_x(Args&&... args) {
   return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
+MemgazeSource::MemgazeSource() 
+  : ProfileSource() {
+}
+
+MemgazeSource::~MemgazeSource() {
+
+}
+
+//https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/tool/hpcprof/main.cpp#L64
 // tallent: typical exception wrapper
 int
-main(int argc, char* const* argv) 
+MemgazeSource::hpctk_main(int argc, char* const* argv) 
 {
   int ret;
 
   try {
-    ret = realmain(argc, argv);
+    ret = hpctk_realmain(argc, argv);
   }
   catch (const Diagnostics::Exception& x) {
     DIAG_EMsg(x.message());
@@ -104,9 +111,8 @@ main(int argc, char* const* argv)
   return ret;
 }
 
-
-static int
-realmain(int argc, char* const* argv) 
+int
+MemgazeSource::hpctk_realmain(int argc, char* const* argv) 
 {
   // ------------------------------------------------------------
   // Two interpretations of HPCToolkit's CCT for call path profiles.
@@ -264,27 +270,31 @@ realmain(int argc, char* const* argv)
 // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp
 
 
-bool
-ProfileSource()
-{
+int
+MemgazeSource::profile_source()
+{ 
+  std::cout << "HPCTK STARTS" << std::endl;
   // ------------------------------------------------------------
   // Load modules
   // ------------------------------------------------------------
 
   //https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/source.hpp#L103 ???
-  ProfilePipeline::Source sink;
-
+  //ProfilePipeline::Sourcesink;
+  //auto& root = sink.global();
+  //std::cout << "HPCTK After sink global;" << std::endl;
   //https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L323 ???
   //loadmap_entry_t lm;
   std::string lm_name = "dummy name";  
   uint64_t lm_ip = 11;
+  std::cout << "HPCTK After lm_name and lm_ip;" << std::endl;
 
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L325 
   // for each load module:
   //{
   Module& lm = sink.module(lm_name);
   //}
-
+  std::cout << "HPCTK After lm = sink.module(lm_name);" << std::endl;
+/*
   // ------------------------------------------------------------
   // CCT root (from ProfileSource())
   // ------------------------------------------------------------
@@ -362,17 +372,48 @@ ProfileSource()
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L534
 
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L539
-
+*/
   // Metric "location"
-  std::optional<ProfilePipeline::Source::AccumulatorsRef> accum;
-  accum = sink.accumulateTo(thread, node /* context ref */);
+  //std::optional<ProfilePipeline::Source::AccumulatorsRef> accum;
+  //accum = sink.accumulateTo(thread, node /* context ref */);
 
   // Metric value
-  double v = 1;
-  accum->add(metric, v);
+  //double v = 1;
+  //accum->add(metric, v);
 
+  return 8;
   // add post-processing?
 
 }
 
+// Dummy implementations for functions from HPCToolkit's ProfileSource.
+bool MemgazeSource::valid() const noexcept { return false; }
 
+DataClass MemgazeSource::provides() const noexcept {
+  //using namespace literals::data;
+  //Class ret = attributes + references + contexts + DataClass::metrics + threads;
+  //if(!tracepath.empty()) ret += ctxTimepoints;
+  //return ret;
+  DataClass o;
+  return o;
+}
+
+DataClass MemgazeSource::finalizeRequest(const DataClass& d) const noexcept {
+  //using namespace literals::data;
+  //DataClass o = d;
+  //if(o.hasMetrics()) o += attributes + contexts + threads;
+  //if(o.hasCtxTimepoints()) o += contexts + threads;
+  //if(o.hasThreads()) o += contexts;  // In case of outlined range trees
+  //if(o.hasContexts()) o += references;
+  DataClass o;
+  return o;
+}
+
+void MemgazeSource::read(const DataClass& needed) {
+  //if(!fileValid) return;  // We don't have anything more to say
+  //if(!realread(needed)) {
+  //  util::log::error{} << "Error while parsing measurement profile " << path.string();
+  //  fileValid = false;
+  //}
+  return;
+}

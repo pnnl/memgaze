@@ -43,10 +43,10 @@
 #include "Window.hpp"
 #include "Address.hpp"
 #include "Function.hpp"
+#include "MemgazeSource.hpp"
 //***************************************************************************
 std::ostream ofs(NULL);
 using namespace std;
-
 
 //Command Parser class
 class CmdOptionParser{
@@ -457,11 +457,11 @@ int main(int argc, char* argv[], const char* envp[]) {
   // Here we are reading hpcstruct file  to create function bounds
   unsigned long in_ip, in_addr, in_time;
   unsigned long in_cpu;
-  map <unsigned long , Function *> funcMAP; //This will hold start IP to function map
+  map <unsigned long , memgaze::Function *> funcMAP; //This will hold start IP to function map
                                             //This map is only to know the bounds 
   unsigned long func_start = 0, func_end = 0;
   string func_name;
-  Function *func;
+  memgaze::Function *func;
   bool in_section = false;
   std::string name_deli_s = "n=\"";
   std::string addr_deli_s = "v=\"{[";
@@ -488,11 +488,11 @@ int main(int argc, char* argv[], const char* envp[]) {
             std::istringstream ss(addres_token);
             ss >> hex >> func_start;
             if(!funcMAP.empty()){
-              map <unsigned long , Function *>::iterator zz = funcMAP.end();
+              map <unsigned long , memgaze::Function *>::iterator zz = funcMAP.end();
               zz --;
               zz->second->endIP = func_start - 1;
             }
-            func = new Function(name_token ,  func_start);
+            func = new memgaze::Function(name_token ,  func_start);
             funcMAP.insert({func_start, func});
           }
         }
@@ -501,7 +501,7 @@ int main(int argc, char* argv[], const char* envp[]) {
   }
   
 
-  map <unsigned long , Function *>::iterator mapEndit = funcMAP.end();
+  map <unsigned long , memgaze::Function *>::iterator mapEndit = funcMAP.end();
   if (do_hpsctruct){
     mapEndit --;
     mapEndit->second->endIP = 0x7FFFFFFFFFFF;
@@ -636,7 +636,7 @@ int main(int argc, char* argv[], const char* envp[]) {
       if(do_focus){
         //Check funtion
         // Here we are getting function info for each entry
-        map <unsigned long, Function*>::iterator funcIter;
+        map <unsigned long, memgaze::Function*>::iterator funcIter;
         funcIter = funcMAP.upper_bound(in_ip);
         if (funcIter == funcMAP.end()){
           func_not_found++;
@@ -659,6 +659,9 @@ int main(int argc, char* argv[], const char* envp[]) {
     }
     }
   }
+  // Onur: test MemgazeSource
+  // MemgazeSource mgsource; 
+  // mgsource.profile_source();
   cout <<"Total Loads:"<<timeVec.size()<<" Trace Size:"<<trace_size<<endl;
   cout <<" before Total Loads in Function:"<<funcVec.size()<<" Func found:"<<func_found<<" Func not Found: "<<func_not_found<<endl;
   int fsize = funcVec.size();
@@ -701,10 +704,10 @@ int main(int argc, char* argv[], const char* envp[]) {
   unsigned long window_size = 0 , skip_time=0, window_time=0 , window_first_time =0; //I use these to hold some info
   unsigned long current_ws = 0 , number_of_windows=0, current_ztime = 0, curr_ws_wo_frames = 0;
   //Function related variables. 
-  Function * tempFunc = NULL;
+  memgaze::Function * tempFunc = NULL;
   std::string currFuncName = "";
   std::string prevFuncName = "";
-  map <unsigned long, Function*>::iterator funcIter;
+  map <unsigned long, memgaze::Function*>::iterator funcIter;
 
   unsigned long currIP =  0;
   bool isWindowAdded = false; 
@@ -1257,7 +1260,7 @@ int main(int argc, char* argv[], const char* envp[]) {
   fullT->calcMultiplier(period, is_load);
   if(do_focus){
     //PRINT IMPORTANT FUNCTION
-    Function *imp_func = new Function(functionName ,  0);
+    memgaze::Function *imp_func = new memgaze::Function(functionName ,  0);
     cout<<endl << "Printing important function: "<<functionName<<endl;
     unsigned long sTime = 0 , eTime=0;
     for (auto  it =funcVec.begin(); it != funcVec.end(); it++){
