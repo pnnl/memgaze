@@ -273,28 +273,23 @@ MemgazeSource::hpctk_realmain(int argc, char* const* argv)
 int
 MemgazeSource::profile_source()
 { 
-  std::cout << "HPCTK STARTS" << std::endl;
   // ------------------------------------------------------------
   // Load modules
   // ------------------------------------------------------------
 
   //https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/source.hpp#L103 ???
   //ProfilePipeline::Sourcesink;
-  //auto& root = sink.global();
-  //std::cout << "HPCTK After sink global;" << std::endl;
   //https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L323 ???
   //loadmap_entry_t lm;
   std::string lm_name = "dummy name";  
   uint64_t lm_ip = 11;
-  std::cout << "HPCTK After lm_name and lm_ip;" << std::endl;
 
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L325 
   // for each load module:
   //{
   Module& lm = sink.module(lm_name);
   //}
-  std::cout << "HPCTK After lm = sink.module(lm_name);" << std::endl;
-/*
+
   // ------------------------------------------------------------
   // CCT root (from ProfileSource())
   // ------------------------------------------------------------
@@ -372,7 +367,7 @@ MemgazeSource::profile_source()
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L534
 
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L539
-*/
+
   // Metric "location"
   //std::optional<ProfilePipeline::Source::AccumulatorsRef> accum;
   //accum = sink.accumulateTo(thread, node /* context ref */);
