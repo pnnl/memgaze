@@ -36,6 +36,7 @@ using std::string;
 #include <lib/profile/sinks/experimentxml4.hpp>
 #include <lib/profile/finalizers/denseids.hpp>
 #include <lib/profile/finalizers/directclassification.hpp>
+#include "lib/profile/finalizers/struct.hpp"
 #include <lib/prof-lean/hpcrun-fmt.h>
 #include <lib/prof/CallPath-Profile.hpp>
 #include <lib/profile/stdshim/filesystem.hpp>

@@ -44,7 +44,7 @@ using std::string;
 
 #include <lib/support/diagnostics.h>
 #include <lib/support/RealPathMgr.hpp>
-
+namespace fs = stdshim::filesystem;
 //*************************** Forward Declarations ***************************
 //using namespace hpctoolkit;
 // Moved to MemgazeSource.hpp
@@ -75,6 +75,7 @@ static std::unique_ptr<T> make_unique_x(Args&&... args) {
 
 MemgazeSource::MemgazeSource() 
   : ProfileSource() {
+  std::cout << "in MemgazeSource constructor" << std::endl;
 }
 
 MemgazeSource::~MemgazeSource() {
@@ -105,7 +106,6 @@ int hpctk_main(int argc, char* const* argv) {
     DIAG_EMsg("Unknown exception encountered!");
     exit(2);
   }
-
   return ret;
 }
 
@@ -211,36 +211,40 @@ int hpctk_realmain(int argc, char* const* argv) {
   // cf. hpctoolkit/src/tool/hpcprof/main.cpp
   // https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/tool/hpcprof/main.cpp
 
-  ProfArgs args(argc, argv);
+  //ProfArgs args(argc, argv);
 
   // Get the main core of the Pipeline set up.
   ProfilePipeline::Settings pipeSettings;
 
   // 'PipelineSource' objects for each input source
-  for(auto& sp : args.sources) pipeSettings << std::move(sp.first);
-  //MemgazeSource test_obj;
-  //pipeSettings << test_obj;
+  //for(auto& sp : args.sources) pipeSettings << std::move(sp.first);
+  std::unique_ptr<ProfileSource> memgazesource;
+  memgazesource.reset(new MemgazeSource());
+  pipeSettings << std::move(memgazesource);
 
   // 'ProfileFinalizer' objects for hpcstruct [[we can reuse]]
-  for(auto& sp : args.structs) pipeSettings << std::move(sp.first); // add structure files
-  //ProfileFinalizer test_finalizer;
-  //pipeSettings << test_finalizer; 
- 
+  // for(auto& sp : args.structs) pipeSettings << std::move(sp.first); // add structure files
+  fs::path path("/files0/cank560/UBENCH_O3_500k_8kb_P10k_THISONE_O3/ubench-500k_O3_PTW_P0ms_B8192_run_1.hpcstruct");
+  std::unique_ptr<finalizers::StructFile> c;
+  c.reset(new finalizers::StructFile(path));
+  pipeSettings << std::move(c);
+
   // Provide Ids for things from the void
   finalizers::DenseIds dids;
   pipeSettings << dids;
 
   // Insert the proper Finalizer for drawing data directly from the Modules.
   // This is used as a fallback if the Structfiles aren't available.
-  finalizers::DirectClassification dc(args.dwarfMaxSize);
-  pipeSettings << dc;
+  // finalizers::DirectClassification dc(args.dwarfMaxSize);
+  //finalizers::DirectClassification dc(100*1024*1024);
+  //pipeSettings << dc;
 
   // The "experiment.xml" file
   // The last parameter is for traceDB. We should use nullptr.
-  pipeSettings << make_unique_x<sinks::ExperimentXML4>(args.output, args.include_sources, nullptr);
-
+  // pipeSettings << make_unique_x<sinks::ExperimentXML4>(args.output, args.include_sources, nullptr);
+  
   // "profile.db", "cct.db"
-  pipeSettings << make_unique_x<sinks::SparseDB>(args.output);
+  //pipeSettings << make_unique_x<sinks::SparseDB>(fs::path());
 
 
   // ------------------------------------------------------------
@@ -248,7 +252,8 @@ int hpctk_realmain(int argc, char* const* argv) {
   // ------------------------------------------------------------
 
   // Create the Pipeline, let the fun begin
-  ProfilePipeline pipeline(std::move(pipeSettings), args.threads);
+  //ProfilePipeline pipeline(std::move(pipeSettings), args.threads);
+  ProfilePipeline pipeline(std::move(pipeSettings), 1);
   // Drain the Pipeline, and make everything happen.
   pipeline.run();
 
@@ -273,7 +278,7 @@ void MemgazeSource::read(const DataClass& needed) {
   // ------------------------------------------------------------
   // Load modules
   // ------------------------------------------------------------
-
+  std::cout << "in MemgazeSource::read" << std::endl;
   //https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/source.hpp#L103 ??? 
   //https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L323 ???
   //loadmap_entry_t lm;
@@ -386,12 +391,14 @@ DataClass MemgazeSource::provides() const noexcept {
 }
 
 DataClass MemgazeSource::finalizeRequest(const DataClass& d) const noexcept {
+  std::cout << "IN FINALIZE REQUEST" << std::endl;
   using namespace literals::data;
   DataClass o = d;
-  if(o.hasMetrics()) o += attributes + contexts + threads;
-  if(o.hasCtxTimepoints()) o += contexts + threads;
-  if(o.hasThreads()) o += contexts;  // In case of outlined range trees
-  if(o.hasContexts()) o += references;
+  o += references; 
+  //if(o.hasMetrics()) o += attributes + contexts + threads;
+  //if(o.hasCtxTimepoints()) o += contexts + threads;
+  //if(o.hasThreads()) o += contexts;  // In case of outlined range trees
+  //if(o.hasContexts()) o += references;
   return o;
 }
 
