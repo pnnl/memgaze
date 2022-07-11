@@ -41,6 +41,9 @@ using std::string;
 #include <lib/profile/stdshim/filesystem.hpp>
 using namespace hpctoolkit;
 
+int hpctk_realmain(int argc, char* const* argv);
+int hpctk_main(int argc, char* const* argv);
+
 class MemgazeSource final : public ProfileSource {
 public:
   MemgazeSource();
@@ -59,8 +62,5 @@ public:
   DataClass finalizeRequest(const DataClass&) const noexcept override;
   
 //private:
-  int profile_source();
-  int hpctk_realmain(int argc, char* const* argv);
-  int hpctk_main(int argc, char* const* argv);
 };
 #endif

@@ -83,9 +83,7 @@ MemgazeSource::~MemgazeSource() {
 
 //https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/tool/hpcprof/main.cpp#L64
 // tallent: typical exception wrapper
-int
-MemgazeSource::hpctk_main(int argc, char* const* argv) 
-{
+int hpctk_main(int argc, char* const* argv) {
   int ret;
 
   try {
@@ -111,9 +109,7 @@ MemgazeSource::hpctk_main(int argc, char* const* argv)
   return ret;
 }
 
-int
-MemgazeSource::hpctk_realmain(int argc, char* const* argv) 
-{
+int hpctk_realmain(int argc, char* const* argv) {
   // ------------------------------------------------------------
   // Two interpretations of HPCToolkit's CCT for call path profiles.
   // 
@@ -222,10 +218,14 @@ MemgazeSource::hpctk_realmain(int argc, char* const* argv)
 
   // 'PipelineSource' objects for each input source
   for(auto& sp : args.sources) pipeSettings << std::move(sp.first);
+  //MemgazeSource test_obj;
+  //pipeSettings << test_obj;
 
   // 'ProfileFinalizer' objects for hpcstruct [[we can reuse]]
   for(auto& sp : args.structs) pipeSettings << std::move(sp.first); // add structure files
-  
+  //ProfileFinalizer test_finalizer;
+  //pipeSettings << test_finalizer; 
+ 
   // Provide Ids for things from the void
   finalizers::DenseIds dids;
   pipeSettings << dids;
@@ -249,7 +249,6 @@ MemgazeSource::hpctk_realmain(int argc, char* const* argv)
 
   // Create the Pipeline, let the fun begin
   ProfilePipeline pipeline(std::move(pipeSettings), args.threads);
-
   // Drain the Pipeline, and make everything happen.
   pipeline.run();
 
@@ -270,15 +269,12 @@ MemgazeSource::hpctk_realmain(int argc, char* const* argv)
 // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp
 
 
-int
-MemgazeSource::profile_source()
-{ 
+void MemgazeSource::read(const DataClass& needed) { 
   // ------------------------------------------------------------
   // Load modules
   // ------------------------------------------------------------
 
-  //https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/source.hpp#L103 ???
-  //ProfilePipeline::Sourcesink;
+  //https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/source.hpp#L103 ??? 
   //https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L323 ???
   //loadmap_entry_t lm;
   std::string lm_name = "dummy name";  
@@ -289,7 +285,6 @@ MemgazeSource::profile_source()
   //{
   Module& lm = sink.module(lm_name);
   //}
-
   // ------------------------------------------------------------
   // CCT root (from ProfileSource())
   // ------------------------------------------------------------
@@ -376,39 +371,35 @@ MemgazeSource::profile_source()
   //double v = 1;
   //accum->add(metric, v);
 
-  return 8;
   // add post-processing?
 
 }
 
-// Dummy implementations for functions from HPCToolkit's ProfileSource.
+// Below implementations are taken from Hpcrun4.cpp .
 bool MemgazeSource::valid() const noexcept { return false; }
 
 DataClass MemgazeSource::provides() const noexcept {
-  //using namespace literals::data;
-  //Class ret = attributes + references + contexts + DataClass::metrics + threads;
+  using namespace literals::data;
+  Class ret = attributes + references + contexts + DataClass::metrics + threads;
   //if(!tracepath.empty()) ret += ctxTimepoints;
-  //return ret;
-  DataClass o;
-  return o;
+  return ret;
 }
 
 DataClass MemgazeSource::finalizeRequest(const DataClass& d) const noexcept {
-  //using namespace literals::data;
-  //DataClass o = d;
-  //if(o.hasMetrics()) o += attributes + contexts + threads;
-  //if(o.hasCtxTimepoints()) o += contexts + threads;
-  //if(o.hasThreads()) o += contexts;  // In case of outlined range trees
-  //if(o.hasContexts()) o += references;
-  DataClass o;
+  using namespace literals::data;
+  DataClass o = d;
+  if(o.hasMetrics()) o += attributes + contexts + threads;
+  if(o.hasCtxTimepoints()) o += contexts + threads;
+  if(o.hasThreads()) o += contexts;  // In case of outlined range trees
+  if(o.hasContexts()) o += references;
   return o;
 }
 
-void MemgazeSource::read(const DataClass& needed) {
+//void MemgazeSource::read(const DataClass& needed) {
   //if(!fileValid) return;  // We don't have anything more to say
   //if(!realread(needed)) {
   //  util::log::error{} << "Error while parsing measurement profile " << path.string();
   //  fileValid = false;
   //}
-  return;
-}
+//  return;
+//}

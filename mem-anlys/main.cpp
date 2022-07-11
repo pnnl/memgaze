@@ -659,9 +659,7 @@ int main(int argc, char* argv[], const char* envp[]) {
     }
     }
   }
-  // Onur: test MemgazeSource
-  // MemgazeSource mgsource; 
-  // mgsource.profile_source();
+  
   cout <<"Total Loads:"<<timeVec.size()<<" Trace Size:"<<trace_size<<endl;
   cout <<" before Total Loads in Function:"<<funcVec.size()<<" Func found:"<<func_found<<" Func not Found: "<<func_not_found<<endl;
   int fsize = funcVec.size();
@@ -1039,6 +1037,9 @@ int main(int argc, char* argv[], const char* envp[]) {
   }
   
   cout << "Size of forest is "<<forest.size()<<endl;
+
+  // Onur: test MemgazeSource
+  //hpctk_main(argc, argv);
 
   // Calculate footprint with new formulate by using the forest. 
   multiplier = ( ((float)window_size+(float)skip_size)/window_size ); 
