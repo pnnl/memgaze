@@ -1039,7 +1039,7 @@ int main(int argc, char* argv[], const char* envp[]) {
   cout << "Size of forest is "<<forest.size()<<endl;
 
   // Onur: test MemgazeSource
-  //hpctk_main(argc, argv);
+  //hpctk_main(argc, argv, hpcStructInputFile);
 
   // Calculate footprint with new formulate by using the forest. 
   multiplier = ( ((float)window_size+(float)skip_size)/window_size ); 
