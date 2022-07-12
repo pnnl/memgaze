@@ -142,7 +142,7 @@ using namespace std;
     if(totalAccess != 0 && lifetime !=0){
       printf("*** Page %d: area %08lx-%08lx  Lifetime %d Access %d \n", blockID.second, addrMin, addrMax, lifetime, totalAccess);
       outFile << "*** Page "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<< std::dec <<" Lifetime "<< lifetime 
-              <<" Access " << totalAccess << " Block_count " << std::dec<< ((addrMax-addrMin)+1)/blockWidth << " " ;
+              <<" Access " << totalAccess << " Block_count " << std::dec<< ((addrMax-addrMin)+1)/blockWidth << " Spatial " ;
 /*      outFile << "Page "<< std::dec << blockID.second << " spatial Next ";
       for(j=0; j<vecSpatialResult.size(); j++) { 
          if(((vecSpatialResult[j].second)->spatialNext!=0)) 
@@ -189,13 +189,18 @@ using namespace std;
       vecDensity.clear();
       double selfSpatialDensity=0.0;
       uint32_t vecIndex=0; 
+      bool flValue=false;
       for(j = 0; j < numBlocksInLevel; j++) {
+          flValue=false;
           if(vecIndex<vecSpatialResult.size()) {
             if(vecSpatialResult[vecIndex].first == j) {
               outFile << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<(vecSpatialResult[vecIndex].second)->smplAvgSpatialMiddle<<" ";
+              flValue=true;
               vecIndex++;
             } 
         }
+        //if(!flValue)
+         //     outFile << std::fixed << std::setprecision(2)  << j<<",0.00 ";
       }
       outFile << endl;
       // Print  Self and top-3 spatial density
