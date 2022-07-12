@@ -53,7 +53,26 @@ HPCTK_ROOT = $(MG_XLIB_ROOT)/hpctoolkit-2022.05.15
 HPCTK_LIB  = $(HPCTK_ROOT)/lib
 HPCTK_SRC  = $(HPCTK_ROOT)/share/hpctoolkit/src/src
 
+HPCTK_DEV_ROOT = $(MG_XLIB_ROOT)/hpctoolkit-develop
+HPCTK_DEV_LIB = $(HPCTK_DEV_ROOT)/lib
+HPCTK_DEV_SRC = $(HPCTK_DEV_ROOT)/share/hpctoolkit/src/src
 #-----------------------------------------------------------
+
+# ---------- HPCToolkit LIBS ----------
+HPCTKLIB_Profile 		= $(HPCTK_DEV_SRC)/lib/profile
+HPCTKLIB_Profile_a 		= libHPCprofile.a 
+HPCTKLIB_ProfileStandalone 	= $(HPCTK_DEV_SRC)/lib/profile
+HPCTKLIB_ProfileStandalone_a 	= libHPCprofile_standalone.a
+HPCTKLIB_ProfLean    		= $(HPCTK_DEV_SRC)/lib/prof-lean
+HPCTKLIB_ProfLean_a 		= libHPCprof-lean.a
+HPCTKLIB_SupportLean 		= $(HPCTK_DEV_SRC)/lib/support-lean
+HPCTKLIB_SupportLean_a 		= libHPCsupport-lean.a
+HPCTKLIB_Support     		= $(HPCTK_DEV_SRC)/lib/support
+HPCTKLIB_Support_a 		= libHPCsupport.a
+HPCTKLIB_Binutils    		= $(HPCTK_DEV_SRC)/lib/binutils
+HPCTKLIB_Binutils_a 		= libHPCbinutils.a
+HPCTKLIB_Prof        		= $(HPCTK_DEV_SRC)/lib/prof
+HPCTKLIB_Prof_a 		= libHPCprof.a
 
 BOOST_ROOT = $(MG_XLIB_ROOT)/boost-1.77.0
 BOOST_INC  = $(BOOST_ROOT)/include
@@ -85,8 +104,16 @@ XED_LIB  = $(XED_ROOT)/lib
 BINUTILS_ROOT = $(MG_XLIB_ROOT)/binutils-2.38
 BINUTILS_INC  = $(BINUTILS_ROOT)/include
 
+#LIBIBERTY
 LIBIBERTY_INC = $(BINUTILS_ROOT)/include/libiberty/
+LIBIBERTY_LIB = $(BINUTILS_ROOT)/lib64
 
+#LZMA ROOT
+LZMA_ROOT = $(MG_XLIB_ROOT)/xz-5.2.5
+LZMA_LIB = $(LZMA_ROOT)/lib/liblzma.a
+
+XERCES_ROOT = $(MG_XLIB_ROOT)/xerces-c-3.2.3
+XERCES_LIB = $(XERCES_ROOT)/lib
 
 #-----------------------------------------------------------
 # MemGaze dependences: Linux Perf

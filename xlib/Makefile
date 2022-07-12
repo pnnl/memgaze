@@ -37,7 +37,7 @@ MY_HPCTK   = hpctoolkit@2022.05.15 -papi -mpi
 #MY_DYNINST = dyninst@12.0.1
 MY_DYNINST = dyninst@12.1.0
 
-xlib_dev : info xlib_spack xlib_hpctoolkit_dev xlib_dyninst_patch
+xlib_dev : info xlib_spack xlib_hpctoolkit_dev xlib_dyninst_patch xlib_hpctk_libs_copy
 	@$(PRINTF) $(_msg_infoGrp)
 # platform: "$(XLIB_SPACK)/bin/spack arch"
 
@@ -62,8 +62,9 @@ xlib_spack :
 xlib_hpctoolkit_dev :
 	@$(PRINTF) $(_msg_infoGrp)
 	cp $(XLIB_CFG)/hpctk-dev-pkgs.yaml $(SPK_ETC)/packages.yaml && \
-	$(XLIB_SPACK)/bin/spack install --reuse --source $(MY_HPCTK_DEV) && \
-        $(XLIB_SPACK)/bin/spack install --reuse binutils@2.38
+	$(XLIB_SPACK)/bin/spack install --reuse --source --keep-prefix --keep-stage --overwrite -y $(MY_HPCTK_DEV) && \
+        $(XLIB_SPACK)/bin/spack install --reuse binutils@2.38 && \
+        $(XLIB_SPACK)/bin/spack install --reuse libdwarf@20180129 
 
 
 xlib_hpctoolkit :
@@ -78,6 +79,19 @@ xlib_dyninst_patch :
 	cp $(XLIB_CFG)/dyninst.py      $(SPK_DYNINST)/package.py && \
 	cp $(XLIB_CFG)/dyninst.patch   $(SPK_DYNINST)/memgaze.patch && \
 	$(XLIB_SPACK)/bin/spack install --reuse --source --overwrite -y $(MY_DYNINST)
+
+
+xlib_hpctk_libs_copy:
+	$(eval HPCTK_STAGE_DIR := $(shell $(XLIB_SPACK)/bin/spack location -b hpctoolkit))
+	cp $(HPCTK_STAGE_DIR)/src/include/hpctoolkit-config.h $(HPCTK_DEV_SRC)/include
+	cp $(HPCTK_STAGE_DIR)/src/lib/prof/.libs/$(HPCTKLIB_Prof_a) $(HPCTKLIB_Prof) && \
+	cp $(HPCTK_STAGE_DIR)/src/lib/profile/.libs/$(HPCTKLIB_Profile_a) $(HPCTKLIB_Profile) && \
+	cp $(HPCTK_STAGE_DIR)/src/lib/profile/.libs/$(HPCTKLIB_ProfileStandalone_a) $(HPCTKLIB_ProfileStandalone) && \
+	cp $(HPCTK_STAGE_DIR)/src/lib/prof-lean/.libs/$(HPCTKLIB_ProfLean_a) $(HPCTKLIB_ProfLean) && \
+	cp $(HPCTK_STAGE_DIR)/src/lib/binutils/.libs/$(HPCTKLIB_Binutils_a) $(HPCTKLIB_Binutils) && \
+	cp $(HPCTK_STAGE_DIR)/src/lib/support/.libs/$(HPCTKLIB_Support_a) $(HPCTKLIB_Support) && \
+	cp $(HPCTK_STAGE_DIR)/src/lib/support-lean/.libs/$(HPCTKLIB_SupportLean_a) $(HPCTKLIB_SupportLean) 
+	$(XLIB_SPACK)/bin/spack clean --stage
 
 
 xlib_clean : info
@@ -121,7 +135,7 @@ include ../Makefile-template.mk
 #****************************************************************************
 # Local Rules
 #****************************************************************************
-develop: xlib_dev perf 
+develop: xlib_dev perf
 
 install.local : xlib perf
 

@@ -37,6 +37,8 @@
 #include "CPU.hpp"
 //***************************************************************************
 using namespace std;
+using namespace memgaze;
+
 Function::Function  (std::string _name, unsigned long _s,  unsigned long _e) { 
   startIP = _s;
   endIP = _e;

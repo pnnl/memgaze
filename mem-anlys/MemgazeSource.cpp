@@ -25,37 +25,36 @@ using std::string;
 
 //*************************** User Include Files ****************************
 
-#include <include/gcc-attr.h>
+//#include <include/gcc-attr.h>
 
-#include <tool/hpcprof/args.hpp>
+//#include <tool/hpcprof/args.hpp>
 
-#include <lib/profile/pipeline.hpp>
-#include <lib/profile/source.hpp>
-#include <lib/profile/scope.hpp>
-#include <lib/profile/module.hpp>
-#include <lib/profile/sinks/sparsedb.hpp>
-#include <lib/profile/sinks/experimentxml4.hpp>
-#include <lib/profile/finalizers/denseids.hpp>
-#include <lib/profile/finalizers/directclassification.hpp>
-
+//#include <lib/profile/pipeline.hpp>
+//#include <lib/profile/source.hpp>
+//#include <lib/profile/scope.hpp>
+//#include <lib/profile/module.hpp>
+//#include <lib/profile/sinks/sparsedb.hpp>
+//#include <lib/profile/sinks/experimentxml4.hpp>
+//#include <lib/profile/finalizers/denseids.hpp>
+//#include <lib/profile/finalizers/directclassification.hpp>
 //#include <lib/prof-lean/hpcrun-fmt.h>
-
-#include <lib/prof/CallPath-Profile.hpp>
+//#include <lib/prof/CallPath-Profile.hpp>
+//#include <lib/profile/stdshim/filesystem.hpp>
+#include "MemgazeSource.hpp"
 
 #include <lib/support/diagnostics.h>
 #include <lib/support/RealPathMgr.hpp>
-
-using namespace hpctoolkit;
-
+namespace fs = stdshim::filesystem;
 //*************************** Forward Declarations ***************************
-
-static int
-realmain(int argc, char* const* argv);
+//using namespace hpctoolkit;
+// Moved to MemgazeSource.hpp
+//static int
+//realmain(int argc, char* const* argv);
 
 //****************************************************************************
 
 // tallent: opaque (FIXME)
-class MyXFrame;
+//class MyXFrame;
 
 //static Prof::CCT::ANode*
 //makeCCTPath(MyXFrame* path, uint n_metrics);
@@ -69,20 +68,27 @@ class MyXFrame;
 //static Prof::CCT::ANode*
 //makeCCTRoot(uint n_metrics);
 
-//https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/tool/hpcprof/main.cpp#L64
 template<class T, class... Args>
 static std::unique_ptr<T> make_unique_x(Args&&... args) {
   return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
+MemgazeSource::MemgazeSource() 
+  : ProfileSource() {
+  std::cout << "in MemgazeSource constructor" << std::endl;
+}
+
+MemgazeSource::~MemgazeSource() {
+
+}
+
+//https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/tool/hpcprof/main.cpp#L64
 // tallent: typical exception wrapper
-int
-main(int argc, char* const* argv) 
-{
+int hpctk_main(int argc, char* const* argv) {
   int ret;
 
   try {
-    ret = realmain(argc, argv);
+    ret = hpctk_realmain(argc, argv);
   }
   catch (const Diagnostics::Exception& x) {
     DIAG_EMsg(x.message());
@@ -100,14 +106,10 @@ main(int argc, char* const* argv)
     DIAG_EMsg("Unknown exception encountered!");
     exit(2);
   }
-
   return ret;
 }
 
-
-static int
-realmain(int argc, char* const* argv) 
-{
+int hpctk_realmain(int argc, char* const* argv) {
   // ------------------------------------------------------------
   // Two interpretations of HPCToolkit's CCT for call path profiles.
   // 
@@ -209,32 +211,40 @@ realmain(int argc, char* const* argv)
   // cf. hpctoolkit/src/tool/hpcprof/main.cpp
   // https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/tool/hpcprof/main.cpp
 
-  ProfArgs args(argc, argv);
+  //ProfArgs args(argc, argv);
 
   // Get the main core of the Pipeline set up.
   ProfilePipeline::Settings pipeSettings;
 
   // 'PipelineSource' objects for each input source
-  for(auto& sp : args.sources) pipeSettings << std::move(sp.first);
+  //for(auto& sp : args.sources) pipeSettings << std::move(sp.first);
+  std::unique_ptr<ProfileSource> memgazesource;
+  memgazesource.reset(new MemgazeSource());
+  pipeSettings << std::move(memgazesource);
 
   // 'ProfileFinalizer' objects for hpcstruct [[we can reuse]]
-  for(auto& sp : args.structs) pipeSettings << std::move(sp.first); // add structure files
-  
+  // for(auto& sp : args.structs) pipeSettings << std::move(sp.first); // add structure files
+  fs::path path("/files0/cank560/UBENCH_O3_500k_8kb_P10k_THISONE_O3/ubench-500k_O3_PTW_P0ms_B8192_run_1.hpcstruct");
+  std::unique_ptr<finalizers::StructFile> c;
+  c.reset(new finalizers::StructFile(path));
+  pipeSettings << std::move(c);
+
   // Provide Ids for things from the void
   finalizers::DenseIds dids;
   pipeSettings << dids;
 
   // Insert the proper Finalizer for drawing data directly from the Modules.
   // This is used as a fallback if the Structfiles aren't available.
-  finalizers::DirectClassification dc(args.dwarfMaxSize);
-  pipeSettings << dc;
+  // finalizers::DirectClassification dc(args.dwarfMaxSize);
+  //finalizers::DirectClassification dc(100*1024*1024);
+  //pipeSettings << dc;
 
   // The "experiment.xml" file
   // The last parameter is for traceDB. We should use nullptr.
-  pipeSettings << make_unique_x<sinks::ExperimentXML4>(args.output, args.include_sources, nullptr);
-
+  // pipeSettings << make_unique_x<sinks::ExperimentXML4>(args.output, args.include_sources, nullptr);
+  
   // "profile.db", "cct.db"
-  pipeSettings << make_unique_x<sinks::SparseDB>(args.output);
+  //pipeSettings << make_unique_x<sinks::SparseDB>(fs::path());
 
 
   // ------------------------------------------------------------
@@ -242,8 +252,8 @@ realmain(int argc, char* const* argv)
   // ------------------------------------------------------------
 
   // Create the Pipeline, let the fun begin
-  ProfilePipeline pipeline(std::move(pipeSettings), args.threads);
-
+  //ProfilePipeline pipeline(std::move(pipeSettings), args.threads);
+  ProfilePipeline pipeline(std::move(pipeSettings), 1);
   // Drain the Pipeline, and make everything happen.
   pipeline.run();
 
@@ -264,16 +274,12 @@ realmain(int argc, char* const* argv)
 // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp
 
 
-bool
-ProfileSource()
-{
+void MemgazeSource::read(const DataClass& needed) { 
   // ------------------------------------------------------------
   // Load modules
   // ------------------------------------------------------------
-
-  //https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/source.hpp#L103 ???
-  ProfilePipeline::Source sink;
-
+  std::cout << "in MemgazeSource::read" << std::endl;
+  //https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/source.hpp#L103 ??? 
   //https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L323 ???
   //loadmap_entry_t lm;
   std::string lm_name = "dummy name";  
@@ -284,7 +290,6 @@ ProfileSource()
   //{
   Module& lm = sink.module(lm_name);
   //}
-
   // ------------------------------------------------------------
   // CCT root (from ProfileSource())
   // ------------------------------------------------------------
@@ -364,15 +369,44 @@ ProfileSource()
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L539
 
   // Metric "location"
-  std::optional<ProfilePipeline::Source::AccumulatorsRef> accum;
-  accum = sink.accumulateTo(thread, node /* context ref */);
+  //std::optional<ProfilePipeline::Source::AccumulatorsRef> accum;
+  //accum = sink.accumulateTo(thread, node /* context ref */);
 
   // Metric value
-  double v = 1;
-  accum->add(metric, v);
+  //double v = 1;
+  //accum->add(metric, v);
 
   // add post-processing?
 
 }
 
+// Below implementations are taken from Hpcrun4.cpp .
+bool MemgazeSource::valid() const noexcept { return false; }
 
+DataClass MemgazeSource::provides() const noexcept {
+  using namespace literals::data;
+  Class ret = attributes + references + contexts + DataClass::metrics + threads;
+  //if(!tracepath.empty()) ret += ctxTimepoints;
+  return ret;
+}
+
+DataClass MemgazeSource::finalizeRequest(const DataClass& d) const noexcept {
+  std::cout << "IN FINALIZE REQUEST" << std::endl;
+  using namespace literals::data;
+  DataClass o = d;
+  o += references; 
+  //if(o.hasMetrics()) o += attributes + contexts + threads;
+  //if(o.hasCtxTimepoints()) o += contexts + threads;
+  //if(o.hasThreads()) o += contexts;  // In case of outlined range trees
+  //if(o.hasContexts()) o += references;
+  return o;
+}
+
+//void MemgazeSource::read(const DataClass& needed) {
+  //if(!fileValid) return;  // We don't have anything more to say
+  //if(!realread(needed)) {
+  //  util::log::error{} << "Error while parsing measurement profile " << path.string();
+  //  fileValid = false;
+  //}
+//  return;
+//}

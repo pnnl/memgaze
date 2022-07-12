@@ -38,6 +38,7 @@
 #include "AccessTime.hpp"
 using namespace std;
 
+namespace memgaze {
 class Function {
   public:
     int fp;
@@ -62,4 +63,5 @@ class Function {
     void  printFunctionTreeRec(Function *root, int level );
 };
 
+} // namespace memgaze
 #endif
