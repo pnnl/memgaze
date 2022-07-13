@@ -40,18 +40,21 @@ using std::string;
 #include <lib/prof-lean/hpcrun-fmt.h>
 #include <lib/prof/CallPath-Profile.hpp>
 #include <lib/profile/stdshim/filesystem.hpp>
-using namespace hpctoolkit;
 
-int hpctk_realmain(int argc, char* const* argv);
-int hpctk_main(int argc, char* const* argv);
+#include "Window.hpp"
+
+using namespace hpctoolkit;
+using namespace std;
+
+int hpctk_realmain(int argc, char* const* argv, std::string struct_file, vector<Window*>* forest);
+int hpctk_main(int argc, char* const* argv, std::string struct_file, vector<Window*>* forest);
 
 class MemgazeSource final : public ProfileSource {
 public:
-  MemgazeSource();
+  MemgazeSource(vector<Window*>* forest);
   ~MemgazeSource();
 
-  // You shouldn't create these directly, use ProfileSource::create_for
-  // Hpcrun4() = delete;
+  vector<Window*>* memgaze_forest;
 
   bool valid() const noexcept override;
 
