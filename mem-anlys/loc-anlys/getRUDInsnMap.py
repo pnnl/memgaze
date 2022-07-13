@@ -1,17 +1,30 @@
 import sys
 import os
 import subprocess
+import argparse
 
 # Use for reading source line
 # grep -n 79070 -B 5 miniVite_O3-v1_obj_nuke_line | grep '\/'
 dictFnMap={}
 dictFnIdentify ={}
 
-def readFile(inFile, outFile):
+def readFile(inFile, outFile,appName):
+    variantFile=''
     if(outFile !=''):
         f_out = open(outFile, 'w')
         f_obj_c = open('obj_C_insn.txt','w') 
         f_obj_l = open('obj_L_insn.txt','w') 
+    if(appName == 'alexnet'):
+        #variantFile ='/files0/suri836/RUD_Zoom/alexnet_single/darknet_s8192_p1000000.trace.final'
+        variantFile = '/files0/suri836/RUD_Zoom/resnet152_single/darknet_s8192_p1000000.trace.final'
+    elif(appName == 'resnet'):
+        variantFile = '/files0/suri836/RUD_Zoom/resnet152_single/darknet_s8192_p1000000.trace.final'
+    elif(appName == 'minivite_v1'):
+        variantFile = '../MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1.trace.final'
+    elif(appName == 'minivite_v2'):
+        variantFile = '../MiniVite_O3_v2_nf_func_8k_P5M_n300k/miniVite_O3-v2.trace.final'
+    elif(appName == 'minivite_v3'):
+        variantFile = '../MiniVite_O3_v3_nf_func_8k_P5M_n300k/miniVite_O3-v3.trace.final'
     with open(inFile) as f:
         blFnMap=0
         varVersion =''
@@ -26,25 +39,26 @@ def readFile(inFile, outFile):
             #print(data[0]+'---')
             if data[0] == '--insn':
                 #print (data)
-                variantFile = data[6]
-                curRange = data[9]
-                index = data[6].rindex('.trace.final')
-                varVersion = data[6][index-2:index]
-                print (variantFile, varVersion, curRange)
+                if (variantFile==''):
+                  variantFile = data[6]
+                  curRange = data[9]
+                  index = data[6].rindex('.trace')
+                  varVersion = data[6][index-2:index]
+                  print (variantFile, varVersion, curRange)
                 if (variantFile == '../MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1.trace.final'):
-                  logFile = '/files0/suri836/minivite_create_filtered/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1*.log'
-                  objFile = '/files0/suri836/minivite_create_filtered/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_obj_nuke_line' 
-                  objFile_C = '/files0/suri836/minivite_create_filtered/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_obj_C' 
+                  logFile = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1*.log'
+                  objFile = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_obj_nuke_line' 
+                  objFile_C = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_obj_C' 
                   varVersion = 'V1: '
                 if (variantFile == '../MiniVite_O3_v2_nf_func_8k_P5M_n300k/miniVite_O3-v2.trace.final'):
-                  logFile = '/files0/suri836/minivite_create_filtered/MiniVite_O3_v2_nf_func_8k_P5M_n300k/miniVite_O3-v2*.log'
-                  objFile = '/files0/suri836/minivite_create_filtered/MiniVite_O3_v2_nf_func_8k_P5M_n300k/miniVite_O3-v2_obj_nuke_line' 
-                  objFile_C = '/files0/suri836/minivite_create_filtered/MiniVite_O3_v2_nf_func_8k_P5M_n300k/miniVite_O3-v2_obj_C' 
+                  logFile = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v2_nf_func_8k_P5M_n300k/miniVite_O3-v2*.log'
+                  objFile = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v2_nf_func_8k_P5M_n300k/miniVite_O3-v2_obj_nuke_line' 
+                  objFile_C = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v2_nf_func_8k_P5M_n300k/miniVite_O3-v2_obj_C' 
                   varVersion = 'V2: '
                 if (variantFile == '../MiniVite_O3_v3_nf_func_8k_P5M_n300k/miniVite_O3-v3.trace.final'):
-                  logFile = '/files0/suri836/minivite_create_filtered/MiniVite_O3_v3_nf_func_8k_P5M_n300k/miniVite_O3-v3*.log'
-                  objFile = '/files0/suri836/minivite_create_filtered/MiniVite_O3_v3_nf_func_8k_P5M_n300k/miniVite_O3-v3_obj_nuke_line' 
-                  objFile_C = '/files0/suri836/minivite_create_filtered/MiniVite_O3_v3_nf_func_8k_P5M_n300k/miniVite_O3-v3_obj_C' 
+                  logFile = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v3_nf_func_8k_P5M_n300k/miniVite_O3-v3*.log'
+                  objFile = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v3_nf_func_8k_P5M_n300k/miniVite_O3-v3_obj_nuke_line' 
+                  objFile_C = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v3_nf_func_8k_P5M_n300k/miniVite_O3-v3_obj_C' 
                   varVersion = 'V3: '
                 if (variantFile == '/files0/suri836/RUD_Zoom/alexnet_10/darknet_s8192_p1000000.trace.final' or \
                     variantFile == '/files0/suri836/RUD_Zoom/alexnet_single/darknet_s8192_p1000000.trace.final' or \
@@ -209,10 +223,13 @@ n = len(sys.argv)
 print("\nArguments passed:", end = " ")
 for i in range(1, n):
     print(sys.argv[i], end = " ")
-if (len(sys.argv)>2 and sys.argv[2] != ''):
-  readFile(sys.argv[1], sys.argv[2])
-else:
-  readFile(sys.argv[1])
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--i', type=str, required=True, help='Intput file')
+parser.add_argument('--o', type=str, required=True, help ='Output File')
+parser.add_argument('--app', type=str , help='Application Name to check for binary')
+args = parser.parse_args()
+readFile(args.i, args.o, args.app)
 
 
 

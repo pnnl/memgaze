@@ -94,7 +94,7 @@ void readTrace(string filename, int *intTotalTraceLine,  vector<TraceLine *>& ve
   }
   */
 }
-void getInstInRange(vector<TraceLine *>& vecInstAddr,MemArea memarea)
+void getInstInRange(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,MemArea memarea)
 {
 	uint64_t loadAddr =0;  //used for offsit check
   std::map<uint64_t,uint32_t> insMap;
@@ -122,7 +122,10 @@ void getInstInRange(vector<TraceLine *>& vecInstAddr,MemArea memarea)
   }
   sort(sortInstr.begin(), sortInstr.end(),greater<>()); 
   for (itr=sortInstr.begin(); itr!=sortInstr.end(); itr++){
-    printf("%ld\t0x%lx \n", itr->first, itr->second);
+    if(outFile==nullptr)
+      printf("%ld\t0x%lx \n", itr->first, itr->second);
+    else 
+      *outFile << std::dec <<itr->first<<"\t0x"<< std::hex<< itr->second<<endl;
   }
   //for (itr=sortInstr.begin(); itr!=sortInstr.end(); itr++)
    // printf("%lx\\\|", itr->second);
