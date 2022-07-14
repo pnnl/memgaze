@@ -1038,9 +1038,6 @@ int main(int argc, char* argv[], const char* envp[]) {
   
   cout << "Size of forest is "<<forest.size()<<endl;
 
-  // Onur: test MemgazeSource
-  //hpctk_main(argc, argv, hpcStructInputFile, &forest);
-
   // Calculate footprint with new formulate by using the forest. 
   multiplier = ( ((float)window_size+(float)skip_size)/window_size ); 
   cout << "MULTIPLIERS: xx="<<multiplier;
@@ -1053,6 +1050,9 @@ int main(int argc, char* argv[], const char* envp[]) {
   if (fullT == NULL)
     cout << "ERROR ROOT IS NULL\n";
   cout << "PRINTING TREE of FP\n";
+
+  // Onur: test MemgazeSource
+  //hpctk_main(argc, argv, hpcStructInputFile, fullT);
   
   cout << "General MULTIPLIER="<<multiplier<<endl; //TODO NOTE:: maybe get rid of general completely
   cout << "#windows: "<<number_of_windows<<" Period:"<<period<<" Total Lds:"<< total_loads_in_trace<<endl;

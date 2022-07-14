@@ -46,15 +46,15 @@ using std::string;
 using namespace hpctoolkit;
 using namespace std;
 
-int hpctk_realmain(int argc, char* const* argv, std::string struct_file, vector<Window*>* forest);
-int hpctk_main(int argc, char* const* argv, std::string struct_file, vector<Window*>* forest);
+int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window* fullT);
+int hpctk_main(int argc, char* const* argv, std::string struct_file, Window* fullT);
 
 class MemgazeSource final : public ProfileSource {
 public:
-  MemgazeSource(vector<Window*>* forest);
+  MemgazeSource(Window* fullT);
   ~MemgazeSource();
 
-  vector<Window*>* memgaze_forest;
+  Window* memgaze_root;
 
   bool valid() const noexcept override;
 
@@ -64,7 +64,8 @@ public:
 
   DataClass provides() const noexcept override;
   DataClass finalizeRequest(const DataClass&) const noexcept override;
-  
+
+  void createCCT(Window* node, Module& lm, Context& context);
 //private:
 };
 #endif

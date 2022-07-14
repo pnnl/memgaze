@@ -40,6 +40,8 @@ using std::string;
 //#include <lib/prof-lean/hpcrun-fmt.h>
 //#include <lib/prof/CallPath-Profile.hpp>
 //#include <lib/profile/stdshim/filesystem.hpp>
+#include "Instruction.hpp"
+#include "Address.hpp"
 #include "MemgazeSource.hpp"
 
 #include <lib/support/diagnostics.h>
@@ -74,9 +76,9 @@ static std::unique_ptr<T> make_unique_x(Args&&... args) {
   return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
-MemgazeSource::MemgazeSource(vector<Window*>* forest) 
+MemgazeSource::MemgazeSource(Window* fullT) 
   : ProfileSource() {
-  memgaze_forest = forest;
+  memgaze_root = fullT;
 }
 
 MemgazeSource::~MemgazeSource() {
@@ -85,11 +87,11 @@ MemgazeSource::~MemgazeSource() {
 
 //https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/tool/hpcprof/main.cpp#L64
 // tallent: typical exception wrapper
-int hpctk_main(int argc, char* const* argv, std::string struct_file, vector<Window*>* forest) {
+int hpctk_main(int argc, char* const* argv, std::string struct_file, Window* fullT) {
   int ret;
 
   try {
-    ret = hpctk_realmain(argc, argv, struct_file, forest);
+    ret = hpctk_realmain(argc, argv, struct_file, fullT);
   }
   catch (const Diagnostics::Exception& x) {
     DIAG_EMsg(x.message());
@@ -110,7 +112,7 @@ int hpctk_main(int argc, char* const* argv, std::string struct_file, vector<Wind
   return ret;
 }
 
-int hpctk_realmain(int argc, char* const* argv, std::string struct_file, vector<Window*>* forest) {
+int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window* fullT) {
   // ------------------------------------------------------------
   // Two interpretations of HPCToolkit's CCT for call path profiles.
   // 
@@ -218,7 +220,7 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, vector<
   // 'PipelineSource' objects for each input source
   //for(auto& sp : args.sources) pipeSettings << std::move(sp.first);
   std::unique_ptr<ProfileSource> memgazesource;
-  memgazesource.reset(new MemgazeSource(forest));
+  memgazesource.reset(new MemgazeSource(fullT));
   pipeSettings << std::move(memgazesource);
 
   // 'ProfileFinalizer' objects for hpcstruct [[we can reuse]]
@@ -270,16 +272,24 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, vector<
 // New version of "class Hpcrun4": MemGazeSource (implements ProfileSource)
 //****************************************************************************
 
-// hpctoolkit/src/tool/hpcprof/hpcrun4.*
+void MemgazeSource::createCCT(Window* node, Module& lm, Context& context) {
+  if (node == NULL) {
+    return; 
+  }
+  // cout << node->addresses[0]->ip->ip << endl; // prints 3145891
+  //TODO: any value other than 3145891 works. Why?
+  uint64_t ip = 31458912; // node->addresses[0]->ip->ip 
+  Scope new_scope = Scope(lm, ip); // creates Scope::point
+  Context& new_context = sink.context(context, {Relation::call, new_scope}).second;
 
+  createCCT(node->left, lm, new_context);
+  createCCT(node->right, lm, new_context);
+}
+
+// hpctoolkit/src/tool/hpcprof/hpcrun4.*
 // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.hpp
 // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp
-
-
 void MemgazeSource::read(const DataClass& needed) { 
-  auto test = *(memgaze_forest->begin());
-  cout << "test window in read()" << endl;
-  cout << test->getFuncName() << endl;
   // ------------------------------------------------------------
   // Load modules
   // ------------------------------------------------------------
@@ -289,9 +299,8 @@ void MemgazeSource::read(const DataClass& needed) {
   // TODO: get from struct file or main.cpp?
   string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/UBENCH_O3_500k_8kb_P10k/ubench-500k_O3_PTW";
   lm_test.name = &hardcoded_lm[0];
-  // lm_test.name = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/UBENCH_O3_500k_8kb_P10k/ubench-500k_O3_PTW"; 
-  uint64_t lm_ip = 2;
-
+  // lm_test.name = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/UBENCH_O3_500k_8kb_P10k/ubench-500k_O3_PTW";
+  
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L325 
   // for each load module:
   //{
@@ -301,9 +310,7 @@ void MemgazeSource::read(const DataClass& needed) {
   // CCT root (from ProfileSource())
   // ------------------------------------------------------------
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L342
-  File& file = sink.file("main [ubench-500k_O3_PTW]");
-  
-  auto& root = sink.global();
+  auto& root_context = sink.global();
   // ------------------------------------------------------------
   // Create CCT
   // 
@@ -329,11 +336,12 @@ void MemgazeSource::read(const DataClass& needed) {
   // '<sink>.context(...).first' is the node's parent Context after expansion (corresponds to Relation (edge property))
   // '<sink>.context(...).second' is the node's Context after expansion
 
-  Scope s1 = Scope(lm, lm_ip); // creates Scope::point
-  Context& n1 = sink.context(root, {Relation::call, s1}).second;
+  //Scope s1 = Scope(lm, lm_ip); // creates Scope::point
+  //Context& n1 = sink.context(root, {Relation::call, s1}).second;
 
-  Scope scope = Scope(lm, lm_ip); // creates Scope::point
-  Context& node = sink.context(n1, {Relation::call, scope}).second;
+  //Scope scope = Scope(lm, lm_ip); // creates Scope::point
+  //Context& node = sink.context(n1, {Relation::call, scope}).second;
+  createCCT(memgaze_root, lm, root_context);
   //}
 
   // ------------------------------------------------------------
@@ -384,7 +392,6 @@ void MemgazeSource::read(const DataClass& needed) {
   //accum->add(metric, v);
 
   // add post-processing?
-
 }
 
 // Below implementations are taken from Hpcrun4.cpp .
