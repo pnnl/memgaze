@@ -286,6 +286,8 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
   uint64_t ip = node->addresses[0]->ip->ip; 
   Scope new_scope = Scope(lm, ip); // creates Scope::point
   Context& new_context = sink.context(parent_context, {Relation::call, new_scope}).second;
+  created_contexts.push_back(new_context);
+
   createCCT(node->left, lm, new_context);
   createCCT(node->right, lm, new_context);
 }
@@ -315,6 +317,7 @@ void MemgazeSource::read(const DataClass& needed) {
   // ------------------------------------------------------------
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L342
   auto& root_context = sink.global();
+  created_contexts.push_back(root_context);
   // ------------------------------------------------------------
   // Create CCT
   // 
@@ -345,7 +348,11 @@ void MemgazeSource::read(const DataClass& needed) {
 
   //Scope scope = Scope(lm, lm_ip); // creates Scope::point
   //Context& node = sink.context(n1, {Relation::call, scope}).second;
-  createCCT(memgaze_root, lm, root_context);
+  // TODO: what is the correct way of doing this?
+  if (CCT_created == false) {
+    createCCT(memgaze_root, lm, root_context);
+    CCT_created = true;
+  }
   //}
 
   // ------------------------------------------------------------
@@ -366,12 +373,12 @@ void MemgazeSource::read(const DataClass& needed) {
   std::vector<pms_id_t> ids;
   // https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/lib/prof-lean/id-tuple.h#L116
   // struct pms_id_t: uint16_t kind, uint64_t physical index, uint64_t logical index
-  pms_id_t id = {1, 1, 0};
+  pms_id_t id = {0, 0, 0};
   ids.push_back(id);
   
   ThreadAttributes tattrs;
   tattrs.idTuple(ids);
-  PerThreadTemporary& thread = sink.thread(tattrs);
+  PerThreadTemporary* thread = &sink.thread(std::move(tattrs));
   // ------------------------------------------------------------
   // Attribute metric values
   // ------------------------------------------------------------
@@ -388,13 +395,18 @@ void MemgazeSource::read(const DataClass& needed) {
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L539
 
   // Metric "location"
-  //std::optional<ProfilePipeline::Source::AccumulatorsRef> accum;
-  //accum = sink.accumulateTo(thread, node /* context ref */);
-
-  // Metric value
-  //double v = 1;
-  //accum->add(metric, v);
-
+  cout << needed.hasMetrics() << endl;
+  if (needed.hasMetrics()) {
+    cout << "hasMetrics" << endl;
+    std::optional<ProfilePipeline::Source::AccumulatorsRef> accum;
+    //accum = sink.accumulateTo(thread, node /* context ref */); 
+    for (Context& context : created_contexts) {
+      accum = sink.accumulateTo(*thread, context);
+    }
+    // Metric value
+    double v = 1;
+    accum->add(metric, v);
+  }
   // add post-processing?
 }
 

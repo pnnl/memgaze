@@ -55,6 +55,8 @@ public:
   ~MemgazeSource();
 
   Window* memgaze_root;
+  bool CCT_created;
+  vector<reference_wrapper<Context>> created_contexts;
 
   bool valid() const noexcept override;
 
