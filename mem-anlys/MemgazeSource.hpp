@@ -25,8 +25,8 @@ using std::string;
 
 #include <vector>
 
-#include <lib/profile/source.hpp>
-#include <tool/hpcprof/args.hpp>
+//#include <lib/profile/source.hpp>
+//#include <tool/hpcprof/args.hpp>
 
 #include <lib/profile/pipeline.hpp>
 #include <lib/profile/source.hpp>
@@ -37,8 +37,8 @@ using std::string;
 #include <lib/profile/finalizers/denseids.hpp>
 #include <lib/profile/finalizers/directclassification.hpp>
 #include "lib/profile/finalizers/struct.hpp"
-#include <lib/prof-lean/hpcrun-fmt.h>
-#include <lib/prof/CallPath-Profile.hpp>
+//#include <lib/prof-lean/hpcrun-fmt.h>
+//#include <lib/prof/CallPath-Profile.hpp>
 #include <lib/profile/stdshim/filesystem.hpp>
 
 #include "Window.hpp"

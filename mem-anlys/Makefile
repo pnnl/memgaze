@@ -50,7 +50,7 @@ HPCTK_CXXFLAGS = -I$(HPCTK_DEV_SRC) \
 	-std=c++17 -pthread -fopenmp
 
 HPCTK_SRCS = MemgazeSource.cpp \
-	$(HPCTK_DEV_SRC)/tool/hpcprof/args.cpp
+	#$(HPCTK_DEV_SRC)/tool/hpcprof/args.cpp
 
 HPCTK_LDFLAGS = -L$(HPCTK_DEV_LIB) -Wl,-rpath $(HPCTK_DEV_LIB) 
 
@@ -58,17 +58,18 @@ HPCTK_LDFLAGS = -L$(HPCTK_DEV_LIB) -Wl,-rpath $(HPCTK_DEV_LIB)
 HPCTK_LDADD = $(HPCTKLIB_Profile)/$(HPCTKLIB_Profile_a) \
         $(HPCTKLIB_ProfileStandalone)/$(HPCTKLIB_ProfileStandalone_a) \
         $(HPCTKLIB_ProfLean)/$(HPCTKLIB_ProfLean_a) \
-        $(HPCTKLIB_SupportLean)/$(HPCTKLIB_SupportLean_a) \
-	$(HPCTKLIB_Support)/$(HPCTKLIB_Support_a) \
-	$(HPCTKLIB_Binutils)/$(HPCTKLIB_Binutils_a) \
-	$(HPCTKLIB_Prof)/$(HPCTKLIB_Prof_a)
+        $(HPCTKLIB_Support)/$(HPCTKLIB_Support_a)
 
-LIBELF_LDFLAGS= \
+#$(HPCTKLIB_SupportLean)/$(HPCTKLIB_SupportLean_a) 
+	#$(HPCTKLIB_Binutils)/$(HPCTKLIB_Binutils_a) \
+	#$(HPCTKLIB_Prof)/$(HPCTKLIB_Prof_a)
+
+#LIBELF_LDFLAGS= \
 	-L$(LIBELF_LIB) -Wl,-rpath $(LIBELF_LIB) \
 	-ldw \
 	-lelf
 
-LIBIBERTY_LDFLAGS= \
+#LIBIBERTY_LDFLAGS= \
 	-L$(LIBIBERTY_LIB) -Wl,-rpath $(LIBIBERTY_LIB) \
 	-liberty
 
@@ -95,19 +96,18 @@ $(mg_analyze)_CXXFLAGS = \
 
 $(mg_analyze)_LDFLAGS = \
 	$(HPCTK_LDFLAGS) \
-	$(LIBELF_LDFLAGS) \
-	$(LIBIBERTY_LDFLAGS) \
 	$(XERCES_LDFLAGS)
+#$(LIBIBERTY_LDFLAGS) \
+#$(LIBELF_LDFLAGS)
 
 $(mg_analyze)_LIBS =
 
 # HPCToolkit requires -lstdc++fs
 $(mg_analyze)_LDADD = \
 	$(HPCTK_LDADD) \
-        $(LIBIBERTY_LDFLAGS) \
-        $(LZMA_LIB) \
 	-lstdc++fs
-
+#$(LZMA_LIB) \
+#$(LIBIBERTY_LDFLAGS) \
 #------------ UNCOMMENT BELOW TO SEPARATE MemgazeSource BUILD ------------
 
 #mg_hpctk := mg_hpctk
