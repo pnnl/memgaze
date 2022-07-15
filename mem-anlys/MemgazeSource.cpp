@@ -350,6 +350,7 @@ void MemgazeSource::read(const DataClass& needed) {
   //Context& node = sink.context(n1, {Relation::call, scope}).second;
   // TODO: what is the correct way of doing this?
   if (CCT_created == false) {
+    cout << "createCCT" << endl;
     createCCT(memgaze_root, lm, root_context);
     CCT_created = true;
   }
@@ -395,18 +396,17 @@ void MemgazeSource::read(const DataClass& needed) {
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L539
 
   // Metric "location"
-  cout << needed.hasMetrics() << endl;
   if (needed.hasMetrics()) {
     cout << "hasMetrics" << endl;
     std::optional<ProfilePipeline::Source::AccumulatorsRef> accum;
     //accum = sink.accumulateTo(thread, node /* context ref */); 
     for (Context& context : created_contexts) {
-      accum = sink.accumulateTo(*thread, context);
+      accum = sink.accumulateTo(*thread, context);   
+      // Metric value
+      double v = 1;
+      accum->add(metric, v);
     }
-    // Metric value
-    double v = 1;
-    accum->add(metric, v);
-  }
+ }
   // add post-processing?
 }
 
