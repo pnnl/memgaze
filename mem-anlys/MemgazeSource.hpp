@@ -65,7 +65,26 @@ public:
   DataClass provides() const noexcept override;
   DataClass finalizeRequest(const DataClass&) const noexcept override;
 
-  void createCCT(Window* node, Module& lm, Context& context);
+  void createCCT(Window* node, Module& lm, Context& parent_context);
 //private:
 };
+
+// temporary fix for the following error during ExperimentXML4>()
+//memgaze-analyze: pipeline.cpp:103: Settings& hpctoolkit::ProfilePipeline::Settings::operator<<(hpctoolkit::ProfileSink&): Assertion `req - available == ExtensionClass() && "Sink requires unavailable extended data!"' failed.
+
+class UnresolvedPaths final : public ProfileFinalizer {
+public:
+  UnresolvedPaths() = default;
+  ~UnresolvedPaths() = default;
+
+  ExtensionClass provides() const noexcept override { return ExtensionClass::resolvedPath; }
+  ExtensionClass requires() const noexcept override { return {}; }
+  std::optional<stdshim::filesystem::path> resolvePath(const File& f) noexcept override {
+    return f.path();
+  }
+  std::optional<stdshim::filesystem::path> resolvePath(const Module& m) noexcept override {
+    return m.path();
+  }
+};
+
 #endif

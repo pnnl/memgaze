@@ -239,6 +239,12 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
   //finalizers::DirectClassification dc(100*1024*1024);
   //pipeSettings << dc;
 
+  //temporary fix
+  //std::unique_ptr<ProfileFinalizer> temp_finalizer;
+  //temp_finalizer.reset(new UnresolvedPaths());
+  UnresolvedPaths temp_finalizer;
+  pipeSettings << temp_finalizer;
+
   // The "experiment.xml" file
   // The last parameter is for traceDB. We should use nullptr.
   // pipeSettings << make_unique_x<sinks::ExperimentXML4>(args.output, args.include_sources, nullptr);
@@ -246,7 +252,6 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
   fs::path working_dir = fs::current_path();
   fs::path dummy_db("/memgaze-database-test");
   pipeSettings << make_unique_x<sinks::ExperimentXML4>(working_dir / dummy_db, false, nullptr);
-  
   // "profile.db", "cct.db"
   pipeSettings << make_unique_x<sinks::SparseDB>(working_dir / dummy_db);
   //pipeSettings << make_unique_x<sinks::SparseDB>("test.db");
@@ -272,16 +277,15 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
 // New version of "class Hpcrun4": MemGazeSource (implements ProfileSource)
 //****************************************************************************
 
-void MemgazeSource::createCCT(Window* node, Module& lm, Context& context) {
+void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context) {
   if (node == NULL) {
     return; 
   }
   // cout << node->addresses[0]->ip->ip << endl; // prints 3145891
   //TODO: any value other than 3145891 works. Why?
-  uint64_t ip = 31458912; // node->addresses[0]->ip->ip 
+  uint64_t ip = node->addresses[0]->ip->ip; 
   Scope new_scope = Scope(lm, ip); // creates Scope::point
-  Context& new_context = sink.context(context, {Relation::call, new_scope}).second;
-
+  Context& new_context = sink.context(parent_context, {Relation::call, new_scope}).second;
   createCCT(node->left, lm, new_context);
   createCCT(node->right, lm, new_context);
 }
