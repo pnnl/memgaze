@@ -73,6 +73,7 @@ BINUTILS_CFLAGS = \
 
 BINUTILS_LDFLAGS = \
 	-L$(BINUTILS_ROOT)/lib -L$(BINUTILS_ROOT)/lib64 \
+	-L$(LIBZ_LIB) \
 	-lbfd -liberty -lz
 
 TOOL_CXXFLAGS = \

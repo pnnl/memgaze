@@ -74,8 +74,7 @@ HPCTK_LDADD = $(HPCTKLIB_Profile)/$(HPCTKLIB_Profile_a) \
 	-liberty
 
 XERCES_LDFLAGS = \
-	-L$(XERCES_LIB) -Wl,-rpath $(XERCES_LIB) \
-	-lxerces-c
+	-L$(XERCES_LIB) -Wl,-rpath $(XERCES_LIB)
 
 #****************************************************************************
 
@@ -105,7 +104,9 @@ $(mg_analyze)_LIBS =
 # HPCToolkit requires -lstdc++fs
 $(mg_analyze)_LDADD = \
 	$(HPCTK_LDADD) \
-	-lstdc++fs
+	-lstdc++fs \
+	-lxerces-c
+
 #$(LZMA_LIB) \
 #$(LIBIBERTY_LDFLAGS) \
 #------------ UNCOMMENT BELOW TO SEPARATE MemgazeSource BUILD ------------
