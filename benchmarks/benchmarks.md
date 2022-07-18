@@ -14,7 +14,7 @@
 - [sw4lite](https://github.com/geodynamics/sw4lite)
     - need to use the line: make ckernel=yes openmp=yes
     
-# Pipeline Stemps
+# Pipeline Steps
 
 1. inst
 2. run
@@ -34,5 +34,3 @@
 - pthread
 
 # Notes
-
-- Add libz in [bin-anlys/src/Scheduler/Makefile](../bin-anlys/src/Scheduler/Makefile)
