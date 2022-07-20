@@ -110,7 +110,7 @@ perf_libs:
 	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(MG_XLIB_ROOT)/zstd-1.5.2/lib:$(MG_XLIB_ROOT)/libcap-2.64/lib:$(MG_XLIB_ROOT)/babeltrace-1.2.4/lib 
 
 
-perf : info 
+perf : info
 	@$(PRINTF) $(_msg_infoGrp)
 	mkdir -p $(MG_PERF_ROOT) && \
   cd $(MG_PERF_ROOT) && \
@@ -138,9 +138,11 @@ include ../Makefile-template.mk
 #****************************************************************************
 # Local Rules
 #****************************************************************************
-develop: xlib_dev perf
 
 install.local : xlib perf
+
+# temporary
+develop: xlib_dev perf
 
 info.local :
 	@$(PRINTF) $(msg_info)
