@@ -121,7 +121,9 @@ perf : info
 	  patch $(MG_PERF)/scripts/bpf_helpers_doc.py $(MG_XLIB_SRC)/config-perf/perf-python.patch ; \
 	fi && \
   export WERROR=0 && \
-  cd $(MG_PERF)/tools/perf && make
+  cd $(MG_PERF)/tools/perf && make && \
+  unset WERROR
+
 
 perf_distclean : info
 	$(RM) -r $(MG_PERF_ROOT)
