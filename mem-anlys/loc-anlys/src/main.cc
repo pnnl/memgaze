@@ -4,8 +4,8 @@
 using std::list;
 // Global variables for threshold values
 int32_t lvlConstBlockSize = 2; // Level for setting constant blocksize in zoom
-//double zoomThreshold = 0.10; // Threshold for access count - to include in zoom
-double zoomThreshold = 0.04175; // Minivite uses this - Cluster paper data used different threshold values - to match regions to paper use this value 
+double zoomThreshold = 0.10; // Threshold for access count - to include in zoom
+//double zoomThreshold = 0.01 ; // Minivite uses this - Cluster paper data used different threshold values - to match regions to paper use this value 
 uint64_t heapAddrEnd ; // 
 uint64_t lastLvlBlockWidth; // Added for ZoomRUD analysis - option to set last level's block width
 uint64_t zoomLastLvlPageWidth ; // Added for ZoomRUD analysis - option to set last Zoom level's page width
@@ -425,6 +425,7 @@ int main(int argc, char ** argv){
 	//get parameters
   while(argc > argi){
       qpoint = argv[argi];
+      printf("%s\n", qpoint);
       argi++;
       if (strcmp(qpoint, "--pnum") == 0){
     		printf("configuration mempin = ");
@@ -554,7 +555,7 @@ int main(int argc, char ** argv){
 	if(model == 1){
 		if(loadConfig()==-1) return -1;
 	}
-
+  printf(" Using Zoom perrcent value %lf\n", zoomThreshold); 
   //check the memory area for the first time
 	uint32_t totalAccess = 0;
   std::cout << "Application: " << memoryfile << "\n";
