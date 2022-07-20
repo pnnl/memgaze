@@ -117,10 +117,11 @@ perf : info
   if [[ ! -d "$(MG_PERF)" ]] ; then \
 	  wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.5.9.tar.gz && \
 	  tar -xf linux-5.5.9.tar.gz && rm linux-5.5.9.tar.gz && \
-	  patch $(MG_PERF)/tools/perf/util/scripting-engines/trace-event-python.c $(MG_XLIB_SRC)/config-perf/perf-script.patch ; \
+	  patch $(MG_PERF)/tools/perf/util/scripting-engines/trace-event-python.c $(MG_XLIB_SRC)/config-perf/perf-script.patch && \
 	  patch $(MG_PERF)/scripts/bpf_helpers_doc.py $(MG_XLIB_SRC)/config-perf/perf-python.patch ; \
 	fi && \
-  cd $(MG_PERF)/tools/perf && make 
+  export WERROR=0 && \
+  cd $(MG_PERF)/tools/perf && make
 
 perf_distclean : info
 	$(RM) -r $(MG_PERF_ROOT)
