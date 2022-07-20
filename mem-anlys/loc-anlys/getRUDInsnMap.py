@@ -25,6 +25,12 @@ def readFile(inFile, outFile,appName):
         variantFile = '../MiniVite_O3_v2_nf_func_8k_P5M_n300k/miniVite_O3-v2.trace.final'
     elif(appName == 'minivite_v3'):
         variantFile = '../MiniVite_O3_v3_nf_func_8k_P5M_n300k/miniVite_O3-v3.trace.final'
+    elif(appName == 'gap_pr_spmv'):
+        variantFile = '/files0/suri836/RUD_Zoom/GAP_PR_SPMV'
+    elif(appName == 'gap_pr'):
+        variantFile = '/files0/suri836/RUD_Zoom/GAP_pr_O3_g22_nf_func_8k_P5M_n1_Avg/pr_O3_s8192_p5000000.trace.final'
+    elif(appName == 'gap_cc_sv'):
+        variantFile = '/files0/suri836/RUD_Zoom/GAP_CC_SV'
     with open(inFile) as f:
         blFnMap=0
         varVersion =''
@@ -88,6 +94,16 @@ def readFile(inFile, outFile,appName):
                   objFile = '/files0/suri836/RUD_Zoom/GAP_pr_O3_g22_nf_func_8k_P5M_n1_Avg/GAP_pr_O3_obj_nuke'
                   objFile_C ='/files0/suri836/RUD_Zoom/GAP_pr_O3_g22_nf_func_8k_P5M_n1_Avg/GAP_pr_O3_obj'
                   varVersion = 'gr: '
+                if (variantFile == '/files0/suri836/RUD_Zoom/GAP_PR_SPMV' ):
+                  logFile = '/files0/suri836/RUD_Zoom/GAP_PR_SPMV/pr_spmv_O3.log'
+                  objFile = '/files0/suri836/RUD_Zoom/GAP_PR_SPMV/obj_pr_spmv_O3'
+                  objFile_C ='/files0/suri836/RUD_Zoom/GAP_PR_SPMV/pr_spmv_O3.dump'
+                  varVersion = 'pr_sp: '
+                if (variantFile == '/files0/suri836/RUD_Zoom/GAP_CC_SV' ):
+                  logFile = '/files0/suri836/RUD_Zoom/GAP_CC_SV/cc_sv_O3.log'
+                  objFile = '/files0/suri836/RUD_Zoom/GAP_CC_SV/obj_cc_sv_O3'
+                  objFile_C ='/files0/suri836/RUD_Zoom/GAP_CC_SV/cc_sv_O3.dump'
+                  varVersion = 'cc_sv: '
                 if (variantFile == '/files0/suri836/RUD_Zoom/resnet_single/darknet_s8192_p1000000.trace.final' or \
                      variantFile == '/files0/suri836/RUD_Zoom/resnet152_10/darknet_s8192_p1000000.trace.final' ):
                   logFile = '/files0/suri836/RUD_Zoom/resnet152_10/darknet.log'
@@ -202,10 +218,12 @@ def readFile(inFile, outFile,appName):
                       f_obj_c.write('\n')
                     f_obj_l.write( strBinLine)
                     f_obj_l.write('\n')
-                    for key in dictFnIdentify:
-                        if (int(grData[0],16)) < key:
+                    for key in sorted(dictFnIdentify):
+                        #print( 'key ', int(key), "int(grData[0],16)", int(grData[0],16), "int(grData[0],16)) < int(key)", ((int(grData[0],16)) < int(key)))
+                        if ((int(grData[0],16)) < key):
                             continue
                         else:
+                            #print("ELSE", key)
                             fnStartIP = dictFnIdentify[key]
                             fnName = dictFnMap[fnStartIP]
                   writeLine = varVersion+' '+data[0]+ ' '+varInst+' '+ grData[0] + ' '+fnStartIP+ ' '+fnName+' '+ strResult+' \n'

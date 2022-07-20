@@ -123,6 +123,18 @@ def readFile(filename,outFile):
                 varVersion = 'gap'
                 processLine=1
                 prevVersion = varVersion
+            elif data[0] == 'cc_sv:':
+                if (prevVersion==''):
+                    rangeIndex = 0
+                varVersion = 'gap'
+                processLine=1
+                prevVersion = varVersion
+            elif data[0] == 'pr_sp:':
+                if (prevVersion==''):
+                    rangeIndex = 0
+                varVersion = 'gap'
+                processLine=1
+                prevVersion = varVersion
             #print(data)
             if(processLine==1):
                 shortFnName =''
@@ -194,7 +206,12 @@ def readFile(filename,outFile):
 #readFile('./GAP_build_analysis/pr_analysis_RUD_instruction_group.txt','./GAP_build_analysis/pr_analysis_RUD_instruction_result.txt')
 #readFile('./GAP_build_analysis/pr_build_RUD_instruction_group.txt','./GAP_build_analysis/pr_build_RUD_instruction_result.txt')
 #readFile('./GAP_build_analysis/cc_analysis_RUD_instruction_group.txt','./GAP_build_analysis/cc_analysis_RUD_instruction_result.txt')
-readFile('./GAP_build_analysis/cc_build_RUD_instruction_group.txt','./GAP_build_analysis/cc_build_RUD_instruction_result.txt')
+#readFile('./GAP_build_analysis/cc_build_RUD_instruction_group.txt','./GAP_build_analysis/cc_build_RUD_instruction_result.txt')
+#readFile('/Users/suri836/Projects/memCamera/code/python/gap_cc_sv/results_16384_64_analysis/RUD_insn_map.txt','/Users/suri836/Projects/memCamera/code/python/gap_cc_sv/results_16384_64_analysis/RUD_insn_result.txt')
+#readFile('/Users/suri836/Projects/memCamera/code/python/gap_pr_spmv/results_16384_64_build/RUD_insn_map.txt','/Users/suri836/Projects/memCamera/code/python/gap_pr_spmv/results_16384_64_build/RUD_insn_result.txt')
+#readFile('/Users/suri836/Projects/memCamera/code/python/gap_cc_sv/results_16384_64_analysis/RUD_insn_map.txt','/Users/suri836/Projects/memCamera/code/python/gap_cc_sv/results_16384_64_analysis/RUD_insn_result.txt')
+readFile('/Users/suri836/Projects/memCamera/code/python/gap_pr_spmv/results_16384_64_build/RUD_insn_map.txt','/Users/suri836/Projects/memCamera/code/python/gap_pr_spmv/results_16384_64_build/RUD_insn_result.txt')
+
 
 #print(dictAccess)
 #print (dictFunctions)
