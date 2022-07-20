@@ -43,7 +43,7 @@ vs. access patterns.
   - Ozgur Kilic (PNNL)
   - Nathan R. Tallent (PNNL)
   - Andrés Marquez (PNNL)
-  - Yasodhadevi Suriyakumar (Portland State University)
+  - Yasodha Suriyakumar (Portland State University)
   - Chenhao Xie (PNNL)
   - Stephane Eranian (Google)
 
