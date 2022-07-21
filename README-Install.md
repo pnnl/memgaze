@@ -13,19 +13,25 @@ Environment
 Building & Installing
 =============================================================================
 
-1. Libraries
+
+0. Options:
+   ```sh
+   DEVELOP=1
+
+   MG_PERF_CC=<linux-perf-cc>
+   
+   export MG_XLIB_ROOT=<optional-xlib-build-path>
+   export MG_PERF_ROOT=<optional-perf-build-path>
+   ```
+
+1. Build libraries
    ```sh
    cd <memgaze>/xlib
    make install
    ```
   
-   Options:
-   ```sh
-   export MG_XLIB_ROOT=<optional-build-path>
-   export MG_PERF_ROOT=<optional-build-path>
-   ```
 
-2. Build
+2. Build MemGaze
    ```sh
    cd <memgaze>
    make PREFIX=<install-prefix> install

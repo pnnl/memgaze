@@ -37,14 +37,15 @@ MY_HPCTK   = hpctoolkit@2022.05.15 -papi -mpi
 #MY_DYNINST = dyninst@12.0.1
 MY_DYNINST = dyninst@12.1.0
 
-xlib_dev : info xlib_spack xlib_hpctoolkit_dev xlib_dyninst_patch xlib_hpctk_libs_copy
-	@$(PRINTF) $(_msg_infoGrp)
-# platform: "$(XLIB_SPACK)/bin/spack arch"
-
 
 xlib : info xlib_spack xlib_hpctoolkit xlib_dyninst_patch
 	@$(PRINTF) $(_msg_infoGrp)
 # platform: "$(XLIB_SPACK)/bin/spack arch"
+
+xlib_dev : info xlib_spack xlib_hpctoolkit_dev xlib_dyninst_patch xlib_hpctk_libs_copy
+	@$(PRINTF) $(_msg_infoGrp)
+# platform: "$(XLIB_SPACK)/bin/spack arch"
+
 
 
 xlib_spack :
@@ -59,6 +60,12 @@ xlib_spack :
 #	cp $(XLIB_CFG)/dyninst.py      $(SPK_DYNINST)/package.py && \
 #	cp $(XLIB_CFG)/dyninst.patch   $(SPK_DYNINST)/memgaze.patch
 
+
+xlib_hpctoolkit :
+	@$(PRINTF) $(_msg_infoGrp)
+	cp $(XLIB_CFG)/hpctk-pkgs.yaml $(SPK_ETC)/packages.yaml && \
+	$(XLIB_SPACK)/bin/spack install --reuse --source $(MY_HPCTK)
+
 xlib_hpctoolkit_dev :
 	@$(PRINTF) $(_msg_infoGrp)
 	cp $(XLIB_CFG)/hpctk-dev-pkgs.yaml $(SPK_ETC)/packages.yaml && \
@@ -66,20 +73,12 @@ xlib_hpctoolkit_dev :
         $(XLIB_SPACK)/bin/spack install --reuse binutils@2.38 && \
         $(XLIB_SPACK)/bin/spack install --reuse libdwarf@20180129 
 
-
-xlib_hpctoolkit :
-	@$(PRINTF) $(_msg_infoGrp)
-	cp $(XLIB_CFG)/hpctk-pkgs.yaml $(SPK_ETC)/packages.yaml && \
-	$(XLIB_SPACK)/bin/spack install --reuse --source $(MY_HPCTK)
-
-
 xlib_dyninst_patch :
 	@$(PRINTF) $(_msg_infoGrp)
 	$(RM) $(SPK_ETC)/packages.yaml && \
 	cp $(XLIB_CFG)/dyninst.py      $(SPK_DYNINST)/package.py && \
 	cp $(XLIB_CFG)/dyninst.patch   $(SPK_DYNINST)/memgaze.patch && \
 	$(XLIB_SPACK)/bin/spack install --reuse --source --overwrite -y $(MY_DYNINST)
-
 
 xlib_hpctk_libs_copy:
 	$(eval HPCTK_STAGE_DIR := $(shell $(XLIB_SPACK)/bin/spack location -b hpctoolkit))
@@ -115,11 +114,13 @@ perf : info
 	mkdir -p $(MG_PERF_ROOT) && \
   cd $(MG_PERF_ROOT) && \
   if [[ ! -d "$(MG_PERF)" ]] ; then \
-	  wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.5.9.tar.gz && \
-	  tar -xf linux-5.5.9.tar.gz && rm linux-5.5.9.tar.gz && \
-	  patch $(MG_PERF)/tools/perf/util/scripting-engines/trace-event-python.c $(MG_XLIB_SRC)/config-perf/perf-script.patch && \
-	  patch $(MG_PERF)/scripts/bpf_helpers_doc.py $(MG_XLIB_SRC)/config-perf/perf-python.patch ; \
-	fi && \
+    wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.5.9.tar.gz && \
+    tar -xf linux-5.5.9.tar.gz && rm linux-5.5.9.tar.gz && \
+    patch $(MG_PERF)/tools/perf/util/scripting-engines/trace-event-python.c $(MG_XLIB_SRC)/config-perf/perf-script.patch && \
+    patch $(MG_PERF)/scripts/bpf_helpers_doc.py $(MG_XLIB_SRC)/config-perf/perf-python.patch ; \
+  fi && \
+  \
+  [[ -n "$(MG_PERF_CC)" ]] && export HOSTCC="$(MG_PERF_CC)" ; \
   export WERROR=0 && \
   cd $(MG_PERF)/tools/perf && make && \
   unset WERROR
@@ -139,10 +140,15 @@ include ../Makefile-template.mk
 # Local Rules
 #****************************************************************************
 
-install.local : xlib perf
 
-# temporary
-develop: xlib_dev perf
+install.local :
+
+ifdef DEVELOP
+  install.local : xlib_dev perf
+else
+  install.local : xlib perf
+endif
+
 
 info.local :
 	@$(PRINTF) $(msg_info)

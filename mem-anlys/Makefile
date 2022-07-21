@@ -49,8 +49,12 @@ LIBCXX_LIB = $(dir $(shell $(CXX) -print-file-name=libstdc++.so))
 HPCTK_CXXFLAGS = -I$(HPCTK_DEV_SRC) \
 	-std=c++17 -pthread -fopenmp
 
-HPCTK_SRCS = MemgazeSource.cpp \
-	#$(HPCTK_DEV_SRC)/tool/hpcprof/args.cpp
+HPCTK_SRCS =
+
+ifdef DEVELOP
+  HPCTK_SRCS += MemgazeSource.cpp
+  #$(HPCTK_DEV_SRC)/tool/hpcprof/args.cpp
+endif
 
 HPCTK_LDFLAGS = -L$(HPCTK_DEV_LIB) -Wl,-rpath $(HPCTK_DEV_LIB) 
 
@@ -61,8 +65,8 @@ HPCTK_LDADD = $(HPCTKLIB_Profile)/$(HPCTKLIB_Profile_a) \
         $(HPCTKLIB_Support)/$(HPCTKLIB_Support_a)
 
 #$(HPCTKLIB_SupportLean)/$(HPCTKLIB_SupportLean_a) 
-	#$(HPCTKLIB_Binutils)/$(HPCTKLIB_Binutils_a) \
-	#$(HPCTKLIB_Prof)/$(HPCTKLIB_Prof_a)
+  #$(HPCTKLIB_Binutils)/$(HPCTKLIB_Binutils_a) \
+  #$(HPCTKLIB_Prof)/$(HPCTKLIB_Prof_a)
 
 #LIBELF_LDFLAGS= \
 	-L$(LIBELF_LIB) -Wl,-rpath $(LIBELF_LIB) \
@@ -109,6 +113,9 @@ $(mg_analyze)_LDADD = \
 
 #$(LZMA_LIB) \
 #$(LIBIBERTY_LDFLAGS) \
+
+
+
 #------------ UNCOMMENT BELOW TO SEPARATE MemgazeSource BUILD ------------
 
 #mg_hpctk := mg_hpctk
@@ -121,19 +128,19 @@ $(mg_analyze)_LDADD = \
 # -g -O3 already exist in $(mg_analyze)_CXXFLAGS
 #$(mg_hpctk)_CXXFLAGS = \
 	-std=c++17 -pthread -fopenmp \
-  	$(HPCTK_CXXFLAGS)
+    $(HPCTK_CXXFLAGS)
 
 #$(mg_hpctk)_LDFLAGS = \
-  	$(HPCTK_LDFLAGS) \
+    $(HPCTK_LDFLAGS) \
 	$(LIBELF_LDFLAGS) \
 	$(XERCES_LDFLAGS)
 
 #$(mg_hpctk)_LIBS = \
 
 #(mg_hpctk)_LDADD = \
-  	$(HPCTK_LDADD) \
-  	$(LIBIBERTY_LDFLAGS) \
- 	$(LZMA_LIB) \
+    $(HPCTK_LDADD) \
+    $(LIBIBERTY_LDFLAGS) \
+  $(LZMA_LIB) \
 	-lstdc++fs
 
 #****************************************************************************
