@@ -6,3 +6,5 @@ results/
 tags
 test.output
 testFiles/
+memgaze-analyze
+memgaze-analyze-loc

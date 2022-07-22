@@ -1,0 +1,15 @@
+[submodule "benchmarks/gabs"]
+	path = benchmarks/gabs
+	url = https://github.com/sbeamer/gapbs
+[submodule "benchmarks/minivite-x"]
+	path = benchmarks/minivite-x
+	url = https://gitlab.pnnl.gov/perf-lab/minivite-x
+[submodule "benchmarks/darknet"]
+	path = benchmarks/darknet
+	url = https://github.com/pjreddie/darknet
+[submodule "benchmarks/sw4lite"]
+	path = benchmarks/sw4lite
+	url = https://github.com/geodynamics/sw4lite
+[submodule "benchmarks/amg"]
+	path = benchmarks/amg
+	url = https://github.com/LLNL/AMG.git

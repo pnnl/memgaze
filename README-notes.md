@@ -11,6 +11,16 @@ MemGaze Issues
 
   - Our window analysis algorithm uses pre-selected bins to create the histogram. Due to the variation of sample sizes window sizes also vary. This can create a binning anomaly at the largest one or two window sizes. Since \fpSym  should never get smaller in a larger window, we force each bin to take the maximum of the current and previous windows. This anomaly only happens when there are constant loads instrumented for our quantitative approach. To address this issue we are working on a more detailed fix.
 
+  - With `memgaze-inst` `-i` and `--app` are behaving differently with some binaries. For example, benchmarks/gabs/cc.
+
+  - Make sure python2 is there for `perf`
+
+  - Build error fixes:
+    - For `miniVite`, try removing statically linked libs if `memgaze-inst` errors.
+    - `memgaze-inst` errors on `gabs`, `sw4lite` benchmarks
+    - For perf build, try and remove `@*` in plugins/libtraceevent-dynamic-list. (https://www.mail-archive.com/kernel-packages@lists.launchpad.net/msg414474.html)
+    
+  - `install/bin/memgaze-analyaze` is erroring with seg fault.
 
 =============================================================================
 MemGaze Structure

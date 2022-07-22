@@ -7,8 +7,14 @@ Prerequisites
 =============================================================================
 
 Environment
-  - GCC ...
+  - GCC
+  - Python (required: v2 for perf)
+  - Python Module(s)
+    - `pefile` for perf
 
+Benchmarks
+    - OpemMP
+    - MPI
 
 Building & Installing
 =============================================================================
