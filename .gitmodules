@@ -1,5 +1,5 @@
-[submodule "benchmarks/gabs"]
-	path = benchmarks/gabs
+[submodule "benchmarks/gapbs"]
+	path = benchmarks/gapbs
 	url = https://github.com/sbeamer/gapbs
 [submodule "benchmarks/minivite-x"]
 	path = benchmarks/minivite-x
