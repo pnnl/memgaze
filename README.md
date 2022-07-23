@@ -48,111 +48,23 @@ vs. access patterns.
   - Stephane Eranian (Google)
 
 
-MemGaze Pipeline
-=============================================================================
-
-MemGaze has four main steps.
-
-1. Instrument application binary (or libary) `<app>` for memory
-   tracing. Generate instrumented `<app>` and auxiliary data within
-   directory `<inst-dir>`, which defaults to
-   `<app-dir>/memgaze-<app>`. Instrumented `<app>` is
-   `<inst-dir>/<app>`.
-   
-   Note: If instrumenting `<app>`'s libraries, must instrument each
-   library and relink instrumented `<app>`.
-
-   ```
-   memgaze-inst <app-dir>/<app> [-o <inst-dir>]
-   ```
-
-  Important contents of `<inst-dir>`:
-  - `<app>`           : Instrumented `<app>`
-  - `<app>.binanlys`  : Static binary analysis
-  - `<app>.hpcstruct` : HPCToolkit structure file
-
-  Steps:
-  - Read binary (with dyninst)
-  - Create CFG and dependence graph for each routine to determine each
-    load's classification (strided, indirect, constant)
-  - Selectively insert ptwrite.
-  - Generates 1) load classification data and 2) mapping from original
-    IP to instrumented IP (`libexec/memgaze-inst-cat`)
-  - Generates HPCToolkit structure file
-
-  Uses:
-  ```
-  libexec/memgaze-inst-cat <tracedir>/<app>.binanlys.log <tracedir>/<app>.binanlys0
-  ```
-
-
-2. Trace memory behavior of application `<app>`, which is normally
-   `<inst-dir>/<app>`. Generates output in `<trace-dir>`, which
-   defaults to `./memgaze-<app>-trace-b<bufsz>-p<period>`.
-
-   By default collect a sampled trace with period <period>; if period
-   is 0 then collect a full (non-sampled) trace. Sample event can be
-   either load-based or time-based.
-
-   ```
-   memgaze-run -p <period or 0> -b <bufsz> [-e pt-load | pt-time | ldlat] [-o <trace-dir>] -- <app> <app-args>
-   ```
-   
-   Important contents of `<trace-dir>`:
-   - `<memgaze.config>`: Configuration arguments
-   - `<app>.perf`      : Tracing data (Linux perf)
-
-3. Translate tracing and profiling data within `<trace-dir>` into open
-   formats and place results therein.
-
-   ```
-   memgaze-xtrace <trace-dir>
-   ```
-
-  New contents of `<trace-dir>`:
-  - `<app>.trace`    : Memory references
-  - `<app>.callpath` : Call paths
-
-  - Extract data file with perf-script
-  - Convert IP offsets (from perf script) to full static IPs and combine two-address loads into single trace entry.
-  - Remove data collection errors from trace
-  - Separate memory references and call paths
-  
-  Uses:
-  ```
-  perf script libexec/perf-script-*
-  libexec/memgaze-xtrace-normalize <trace-dir>.trace
-  ```
-
-
-4. Analyze memory behavior using execution interval tree and generate
-   memory-related metrics. As inputs, takes `<trace-dir>` and `<inst-dir>`
-
-   ```
-   memgaze-analyze -t <trace-dir> -s <inst-dir> [-o <output>]
-   ```
-
-  Currently, memgaze-analyze's default output includes two parts:
-  - execution window histograms
-  - function analysis summary (exclusive), averaged over whole trace, for all functions
-
-   Note: -f <func>: Focus the above analysis on 'func', i.e., the effective trace includes all accesses between first and last instance of <func>.
-   
-
+References
 -----------------------------------------------------------------------------
-Trace format
-=============================================================================
 
-MemGaze:   <insn-pc> <mem-addr> <cpu-id> <timestamp> sample-id
-  (in initial trace, a two-source load has two lines, which are converted to one line)
+* Ozgur O. Kilic, Nathan R. Tallent, Yasodha Suriyakumar, Chenhao Xie, Andrés Marquez, and Stephane Eranian, "MemGaze: Rapid and effective load-level memory and data analysis," in Proc. of the 2022 IEEE Conf. on Cluster Computing, IEEE, Sep 2022.
 
+* Ozgur O. Kilic, Nathan R. Tallent, and Ryan D. Friese, "Rapid memory footprint access diagnostics," in Proc. of the 2020 IEEE Intl. Symp. on Performance Analysis of Systems and Software, IEEE Computer Society, May 2020. <https://10.1109/ISPASS48437.2020.00047>
 
-MemCAMera: <insn-pc> <mem-addr> <cpu-id> <timestamp> [mem-addr2 cpu-id timestamp]
+* Ozgur O. Kilic, Nathan R. Tallent, and Ryan D. Friese, "Rapidly measuring loop footprints," in Proc. of IEEE Intl. Conf. on Cluster Computing (Workshop on Monitoring and Analysis for High Performance Computing Systems Plus Applications), pp. 1--9, IEEE Computer Society, September 2019. https://doi.org/10.1109/CLUSTER.2019.8891025
 
 
+Acknowledgements
 -----------------------------------------------------------------------------
-Notes
-=============================================================================
 
+This work was supported by the U.S. Department of Energy's Office of
+Advanced Scientific Computing Research:
 
+- Orchestration for Distributed \& Data-Intensive Scientific Exploration
+
+- Advanced Memory to Support Artificial Intelligence for Science
 
