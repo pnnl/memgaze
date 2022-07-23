@@ -38,14 +38,6 @@ MY_HPCTK   = hpctoolkit@2022.05.15 -papi -mpi
 MY_DYNINST = dyninst@12.1.0
 
 
-#xlib_dev : info xlib_spack xlib_hpctoolkit_dev xlib_dyninst_patch xlib_hpctk_libs_copy
-#	@$(PRINTF) $(_msg_infoGrp)
-# platform: "$(XLIB_SPACK)/bin/spack arch"
-
-#xlib : info xlib_spack xlib_hpctoolkit xlib_dyninst_patch
-#	@$(PRINTF) $(_msg_infoGrp)
-# platform: "$(XLIB_SPACK)/bin/spack arch"
-
 xlib :
 ifdef DEVELOP
   xlib : info xlib_spack xlib_hpctoolkit_dev xlib_dyninst_patch xlib_hpctk_libs_copy
@@ -55,6 +47,8 @@ else
 	@$(PRINTF) $(_msg_infoGrp)
 endif
 
+# platform: "$(XLIB_SPACK)/bin/spack arch"
+
 
 xlib_spack :
 	@$(PRINTF) $(_msg_infoGrp)
@@ -63,10 +57,7 @@ xlib_spack :
 	  git clone -c feature.manyFiles=true https://github.com/spack/spack.git ; \
 	fi && \
 	cp $(XLIB_CFG)/config.yaml     $(SPK_ETC)/ && \
-        $(XLIB_SPACK)/bin/spack install ca-certificates-mozilla
-#	cp $(XLIB_CFG)/hpctk-pkgs.yaml $(SPK_ETC)/packages.yaml && \
-#	cp $(XLIB_CFG)/dyninst.py      $(SPK_DYNINST)/package.py && \
-#	cp $(XLIB_CFG)/dyninst.patch   $(SPK_DYNINST)/memgaze.patch
+	$(XLIB_SPACK)/bin/spack install ca-certificates-mozilla
 
 
 xlib_hpctoolkit :
@@ -78,8 +69,9 @@ xlib_hpctoolkit_dev :
 	@$(PRINTF) $(_msg_infoGrp)
 	cp $(XLIB_CFG)/hpctk-dev-pkgs.yaml $(SPK_ETC)/packages.yaml && \
 	$(XLIB_SPACK)/bin/spack install --reuse --source --keep-prefix --keep-stage --overwrite -y $(MY_HPCTK_DEV) && \
-        $(XLIB_SPACK)/bin/spack install --reuse binutils@2.38 && \
-        $(XLIB_SPACK)/bin/spack install --reuse libdwarf@20180129 
+	$(XLIB_SPACK)/bin/spack install --reuse binutils@2.38 && \
+	$(XLIB_SPACK)/bin/spack install --reuse libdwarf@20180129 
+
 
 xlib_dyninst_patch :
 	@$(PRINTF) $(_msg_infoGrp)
@@ -87,6 +79,7 @@ xlib_dyninst_patch :
 	cp $(XLIB_CFG)/dyninst.py      $(SPK_DYNINST)/package.py && \
 	cp $(XLIB_CFG)/dyninst.patch   $(SPK_DYNINST)/memgaze.patch && \
 	$(XLIB_SPACK)/bin/spack install --reuse --source --overwrite -y $(MY_DYNINST)
+
 
 xlib_hpctk_libs_copy:
 	$(eval HPCTK_STAGE_DIR := $(shell $(XLIB_SPACK)/bin/spack location -b hpctoolkit))
@@ -120,18 +113,18 @@ perf_libs:
 perf : info
 	@$(PRINTF) $(_msg_infoGrp)
 	mkdir -p $(MG_PERF_ROOT) && \
-  cd $(MG_PERF_ROOT) && \
-  if [[ ! -d "$(MG_PERF)" ]] ; then \
-    wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.5.9.tar.gz && \
-    tar -xf linux-5.5.9.tar.gz && rm linux-5.5.9.tar.gz && \
-    patch $(MG_PERF)/tools/perf/util/scripting-engines/trace-event-python.c $(MG_XLIB_SRC)/config-perf/perf-script.patch && \
-    patch $(MG_PERF)/scripts/bpf_helpers_doc.py $(MG_XLIB_SRC)/config-perf/perf-python.patch ; \
-  fi && \
+	cd $(MG_PERF_ROOT) && \
+	if [[ ! -d "$(MG_PERF)" ]] ; then \
+	  wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.5.9.tar.gz && \
+	  tar -xf linux-5.5.9.tar.gz && rm linux-5.5.9.tar.gz && \
+	  patch $(MG_PERF)/tools/perf/util/scripting-engines/trace-event-python.c $(MG_XLIB_SRC)/config-perf/perf-script.patch && \
+	  patch $(MG_PERF)/scripts/bpf_helpers_doc.py $(MG_XLIB_SRC)/config-perf/perf-python.patch ; \
+	fi && \
   \
-  [[ -n "$(MG_PERF_CC)" ]] && export HOSTCC="$(MG_PERF_CC)" ; \
-  export WERROR=0 && \
-  cd $(MG_PERF)/tools/perf && make && \
-  unset WERROR
+	if [[ -n "$(MG_PERF_CC)" ]] then export HOSTCC="$(MG_PERF_CC)" fi && \
+	export WERROR=0 && \
+	cd $(MG_PERF)/tools/perf && make && \
+	unset WERROR
 
 
 perf_distclean : info
