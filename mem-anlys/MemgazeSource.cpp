@@ -43,6 +43,8 @@ using std::string;
 #include "Instruction.hpp"
 #include "Address.hpp"
 #include "MemgazeSource.hpp"
+#include "lib/profile/attributes.hpp"
+#include "lib/prof-lean/id-tuple.h"
 
 #include <lib/support/diagnostics.h>
 #include <lib/support/RealPathMgr.hpp>
@@ -211,7 +213,6 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
   // https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/tool/hpcprof/main.cpp
 
   //ProfArgs args(argc, argv);
-
   fs::path struct_path(struct_file);
 
   // Get the main core of the Pipeline set up.
@@ -306,18 +307,23 @@ void MemgazeSource::read(const DataClass& needed) {
   string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/UBENCH_O3_500k_8kb_P10k/ubench-500k_O3_PTW";
   lm_test.name = &hardcoded_lm[0];
   // lm_test.name = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/UBENCH_O3_500k_8kb_P10k/ubench-500k_O3_PTW";
-  
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L325 
   // for each load module:
   //{
-  Module& lm = sink.module(lm_test.name);
+  if (needed.hasReferences()) {
+    cout << "has REFERENCES" << endl;
+    Module& lm = sink.module(lm_test.name);
+    modules.push_back(lm);
+  }
   //}
   // ------------------------------------------------------------
   // CCT root (from ProfileSource())
   // ------------------------------------------------------------
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L342
-  auto& root_context = sink.global();
-  created_contexts.push_back(root_context);
+  if (needed.hasContexts()) {
+    cout << "has CONTEXTS" << endl;
+    auto& root_context = sink.global();
+    created_contexts.push_back(root_context);
   // ------------------------------------------------------------
   // Create CCT
   // 
@@ -348,14 +354,23 @@ void MemgazeSource::read(const DataClass& needed) {
 
   //Scope scope = Scope(lm, lm_ip); // creates Scope::point
   //Context& node = sink.context(n1, {Relation::call, scope}).second;
-  // TODO: what is the correct way of doing this?
-  if (CCT_created == false) {
+  // TODO: change this when we have multiple lms
     cout << "createCCT" << endl;
+    Module& lm = modules[0];
     createCCT(memgaze_root, lm, root_context);
     CCT_created = true;
-  }
   //}
+    cout << "CCT CREATED!!!" << endl;
 
+    std::vector<pms_id_t> ids;
+  // https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/lib/prof-lean/id-tuple.h#L116
+  // struct pms_id_t: uint16_t kind, uint64_t physical index, uint64_t logical index
+    pms_id_t id = {IDTUPLE_COMPOSE(IDTUPLE_RANK, IDTUPLE_IDS_BOTH_VALID), 0, 0};
+    ids.push_back(id);
+  
+    tattrs.idTuple(ids);
+
+  }
   // ------------------------------------------------------------
   // Create "Metric" object
   // ------------------------------------------------------------
@@ -363,27 +378,23 @@ void MemgazeSource::read(const DataClass& needed) {
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L255
 
   // settings: name and description
-  
+  if (needed.hasAttributes()) {
+    cout << "has ATTRIBUTES" << endl;
   // hpctoolkit uses metric_desc_t m; m.name; m.description;
-  Metric::Settings settings{"name", "description"};
-  Metric& metric = sink.metric(settings);
- 
-  sink.metricFreeze(metric);
-
+    Metric::Settings settings{"name", "description"};
+    Metric& metric = sink.metric(settings);
+    metrics.push_back(metric);
+    sink.metricFreeze(metric);
+  }
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L381
-  std::vector<pms_id_t> ids;
-  // https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/lib/prof-lean/id-tuple.h#L116
-  // struct pms_id_t: uint16_t kind, uint64_t physical index, uint64_t logical index
-  pms_id_t id = {0, 0, 0};
-  ids.push_back(id);
-  
-  ThreadAttributes tattrs;
-  tattrs.idTuple(ids);
-  PerThreadTemporary* thread = &sink.thread(std::move(tattrs));
+  if (needed.hasThreads()) {
+    cout << "has THREADS" << endl;
+    thread = &sink.thread(std::move(tattrs));
+  }
   // ------------------------------------------------------------
   // Attribute metric values
   // ------------------------------------------------------------
-
+  
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L519
 
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L526
@@ -394,7 +405,6 @@ void MemgazeSource::read(const DataClass& needed) {
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L534
 
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L539
-
   // Metric "location"
   if (needed.hasMetrics()) {
     cout << "hasMetrics" << endl;
@@ -404,9 +414,9 @@ void MemgazeSource::read(const DataClass& needed) {
       accum = sink.accumulateTo(*thread, context);   
       // Metric value
       double v = 1;
-      accum->add(metric, v);
+      accum->add(metrics[0], v);
     }
- }
+  }
   // add post-processing?
 }
 
@@ -415,7 +425,7 @@ bool MemgazeSource::valid() const noexcept { return false; }
 
 DataClass MemgazeSource::provides() const noexcept {
   using namespace hpctoolkit::literals::data;
-  Class ret = attributes + references + contexts + DataClass::metrics + threads;
+  Class ret = attributes + references + contexts + DataClass::metrics + threads + ctxTimepoints;
   //if(!tracepath.empty()) ret += ctxTimepoints;
   return ret;
 }

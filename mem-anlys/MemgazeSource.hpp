@@ -56,7 +56,12 @@ public:
 
   Window* memgaze_root;
   bool CCT_created;
+ 
+  ThreadAttributes tattrs;
+  PerThreadTemporary* thread;
   vector<reference_wrapper<Context>> created_contexts;
+  vector<reference_wrapper<Metric>> metrics;
+  vector<reference_wrapper<Module>> modules;  
 
   bool valid() const noexcept override;
 
