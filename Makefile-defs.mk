@@ -130,7 +130,7 @@ MG_PERF_ROOT ?= $(MG_XLIB_SRC)/perf
 # 
 #****************************************************************************
 
-msg_info = "$(_msg_sep2)\nPREFIX=$(PREFIX)\nMG_XLIB_ROOT=$(MG_XLIB_ROOT)\nMG_PERF_ROOT=$(MG_PERF_ROOT)\n$(_msg_sep2)\n"
+msg_info = "$(_msg_sep2)\nPREFIX=$(PREFIX)\nMG_XLIB_ROOT=$(MG_XLIB_ROOT)\nMG_PERF_ROOT=$(MG_PERF_ROOT)\nMG_PERF_CC=$(MG_PERF_CC)\nDEVELOP=$(DEVELOP)\n$(_msg_sep2)\n"
 
 #****************************************************************************
 # 
