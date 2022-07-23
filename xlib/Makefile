@@ -38,14 +38,22 @@ MY_HPCTK   = hpctoolkit@2022.05.15 -papi -mpi
 MY_DYNINST = dyninst@12.1.0
 
 
-xlib : info xlib_spack xlib_hpctoolkit xlib_dyninst_patch
-	@$(PRINTF) $(_msg_infoGrp)
+#xlib_dev : info xlib_spack xlib_hpctoolkit_dev xlib_dyninst_patch xlib_hpctk_libs_copy
+#	@$(PRINTF) $(_msg_infoGrp)
 # platform: "$(XLIB_SPACK)/bin/spack arch"
 
-xlib_dev : info xlib_spack xlib_hpctoolkit_dev xlib_dyninst_patch xlib_hpctk_libs_copy
-	@$(PRINTF) $(_msg_infoGrp)
+#xlib : info xlib_spack xlib_hpctoolkit xlib_dyninst_patch
+#	@$(PRINTF) $(_msg_infoGrp)
 # platform: "$(XLIB_SPACK)/bin/spack arch"
 
+xlib :
+ifdef DEVELOP
+  xlib : info xlib_spack xlib_hpctoolkit_dev xlib_dyninst_patch xlib_hpctk_libs_copy
+	@$(PRINTF) $(_msg_infoGrp)
+else
+  xlib : info xlib_spack xlib_hpctoolkit xlib_dyninst_patch
+	@$(PRINTF) $(_msg_infoGrp)
+endif
 
 
 xlib_spack :
@@ -141,13 +149,13 @@ include ../Makefile-template.mk
 #****************************************************************************
 
 
-install.local :
+install.local : xlib perf
 
-ifdef DEVELOP
-  install.local : xlib_dev perf
-else
-  install.local : xlib perf
-endif
+#ifdef DEVELOP
+#  install.local : xlib_dev perf
+#else
+#  install.local : xlib perf
+#endif
 
 
 info.local :

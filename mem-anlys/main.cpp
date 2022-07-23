@@ -43,7 +43,10 @@
 #include "Window.hpp"
 #include "Address.hpp"
 #include "Function.hpp"
+
+#ifdef DEVELOP
 #include "MemgazeSource.hpp"
+#endif
 //***************************************************************************
 std::ostream ofs(NULL);
 using namespace std;
@@ -1051,9 +1054,11 @@ int main(int argc, char* argv[], const char* envp[]) {
     cout << "ERROR ROOT IS NULL\n";
   cout << "PRINTING TREE of FP\n";
 
-  // Onur: test MemgazeSource
-  //hpctk_main(argc, argv, hpcStructInputFile, fullT);
-  
+// Onur: test MemgazeSource
+// #ifdef DEVELOP
+//   hpctk_main(argc, argv, hpcStructInputFile, fullT);
+// #endif
+
   cout << "General MULTIPLIER="<<multiplier<<endl; //TODO NOTE:: maybe get rid of general completely
   cout << "#windows: "<<number_of_windows<<" Period:"<<period<<" Total Lds:"<< total_loads_in_trace<<endl;
   double multiplier2 = (((double)number_of_windows*(double)period) - (double)total_loads_in_trace) / (double)total_loads_in_trace;
