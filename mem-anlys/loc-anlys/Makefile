@@ -1,49 +1,63 @@
+# -*-Mode: makefile;-*-
+
+#*BeginPNNLCopyright*********************************************************
+#
+# $HeadURL$
+# $Id$
+#
+#***********************************************************EndPNNLCopyright*
+
+#****************************************************************************
+#
+#****************************************************************************
+
 #****************************************************************************
 # Package defs
 #****************************************************************************
 
 include ../../Makefile-defs.mk
 
+#****************************************************************************
+# Recursion
+#****************************************************************************
+
+MK_SUBDIRS = 
+
+#****************************************************************************
+# 
+#****************************************************************************
+
 #----------------------------------------------------------------------------
 # Build
 #----------------------------------------------------------------------------
 
+CXX = g++ -Wall -g -O3
 
-CC=g++
-CFLAGS=-Wall -g 
 
-SRC=./src
-#LDIR =lib
+#****************************************************************************
 
-#LIBS=-lm
+mg_analyze := memgaze-analyze-loc
 
-_DEPS=memoryanalysis.h memorymodeling.h structure.h TraceLine.hpp BlockInfo.hpp SpatialRUD.hpp
-DEPS=$(patsubst %,$(SRC)/%,$(_DEPS))
+MK_PROGRAMS_CXX = $(mg_analyze)
 
-_OBJ=main.o BlockInfo.o SpatialRUD.o
-OBJ=$(patsubst %,$(SRC)/%,$(_OBJ))
+$(mg_analyze)_SRCS = \
+	src/main.cpp \
+	src/BlockInfo.cpp \
+	src/SpatialRUD.cpp \
 
-#APP=memCAM
-APP=memgaze-analyze-loc
-MK_PROGRAMS_CXX = $(APP)
+# src/memoryanalysis.h \
+# src/memorymodeling.h\
+# src/structure.h\
+# src/TraceLine.hpp\
+# src/BlockInfo.hpp\
+# src/SpatialRUD.hpp
 
-%.o: %.cc $(DEPS)
-	$(CC) $(CFLAGS) -c -o $@ $< 
+$(mg_analyze)_CXXFLAGS =  
 
-%.o: %.cpp $(DEPS)
-	$(CC) $(CFLAGS) -c -o $@ $< 
+$(mg_analyze)_LDFLAGS =
 
-$(APP): $(OBJ)
-	$(CC) $(CFLAGS) -o $@ $^ 
-	rm $(SRC)/*.o
+$(mg_analyze)_LDADD =
 
-#.PHONY: clean distclean 
-#
-#clean:
-#	rm -f $(SRC)/*.o
-#
-#distclean: 
-#	rm -f $(APP)
 
 #****************************************************************************
 # Template Rules

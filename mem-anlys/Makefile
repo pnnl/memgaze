@@ -38,7 +38,7 @@ MK_SUBDIRS = \
 
 CXX = g++ -std=c++11 -Wall -Wno-unused-variable
 
-LIBCXX_LIB = $(dir $(shell $(CXX) -print-file-name=libstdc++.so))
+#LIBCXX_LIB = $(dir $(shell $(CXX) -print-file-name=libstdc++.so))
 
 #****************************************************************************
 
@@ -90,9 +90,9 @@ ifdef DEVELOP
 
   # HPCToolkit requires C++17, pthread, and omp
   $(mg_analyze)_CXXFLAGS += \
-          -g -O3 \
-          $(HPCTK_CXXFLAGS) \
-  	  -DDEVELOP
+	        -g -O3 \
+	        $(HPCTK_CXXFLAGS) \
+	        -DDEVELOP
 
   $(mg_analyze)_LDFLAGS += \
           $(HPCTK_LDFLAGS) \
@@ -117,6 +117,7 @@ else
   $(mg_analyze)_LDADD +=
 endif
 
+
 #****************************************************************************
 # Template Rules
 #****************************************************************************
@@ -127,7 +128,6 @@ include ../Makefile-template.mk
 #****************************************************************************
 # Local Rules
 #****************************************************************************
-
 
 info.local :
 
