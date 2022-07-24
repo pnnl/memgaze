@@ -121,10 +121,9 @@ perf : info
 	  patch $(MG_PERF)/scripts/bpf_helpers_doc.py $(MG_XLIB_SRC)/config-perf/perf-python.patch ; \
 	fi && \
   \
-	if [[ -n "$(MG_PERF_CC)" ]] then export HOSTCC="$(MG_PERF_CC)" fi && \
+	[[ -n "$(MG_PERF_CC)" ]] && export HOSTCC="$(MG_PERF_CC)" ; \
 	export WERROR=0 && \
-	cd $(MG_PERF)/tools/perf && make && \
-	unset WERROR
+	cd $(MG_PERF)/tools/perf && make
 
 
 perf_distclean : info
