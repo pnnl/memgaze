@@ -55,7 +55,6 @@ public:
   ~MemgazeSource();
 
   Window* memgaze_root;
-  bool CCT_created;
  
   ThreadAttributes tattrs;
   PerThreadTemporary* thread;
@@ -76,22 +75,65 @@ public:
 //private:
 };
 
+class MemgazeProfArgs {
+  public:
+    MemgazeProfArgs() = default;
+    ~MemgazeProfArgs() = default;
+    
+    class UnresolvedPaths final : public ProfileFinalizer {
+    public:
+      //UnresolvedPaths(MemgazeProfArgs& a) : args(a) {};
+      UnresolvedPaths() = default;
+      ~UnresolvedPaths() = default;
+
+      ExtensionClass provides() const noexcept override { return ExtensionClass::resolvedPath; }
+    
+      ExtensionClass requires() const noexcept override { return {}; }
+    
+      std::optional<stdshim::filesystem::path> resolvePath(const File& f) noexcept override {
+        return f.path();
+      }
+    
+      std::optional<stdshim::filesystem::path> resolvePath(const Module& m) noexcept override {
+        return m.path();
+      }
+
+    //private:
+    //  MemgazeProfArgs& args;
+    };
+
+    class StatisticsExtender final : public ProfileFinalizer {
+    public:
+      //StatisticsExtender(MemgazeProfArgs& a) : args(a) {};
+      StatisticsExtender() = default;
+      ~StatisticsExtender() = default;
+
+      ExtensionClass provides() const noexcept override {
+        return ExtensionClass::statistics;
+      }
+    
+      ExtensionClass requires() const noexcept override { return {}; }
+
+      void appendStatistics(const Metric&, Metric::StatsAccess) noexcept override;
+   
+    //private:
+    //  MemgazeProfArgs& args;
+    };
+
+    struct Stats final {
+      bool sum : 1;
+      bool mean : 1;
+      bool min : 1;
+      bool max : 1;
+      bool stddev : 1;
+      bool cfvar : 1;
+
+      Stats() : sum(true), mean(false), min(false), max(false), stddev(false),
+              cfvar(false) {};
+    };
+};
+
 // temporary fix for the following error during ExperimentXML4>()
 //memgaze-analyze: pipeline.cpp:103: Settings& hpctoolkit::ProfilePipeline::Settings::operator<<(hpctoolkit::ProfileSink&): Assertion `req - available == ExtensionClass() && "Sink requires unavailable extended data!"' failed.
-
-class UnresolvedPaths final : public ProfileFinalizer {
-public:
-  UnresolvedPaths() = default;
-  ~UnresolvedPaths() = default;
-
-  ExtensionClass provides() const noexcept override { return ExtensionClass::resolvedPath; }
-  ExtensionClass requires() const noexcept override { return {}; }
-  std::optional<stdshim::filesystem::path> resolvePath(const File& f) noexcept override {
-    return f.path();
-  }
-  std::optional<stdshim::filesystem::path> resolvePath(const Module& m) noexcept override {
-    return m.path();
-  }
-};
 
 #endif

@@ -73,6 +73,20 @@ using namespace std;
 //static Prof::CCT::ANode*
 //makeCCTRoot(uint n_metrics);
 
+void MemgazeProfArgs::StatisticsExtender::appendStatistics(const Metric& m, Metric::StatsAccess mas) noexcept {
+  if(m.visibility() == Metric::Settings::visibility_t::invisible) return;
+  Metric::Statistics s;
+  struct MemgazeProfArgs::Stats stats;  
+
+  s.sum = stats.sum;
+  s.mean = stats.mean;
+  s.min = stats.min;
+  s.max = stats.max;
+  s.stddev = stats.stddev;
+  s.cfvar = stats.cfvar;
+  mas.requestStatistics(std::move(s));
+}
+
 template<class T, class... Args>
 static std::unique_ptr<T> make_unique_x(Args&&... args) {
   return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
@@ -243,8 +257,11 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
   //temporary fix
   //std::unique_ptr<ProfileFinalizer> temp_finalizer;
   //temp_finalizer.reset(new UnresolvedPaths());
-  UnresolvedPaths temp_finalizer;
+  MemgazeProfArgs::UnresolvedPaths temp_finalizer;
   pipeSettings << temp_finalizer;
+
+  MemgazeProfArgs::StatisticsExtender stat_extender;
+  pipeSettings << stat_extender;
 
   // The "experiment.xml" file
   // The last parameter is for traceDB. We should use nullptr.
@@ -282,8 +299,6 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
   if (node == NULL) {
     return; 
   }
-  // cout << node->addresses[0]->ip->ip << endl; // prints 3145891
-  //TODO: any value other than 3145891 works. Why?
   uint64_t ip = node->addresses[0]->ip->ip; 
   Scope new_scope = Scope(lm, ip); // creates Scope::point
   Context& new_context = sink.context(parent_context, {Relation::call, new_scope}).second;
@@ -302,16 +317,15 @@ void MemgazeSource::read(const DataClass& needed) {
   // ------------------------------------------------------------
   //https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/source.hpp#L103 ??? 
   //https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L323 ???
-  loadmap_entry_t lm_test;
-  // TODO: get from struct file or main.cpp?
-  string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/UBENCH_O3_500k_8kb_P10k/ubench-500k_O3_PTW";
-  lm_test.name = &hardcoded_lm[0];
-  // lm_test.name = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/UBENCH_O3_500k_8kb_P10k/ubench-500k_O3_PTW";
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L325 
   // for each load module:
   //{
   if (needed.hasReferences()) {
     cout << "has REFERENCES" << endl;
+    loadmap_entry_t lm_test;
+    // TODO: get from struct file or main.cpp?
+    string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/UBENCH_O3_500k_8kb_P10k/ubench-500k_O3_PTW";
+    lm_test.name = &hardcoded_lm[0];
     Module& lm = sink.module(lm_test.name);
     modules.push_back(lm);
   }
@@ -358,9 +372,7 @@ void MemgazeSource::read(const DataClass& needed) {
     cout << "createCCT" << endl;
     Module& lm = modules[0];
     createCCT(memgaze_root, lm, root_context);
-    CCT_created = true;
   //}
-    cout << "CCT CREATED!!!" << endl;
 
     std::vector<pms_id_t> ids;
   // https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/lib/prof-lean/id-tuple.h#L116
@@ -386,6 +398,7 @@ void MemgazeSource::read(const DataClass& needed) {
     metrics.push_back(metric);
     sink.metricFreeze(metric);
   }
+
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L381
   if (needed.hasThreads()) {
     cout << "has THREADS" << endl;
@@ -425,7 +438,7 @@ bool MemgazeSource::valid() const noexcept { return false; }
 
 DataClass MemgazeSource::provides() const noexcept {
   using namespace hpctoolkit::literals::data;
-  Class ret = attributes + references + contexts + DataClass::metrics + threads + ctxTimepoints;
+  Class ret = attributes + references + contexts + DataClass::metrics + threads;
   //if(!tracepath.empty()) ret += ctxTimepoints;
   return ret;
 }
