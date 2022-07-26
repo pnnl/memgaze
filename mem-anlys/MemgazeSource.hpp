@@ -57,6 +57,7 @@ public:
   Window* memgaze_root;
  
   ThreadAttributes tattrs;
+  ProfileAttributes attrs;
   PerThreadTemporary* thread;
   vector<reference_wrapper<Context>> created_contexts;
   vector<reference_wrapper<Metric>> metrics;

@@ -45,6 +45,7 @@ using std::string;
 #include "MemgazeSource.hpp"
 #include "lib/profile/attributes.hpp"
 #include "lib/prof-lean/id-tuple.h"
+#include "lib/prof-lean/hpcrun-fmt.h"
 
 #include <lib/support/diagnostics.h>
 #include <lib/support/RealPathMgr.hpp>
@@ -392,6 +393,18 @@ void MemgazeSource::read(const DataClass& needed) {
   // settings: name and description
   if (needed.hasAttributes()) {
     cout << "has ATTRIBUTES" << endl;
+  
+    // create idTuple types
+    attrs.idtupleName(IDTUPLE_SUMMARY, HPCRUN_IDTUPLE_SUMMARY);
+    attrs.idtupleName(IDTUPLE_NODE, HPCRUN_IDTUPLE_NODE);
+    attrs.idtupleName(IDTUPLE_RANK, HPCRUN_IDTUPLE_RANK);
+    attrs.idtupleName(IDTUPLE_THREAD, HPCRUN_IDTUPLE_THREAD);
+    attrs.idtupleName(IDTUPLE_GPUDEVICE, HPCRUN_IDTUPLE_GPUDEVICE);
+    attrs.idtupleName(IDTUPLE_GPUCONTEXT, HPCRUN_IDTUPLE_GPUCONTEXT);
+    attrs.idtupleName(IDTUPLE_GPUSTREAM, HPCRUN_IDTUPLE_GPUSTREAM);
+    attrs.idtupleName(IDTUPLE_CORE, HPCRUN_IDTUPLE_CORE);
+    sink.attributes(std::move(attrs));
+
   // hpctoolkit uses metric_desc_t m; m.name; m.description;
     Metric::Settings settings{"name", "description"};
     Metric& metric = sink.metric(settings);
