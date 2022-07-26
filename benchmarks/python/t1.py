@@ -29,7 +29,7 @@ import numpy as np
 
 def main():
     #-------------------------------------------------------
-    # 
+    # matmul
     #-------------------------------------------------------
 
     sz = 1000
@@ -40,6 +40,12 @@ def main():
     timeit("matmul2a: ", lambda : matmul2a(A.copy(), B.copy()))
     timeit("matmul2b: ", lambda : matmul2b(A.copy(), B.copy()))
 
+
+    #-------------------------------------------------------
+    # Gaussian elimination
+    #-------------------------------------------------------
+
+    sz = 1000
     A, b = gauss_init(sz)
     timeit("gauss1: ", lambda : gauss1(A.copy(), b.copy(), False))
     timeit("gauss2: ", lambda : gauss2(A.copy(), b.copy(), False))
@@ -217,7 +223,6 @@ def gauss1(A: np.array, b: np.array, doPricing = True):
     return x
 
 
-# TODO: finish
 def gauss2(A: np.array, b: np.array, doPricing = True):
     # Copy of above without vectorization
     # cf. https://www.codesansar.com/numerical-methods/gauss-elimination-method-python-program.htm
@@ -229,7 +234,7 @@ def gauss2(A: np.array, b: np.array, doPricing = True):
     for k in range(n-1):
         if doPricing:
             # Pivot
-            maxindex = abs(A[k:,k]).argmax() + k
+            maxindex = abs(A[k:,k]).argmax() + k # FIXME: finish
             if A[maxindex, k] == 0:
                 raise ValueError("Matrix is singular.")
             # Swap
