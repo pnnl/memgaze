@@ -35,13 +35,14 @@ def main():
     sz = 1000
     A, B = matmul_init(sz)
 
-    # timeit("matmul0:  ", lambda : matmul0(A.copy(), B.copy()))
-    # timeit("matmul1:  ", lambda : matmul1(A.copy(), B.copy()))
-    # timeit("matmul2a: ", lambda : matmul2a(A.copy(), B.copy()))
-    # timeit("matmul2b: ", lambda : matmul2b(A.copy(), B.copy()))
+    timeit("matmul0:  ", lambda : matmul0(A.copy(), B.copy()))
+    timeit("matmul1:  ", lambda : matmul1(A.copy(), B.copy()))
+    timeit("matmul2a: ", lambda : matmul2a(A.copy(), B.copy()))
+    timeit("matmul2b: ", lambda : matmul2b(A.copy(), B.copy()))
 
     A, b = gauss_init(sz)
-    timeit("gauss1a: ", lambda : gauss1(A.copy(), b.copy(), False))
+    timeit("gauss1: ", lambda : gauss1(A.copy(), b.copy(), False))
+    timeit("gauss2: ", lambda : gauss2(A.copy(), b.copy(), False))
 
     
     #-------------------------------------------------------
@@ -153,7 +154,7 @@ def matmul2b(a: np.array, b: np.array):
 
 # Cholesky?
 
-# Gauss vectorized vs. not:
+# Gauss vectorized vs. not (Gauss will have value and spatial reuse)
 #   https://gist.github.com/tkralphs/7554375
 #   https://www.codesansar.com/numerical-methods/gauss-elimination-method-python-program.htm
 
@@ -182,8 +183,7 @@ def gauss1(A: np.array, b: np.array, doPricing = True):
     '''
     n = len(A)
     if b.size != n:
-        raise ValueError("Invalid argument: incompatible sizes between"+
-                         "A & b.", b.size, n)
+        raise ValueError("incompatible sizes for A & b.", b.size, n)
 
     # k represents the current pivot row. Since GE traverses the matrix in the 
     # upper right triangle, we also use k for indicating the k-th diagonal
@@ -201,13 +201,15 @@ def gauss1(A: np.array, b: np.array, doPricing = True):
                 A[[k,maxindex]] = A[[maxindex, k]]
                 b[[k,maxindex]] = b[[maxindex, k]]
         else:
-            if A[k, k] == 0:
+            if A[k, k] == 0: # FIXME: test with epsilon
                 raise ValueError("Pivot element is zero. Try setting doPricing to True.")
+
         #Eliminate
         for row in range(k+1, n):
             multiplier = A[row,k]/A[k,k]
             A[row, k:] = A[row, k:] - multiplier*A[k, k:]
             b[row] = b[row] - multiplier*b[k]
+
     # Back Substitution
     x = np.zeros(n)
     for k in range(n-1, -1, -1):
@@ -215,7 +217,46 @@ def gauss1(A: np.array, b: np.array, doPricing = True):
     return x
 
 
+# TODO: finish
+def gauss2(A: np.array, b: np.array, doPricing = True):
+    # Copy of above without vectorization
+    # cf. https://www.codesansar.com/numerical-methods/gauss-elimination-method-python-program.htm
+    n = len(A)
+    if b.size != n:
+        raise ValueError("incompatible sizes for A & b.", b.size, n)
 
+    # Elimination
+    for k in range(n-1):
+        if doPricing:
+            # Pivot
+            maxindex = abs(A[k:,k]).argmax() + k
+            if A[maxindex, k] == 0:
+                raise ValueError("Matrix is singular.")
+            # Swap
+            if maxindex != k:
+                A[[k,maxindex]] = A[[maxindex, k]]
+                b[[k,maxindex]] = b[[maxindex, k]]
+        else:
+            if A[k, k] == 0: # FIXME: test with epsilon
+                raise ValueError("Pivot element is zero. Try setting doPricing to True.")
+
+        #Eliminate
+        for row in range(k+1, n):
+            multiplier = A[row,k]/A[k,k]
+
+            #tallent: A[row, k:] = A[row, k:] - multiplier*A[k, k:]
+            for col in range(k,n):
+                A[row, col] = A[row, col] - multiplier*A[k, col]
+
+            b[row] = b[row] - multiplier*b[k]
+
+    # Back Substitution
+    x = np.zeros(n)
+    for k in range(n-1, -1, -1):
+        #tallent: x[k] = (b[k] - np.dot(A[k,k+1:],x[k+1:]))/A[k,k]
+        for col in range(k+1,n):
+            x[k] = (b[k] - np.dot(A[k,col],x[col]))/A[k,k]
+    return x
 
 
 #****************************************************************************
