@@ -33,31 +33,26 @@ def main():
     #-------------------------------------------------------
 
     sz = 1000
-
     A, B = matmul_init(sz)
-    timeit("matmul0:  ", lambda : matmul0(A, B))
 
-    A, B = matmul_init(sz)
-    timeit("matmul1:  ", lambda : matmul1(A, B))
+    # timeit("matmul0:  ", lambda : matmul0(A.copy(), B.copy()))
+    # timeit("matmul1:  ", lambda : matmul1(A.copy(), B.copy()))
+    # timeit("matmul2a: ", lambda : matmul2a(A.copy(), B.copy()))
+    # timeit("matmul2b: ", lambda : matmul2b(A.copy(), B.copy()))
 
-    A, B = matmul_init(sz)
-    timeit("matmul2a: ", lambda : matmul2a(A, B))
+    A, b = gauss_init(sz)
+    timeit("gauss1a: ", lambda : gauss1(A.copy(), b.copy(), False))
 
-    A, B = matmul_init(sz)
-    timeit("matmul2b: ", lambda : matmul2b(A, B))
-
+    
     #-------------------------------------------------------
     # Pandas 1
     #-------------------------------------------------------
 
     df = pandas1_init()
-    timeit("pandas1a: ", lambda : pandas1a(df))
-
-    df = pandas1_init()
-    timeit("pandas1b: ", lambda : pandas1b(df))
-
-    df = pandas1_init()
-    timeit("pandas1c: ", lambda : pandas1c(df))
+    
+    timeit("pandas1a: ", lambda : pandas1a(df.copy()))
+    timeit("pandas1b: ", lambda : pandas1b(df.copy()))
+    timeit("pandas1c: ", lambda : pandas1c(df.copy()))
 
 
     #-------------------------------------------------------
@@ -65,12 +60,12 @@ def main():
     #-------------------------------------------------------
 
     df = pandas2_init()
-    timeit("pandas2a: ", lambda : pandas2a(df))
 
-    df = pandas2_init()
-    timeit("pandas2b: ", lambda : pandas2b(df))
+    timeit("pandas2a: ", lambda : pandas2a(df.copy()))
+    timeit("pandas2b: ", lambda : pandas2b(df.copy()))
 
-        
+
+
 #****************************************************************************
 
 def timeit(msg, fun):
@@ -144,6 +139,83 @@ def matmul2b(a: np.array, b: np.array):
             val = np.dot(row, col)
             ret[rownum, colnum] = val
     return ret
+
+
+
+#****************************************************************************
+#
+#****************************************************************************
+
+# Ideas for reuse:
+#   reuse subsets of matrices
+#   iterate over rows vs. columns?
+#   reuse in GAP PR and CC
+
+# Cholesky?
+
+# Gauss vectorized vs. not:
+#   https://gist.github.com/tkralphs/7554375
+#   https://www.codesansar.com/numerical-methods/gauss-elimination-method-python-program.htm
+
+def gauss_init(sz):
+    A = np.random.rand(sz, sz)
+    b = np.random.rand(sz, 1)
+    return A, b
+
+
+# def gauss0(A: np.array, b: np.array):
+#     return np.linalg.solve(A, b)
+    
+def gauss1(A: np.array, b: np.array, doPricing = True):
+    '''
+    https://gist.github.com/tkralphs/7554375
+
+    Gaussian elimination with partial pivoting.
+    
+    input: A is an n x n numpy matrix
+           b is an n x 1 numpy array
+    output: x is the solution of Ax=b 
+            with the entries permuted in 
+            accordance with the pivoting 
+            done by the algorithm
+    post-condition: A and b have been modified.
+    '''
+    n = len(A)
+    if b.size != n:
+        raise ValueError("Invalid argument: incompatible sizes between"+
+                         "A & b.", b.size, n)
+
+    # k represents the current pivot row. Since GE traverses the matrix in the 
+    # upper right triangle, we also use k for indicating the k-th diagonal
+    # column index.
+    
+    # Elimination
+    for k in range(n-1):
+        if doPricing:
+            # Pivot
+            maxindex = abs(A[k:,k]).argmax() + k
+            if A[maxindex, k] == 0:
+                raise ValueError("Matrix is singular.")
+            # Swap
+            if maxindex != k:
+                A[[k,maxindex]] = A[[maxindex, k]]
+                b[[k,maxindex]] = b[[maxindex, k]]
+        else:
+            if A[k, k] == 0:
+                raise ValueError("Pivot element is zero. Try setting doPricing to True.")
+        #Eliminate
+        for row in range(k+1, n):
+            multiplier = A[row,k]/A[k,k]
+            A[row, k:] = A[row, k:] - multiplier*A[k, k:]
+            b[row] = b[row] - multiplier*b[k]
+    # Back Substitution
+    x = np.zeros(n)
+    for k in range(n-1, -1, -1):
+        x[k] = (b[k] - np.dot(A[k,k+1:],x[k+1:]))/A[k,k]
+    return x
+
+
+
 
 
 #****************************************************************************
