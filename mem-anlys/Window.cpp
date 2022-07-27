@@ -35,6 +35,7 @@
 #include "Address.hpp"
 #include "Instruction.hpp"
 #include "CPU.hpp"
+#include "metrics.h"
 //***************************************************************************
 using namespace std;
     
@@ -371,3 +372,31 @@ using namespace std;
       }
     }
 
+    map<int, double> Window::getMetrics(map<int, double> diagMap) {
+      map<int, double> metrics;
+      float multiplier = this->getMultiplier();
+
+      if (diagMap[IN_SAMPLE] == 0) {
+        metrics[WINDOW_SIZE] = diagMap[WINDOW_SIZE] * multiplier;
+        metrics[FP] = diagMap[FP] * multiplier;
+        metrics[STRIDED] = diagMap[STRIDED] * multiplier;
+        metrics[INDIRECT] = diagMap[INDIRECT] * multiplier;
+        metrics[CONSTANT] = diagMap[CONSTANT] * multiplier;
+        //metrics[UNKNOWN] = diagMap[UNKNOWN] * multiplier;
+        metrics[TOTAL_LOADS] = diagMap[TOTAL_LOADS] * multiplier; 
+      }
+      else {
+        metrics[WINDOW_SIZE] = diagMap[WINDOW_SIZE];
+        metrics[FP] = diagMap[FP];
+        metrics[STRIDED] = diagMap[STRIDED];
+        metrics[INDIRECT] = diagMap[INDIRECT];
+        metrics[CONSTANT] = diagMap[CONSTANT];
+        //metrics[UNKNOWN] = diagMap[UNKNOWN];
+        metrics[TOTAL_LOADS] = diagMap[TOTAL_LOADS];
+      }
+      metrics[CONSTANT2LOAD_RATIO] = (diagMap[CONSTANT] * multiplier) / ((diagMap[WINDOW_SIZE] + diagMap[CONSTANT]) * multiplier);
+      metrics[NPF_RATE] = diagMap[INDIRECT] / diagMap[FP];
+      metrics[NPF_GROWTH_RATE] = (diagMap[INDIRECT] * multiplier) / (diagMap[WINDOW_SIZE] * multiplier);
+      metrics[GROWTH_RATE] = (diagMap[FP] * multiplier) / (diagMap[WINDOW_SIZE] * multiplier);
+      return metrics;
+    }

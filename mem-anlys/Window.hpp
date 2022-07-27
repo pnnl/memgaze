@@ -91,6 +91,7 @@ class Window {
     void  getFPDiag(map <int, double> *diagMap);
     float calcMultiplier(unsigned long period, bool is_load = false);
     float getMultiplier();
+    map<int, double> getMetrics(map<int, double> diagMap);
     //float getMultiplierAvg();
     //void setMultiplierAvg(float _multiplierAvg){multiplierAvg = _multiplierAvg;}
 };

@@ -43,6 +43,7 @@
 #include "Window.hpp"
 #include "Address.hpp"
 #include "Function.hpp"
+#include "metrics.h"
 
 #ifdef DEVELOP
 #include "MemgazeSource.hpp"
@@ -100,14 +101,14 @@ void split(const std::string& str, Container& cont, char delim = ' ')
 //map <level , <type , FP> 
 //type 0 = constant, 1 = strided,  2 = insdirect,  -1 = unknown
 //type 3 =  totalFP, 4 = growth rate, -2 number of nodes
-#define NUMBER_OF_NODES -2
-#define UNKNOWN -1
-#define CONSTANT 0
-#define STRIDED 1
-#define INDIRECT 2
-#define FP 3
-#define IN_SAMPLE -3
-#define WINDOW_SIZE -4
+//#define NUMBER_OF_NODES -2
+//#define UNKNOWN -1
+//#define CONSTANT 0
+//#define STRIDED 1
+//#define INDIRECT 2
+//#define FP 3
+//#define IN_SAMPLE -3
+//#define WINDOW_SIZE -4
 
 int getKey(int size){
   return (int)log2((double)size);

@@ -17,7 +17,7 @@
 
 #include <iostream>
 #include <fstream>
-
+#include <cmath>
 #include <string>
 using std::string;
 
@@ -43,6 +43,8 @@ using std::string;
 #include "Instruction.hpp"
 #include "Address.hpp"
 #include "MemgazeSource.hpp"
+#include "metrics.h"
+
 #include "lib/profile/attributes.hpp"
 #include "lib/prof-lean/id-tuple.h"
 #include "lib/prof-lean/hpcrun-fmt.h"
@@ -80,11 +82,11 @@ void MemgazeProfArgs::StatisticsExtender::appendStatistics(const Metric& m, Metr
   struct MemgazeProfArgs::Stats stats;  
 
   s.sum = stats.sum;
-  s.mean = stats.mean;
-  s.min = stats.min;
-  s.max = stats.max;
-  s.stddev = stats.stddev;
-  s.cfvar = stats.cfvar;
+  //s.mean = stats.mean;
+  //s.min = stats.min;
+  //s.max = stats.max;
+  //s.stddev = stats.stddev;
+  //s.cfvar = stats.cfvar;
   mas.requestStatistics(std::move(s));
 }
 
@@ -303,10 +305,18 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
   uint64_t ip = node->addresses[0]->ip->ip; 
   Scope new_scope = Scope(lm, ip); // creates Scope::point
   Context& new_context = sink.context(parent_context, {Relation::call, new_scope}).second;
-  created_contexts.push_back(new_context);
+  window_context.insert({node, new_context});
 
   createCCT(node->left, lm, new_context);
   createCCT(node->right, lm, new_context);
+}
+
+void MemgazeSource::addMetrics(string name, string description, int id) {
+  // hpctoolkit uses metric_desc_t m; m.name; m.description;
+  Metric::Settings settings{name, description};
+  Metric& metric = sink.metric(settings);
+  metrics.insert({id, metric});
+  sink.metricFreeze(metric);
 }
 
 // hpctoolkit/src/tool/hpcprof/hpcrun4.*
@@ -338,7 +348,7 @@ void MemgazeSource::read(const DataClass& needed) {
   if (needed.hasContexts()) {
     cout << "has CONTEXTS" << endl;
     auto& root_context = sink.global();
-    created_contexts.push_back(root_context);
+    window_context.insert({new Window(), root_context});
   // ------------------------------------------------------------
   // Create CCT
   // 
@@ -380,9 +390,7 @@ void MemgazeSource::read(const DataClass& needed) {
   // struct pms_id_t: uint16_t kind, uint64_t physical index, uint64_t logical index
     pms_id_t id = {IDTUPLE_COMPOSE(IDTUPLE_RANK, IDTUPLE_IDS_BOTH_VALID), 0, 0};
     ids.push_back(id);
-  
     tattrs.idTuple(ids);
-
   }
   // ------------------------------------------------------------
   // Create "Metric" object
@@ -406,10 +414,21 @@ void MemgazeSource::read(const DataClass& needed) {
     sink.attributes(std::move(attrs));
 
   // hpctoolkit uses metric_desc_t m; m.name; m.description;
-    Metric::Settings settings{"name", "description"};
-    Metric& metric = sink.metric(settings);
-    metrics.push_back(metric);
-    sink.metricFreeze(metric);
+    //Metric::Settings settings{"strided", "description for strided"};
+    //Metric& strided_metric = sink.metric(settings);
+    //metrics.insert({STRIDED, strided_metric});
+    //sink.metricFreeze(strided_metric);
+    addMetrics("STRIDED", "strided description", STRIDED);
+    addMetrics("CONSTANT", "constant description", CONSTANT);
+    addMetrics("INDIRECT", "indirect description", INDIRECT);
+    addMetrics("FP", "FP description", FP);
+    //addMetrics("UNKNOWN", "unknown description", UNKNOWN);
+    addMetrics("WINDOW_SIZE", "window_size desc", WINDOW_SIZE);
+    addMetrics("TOTAL_LOADS", "total_loads desc", TOTAL_LOADS);
+    addMetrics("CONSTANT2LOAD_RATIO", "contload_ratio desc", CONSTANT2LOAD_RATIO);
+    addMetrics("NPF_RATE", "npf_rate desc", NPF_RATE);
+    addMetrics("NPF_GROWTH_RATE", "npf_growth_rate desc", NPF_GROWTH_RATE);
+    addMetrics("GROWTH_RATE", "growth_rate desc", GROWTH_RATE);
   }
 
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L381
@@ -436,11 +455,16 @@ void MemgazeSource::read(const DataClass& needed) {
     cout << "hasMetrics" << endl;
     std::optional<ProfilePipeline::Source::AccumulatorsRef> accum;
     //accum = sink.accumulateTo(thread, node /* context ref */); 
-    for (Context& context : created_contexts) {
-      accum = sink.accumulateTo(*thread, context);   
+    for (auto it = window_context.begin(); it != window_context.end(); it++) {
+      accum = sink.accumulateTo(*thread, it->second);
       // Metric value
-      double v = 1;
-      accum->add(metrics[0], v);
+      map <int, double> diagMap;
+      it->first->getFPDiag(&diagMap);
+      map<int, double> metric_values = it->first->getMetrics(diagMap);
+      for (auto metric = metric_values.begin(); metric != metric_values.end(); metric++) {
+        if (metric->second == 0) metric->second = -1;
+        accum->add(metrics.find(metric->first)->second, metric->second); 
+      }
     }
   }
   // add post-processing?

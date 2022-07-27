@@ -59,8 +59,10 @@ public:
   ThreadAttributes tattrs;
   ProfileAttributes attrs;
   PerThreadTemporary* thread;
-  vector<reference_wrapper<Context>> created_contexts;
-  vector<reference_wrapper<Metric>> metrics;
+  // window_context mapping: <Window obj, Context obj>
+  map<Window*, Context&> window_context;
+  // metrics mapping: <metric_type, metric object>
+  map<int, Metric&> metrics;
   vector<reference_wrapper<Module>> modules;  
 
   bool valid() const noexcept override;
@@ -73,6 +75,7 @@ public:
   DataClass finalizeRequest(const DataClass&) const noexcept override;
 
   void createCCT(Window* node, Module& lm, Context& parent_context);
+  void addMetrics(string name, string description, int id);
 //private:
 };
 
