@@ -425,7 +425,6 @@ int main(int argc, char ** argv){
 	//get parameters
   while(argc > argi){
       qpoint = argv[argi];
-      printf("%s\n", qpoint);
       argi++;
       if (strcmp(qpoint, "--pnum") == 0){
     		printf("configuration mempin = ");
