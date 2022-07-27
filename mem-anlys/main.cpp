@@ -43,7 +43,7 @@
 #include "Window.hpp"
 #include "Address.hpp"
 #include "Function.hpp"
-#include "metrics.h"
+#include "metrics.hpp"
 
 #ifdef DEVELOP
 #include "MemgazeSource.hpp"

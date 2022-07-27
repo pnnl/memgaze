@@ -35,7 +35,7 @@
 #include "Address.hpp"
 #include "Instruction.hpp"
 #include "CPU.hpp"
-#include "metrics.h"
+#include "metrics.hpp"
 //***************************************************************************
 using namespace std;
     

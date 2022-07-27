@@ -43,7 +43,7 @@ using std::string;
 #include "Instruction.hpp"
 #include "Address.hpp"
 #include "MemgazeSource.hpp"
-#include "metrics.h"
+#include "metrics.hpp"
 
 #include "lib/profile/attributes.hpp"
 #include "lib/prof-lean/id-tuple.h"
@@ -254,7 +254,7 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
   // Insert the proper Finalizer for drawing data directly from the Modules.
   // This is used as a fallback if the Structfiles aren't available.
   // finalizers::DirectClassification dc(args.dwarfMaxSize);
-  //finalizers::DirectClassification dc(100*1024*1024);
+  finalizers::DirectClassification dc(100*1024*1024);
   //pipeSettings << dc;
 
   //temporary fix
@@ -314,6 +314,7 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
 void MemgazeSource::addMetrics(string name, string description, int id) {
   // hpctoolkit uses metric_desc_t m; m.name; m.description;
   Metric::Settings settings{name, description};
+  //settings.scopes[MetricScope::execution] = false;
   Metric& metric = sink.metric(settings);
   metrics.insert({id, metric});
   sink.metricFreeze(metric);
@@ -461,8 +462,10 @@ void MemgazeSource::read(const DataClass& needed) {
       map <int, double> diagMap;
       it->first->getFPDiag(&diagMap);
       map<int, double> metric_values = it->first->getMetrics(diagMap);
+      //cout << diagMap[CONSTANT] << endl;
+      //cout << metric_values[CONSTANT] << endl;
       for (auto metric = metric_values.begin(); metric != metric_values.end(); metric++) {
-        if (metric->second == 0) metric->second = -1;
+        //if (metric->second == 0) metric->second = -1;
         accum->add(metrics.find(metric->first)->second, metric->second); 
       }
     }
