@@ -31,6 +31,8 @@ def readFile(inFile, outFile,appName):
         variantFile = '/files0/suri836/RUD_Zoom/GAP_pr_O3_g22_nf_func_8k_P5M_n1_Avg/pr_O3_s8192_p5000000.trace.final'
     elif(appName == 'gap_cc_sv'):
         variantFile = '/files0/suri836/RUD_Zoom/GAP_CC_SV'
+    elif(appName == 'gap_cc'):
+        variantFile = '/files0/suri836/RUD_Zoom/GAP_CC'
     with open(inFile) as f:
         blFnMap=0
         varVersion =''
@@ -44,7 +46,7 @@ def readFile(inFile, outFile,appName):
             data = fileLine.strip().replace('\t',' ').split(' ')
             #print(data[0]+'---')
             if data[0] == '--insn':
-                #print (data)
+                #print (data[2], data[0])
                 if (variantFile==''):
                   variantFile = data[6]
                   curRange = data[9]
@@ -82,7 +84,8 @@ def readFile(inFile, outFile,appName):
                   varVersion = 'al'+variantFile[layer_index:]+': '
                 if (variantFile == '/files0/suri836/RUD_Zoom/GAP_cc_O3_g22_nf_func_8k_P5M_n1_Avg/cc_O3_s8192_p5000000.trace.final' or \
                     variantFile == '/files0/suri836/RUD_Zoom/GAP_cc_O3_g22_nf_func_8k_P5M_n1_Avg/cc_O3_s8192_p5000000.trace.final_build' or \
-                    variantFile == '/files0/suri836/RUD_Zoom/GAP_cc_O3_g22_nf_func_8k_P5M_n1_Avg/cc_O3_s8192_p5000000.trace.final_analysis'):
+                    variantFile == '/files0/suri836/RUD_Zoom/GAP_cc_O3_g22_nf_func_8k_P5M_n1_Avg/cc_O3_s8192_p5000000.trace.final_analysis' or \
+                    variantFile == '/files0/suri836/RUD_Zoom/cc_O3_PTW-trace-b16384-p500000/cc_O3_PTW_rank.trace'):
                   logFile = '/files0/suri836/RUD_Zoom/GAP_cc_O3_g22_nf_func_8k_P5M_n1_Avg/cc_O3.log'
                   objFile = '/files0/suri836/RUD_Zoom/GAP_cc_O3_g22_nf_func_8k_P5M_n1_Avg/GAP_cc_O3_obj_nuke'
                   objFile_C ='/files0/suri836/RUD_Zoom/GAP_cc_O3_g22_nf_func_8k_P5M_n1_Avg/GAP_cc_O3_obj'
@@ -104,6 +107,11 @@ def readFile(inFile, outFile,appName):
                   objFile = '/files0/suri836/RUD_Zoom/GAP_CC_SV/obj_cc_sv_O3'
                   objFile_C ='/files0/suri836/RUD_Zoom/GAP_CC_SV/cc_sv_O3.dump'
                   varVersion = 'cc_sv: '
+                if (variantFile == '/files0/suri836/RUD_Zoom/GAP_CC' ):
+                  logFile = '/files0/suri836/RUD_Zoom/GAP_CC_P100k_b16k/GAP_cc_O3_g22_nf_func_8k_P500k_n1_Avg/cc_O3.log'
+                  objFile = '/files0/suri836/RUD_Zoom/GAP_CC_P100k_b16k/GAP_cc_O3_g22_nf_func_8k_P500k_n1_Avg/cc_O3.dump'
+                  objFile_C ='/files0/suri836/RUD_Zoom/GAP_CC_P100k_b16k/GAP_cc_O3_g22_nf_func_8k_P500k_n1_Avg/obj_cc_O3'
+                  varVersion = 'gap_cc: '
                 if (variantFile == '/files0/suri836/RUD_Zoom/resnet_single/darknet_s8192_p1000000.trace.final' or \
                      variantFile == '/files0/suri836/RUD_Zoom/resnet152_10/darknet_s8192_p1000000.trace.final' ):
                   logFile = '/files0/suri836/RUD_Zoom/resnet152_10/darknet.log'
