@@ -22,7 +22,8 @@ MG_PERF_ROOT="${MG_PERF_ROOT:-${scriptDir}/../../xlib/perf}"
 
 #-----------------------------------------------------------
 
-perf="${MG_PERF_ROOT}/linux-5.5.9/tools/perf/perf"
+#perf="${MG_PERF_ROOT}/linux-5.5.9/tools/perf/perf"
+perf="${MG_PERF_ROOT}/linux-5.18.14/tools/perf/perf"
 
 perf_script_dir="${scriptDir}/../libexec"
 

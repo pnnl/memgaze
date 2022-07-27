@@ -103,7 +103,8 @@ xlib_distclean : info xlib_clean
 
 #****************************************************************************
 
-MG_PERF = $(MG_PERF_ROOT)/linux-5.5.9
+#MG_PERF = $(MG_PERF_ROOT)/linux-5.5.9
+MG_PERF = $(MG_PERF_ROOT)/linux-5.18.14
 
 perf_libs: 
 	$(XLIB_SPACK)/bin/spack install --reuse zstd@1.5.2 libcap@2.64 babeltrace@1.2.4 && \
@@ -124,6 +125,20 @@ perf : info
 	[[ -n "$(MG_PERF_CC)" ]] && export HOSTCC="$(MG_PERF_CC)" ; \
 	export WERROR=0 && \
 	cd $(MG_PERF)/tools/perf && make
+
+perfnew : info
+	@$(PRINTF) $(_msg_infoGrp)
+	mkdir -p $(MG_PERF_ROOT) && \
+	cd $(MG_PERF_ROOT) && \
+	if [[ ! -d "$(MG_PERF)" ]] ; then \
+	wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.18.14.tar.xz && \
+	  tar -xf linux-5.18.14.tar.xz && rm linux-5.18.14.tar.xz && \
+	  patch $(MG_PERF)/tools/perf/util/scripting-engines/trace-event-python.c $(MG_XLIB_SRC)/config-perf/perf-script.patch ; \
+	fi && \
+  \
+	[[ -n "$(MG_PERF_CC)" ]] && export HOSTCC="$(MG_PERF_CC)" ; \
+	cd $(MG_PERF)/tools/perf && make
+
 
 
 perf_distclean : info
