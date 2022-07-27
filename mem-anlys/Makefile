@@ -50,7 +50,13 @@ HPCTK_CXXFLAGS =
 HPCTK_LDFLAGS = 
 HPCTK_LDADD =
 XERCES_LDFLAGS = 
+LIBELF_LDFLAGS =
+LIBIBERTY_LDFLAGS = 
 
+#define CONSTANT_2_LOAD_RATIO 9
+#define NPF_RATE -6
+#define NPF_GROWTH_RATE 7
+#define GROWTH_RATE -7
 ifdef DEVELOP
   HPCTK_SRCS += MemgazeSource.cpp
   # $(HPCTK_DEV_SRC)/tool/hpcprof/args.cpp
@@ -65,10 +71,18 @@ ifdef DEVELOP
   HPCTK_LDADD += $(HPCTKLIB_Profile)/$(HPCTKLIB_Profile_a) \
           $(HPCTKLIB_ProfileStandalone)/$(HPCTKLIB_ProfileStandalone_a) \
           $(HPCTKLIB_ProfLean)/$(HPCTKLIB_ProfLean_a) \
+	  $(HPCTKLIB_SupportLean)/$(HPCTKLIB_SupportLean_a) \
           $(HPCTKLIB_Support)/$(HPCTKLIB_Support_a)
 
   XERCES_LDFLAGS += \
         -L$(XERCES_LIB) -Wl,-rpath $(XERCES_LIB)
+
+  LIBELF_LDFLAGS += \
+	-L$(LIBELF_LIB) -Wl,-rpath $(LIBELF_LIB)
+
+  LIBIBIBERTY_LDFLAGS += \
+	-L$(LIBIBERTY_LIB) -Wl,-rpath $(LIBIBERTY_LIB) 
+
 endif
 
 #****************************************************************************
@@ -96,13 +110,18 @@ ifdef DEVELOP
 
   $(mg_analyze)_LDFLAGS += \
           $(HPCTK_LDFLAGS) \
-          $(XERCES_LDFLAGS)
+          $(XERCES_LDFLAGS) \
+	  $(LIBELF_LDFLAGS) \
+	  $(LIBIBERTY_LDFLAGS)
 
   # HPCToolkit requires -lstdc++fs and -lxerces-c
   $(mg_analyze)_LDADD += \
            $(HPCTK_LDADD) \
            -lstdc++fs \
-           -lxerces-c
+           -lxerces-c \
+	   -ldw \
+	   -lelf \
+	   -liberty
 else
   $(mg_analyze)_SRCS += \
           main.cpp \
