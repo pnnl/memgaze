@@ -53,10 +53,6 @@ XERCES_LDFLAGS =
 LIBELF_LDFLAGS =
 LIBIBERTY_LDFLAGS = 
 
-#define CONSTANT_2_LOAD_RATIO 9
-#define NPF_RATE -6
-#define NPF_GROWTH_RATE 7
-#define GROWTH_RATE -7
 ifdef DEVELOP
   HPCTK_SRCS += MemgazeSource.cpp
   # $(HPCTK_DEV_SRC)/tool/hpcprof/args.cpp
