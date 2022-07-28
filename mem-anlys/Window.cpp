@@ -375,6 +375,10 @@ using namespace std;
     map<int, double> Window::getMetrics(map<int, double> diagMap) {
       map<int, double> metrics;
       float multiplier = this->getMultiplier();
+ 
+      if (diagMap.empty()) {
+        this->getFPDiag(&diagMap);
+      }
 
       if (diagMap[IN_SAMPLE] == 0) {
         metrics[WINDOW_SIZE] = diagMap[WINDOW_SIZE] * multiplier;
