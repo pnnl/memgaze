@@ -1055,11 +1055,6 @@ int main(int argc, char* argv[], const char* envp[]) {
     cout << "ERROR ROOT IS NULL\n";
   cout << "PRINTING TREE of FP\n";
 
-// Onur: test MemgazeSource
-// #ifdef DEVELOP
-//   hpctk_main(argc, argv, hpcStructInputFile, fullT);
-// #endif
-
   cout << "General MULTIPLIER="<<multiplier<<endl; //TODO NOTE:: maybe get rid of general completely
   cout << "#windows: "<<number_of_windows<<" Period:"<<period<<" Total Lds:"<< total_loads_in_trace<<endl;
   double multiplier2 = (((double)number_of_windows*(double)period) - (double)total_loads_in_trace) / (double)total_loads_in_trace;
@@ -1124,10 +1119,8 @@ int main(int argc, char* argv[], const char* envp[]) {
       cout << " Multiplier = "<<local_multiplier<<" Growth Rate: "<<((*it).second->fp*local_multiplier)/((*it).second->timeVec.size()*imp_to_all_ratio*local_multiplier)<<endl;
 
 
-
     }
   }
-
 
 //PRINT TREE Averages:
   cout << "FULL TRACE FP: "<<fullT->getFP()* multiplier<<endl;
@@ -1289,6 +1282,7 @@ int main(int argc, char* argv[], const char* envp[]) {
 
     cout<<" Strided: "<<diagMap[1]*local_multiplier <<" Indirect: "<<diagMap[2]*local_multiplier<<" Constant: "<<diagMap[0]*local_multiplier <<" Unknown: "<<diagMap[-1]*local_multiplier;
     cout << " Local multiplier = "<<local_multiplier<<" time(s):"<<(eTime-sTime)/1000000000.0<<endl;
+
   }
 // Here We are trying to calculate function total fp by checking each window
 // This is work in porgress not finalized
@@ -1316,6 +1310,11 @@ int main(int argc, char* argv[], const char* envp[]) {
 //  cout<<" Strided: "<<diagMap[1]*local_multiplier <<" Indirect: "<<diagMap[2]*local_multiplier<<" Constant: "<<diagMap[0]*local_multiplier <<" Unknown: "<<diagMap[-1]*local_multiplier;
 //  cout << " Local multiplier = "<<local_multiplier<<" time(s):"<<(eTime-sTime)/1000000000.0<<endl;
 //end
+
+// Onur: test MemgazeSource
+// #ifdef DEVELOP
+//   hpctk_main(argc, argv, hpcStructInputFile, fullT);
+// #endif
 
 
   //Here we free anyhing we created

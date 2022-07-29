@@ -375,28 +375,29 @@ using namespace std;
     map<int, double> Window::getMetrics(map<int, double> diagMap) {
       map<int, double> metrics;
       float multiplier = this->getMultiplier();
- 
       if (diagMap.empty()) {
         this->getFPDiag(&diagMap);
       }
 
+      diagMap[FP] = this->getFP();
+      diagMap[WINDOW_SIZE] = this->getSize();
+      metrics[WINDOW_SIZE] = diagMap[WINDOW_SIZE];
+
       if (diagMap[IN_SAMPLE] == 0) {
-        metrics[WINDOW_SIZE] = diagMap[WINDOW_SIZE] * multiplier;
         metrics[FP] = diagMap[FP] * multiplier;
         metrics[STRIDED] = diagMap[STRIDED] * multiplier;
         metrics[INDIRECT] = diagMap[INDIRECT] * multiplier;
         metrics[CONSTANT] = diagMap[CONSTANT] * multiplier;
         //metrics[UNKNOWN] = diagMap[UNKNOWN] * multiplier;
-        metrics[TOTAL_LOADS] = diagMap[TOTAL_LOADS] * multiplier; 
+        metrics[TOTAL_LOADS] = diagMap[WINDOW_SIZE] * multiplier; 
       }
       else {
-        metrics[WINDOW_SIZE] = diagMap[WINDOW_SIZE];
         metrics[FP] = diagMap[FP];
         metrics[STRIDED] = diagMap[STRIDED];
         metrics[INDIRECT] = diagMap[INDIRECT];
         metrics[CONSTANT] = diagMap[CONSTANT];
         //metrics[UNKNOWN] = diagMap[UNKNOWN];
-        metrics[TOTAL_LOADS] = diagMap[TOTAL_LOADS];
+        metrics[TOTAL_LOADS] = diagMap[WINDOW_SIZE];
       }
       metrics[CONSTANT2LOAD_RATIO] = (diagMap[CONSTANT] * multiplier) / ((diagMap[WINDOW_SIZE] + diagMap[CONSTANT]) * multiplier);
       metrics[NPF_RATE] = diagMap[INDIRECT] / diagMap[FP];

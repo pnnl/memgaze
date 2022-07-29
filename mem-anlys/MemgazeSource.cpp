@@ -230,6 +230,9 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
   // https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/tool/hpcprof/main.cpp
 
   //ProfArgs args(argc, argv);
+  util::log::Settings logSettings(false, true, false);
+  util::log::Settings::set(std::move(logSettings));
+
   fs::path struct_path(struct_file);
 
   // Get the main core of the Pipeline set up.
@@ -460,13 +463,13 @@ void MemgazeSource::read(const DataClass& needed) {
       accum = sink.accumulateTo(*thread, it->second);
       // Metric value
       map <int, double> diagMap;
-      it->first->getFPDiag(&diagMap);
+      //it->first->getFPDiag(&diagMap);
       map<int, double> metric_values = it->first->getMetrics(diagMap);
-      //cout << diagMap[CONSTANT] << endl;
-      //cout << metric_values[CONSTANT] << endl;
       for (auto metric = metric_values.begin(); metric != metric_values.end(); metric++) {
-        //if (metric->second == 0) metric->second = -1;
-        accum->add(metrics.find(metric->first)->second, metric->second); 
+        if (metric->second != 0 && !isnan(metric->second) && !isinf(metric->second)) { 
+          accum->add(metrics.find(metric->first)->second, metric->second); 
+          //if (metric->first == 7) cout << "in memsource: " << metric->second << endl;
+        }
       }
     }
   }
