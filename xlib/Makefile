@@ -116,21 +116,6 @@ perf : info
 	mkdir -p $(MG_PERF_ROOT) && \
 	cd $(MG_PERF_ROOT) && \
 	if [[ ! -d "$(MG_PERF)" ]] ; then \
-	  wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.5.9.tar.gz && \
-	  tar -xf linux-5.5.9.tar.gz && rm linux-5.5.9.tar.gz && \
-	  patch $(MG_PERF)/tools/perf/util/scripting-engines/trace-event-python.c $(MG_XLIB_SRC)/config-perf/perf-script.patch && \
-	  patch $(MG_PERF)/scripts/bpf_helpers_doc.py $(MG_XLIB_SRC)/config-perf/perf-python.patch ; \
-	fi && \
-  \
-	[[ -n "$(MG_PERF_CC)" ]] && export HOSTCC="$(MG_PERF_CC)" ; \
-	export WERROR=0 && \
-	cd $(MG_PERF)/tools/perf && make
-
-perfnew : info
-	@$(PRINTF) $(_msg_infoGrp)
-	mkdir -p $(MG_PERF_ROOT) && \
-	cd $(MG_PERF_ROOT) && \
-	if [[ ! -d "$(MG_PERF)" ]] ; then \
 	wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.18.14.tar.xz && \
 	  tar -xf linux-5.18.14.tar.xz && rm linux-5.18.14.tar.xz && \
 	  patch $(MG_PERF)/tools/perf/util/scripting-engines/trace-event-python.c $(MG_XLIB_SRC)/config-perf/perf-script.patch ; \
