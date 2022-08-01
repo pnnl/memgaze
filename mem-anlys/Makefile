@@ -76,7 +76,7 @@ ifdef DEVELOP
   LIBELF_LDFLAGS += \
 	-L$(LIBELF_LIB) -Wl,-rpath $(LIBELF_LIB)
 
-  LIBIBIBERTY_LDFLAGS += \
+  LIBIBERTY_LDFLAGS += \
 	-L$(LIBIBERTY_LIB) -Wl,-rpath $(LIBIBERTY_LIB) 
 
 endif
@@ -107,8 +107,8 @@ ifdef DEVELOP
   $(mg_analyze)_LDFLAGS += \
           $(HPCTK_LDFLAGS) \
           $(XERCES_LDFLAGS) \
-	  $(LIBELF_LDFLAGS) \
-	  $(LIBIBERTY_LDFLAGS)
+	  $(LIBIBERTY_LDFLAGS) \
+	  $(LIBELF_LDFLAGS) 
 
   # HPCToolkit requires -lstdc++fs and -lxerces-c
   $(mg_analyze)_LDADD += \
