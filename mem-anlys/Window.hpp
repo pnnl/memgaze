@@ -56,6 +56,7 @@ class Window {
     unsigned long constant_lds;
     int number_of_samples;
     unsigned long stime;
+    unsigned long mtime;
     unsigned long etime;
     std::string funcName;
     vector <Address *> addresses;
@@ -79,6 +80,8 @@ class Window {
     void setNumberOfSamples( int _nSample){ number_of_samples= _nSample;}
     void setStime( unsigned long _stime );
     void setEtime( unsigned long _etime );
+    void setMtime( unsigned long _etime );
+    void calcTime();
     void setID ( pair<unsigned long, int> _windowID ); 
     void addAddress(Address *add);
     void addWindow(Window * w);

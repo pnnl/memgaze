@@ -88,6 +88,14 @@ using namespace std;
     std::string Window::getFuncName( ) { return funcName;}
     void Window::setStime( unsigned long _stime ) { stime = _stime;}
     void Window::setEtime( unsigned long _etime ) { etime = _etime;}
+    void Window::setMtime( unsigned long _mtime ) { mtime = _mtime;}
+    void Window::calcTime(){
+    	int size = addresses.size();
+	int mid = size/2;
+	this->setStime(addresses[0]->time->time);
+	this->setMtime(addresses[mid]->time->time);
+	this->setEtime(addresses[size]->time->time);
+    }
     void Window::setID ( pair<unsigned long, int> _windowID ) { windowID = _windowID; } 
     unsigned long Window::calcConstantLds(){
       //unsigned long constant_lds = 0;
