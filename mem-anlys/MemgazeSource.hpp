@@ -36,7 +36,8 @@ using std::string;
 #include <lib/profile/sinks/experimentxml4.hpp>
 #include <lib/profile/finalizers/denseids.hpp>
 #include <lib/profile/finalizers/directclassification.hpp>
-#include "lib/profile/finalizers/struct.hpp"
+#include <lib/profile/finalizers/struct.hpp>
+#include <lib/profile/finalizer.hpp>
 //#include <lib/prof-lean/hpcrun-fmt.h>
 //#include <lib/prof/CallPath-Profile.hpp>
 #include <lib/profile/stdshim/filesystem.hpp>
@@ -59,6 +60,7 @@ public:
   ThreadAttributes tattrs;
   ProfileAttributes attrs;
   PerThreadTemporary* thread;
+
   // window_context mapping: <Window obj, Context obj>
   map<Window*, Context&> window_context;
   // metrics mapping: <metric_type, metric object>
@@ -79,10 +81,10 @@ public:
 //private:
 };
 
-class MemgazeProfArgs {
+class MemgazeFinalizers {
   public:
-    MemgazeProfArgs() = default;
-    ~MemgazeProfArgs() = default;
+    MemgazeFinalizers() = default;
+    ~MemgazeFinalizers() = default;
     
     class UnresolvedPaths final : public ProfileFinalizer {
     public:
@@ -136,8 +138,5 @@ class MemgazeProfArgs {
               cfvar(false) {};
     };
 };
-
-// temporary fix for the following error during ExperimentXML4>()
-//memgaze-analyze: pipeline.cpp:103: Settings& hpctoolkit::ProfilePipeline::Settings::operator<<(hpctoolkit::ProfileSink&): Assertion `req - available == ExtensionClass() && "Sink requires unavailable extended data!"' failed.
 
 #endif

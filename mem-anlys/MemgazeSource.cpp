@@ -49,6 +49,7 @@ using std::string;
 #include "lib/prof-lean/id-tuple.h"
 #include "lib/prof-lean/hpcrun-fmt.h"
 
+
 #include <lib/support/diagnostics.h>
 #include <lib/support/RealPathMgr.hpp>
 namespace fs = stdshim::filesystem;
@@ -76,10 +77,10 @@ using namespace std;
 //static Prof::CCT::ANode*
 //makeCCTRoot(uint n_metrics);
 
-void MemgazeProfArgs::StatisticsExtender::appendStatistics(const Metric& m, Metric::StatsAccess mas) noexcept {
+void MemgazeFinalizers::StatisticsExtender::appendStatistics(const Metric& m, Metric::StatsAccess mas) noexcept {
   if(m.visibility() == Metric::Settings::visibility_t::invisible) return;
   Metric::Statistics s;
-  struct MemgazeProfArgs::Stats stats;  
+  struct MemgazeFinalizers::Stats stats;  
 
   s.sum = stats.sum;
   //s.mean = stats.mean;
@@ -240,7 +241,7 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
 
   // 'PipelineSource' objects for each input source
   //for(auto& sp : args.sources) pipeSettings << std::move(sp.first);
-  std::unique_ptr<ProfileSource> memgazesource;
+  std::unique_ptr<ProfileSource> memgazesource; 
   memgazesource.reset(new MemgazeSource(fullT));
   pipeSettings << std::move(memgazesource);
 
@@ -263,10 +264,10 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
   //temporary fix
   //std::unique_ptr<ProfileFinalizer> temp_finalizer;
   //temp_finalizer.reset(new UnresolvedPaths());
-  MemgazeProfArgs::UnresolvedPaths temp_finalizer;
+  MemgazeFinalizers::UnresolvedPaths temp_finalizer;
   pipeSettings << temp_finalizer;
 
-  MemgazeProfArgs::StatisticsExtender stat_extender;
+  MemgazeFinalizers::StatisticsExtender stat_extender;
   pipeSettings << stat_extender;
 
   // The "experiment.xml" file
@@ -305,8 +306,12 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
   if (node == NULL) {
     return; 
   }
-  uint64_t ip = node->addresses[0]->ip->ip; 
-  Scope new_scope = Scope(lm, ip); // creates Scope::point
+  node->calcTime();
+  uint64_t ip = node->addresses[node->addresses.size()/2]->ip->ip;
+  string name = to_string(node->mtime) + ":" + to_string(node->stime) + "-" + to_string(node->etime);
+
+  Function function = Function(lm, ip, name); 
+  Scope new_scope = Scope(function); // creates Scope::point
   Context& new_context = sink.context(parent_context, {Relation::call, new_scope}).second;
   window_context.insert({node, new_context});
 

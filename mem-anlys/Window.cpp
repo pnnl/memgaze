@@ -94,7 +94,7 @@ using namespace std;
 	int mid = size/2;
 	this->setStime(addresses[0]->time->time);
 	this->setMtime(addresses[mid]->time->time);
-	this->setEtime(addresses[size]->time->time);
+	this->setEtime(addresses[size-1]->time->time);
     }
     void Window::setID ( pair<unsigned long, int> _windowID ) { windowID = _windowID; } 
     unsigned long Window::calcConstantLds(){
