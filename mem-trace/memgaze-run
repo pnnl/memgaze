@@ -221,7 +221,7 @@ cat <<EOF > ${opt_output}/memgaze.config
 -b ${app_path}
 -l ${app_path}.binanlys
 -h ${app_path}.hpcstruct
--data ${opt_output}/${opt_output}.perf
+-data ${opt_output}.perf
 -t ${opt_output}/${app}.trace
 -c ${opt_output}/${app}.callpath
 -size ${opt_buffer}

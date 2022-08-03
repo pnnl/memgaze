@@ -28,15 +28,15 @@ sys.path.append(os.environ['PERF_EXEC_PATH'] + \
 sample_cnt = collections.Counter()
 
 def trace_begin():
-    a="hello"
+        a="hello"
 	#print("Intel PT Power Events and PTWRITE")
 
 def trace_end():
-    b="hello"
+        b="hello"
 	#print("End")
 
 def trace_unhandled(event_name, context, event_fields_dict):
-    print(' '.join(['%s=%s'%(k,str(v))for k,v in sorted(event_fields_dict.items())]))
+		print(' '.join(['%s=%s'%(k,str(v))for k,v in sorted(event_fields_dict.items())]))
 
 def print_ptwrite(raw_buf):
 	data = struct.unpack_from("<IQ", raw_buf)
@@ -65,7 +65,8 @@ def print_pwre(raw_buf):
 	hw = (payload >> 7) & 1
 	cstate = (payload >> 12) & 0xf
 	subcstate = (payload >> 8) & 0xf
-	print("hw: %u cstate: %u sub-cstate: %u" % (hw, cstate, subcstate),end=' ')
+	print("hw: %u cstate: %u sub-cstate: %u" % (hw, cstate, subcstate),
+		end=' ')
 
 def print_exstop(raw_buf):
 	data = struct.unpack_from("<I", raw_buf)
@@ -96,16 +97,16 @@ def print_common_ip(sample, symbol, dso):
 	print("%16x " % (ip))
 
 def print_ptwrite_ozgur(raw_buf, sample, param_dict):
-    data = struct.unpack_from("<IQ", raw_buf)
-    flags = data[0]
-    payload = data[1]
-    exact_ip = flags & 1
-    ip = sample["ip"]
-    cpu = sample["cpu"]
-    ts = sample["time"]
+	data = struct.unpack_from("<IQ", raw_buf)
+	flags = data[0]
+	payload = data[1]
+	exact_ip = flags & 1
+        ip = sample["ip"]
+        cpu = sample["cpu"]
+        ts = sample["time"]
 	#oldprint( "%16x %16x %03u %9u.%09u \n" %  (ip, payload, cpu, ts / 1000000000, ts %1000000000), end=' ')
 #the one I was using	print( "%lx %08lx %d %u.%09u\n" %  (ip, payload, cpu, ts / 1000000000, ts %1000000000), end='')
-    print( "%lx %08lx %d %u.%09u %d\n" %  (ip, payload, cpu, ts / 1000000000, ts %1000000000, sample_cnt[0]), end='')
+	print( "%lx %08lx %d %u.%09u %d\n" %  (ip, payload, cpu, ts / 1000000000, ts %1000000000, sample_cnt[0]), end='')
 	#print( "%lx %08lx %d %u.%09u\n" %  (ip, payload, cpu, ts / 1000000000, ts %1000000000), end='')
 #	if "dso" in param_dict:
 #	  dso = param_dict["dso"]
@@ -124,78 +125,87 @@ def print_ptwrite_ozgur(raw_buf, sample, param_dict):
 
 
 def print_ptwrite_ozgur_test(raw_buf, sample, param_dict):
-    data = struct.unpack_from("<IQ", raw_buf)
-    flags = data[0]
-    payload = data[1]
-    exact_ip = flags & 1
-    ip = sample["ip"]
-    cpu = sample["cpu"]
-    ts = sample["time"]
-    attr = param_dict["attr"]
-    
-    if "dso" in param_dict:
-        dso = param_dict["dso"]
-    else:
-        print ("DSO not found")
-        return
-    if "symbol" in param_dict:
-        sym = param_dict["symbol"]
-    else:
-        print("SYM NOT FOUND")
-        return
-    print ("SYM:")
-    print (sym)
-    print ("ATTR:")
-    print (attr)
-    attrs = struct.unpack_from("<IIQQQQQQQQQQQQQQ",attr)
-    print ("ATTRS:")
-    print (attrs)
-    print ("raw_BUF:")
-    print (data)
+	data = struct.unpack_from("<IQ", raw_buf)
+	flags = data[0]
+	payload = data[1]
+	exact_ip = flags & 1
+        ip = sample["ip"]
+        cpu = sample["cpu"]
+        ts = sample["time"]
+        attr = param_dict["attr"]
 
-    symstart = sym["start"]
-    symend = sym["end"]
-    symname = sym["name"]
+	if "dso" in param_dict:
+		dso = param_dict["dso"]
+	else:
+		print ("DSO not found")
+                return
+
+	if "symbol" in param_dict:
+		sym = param_dict["symbol"]
+	else:
+		print("SYM NOT FOUND")
+                return
+        print ("SYM:")
+        print (sym)
+        print ("ATTR:")
+        print (attr)
+        attrs = struct.unpack_from("<IIQQQQQQQQQQQQQQ",attr)
+        print ("ATTRS:")
+        print (attrs)
+        print ("raw_BUF:")
+        print (data)
+
+
+        symstart = sym["start"]
+        symend = sym["end"]
+        symname = sym["name"]
 	#oldprint( "%16x %16x %03u %9u.%09u \n" %  (ip, payload, cpu, ts / 1000000000, ts %1000000000), end=' ')
 	#print( "%lx %08lx %d %u.%09u\n" %  (ip, payload, cpu, ts / 1000000000, ts %1000000000), end='')
-    print( "Sym Name: %s DSO: %s START:%lx END:%lx IP:%lx  %08lx %d %u.%09u\n" %  (symname, dso, symstart, symend, ip, payload, cpu, ts / 1000000000, ts %1000000000), end='')
+	print( "Sym Name: %s DSO: %s START:%lx END:%lx IP:%lx  %08lx %d %u.%09u\n" %  (symname, dso, symstart, symend, ip, payload, cpu, ts / 1000000000, ts %1000000000), end='')
 
 
 def process_event(param_dict):
-    #print ("Printing the dictionary\n")
-    #print( param_dict)
-    event_attr = param_dict["attr"]
-    sample	 = param_dict["sample"]
-    raw_buf	= param_dict["raw_buf"]
-    comm	   = param_dict["comm"]
-    name	   = param_dict["ev_name"]
-    callGraph = param_dict["callchain"]
-    if "umask=0x81" in name:
-        sample_cnt[0] +=1
-    if "cycles" in name:
-        sample_cnt[0] +=1
-    for i in callGraph:
-        if "sym" in i:
+        #print ("Printing the dictionary\n")
+        #print( param_dict)
+	event_attr = param_dict["attr"]
+	sample	 = param_dict["sample"]
+	raw_buf	= param_dict["raw_buf"]
+	comm	   = param_dict["comm"]
+	name	   = param_dict["ev_name"]
+        callGraph = param_dict["callchain"]
+        #print ("Printing Call graph")
+        #print (callGraph)
+        #print ("Name of function")
+#        line       = param_dict["get_line"]
+#        print (name)
+        if "umask=0x81" in name:
+          sample_cnt[0] +=1
+        if "cycles" in name:
+          sample_cnt[0] +=1
+#          print (sample_cnt[0])
+        for i in callGraph:
+          #print (i)
+          if "sym" in i:
             callSym = i["sym"]
             callName =  callSym["name"]
             print ("CG-LBR :*: %s :*: %d" % (callName ,sample_cnt[0])) 
 
 	# Symbol and dso info are not always resolved
-    if "dso" in param_dict:
-        dso = param_dict["dso"]
-    else:
-        dso = "[unknown]"
+	if "dso" in param_dict:
+		dso = param_dict["dso"]
+	else:
+		dso = "[unknown]"
 #        print (dso)
-    if "symbol" in param_dict:
-        symbol = param_dict["symbol"]
-    else:
-        symbol = "[unknown]"
+	if "symbol" in param_dict:
+		symbol = param_dict["symbol"]
+	else:
+		symbol = "[unknown]"
 #        print (symbol)
-    if name == "ptwrite":
+	if name == "ptwrite":
 #		print_common_ip(sample, symbol, dso)
 #		print_ptwrite(raw_buf)
 #		print_common_start(comm, sample, name)
-        print_ptwrite_ozgur(raw_buf, sample, param_dict)
+		print_ptwrite_ozgur(raw_buf, sample, param_dict)
 #		print_ptwrite_ozgur_test(raw_buf, sample, param_dict)
 #	elif name == "cbr":
 #		print_common_start(comm, sample, name)
