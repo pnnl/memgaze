@@ -57,20 +57,22 @@ xlib_spack :
 	  git clone -c feature.manyFiles=true https://github.com/spack/spack.git ; \
 	fi && \
 	cp $(XLIB_CFG)/config.yaml     $(SPK_ETC)/ && \
+	$(XLIB_SPACK)/bin/spack clean -ab && \
+	$(XLIB_SPACK)/bin/spack clean -fmps && \
 	$(XLIB_SPACK)/bin/spack install ca-certificates-mozilla
 
 
 xlib_hpctoolkit :
 	@$(PRINTF) $(_msg_infoGrp)
 	cp $(XLIB_CFG)/hpctk-pkgs.yaml $(SPK_ETC)/packages.yaml && \
-	$(XLIB_SPACK)/bin/spack install --reuse --source $(MY_HPCTK)
+	$(XLIB_SPACK)/bin/spack install --reuse --source $(MY_HPCTK) 
 
 xlib_hpctoolkit_dev :
 	@$(PRINTF) $(_msg_infoGrp)
 	cp $(XLIB_CFG)/hpctk-dev-pkgs.yaml $(SPK_ETC)/packages.yaml && \
 	$(XLIB_SPACK)/bin/spack install --reuse --source --keep-prefix --keep-stage --overwrite -y $(MY_HPCTK_DEV) && \
 	$(XLIB_SPACK)/bin/spack install --reuse binutils@2.38 && \
-	$(XLIB_SPACK)/bin/spack install --reuse libdwarf@20180129 
+	$(XLIB_SPACK)/bin/spack install --reuse libdwarf@20180129  
 
 
 xlib_dyninst_patch :
@@ -78,7 +80,7 @@ xlib_dyninst_patch :
 	$(RM) $(SPK_ETC)/packages.yaml && \
 	cp $(XLIB_CFG)/dyninst.py      $(SPK_DYNINST)/package.py && \
 	cp $(XLIB_CFG)/dyninst.patch   $(SPK_DYNINST)/memgaze.patch && \
-	$(XLIB_SPACK)/bin/spack install --reuse --source --overwrite -y $(MY_DYNINST)
+	$(XLIB_SPACK)/bin/spack install --reuse --source --overwrite -y $(MY_DYNINST) 
 
 
 xlib_hpctk_libs_copy:
@@ -91,7 +93,9 @@ xlib_hpctk_libs_copy:
 	cp $(HPCTK_STAGE_DIR)/src/lib/binutils/.libs/$(HPCTKLIB_Binutils_a) $(HPCTKLIB_Binutils) && \
 	cp $(HPCTK_STAGE_DIR)/src/lib/support/.libs/$(HPCTKLIB_Support_a) $(HPCTKLIB_Support) && \
 	cp $(HPCTK_STAGE_DIR)/src/lib/support-lean/.libs/$(HPCTKLIB_SupportLean_a) $(HPCTKLIB_SupportLean) 
-	$(XLIB_SPACK)/bin/spack clean --stage
+	$(XLIB_SPACK)/bin/spack clean --stage && \
+	$(XLIB_SPACK)/bin/spack clean -ab 
+
 
 
 xlib_clean : info

@@ -33,7 +33,8 @@ DYNINST_LIB="${DYNINST_ROOT}/lib"
 export DYNINSTAPI_RT_LIB="${DYNINST_LIB}/libdyninstAPI_RT.so"
 
 #hpcstruct="${MG_XLIB_ROOT}/hpctoolkit-2022.01.15/bin/hpcstruct"
-hpcstruct="${MG_XLIB_ROOT}/hpctoolkit-2022.05.15/bin/hpcstruct"
+#hpcstruct="${MG_XLIB_ROOT}/hpctoolkit-2022.05.15/bin/hpcstruct"
+hpcstruct="${MG_XLIB_ROOT}/hpctoolkit-develop/bin/hpcstruct"
 
 #-----------------------------------------------------------
 

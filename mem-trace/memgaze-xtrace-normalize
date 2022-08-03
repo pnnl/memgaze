@@ -47,7 +47,7 @@ def main():
   dumpOut=subprocess.Popen(['objdump', '-h', binaryPath],stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
   stdout,stderr = dumpOut.communicate()
   objdump = stdout.split()
-  index = objdump.index( ".dyninstInst")
+  index = objdump.index( b".dyninstInst")
   baseAddr = int(objdump[index+2], 16)
   print ("base addres is:{}".format(hex(baseAddr)))
 

@@ -8,7 +8,7 @@
 #
 #***********************************************************EndPNNLCopyright*
 
-# set -x
+ set -x
 
 scriptPath0="${BASH_SOURCE[0]}" # works when script is sourced (unlike $0)
 scriptPath=$(readlink -f "${scriptPath0}")
@@ -111,6 +111,7 @@ hpcstruct=''
 mode=''
 period=''
 callpath=''
+binary=''
 
 while IFS=' ' read -r type value; do
     echo "type: $type value: $value"
@@ -121,6 +122,8 @@ while IFS=' ' read -r type value; do
     elif [[ $type == "-t" ]] ;then
       trace=$value
     elif [[ $type == "-b" ]] ;then
+      binary=$value
+    elif [[ $type == "-l" ]] ;then
       binanlys=$value
     elif [[ $type == "-h" ]] ;then
       hpcstruct=$value
@@ -134,5 +137,5 @@ done < ${opt_trace_dir}/memgaze.config
 # 
 #****************************************************************************
 
-${mg_anal} -t ${trace} -l ${binanlys} -s ${hpcstruct} -o ${output} -m ${mode} -p ${period} -c ${callpath}
+${mg_anal} -t ${scriptDir}/${trace} -l ${scriptDir}/${binanlys} -s ${scriptDir}/${hpcstruct} -o ${scriptDir}/${output} -m ${mode} -p ${period} -c ${scriptDir}/${callpath}
 
