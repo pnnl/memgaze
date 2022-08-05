@@ -73,12 +73,12 @@ class Dyninst(CMakePackage):
     depends_on('cmake@3.0.0:', type='build', when='@10.0.0:10.0')
     depends_on('cmake@2.8:', type='build', when='@:9')
 
+    patch('memgaze.patch', when='@12.1.0')
+    #patch('memgaze.patch', when='@12.0.1')
     patch('stat_dysect.patch', when='+stat_dysect')
     patch('stackanalysis_h.patch', when='@9.2.0')
     patch('v9.3.2-auto.patch', when='@9.3.2 %gcc@:4.7')
     patch('tribool.patch', when='@9.3.0:10.0.0 ^boost@1.69:')
-    patch('memgaze.patch', when='@12.0.1')
-    patch('memgaze.patch', when='@12.1.0')
 
     # No Mac support (including apple-clang)
     conflicts('platform=darwin', msg='macOS is not supported')
@@ -96,9 +96,9 @@ class Dyninst(CMakePackage):
     # Version 11.0 requires a C++11-compliant ABI
     conflicts('%gcc@:5', when='@11.0.0:')
     
-    @when('@12.0.1')
-    def patch(self):
-        patch('memgaze.patch', when='@12.0.1')
+    #@when('@12.0.1')
+    #def patch(self):
+    #    patch('memgaze.patch', when='@12.0.1')
     
     @when('@12.1.0')
     def patch(self):

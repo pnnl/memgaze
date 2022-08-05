@@ -1,11 +1,10 @@
---- a/dyninstAPI/src/binaryEdit.C	2022-04-12 11:29:02.308847397 -0700
-+++ b/dyninstAPI/src/binaryEdit.C	2022-04-13 23:54:23.692306157 -0700
-@@ -835,7 +835,7 @@
+--- a/dyninstAPI/src/binaryEdit.C	2022-08-03 08:58:37.323367500 -0700
++++ b/dyninstAPI/src/binaryEdit.C	2022-08-03 13:57:49.716001272 -0700
+@@ -823,6 +823,7 @@
        for (Relocation::CodeTracker::TrackerList::const_iterator iter = CT->trackers().begin();
             iter != CT->trackers().end(); ++iter) {
           const Relocation::TrackerElement *tracker = *iter;
--         
-+         std::cout<<std::hex<<tracker->orig()<< " " <<tracker->reloc()<<std::dec<<std::endl;
++	 std::cout<<std::hex<<tracker->orig()<< " " <<tracker->reloc()<<std::dec<<std::endl;
+          
           func_instance *tfunc = tracker->func();
           
-          if (currFunc != tfunc) {

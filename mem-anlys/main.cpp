@@ -723,7 +723,7 @@ int main(int argc, char* argv[], const char* envp[]) {
   int ws_wo_frames= 0;
 //  bool skip_frame_lds = false;
   cout << "OZGURDBGFRAMELDS total loads before frame loads is "<<timeVec.size()<<endl;
-//cout << "DEBUG:: Line: " << __LINE__ << endl;
+//  cout << "DEBUG:: Line: " << __LINE__ << endl;
   for(auto it = timeVec.begin(); it != timeVec.end(); it++) {
 //    skip_frame_lds = false;
     total_loads_in_trace = total_loads_in_trace + 1 + (*it)->ip->getExtraFrameLds();
