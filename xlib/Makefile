@@ -147,13 +147,6 @@ include ../Makefile-template.mk
 
 install.local : xlib perf
 
-#ifdef DEVELOP
-#  install.local : xlib_dev perf
-#else
-#  install.local : xlib perf
-#endif
-
-
 info.local :
 	@$(PRINTF) $(msg_info)
 

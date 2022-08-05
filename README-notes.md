@@ -54,7 +54,13 @@ MemGaze Structure
 Notes
 =============================================================================
 
-* Instrumentation: The instrumented binary (via DynInst) will show limited/no source *line* information using standard tools such as objdump or hpcstruct. However, it does contain some a mapping of functions from instrumented to origial code in original binary, which hpcstruct (but not objdump) can read. It is possible to do the mapping with our load-classification data and the line map from the original binary.
+* Instrumentation: The instrumented binary (via DynInst) will show
+  limited/no source *line* information using standard tools such as
+  objdump or hpcstruct. However, it does contain some a mapping of
+  functions from instrumented to origial code in original binary,
+  which hpcstruct (but not objdump) can read. It is possible to do the
+  mapping with our load-classification data and the line map from the
+  original binary.
 
 
 =============================================================================

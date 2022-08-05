@@ -33,7 +33,8 @@ Building & Installing
 1. Build libraries
    ```sh
    cd <memgaze>/xlib
-   make install
+   make xlib
+   make perf # optional
    ```
   
 
