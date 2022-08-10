@@ -40,10 +40,12 @@ MY_DYNINST = dyninst@12.1.0
 
 xlib :
 ifdef DEVELOP
-  xlib : info xlib_spack xlib_hpctoolkit_dev xlib_dyninst_patch xlib_hpctk_libs_copy
+  xlib : info xlib_spack xlib_hpctoolkit_dev  xlib_hpctk_libs_copy
+  #xlib : info xlib_spack xlib_hpctoolkit_dev xlib_dyninst_patch xlib_hpctk_libs_copy
 	@$(PRINTF) $(_msg_infoGrp)
 else
-  xlib : info xlib_spack xlib_hpctoolkit xlib_dyninst_patch
+  xlib : info xlib_spack xlib_hpctoolkit
+  #xlib : info xlib_spack xlib_hpctoolkit xlib_dyninst_patch
 	@$(PRINTF) $(_msg_infoGrp)
 endif
 
@@ -57,6 +59,8 @@ xlib_spack :
 	  git clone -c feature.manyFiles=true https://github.com/spack/spack.git ; \
 	fi && \
 	cp $(XLIB_CFG)/config.yaml     $(SPK_ETC)/ && \
+	cp $(XLIB_CFG)/dyninst.py      $(SPK_DYNINST)/package.py && \
+	cp $(XLIB_CFG)/dyninst.patch   $(SPK_DYNINST)/memgaze.patch && \
 	$(XLIB_SPACK)/bin/spack clean -ab && \
 	$(XLIB_SPACK)/bin/spack clean -fmps && \
 	$(XLIB_SPACK)/bin/spack install ca-certificates-mozilla
@@ -146,6 +150,13 @@ include ../Makefile-template.mk
 
 
 install.local : xlib perf
+
+#ifdef DEVELOP
+#  install.local : xlib_dev perf
+#else
+#  install.local : xlib perf
+#endif
+
 
 info.local :
 	@$(PRINTF) $(msg_info)
