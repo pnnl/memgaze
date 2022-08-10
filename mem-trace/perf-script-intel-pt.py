@@ -103,9 +103,14 @@ def print_ptwrite_ozgur(raw_buf, sample, param_dict):
     ip = sample["ip"]
     cpu = sample["cpu"]
     ts = sample["time"]
+    if "dso" in param_dict:
+        dso = param_dict["dso"]
+    else:
+        dso = "[unknown]"
 	#oldprint( "%16x %16x %03u %9u.%09u \n" %  (ip, payload, cpu, ts / 1000000000, ts %1000000000), end=' ')
 #the one I was using	print( "%lx %08lx %d %u.%09u\n" %  (ip, payload, cpu, ts / 1000000000, ts %1000000000), end='')
-    print( "%lx %08lx %d %u.%09u %d\n" %  (ip, payload, cpu, ts / 1000000000, ts %1000000000, sample_cnt[0]), end='')
+    #print( "%lx %08lx %d %u.%09u %d\n" %  (ip, payload, cpu, ts / 1000000000, ts %1000000000, sample_cnt[0]), end='')
+    print( "%lx %08lx %d %u.%09u %d %s\n" %  (ip, payload, cpu, ts / 1000000000, ts %1000000000, sample_cnt[0], dso), end='')
 	#print( "%lx %08lx %d %u.%09u\n" %  (ip, payload, cpu, ts / 1000000000, ts %1000000000), end='')
 #	if "dso" in param_dict:
 #	  dso = param_dict["dso"]
