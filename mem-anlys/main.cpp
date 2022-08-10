@@ -548,7 +548,7 @@ int main(int argc, char* argv[], const char* envp[]) {
   Instruction * ip_to_add = NULL;
   int control = 0;
   map <int, string> dsoMap;
-  bool isDSO = false;
+  bool isDSO = false, anyDSO = false;
   bool isTrace = false;
 
   if(inFile.is_open()){
@@ -568,6 +568,7 @@ int main(int argc, char* argv[], const char* envp[]) {
         int dsoID1 = stoi(dso_elems[1]);
         string dsoName1 = dso_elems[0];
         dsoMap.insert({dsoID1, dsoName1});
+        anyDSO = true;
       }
 
       if (isTrace){ 
@@ -591,11 +592,15 @@ int main(int argc, char* argv[], const char* envp[]) {
         in_cpu = stold(elements[2]);
         if (elements.size()>4){
           in_sampleID = stoi(elements[4]);
-          in_dso_id = stoi(elements[5]);
         } else {
           in_sampleID =  0 ;
         }
-        dso_name = dsoMap[in_dso_id];
+        if(anyDSO){
+          in_dso_id = stoi(elements[5]);
+          dso_name = dsoMap[in_dso_id];
+        } else {
+          dso_name = "UNKNOWN";
+        }
 
   //TODO exclude the frame loads and move their frm load exxtras to the next entry
         map<unsigned long, int>::iterator frameMapIter = frameLdsMap.find(in_ip);
