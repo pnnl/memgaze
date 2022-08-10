@@ -175,8 +175,11 @@ if [[ ${opt_method} =~ pt-* ]] ; then
 
     case "${opt_method}" in
         pt-load )
-            #event_smpl="cpu/umask=0x81,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
-            event_smpl="mem_inst_retired.all_loads/period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
+            if [[ ${hostName} = 'nuke' ]] ; then
+		event_smpl="cpu/umask=0x81,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
+	    else
+            	event_smpl="mem_inst_retired.all_loads/period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
+	    fi
             break
             ;;
 
@@ -193,10 +196,12 @@ if [[ ${opt_method} =~ pt-* ]] ; then
 
     if (( ${opt_period} == ${zero} )) ; then
         ${perf} record -o "${out_fnm}" -m 4M,4M \
-                -e ${event_ptw} -- "$@"
+                -e ${event_ptw} -- "$@" &
+	app_pid=$!
     else
         ${perf} record -o "${out_fnm}" -m 2M,2M \
-                -e ${event_ptw} -e ${event_smpl} ${opt_callpath} -- "$@"
+                -e ${event_ptw} -e ${event_smpl} ${opt_callpath} -- "$@" &
+	app_pid=$!
     fi
 
 elif [[ ${opt_method} = 'ldlat' ]] ; then
@@ -205,11 +210,16 @@ elif [[ ${opt_method} = 'ldlat' ]] ; then
       event_ldlat="cpu/umask=0x01,event=0xcd,ldlat=3,period=${opt_period}/upp"
     fi
     ${perf} record -o "${out_fnm}" -W -d \
-            -e ${event_ldlat} -- "$@"
+            -e ${event_ldlat} -- "$@" &
             #-e cpu/mem-loads,ldlat=1,period=${opt_period}/upp -- "$@"
+    app_pid=$!
 fi
 
+stack_map_line=`grep -i stack /proc/$app_pid/maps`
+stack_addr="${stack_map_line%%-*}"
 
+wait $app_pid 
+sleep 1
 
 #-----------------------------------------------------------
 # output directory
@@ -225,5 +235,6 @@ cat <<EOF > ${opt_output}/memgaze.config
 -t ${opt_output}/${app}.trace
 -c ${opt_output}/${app}.callpath
 -size ${opt_buffer}
+-stack_start ${stack_addr}
 EOF
 
