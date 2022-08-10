@@ -571,7 +571,7 @@ int main(int argc, char* argv[], const char* envp[]) {
         anyDSO = true;
       }
 
-      if (isTrace){ 
+      if ((isTrace && !isDSO)|| (!isDSO && !isTrace && !anyDSO) ){ 
         trace_size++;
         reuse = -1;
         std::vector<std::string> elements;
