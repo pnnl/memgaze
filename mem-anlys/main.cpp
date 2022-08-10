@@ -122,6 +122,8 @@ void printTree (Window * root,  int period ,int lvl, map <int, map<int, double>>
   if (root==NULL){
     return;
   } else {
+    string dso = root->addresses[0]->ip->getDSOName();
+//    cout << "Window: "<<root->windowID.first<<":"<<root->windowID.second<<" DSO: "<<dso<<endl;
     modifier =  root->calcMultiplier(period, is_load);
     float org_modifier = modifier;
     root->getFPDiag(&diagMap);
@@ -316,6 +318,8 @@ int main(int argc, char* argv[], const char* envp[]) {
   map <int,  map <int, double>> treeFPavgMap2;
   
   int sampleID = 0,  in_sampleID = 0, prev_sampleID = 0;
+  int in_dso_id = -1;
+  string dso_name = "";
 //New Mode to read input comands  
   string  inputFile = opps.getCmdOption("-t");
   string  callGraphFileName = opps.getCmdOption("-c");
@@ -543,124 +547,148 @@ int main(int argc, char* argv[], const char* envp[]) {
   int loads_from_removed_samples = 0;
   Instruction * ip_to_add = NULL;
   int control = 0;
+  map <int, string> dsoMap;
+  bool isDSO = false;
+  bool isTrace = false;
+
   if(inFile.is_open()){
     while(getline(inFile, line)){
-      trace_size++;
-      reuse = -1;
-      std::vector<std::string> elements;
-      split(line, elements);
-      std::istringstream ss_ip(elements[0]);
-      ss_ip >> std::hex >> in_ip;
-      map<unsigned long ,  int>::iterator tit = ipTypeMap.find(in_ip);
-      if(tit != ipTypeMap.end()){
-        type = tit->second;
-      } else {
-//FIXME OPEN THIS ERROR        cout << ">>>>>>>> IP for unknown load type is "<< hex<<in_ip<<dec << endl;
-        type = -1;
+      if (line.find("DSO:") != std::string::npos){
+        isDSO = true;
+        isTrace = false;
+        continue;
+      } else if (line.find("TRACE:") != std::string::npos){
+        isDSO = false;
+        isTrace = true;
+        continue;
       }
-      std::istringstream ss_addr(elements[1]);
-      ss_addr >> hex >> in_addr;
-     
-      in_time = stold(elements[3]) * 1000000000;
-      in_cpu = stold(elements[2]);
-      if (elements.size()>4){
-        in_sampleID = stoi(elements[4]);
-      } else {
-        in_sampleID =  0 ;
+      if (isDSO){
+        std::vector<std::string> dso_elems;
+        split(line, dso_elems);
+        int dsoID1 = stoi(dso_elems[1]);
+        string dsoName1 = dso_elems[0];
+        dsoMap.insert({dsoID1, dsoName1});
       }
 
-//TODO exclude the frame loads and move their frm load exxtras to the next entry
-      map<unsigned long, int>::iterator frameMapIter = frameLdsMap.find(in_ip);
-      int xtr_lds = 0;
-      if (frameMapIter != frameLdsMap.end()){
-        xtr_lds = frameMapIter->second;
-      } else {
-        xtr_lds = 0;
-      }
-
-      if (type == 0){
-//        cout << "TYPE 0 before Missing frame loads: "<<missing_frame_loads<< " Extra:"<<xtr_lds<<endl;
-        if( prev_sampleID != 0 && prev_sampleID != in_sampleID){
-          if (ip_to_add != NULL){
-            ip_to_add->setExtraFrameLds(ip_to_add->getExtraFrameLds()+missing_frame_loads);
-            //TODO add missing loads to ip_to_add;
-            ip_to_add = NULL;
-          }
-          loads_from_removed_samples += missing_frame_loads;
-          missing_frame_loads =  xtr_lds + 1;
-        }else{
-          missing_frame_loads = missing_frame_loads + xtr_lds + 1;
-        }
-//        cout << "TYPE 0 after Missing frame loads: "<<missing_frame_loads<< " Extra:"<<xtr_lds<<endl;
-      } else {
-//        cout << "TYPE 1/2 Missing frame loads: "<<missing_frame_loads<< " Extra:"<<xtr_lds<<endl;
-
-
-      if (prev_sampleID == 0) {
-        prev_sampleID = in_sampleID;
-      } else  if (prev_sampleID != in_sampleID ){
-        if (is_in_func){
-          importantWindows++;
-        }
-        totalWindow++;
-        sampleID ++;
-        prev_sampleID = in_sampleID;
-      }
-
-
-      elements.erase(elements.begin(), elements.end());
-
-     
-      in_addr = in_addr >> mask;//shiftin to right
-      in_addr = in_addr << mask;//shiftin back to left
-
-
-      //Creating class elements and adding them to the timeMap
-      addr = new Address(in_addr);
-      cpu = new CPU(in_cpu);
-      time = new AccessTime(in_time, sampleID);
-      ip = new Instruction(in_ip);
-      ip_to_add = ip;
-     
-      //setting class pointers for each class
-      addr->setAll(in_addr, cpu, time, ip, reuse);
-      cpu->setAll(in_cpu, addr, time, ip);
-      time->setAll(in_time, sampleID, cpu, addr, ip);
-      ip->setAll(in_ip, cpu, time, addr, type);
-
-      ip->setExtraFrameLds(xtr_lds +  missing_frame_loads);
-      missing_frame_loads = 0;
-      xtr_lds = 0;
-
-      //Add the appropriate pointer to appropriate vector
-      timeVec.push_back(time);
-      prevTime = in_time;
-      
-      //Adding check if do_focus
-      if(do_focus){
-        //Check funtion
-        // Here we are getting function info for each entry
-        map <unsigned long, memgaze::Function*>::iterator funcIter;
-        funcIter = funcMAP.upper_bound(in_ip);
-        if (funcIter == funcMAP.end()){
-          func_not_found++;
-          //TODO  OPEN OR DO SMTH      cout << ">>>>>ERROR<<<<< func not found with IP:" <<hex<<currIP<<dec<<endl;
-          continue;
+      if (isTrace){ 
+        trace_size++;
+        reuse = -1;
+        std::vector<std::string> elements;
+        split(line, elements);
+        std::istringstream ss_ip(elements[0]);
+        ss_ip >> std::hex >> in_ip;
+        map<unsigned long ,  int>::iterator tit = ipTypeMap.find(in_ip);
+        if(tit != ipTypeMap.end()){
+          type = tit->second;
         } else {
-          func_found++;
-          funcIter--;
-          string currFuncName = funcIter->second->name;
-          if (currFuncName.find(functionName) != std::string::npos ){
-            is_in_func = true;
-            func_last_index = func_index; 
+  //FIXME OPEN THIS ERROR        cout << ">>>>>>>> IP for unknown load type is "<< hex<<in_ip<<dec << endl;
+          type = -1;
+        }
+        std::istringstream ss_addr(elements[1]);
+        ss_addr >> hex >> in_addr;
+       
+        in_time = stold(elements[3]) * 1000000000;
+        in_cpu = stold(elements[2]);
+        if (elements.size()>4){
+          in_sampleID = stoi(elements[4]);
+          in_dso_id = stoi(elements[5]);
+        } else {
+          in_sampleID =  0 ;
+        }
+        dso_name = dsoMap[in_dso_id];
+
+  //TODO exclude the frame loads and move their frm load exxtras to the next entry
+        map<unsigned long, int>::iterator frameMapIter = frameLdsMap.find(in_ip);
+        int xtr_lds = 0;
+        if (frameMapIter != frameLdsMap.end()){
+          xtr_lds = frameMapIter->second;
+        } else {
+          xtr_lds = 0;
+        }
+
+        if (type == 0){
+  //        cout << "TYPE 0 before Missing frame loads: "<<missing_frame_loads<< " Extra:"<<xtr_lds<<endl;
+          if( prev_sampleID != 0 && prev_sampleID != in_sampleID){
+            if (ip_to_add != NULL){
+              ip_to_add->setExtraFrameLds(ip_to_add->getExtraFrameLds()+missing_frame_loads);
+              //TODO add missing loads to ip_to_add;
+              ip_to_add = NULL;
+            }
+            loads_from_removed_samples += missing_frame_loads;
+            missing_frame_loads =  xtr_lds + 1;
+          }else{
+            missing_frame_loads = missing_frame_loads + xtr_lds + 1;
+          }
+  //        cout << "TYPE 0 after Missing frame loads: "<<missing_frame_loads<< " Extra:"<<xtr_lds<<endl;
+        } else {
+  //        cout << "TYPE 1/2 Missing frame loads: "<<missing_frame_loads<< " Extra:"<<xtr_lds<<endl;
+          if (prev_sampleID == 0) {
+            prev_sampleID = in_sampleID;
+          } else  if (prev_sampleID != in_sampleID ){
+            if (is_in_func){
+              importantWindows++;
+            }
+            totalWindow++;
+            sampleID ++;
+            prev_sampleID = in_sampleID;
+          }
+
+
+          elements.erase(elements.begin(), elements.end());
+
+         
+          in_addr = in_addr >> mask;//shiftin to right
+          in_addr = in_addr << mask;//shiftin back to left
+
+
+          //Creating class elements and adding them to the timeMap
+          addr = new Address(in_addr);
+          cpu = new CPU(in_cpu);
+          time = new AccessTime(in_time, sampleID);
+          ip = new Instruction(in_ip);
+          ip_to_add = ip;
+         
+          //setting class pointers for each class
+          addr->setAll(in_addr, cpu, time, ip, reuse);
+          cpu->setAll(in_cpu, addr, time, ip);
+          time->setAll(in_time, sampleID, cpu, addr, ip);
+          ip->setAll(in_ip, cpu, time, addr, type);
+
+          ip->setExtraFrameLds(xtr_lds +  missing_frame_loads);
+          ip->setDSOName(dso_name);
+          missing_frame_loads = 0;
+          xtr_lds = 0;
+
+          //Add the appropriate pointer to appropriate vector
+          timeVec.push_back(time);
+          prevTime = in_time;
+          
+          //Adding check if do_focus
+          if(do_focus){
+            //Check funtion
+            // Here we are getting function info for each entry
+            map <unsigned long, memgaze::Function*>::iterator funcIter;
+            funcIter = funcMAP.upper_bound(in_ip);
+            if (funcIter == funcMAP.end()){
+              func_not_found++;
+              //TODO  OPEN OR DO SMTH      cout << ">>>>>ERROR<<<<< func not found with IP:" <<hex<<currIP<<dec<<endl;
+              continue;
+            } else {
+              func_found++;
+              funcIter--;
+              string currFuncName = funcIter->second->name;
+              if (currFuncName.find(functionName) != std::string::npos ){
+                is_in_func = true;
+                func_last_index = func_index; 
+              }
+            }
+            if (is_in_func){
+              funcVec.push_back(time); 
+              func_index++;
+            }
           }
         }
-        if (is_in_func){
-          funcVec.push_back(time); 
-          func_index++;
-        }
       }
-    }
     }
   }
   

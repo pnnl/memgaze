@@ -58,6 +58,7 @@ class Instruction {
              // 1 strided
              // 2 is indirect
     int extra_frame_lds;
+    string dso_name;
 
     Instruction(unsigned long _ip, Address *_addr = NULL, AccessTime *_time = NULL, CPU *_cpu = NULL ){
       cpu = _cpu;
@@ -67,6 +68,8 @@ class Instruction {
     }
     
     void setExtraFrameLds(int _lds){extra_frame_lds = _lds;}
+    void setDSOName(string inName){dso_name = inName;}
+    string getDSOName(){ return dso_name;}
     int getExtraFrameLds(){ return extra_frame_lds;}
     void setIp(unsigned long _ip){ ip = _ip;}
     void setType(unsigned long _type){ type = _type;}

@@ -58,6 +58,26 @@ def main():
   prev_time = ""
   prev_ip = 0
   windowID = ""
+  dso = {}
+  index = 0
+  while True:
+    line = inputTrace.readline()
+    if not line:
+      break
+    words =  line.split()
+    if words[5] in dso:
+      continue
+    else:
+      dso[words[5]] = index
+      index+=1
+
+  print(dso)
+  outputTrace.write("DSO: <name> <id>\n")
+  for key,val in dso.items():
+    dso_output =  "{} {}\n".format(key, val)
+    outputTrace.write(dso_output)
+  outputTrace.write("TRACE: <IP> <Addrs> <CPU> <time> <sampleID> <DSO_id>\n")
+  inputTrace.seek(0)
   while True:
     line = inputTrace.readline()
     if not line:
@@ -72,6 +92,7 @@ def main():
     CPU=words[2]
     Time=words[3]
     windowID = words[4] 
+    in_dso = words[5]
     IP=IP+baseAddr
 #    print "IP: {} prevIP: {}".format(IP,prev_ip)
 
@@ -94,7 +115,10 @@ def main():
     else : 
       offset = 0
     Addr = Addr + offset
-    str_output = "{} {} {} {} {}\n".format(hex(IP),hex(Addr),CPU,Time,windowID)
+    out_dso = -1
+    if in_dso in dso:
+      out_dso = dso[in_dso]
+    str_output = "{} {} {} {} {} {}\n".format(hex(IP),hex(Addr),CPU,Time,windowID,out_dso)
 #    outputTrace.write("{} {} {} {}\n".format(hex(IP),Addr,CPU,Time))
     prev_ip = IP
     prev_cpu = CPU
