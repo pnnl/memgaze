@@ -8,17 +8,12 @@
 #
 #***********************************************************EndPNNLCopyright*
 
-# set -x
+ set -x
 
 scriptPath0="${BASH_SOURCE[0]}" # works when script is sourced (unlike $0)
 scriptPath=$(readlink -f "${scriptPath0}")
 scriptCmd=${scriptPath##*/} # cf. $(basename ...)
 scriptDir=${scriptPath%/*}  # cf. $(dirname ...)
-
-#****************************************************************************
-
-MG_XLIB_ROOT="${MG_XLIB_ROOT:-${scriptDir}/../../xlib/lib}"
-MG_PERF_ROOT="${MG_PERF_ROOT:-${scriptDir}/../../xlib/perf}"
 
 #-----------------------------------------------------------
 
@@ -28,13 +23,7 @@ mg_anal="${scriptDir}/../libexec/memgaze-analyze-loc"
 
 opt_outDir=''
 opt_trace_dir=''
-opt_inst_dir=''
-opt_loads='1'
-opt_stores='0'
-opt_strided='1'
-opt_indirect='1'
-opt_frame='0'
-opt_analysis_file=''
+trace=''
 
 #****************************************************************************
 # Parse arguments
@@ -52,7 +41,14 @@ EOF
 usage()
 {
     cat <<EOF
-Usage: ${scriptCmd} [options] [--] <app> [app-args]
+Usage: ${scriptCmd} [options] 
+Options:
+   -h / --help   => prints help
+   -o / --output => output directory path (optional)
+   -tdir / --trace-dir => Directory for trace file & memgaze.config (required - used to locate trace file and stack address starting point)
+   -t / --trace-file => Trace input file (required if trace_dir not specified - Default stack address 0x7f0000000000 used)
+   -s / --spatial => Spatial correlational RUD analysis of contiguous hot regions ( 1 or 0 - Default 0 - no spatial analysis) 
+
 EOF
     exit 0
 }
@@ -60,6 +56,7 @@ EOF
 #-----------------------------------------------------------
 # optional arguments
 #-----------------------------------------------------------
+opt_outDir='.'
 while [[ $# -gt 0 ]] ; do
 
     arg="$1"
@@ -75,23 +72,17 @@ while [[ $# -gt 0 ]] ; do
             shift # past value
             ;;
         
-	      -t | --trace-dir )
+	      -tdir | --trace-dir )
             opt_trace_dir="$1"
             shift # past value
             ;;
-
-	      -s | --inst-dir )
-            opt_inst_dir="$1"
+	      -t | --trace-file  )
+            opt_trace_file="$1"
             shift # past value
             ;;
-
-	      -- )
-            break
-            ;;
-
-        * ) # beginning of <application> command line
-            set -- "$arg" "$@"
-            break
+	      -s | --spatial  )
+            opt_spatial="$1"
+            shift # past value
             ;;
     esac
 done
@@ -101,40 +92,37 @@ done
 # required args
 #-----------------------------------------------------------
 
-#if [[ -z $1 ]] ; then
-#    die "no command to monitor"
-#fi
+trace=$opt_trace_file
+run_rud="--zoomRUD --outputZoom ${opt_outDir}/rud.txt"
 
-trace=''
-binanlys=''
-hpcstruct=''
-mode=''
-period=''
-callpath=''
+if [[ $opt_spatial == "1" ]] ; then
+  run_spatial="--spatial --outputSpatial ${opt_outDir}/spatial.txt"
+fi
 
+stack_addr=''
 while IFS=' ' read -r type value; do
     echo "type: $type value: $value"
-    if [[ $type == "-m" ]] ; then
-      mode=$value
-    elif [[ $type == "-p" ]] ; then
-      period=$value
+    if [[ $type == "-stack_start" ]] ; then
+      stack_addr=$value
     elif [[ $type == "-t" ]] ;then
       trace=$value
-    elif [[ $type == "-b" ]] ;then
-      binanlys=$value
-    elif [[ $type == "-h" ]] ;then
-      hpcstruct=$value
-    elif [[ $type == "-c" ]] ;then
-      callpath=$value
     fi
 done < ${opt_trace_dir}/memgaze.config 
 
-
+spec_heap=''
+if [[ $stack_addr != '' ]] ; then
+  spec_heap="--heapAddrEnd ${stack_addr}"
+fi
 #****************************************************************************
 # 
 #****************************************************************************
+echo "TRace file ${trace}"
 
-${mg_anal} -t ${trace} -l ${binanlys} -s ${hpcstruct} -o ${output} -m ${mode} -p ${period} -c ${callpath}
+if [[ $trace == '' ]] ; then
+  echo " Specify trace-file or trace-dir" 
+else
+  ${mg_anal} ${trace} --analysis --pnum 512 ${spec_heap} ${run_rud} ${run_spatial} 
+fi
 
 
 
