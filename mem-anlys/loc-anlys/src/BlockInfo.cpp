@@ -187,20 +187,15 @@ using namespace std;
       //outFile<<endl;
       */
       vecDensity.clear();
-      double selfSpatialDensity=0.0;
+      //double selfSpatialDensity=0.0;
       uint32_t vecIndex=0; 
-      bool flValue=false;
       for(j = 0; j < numBlocksInLevel; j++) {
-          flValue=false;
           if(vecIndex<vecSpatialResult.size()) {
             if(vecSpatialResult[vecIndex].first == j) {
               outFile << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<(vecSpatialResult[vecIndex].second)->smplAvgSpatialMiddle<<" ";
-              flValue=true;
               vecIndex++;
             } 
         }
-        //if(!flValue)
-         //     outFile << std::fixed << std::setprecision(2)  << j<<",0.00 ";
       }
       outFile << endl;
       // Print  Self and top-3 spatial density

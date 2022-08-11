@@ -265,7 +265,7 @@ int writeZoomFile(const MemArea memarea, const Memblock thisMemblock, const vect
     //printf("memarea.blockCount %ld\n", memarea.blockCount);
     for(i = 0; i< memarea.blockCount; i++){
       BlockInfo *curBlock = vecBlockInfo.at(i);
-      curBlock->printBlockRUD();
+      //curBlock->printBlockRUD();
       w_pageTotalAccess[i]=curBlock->getTotalAccess();
       w_Rud[i]=curBlock->getAvgRUD();
       w_sampleRud[i]=curBlock->getSampleAvgRUD();
@@ -383,6 +383,9 @@ int main(int argc, char ** argv){
 			  printf("--bottomUp	: enable bottom-up analysis\n");
 			  return -1;
 		  }
+   } else {
+    printf("Specify input file and arguments\n");
+    return -1;
    }
         
   mempin = 16;
@@ -533,7 +536,6 @@ int main(int argc, char ** argv){
 		}
 		if (strcmp(qpoint, "--heapAddrEnd") == 0){
       heapAddrEnd = stol(argv[argi],0,16); // stack region is getting included in mid-point 
-			printf("Using heap address range to max of %lx \n", heapAddrEnd);
 		  argi++;
 		}
 		if (strcmp(qpoint, "--insn") == 0){
@@ -554,17 +556,33 @@ int main(int argc, char ** argv){
 	if(model == 1){
 		if(loadConfig()==-1) return -1;
 	}
-  printf(" Using Zoom perrcent value %lf\n", zoomThreshold); 
   //check the memory area for the first time
 	uint32_t totalAccess = 0;
   std::cout << "Application: " << memoryfile << "\n";
 	totalAccess = areacheck(memoryfile, &max, &min, &coreNumber);
   if(totalAccess ==0 ) 
+  {
+    printf("Trace file not read - error in areacheck\n");
     return -1;
-  readTrace(memoryfile, &intTotalTraceLine, vecInstAddr);
+  }
+  uint32_t windowMin;
+  uint32_t windowMax;
+  double windowAvg;
+  windowMin=0; 
+  windowMax=0;
+  windowAvg=0.0;
+  int readReturn = readTrace(memoryfile, &intTotalTraceLine, vecInstAddr, &windowMin, &windowMax, &windowAvg);
+  if(readReturn == -1) {
+    printf("Error in readTrace \n");
+    return -1;
+  }
   printf( "Number of lines in trace %d number of lines with valid addresses %ld total access %d \n", 
           intTotalTraceLine, vecInstAddr.size(), totalAccess);
-
+  printf( "Sample sizes in trace min %d max %d average %f \n", windowMin, windowMax, windowAvg);
+  printf("Using Zoom perrcent value %lf\n", zoomThreshold); 
+	printf("Using heap address range to max of %lx \n", heapAddrEnd);
+  printf(" Using cache line width %ld Bytes\n ", lastLvlBlockWidth ); 
+  printf("Using last level block/page size %ld Bytes\n", zoomLastLvlPageWidth); 
   bool done = 0;
   std::list<Memblock > zoomPageList;
   std::list<Memblock > spatialRegionList;
@@ -576,10 +594,11 @@ int main(int argc, char ** argv){
   int zoominTimes = 0;
   ofstream zoomInFile_det;
   if( autoZoom ==1 ) {
-    if(outZoom==1)
+    if(outZoom==1) {
       zoomInFile_det.open(outputFileZoom, std::ofstream::out | std::ofstream::trunc);
-    else
+    } else {
       zoomInFile_det.open("zoomIn.out", std::ofstream::out | std::ofstream::trunc);
+    }
   }
   ofstream spatialOutFile;
   ofstream spatialOutInsnFile;
@@ -694,11 +713,9 @@ int main(int argc, char ** argv){
           vecBlockInfo.push_back(newBlock);
         }
 		    analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, out, vecBlockInfo,false, setRegionAddr); // spatialResult=0
-        if(analysisReturn ==-1)
+        if(analysisReturn ==-1) {
+          printf("No analysis done\n");
           return -1;
-        for(i = 0; i< memarea.blockCount; i++){
-          BlockInfo *curBlock = vecBlockInfo.at(i);
-          curBlock->printBlockRUD();
         }
         printTotAccess=0;
         // Do not move these out of the loop - memarea.blockCount is different for each run
