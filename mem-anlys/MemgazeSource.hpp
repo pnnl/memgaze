@@ -56,16 +56,27 @@ public:
   ~MemgazeSource();
 
   Window* memgaze_root;
+  unsigned long start_time;
  
   ThreadAttributes tattrs;
   ProfileAttributes attrs;
   PerThreadTemporary* thread;
+  std::optional<ProfilePipeline::Source::AccumulatorsRef> accum;
 
   // window_context mapping: <Window obj, Context obj>
   map<Window*, Context&> window_context;
   // metrics mapping: <metric_type, metric object>
   map<int, Metric&> metrics;
   vector<reference_wrapper<Module>> modules;  
+  vector<Function*> functions;
+
+  // TODO: remove after being done with tests
+  int num_contexts;
+  int num_windows;
+  int num_functions;
+  int num_leaves;
+  int num_samples;
+  int num_of_sample_children;
 
   bool valid() const noexcept override;
 
@@ -76,6 +87,8 @@ public:
   DataClass provides() const noexcept override;
   DataClass finalizeRequest(const DataClass&) const noexcept override;
 
+  void numWindows(Window* node);
+  void summarizeSample(Window* node, map<Window*, uint64_t> &selected_leaves);
   void createCCT(Window* node, Module& lm, Context& parent_context);
   void addMetrics(string name, string description, int id);
 //private:

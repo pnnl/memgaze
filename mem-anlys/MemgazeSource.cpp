@@ -96,13 +96,37 @@ static std::unique_ptr<T> make_unique_x(Args&&... args) {
   return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
+void MemgazeSource::numWindows(Window* node) {
+  if (node == NULL) return;
+  num_windows++;
+  numWindows(node->left);
+  numWindows(node->right);
+}
+
 MemgazeSource::MemgazeSource(Window* fullT) 
   : ProfileSource() {
   memgaze_root = fullT;
+  num_windows = 0;
+  num_contexts = 0;
+  num_functions = 0;
+  num_leaves = 0;
+  num_samples = 0;
+  num_of_sample_children = 0;
+
+  numWindows(fullT);
 }
 
 MemgazeSource::~MemgazeSource() {
+  cout << "Clean MemgazeSource" << endl;
+  cout << "Num contexts: " << num_contexts << endl;
+  cout << "Num windows: " << num_windows << endl;
+  cout << "Num funcs: " << num_functions << endl;
+  cout << "Num leaves: " << num_leaves << endl;
+  cout << "Num samples: " << num_samples << endl;
+  cout << "Total windows after sample: " << num_of_sample_children << endl;
 
+  for (auto function : functions) delete function;
+  functions.clear(); 
 }
 
 //https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/tool/hpcprof/main.cpp#L64
@@ -231,7 +255,7 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
   // https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/tool/hpcprof/main.cpp
 
   //ProfArgs args(argc, argv);
-  util::log::Settings logSettings(false, true, false);
+  util::log::Settings logSettings(false, false, false);
   util::log::Settings::set(std::move(logSettings));
 
   fs::path struct_path(struct_file);
@@ -275,7 +299,7 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
   // pipeSettings << make_unique_x<sinks::ExperimentXML4>(args.output, args.include_sources, nullptr);
   // TODO: take as argument
   fs::path working_dir = fs::current_path();
-  fs::path dummy_db("/memgaze-database-test");
+  fs::path dummy_db("/memgaze-database-test-2");
   pipeSettings << make_unique_x<sinks::ExperimentXML4>(working_dir / dummy_db, false, nullptr);
   // "profile.db", "cct.db"
   pipeSettings << make_unique_x<sinks::SparseDB>(working_dir / dummy_db);
@@ -302,19 +326,108 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
 // New version of "class Hpcrun4": MemGazeSource (implements ProfileSource)
 //****************************************************************************
 
-void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context) {
+void MemgazeSource::summarizeSample(Window* node, map<Window*, uint64_t> &selected_leaves) {
   if (node == NULL) {
-    return; 
+    return;
   }
-  node->calcTime();
-  uint64_t ip = node->addresses[node->addresses.size()/2]->ip->ip;
-  string name = to_string(node->mtime) + ":" + to_string(node->stime) + "-" + to_string(node->etime);
+  num_of_sample_children++;
+  if (selected_leaves.empty()) {
+  
+  
 
-  Function function = Function(lm, ip, name); 
-  Scope new_scope = Scope(function); // creates Scope::point
+  if (node->left == NULL && node->right == NULL) {
+     uint64_t ip = node->addresses[node->addresses.size()/2]->ip->ip;
+     selected_leaves.insert({node, ip});
+  }
+  }
+  summarizeSample(node->left, selected_leaves);
+  summarizeSample(node->right, selected_leaves);
+}
+
+// Creates the context recursively using preorder traversal. 
+void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context) {
+  if (node == NULL) return; 
+  if (node->parent)
+    if (node->parent->sampleHead) return; 
+  //cout << "Node: " << node->addresses[node->addresses.size()/2]->getFuncName() << endl;
+  //cout << "ID: " << node->windowID.first << " " << node->windowID.second << endl;
+  //if (node->right != NULL) { 
+  //  cout << "Right: " << node->addresses[node->addresses.size()/2]->getFuncName();
+  //  cout << "ID: " << node->right->windowID.first << " " << node->right->windowID.second << endl;
+  //}
+  //if (node->left != NULL) { 
+  //  cout << "Left: " << node->addresses[node->addresses.size()/2]->getFuncName();
+  //  cout << "ID: " << node->left->windowID.first << " " << node->left->windowID.second << endl;
+  //}
+  //if (node->parent != NULL) {
+  //  cout << "Parent: " << node->addresses[node->addresses.size()/2]->getFuncName();
+  //  cout << "ID: " << node->parent->windowID.first << " " << node->parent->windowID.second << endl;
+  //} else {
+  //  cout << "Parent: null" << endl;
+  //}
+  
+  //if (node->left == NULL && node->right == NULL) {
+    //cout << "Scope: " << node->stime << endl;    
+  //  new_scope = Scope(lm, ip);
+  //  num_leaves++;
+  //}
+  
+  Scope new_scope;
+  // calculates start, mid, and end times for each window.
+  // example: stime = node->addresses[node->addresses[0]->time->time;
+  node->calcTime();
+
+  // use the IP of midpoint address.
+  uint64_t ip = node->addresses[node->addresses.size()/2]->ip->ip;
+
+  // name format for function scopes = mid_time:start_time-end_time.
+  double stime = (node->stime - start_time) / pow(10, 6);
+  double mtime = (node->mtime - start_time) / pow(10, 6);
+  double etime = (node->etime - start_time) / pow(10, 6);
+
+  //cout << "Function: " << node->stime << endl;
+  //cout << "stime: " << stime << ", mtime: " << mtime << ", etime: " << etime;    
+  string name = to_string(mtime) + ":" + to_string(stime) + "-" + to_string(etime);
+
+  // Create only function scopes
+  Function* function = new Function(lm, ip, name); 
+  functions.push_back(function);
+  new_scope = Scope(*function); 
+  num_functions++;
+
   Context& new_context = sink.context(parent_context, {Relation::call, new_scope}).second;
+  num_contexts++;
   window_context.insert({node, new_context});
 
+  if (node->sampleHead) {
+    //cout << "sample" << endl;
+    num_samples++;
+    map<Window*, uint64_t> selected_leaves;
+    summarizeSample(node, selected_leaves);
+    for (auto leaf_ip = selected_leaves.begin(); leaf_ip != selected_leaves.end(); leaf_ip++) {  
+      num_leaves++;
+      Scope leaf_scope = Scope(lm, leaf_ip->second);
+
+      Context& leaf_context = sink.context(new_context, {Relation::call, leaf_scope}).second;
+      num_contexts++;
+      window_context.insert({leaf_ip->first, leaf_context});
+    }
+  }
+  
+  //std::optional<ProfilePipeline::Source::AccumulatorsRef> accum;
+  //accum = sink.accumulateTo(thread, node /* context ref */); 
+  //for (auto it = window_context.begin(); it != window_context.end(); it++) {
+  //accum = sink.accumulateTo(*thread, new_context);
+  // Metric value
+  //map <int, double> diagMap;
+  //map<int, double> metric_values = node->getMetrics(diagMap);
+  //for (auto metric = metric_values.begin(); metric != metric_values.end(); metric++) {
+  //  if (metric->second != 0 && !isnan(metric->second) && !isinf(metric->second)) { 
+  //    accum->add(metrics.find(metric->first)->second, metric->second); 
+      //if (metric->first == 7) cout << "in memsource: " << metric->second << endl;
+  //  }
+  //}
+  //} 
   createCCT(node->left, lm, new_context);
   createCCT(node->right, lm, new_context);
 }
@@ -345,6 +458,7 @@ void MemgazeSource::read(const DataClass& needed) {
     loadmap_entry_t lm_test;
     // TODO: get from struct file or main.cpp?
     string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/UBENCH_O3_500k_8kb_P10k/ubench-500k_O3_PTW";
+    //string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_PTW";
     lm_test.name = &hardcoded_lm[0];
     Module& lm = sink.module(lm_test.name);
     modules.push_back(lm);
@@ -358,6 +472,8 @@ void MemgazeSource::read(const DataClass& needed) {
     cout << "has CONTEXTS" << endl;
     auto& root_context = sink.global();
     window_context.insert({new Window(), root_context});
+    start_time = memgaze_root->addresses[0]->time->time;
+    cout << "first start_time: " << start_time << endl;
   // ------------------------------------------------------------
   // Create CCT
   // 
@@ -433,11 +549,11 @@ void MemgazeSource::read(const DataClass& needed) {
     addMetrics("FP", "FP description", FP);
     //addMetrics("UNKNOWN", "unknown description", UNKNOWN);
     addMetrics("WINDOW_SIZE", "window_size desc", WINDOW_SIZE);
-    addMetrics("TOTAL_LOADS", "total_loads desc", TOTAL_LOADS);
-    addMetrics("CONSTANT2LOAD_RATIO", "contload_ratio desc", CONSTANT2LOAD_RATIO);
-    addMetrics("NPF_RATE", "npf_rate desc", NPF_RATE);
-    addMetrics("NPF_GROWTH_RATE", "npf_growth_rate desc", NPF_GROWTH_RATE);
-    addMetrics("GROWTH_RATE", "growth_rate desc", GROWTH_RATE);
+    //addMetrics("TOTAL_LOADS", "total_loads desc", TOTAL_LOADS);
+    //addMetrics("CONSTANT2LOAD_RATIO", "contload_ratio desc", CONSTANT2LOAD_RATIO);
+    //addMetrics("NPF_RATE", "npf_rate desc", NPF_RATE);
+    //addMetrics("NPF_GROWTH_RATE", "npf_growth_rate desc", NPF_GROWTH_RATE);
+    //addMetrics("GROWTH_RATE", "growth_rate desc", GROWTH_RATE);
   }
 
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L381
@@ -463,12 +579,11 @@ void MemgazeSource::read(const DataClass& needed) {
   if (needed.hasMetrics()) {
     cout << "hasMetrics" << endl;
     std::optional<ProfilePipeline::Source::AccumulatorsRef> accum;
-    //accum = sink.accumulateTo(thread, node /* context ref */); 
+    //accum = sink.accumulateTo(thread, node<context ref> ); 
     for (auto it = window_context.begin(); it != window_context.end(); it++) {
       accum = sink.accumulateTo(*thread, it->second);
       // Metric value
       map <int, double> diagMap;
-      //it->first->getFPDiag(&diagMap);
       map<int, double> metric_values = it->first->getMetrics(diagMap);
       for (auto metric = metric_values.begin(); metric != metric_values.end(); metric++) {
         if (metric->second != 0 && !isnan(metric->second) && !isinf(metric->second)) { 
