@@ -355,7 +355,6 @@ int main(int argc, char ** argv){
    printf("---------------------------------------------------------------------------------------------\n");
    int argi = 1;
    char *memoryfile;
-   char *outputfile;
    char *outputFileZoom;
    char *outputFileSpatial;
    char *outputFileSpatialInsn=(char *) malloc(50*sizeof(char));
@@ -363,24 +362,24 @@ int main(int argc, char ** argv){
    {
         memoryfile = argv[argi];
         argi++;
-		  if (strcmp(memoryfile, "--help") == 0){
-			  printf("2-2-2022 updated, version 0.001, update zoom in @cxie\n");
-			  printf("using ./memCAM (memorytrace) [--analysis] [--memRange min-max] [--pnum #page] [--phyPage (size)] [--spatial] [--output outputfile] [--autoZoom] [--zoomAccess] [--zoomRUD] [--outputZoom zoomOutputFile] [--outputSpatial spatialOutputFile] [--blockWidth (size)] [--zoomStopPageWidth (size)] [--bottomUp] [--insn] [--heapAddrEnd address] [--model]\n");
-			  printf("--analysis	: set if enable analysis\n");
-			  printf("--memRange	min-max: zoom into memory range, ignore outage memory\n");
-			  printf("--pnum	Page Size Configuration: Change the number of pages within the memory trace range\n	Default 16\n");
-			  printf("--phyPage [size]	: Using physical page size instead of logical pin number, [setup page size in word: example 64 for 64B]\n"); 
-		  	printf("--spatial : display Spatial Analysis results - Analysis performed at zoom Stop page level\n");
-			  printf("--output outputfile	:	generate the featured window trace if setup value\n");
-			  printf("--model	: set if enable modeling\n"); //configuration from model.config
-			  printf("--autoZoom	: enable automatic zoomin for contiguous hot pages\n");
-			  printf("--zoomAccess  : enable automatic zoomin for pages with access count above threshold value of %f \n", zoomThreshold);
-			  printf("--zoomRUD  : enable automatic zoomin for RUD \n");
-			  printf("--blockWidth  : Set block size in words (ex. 64 for 64 Bytes) for last level in zoomRUD analysis \n");
-			  printf("--zoomStopPageWidth : Set zoom Stop page width in words (ex. 16384 for 16384 Bytes) for last level in zoomRUD analysis \n");
-			  printf("--heapAddrEnd : Set heap address range - specify end (length of address 12), stack changes between 0x7f.. in single threaded to 0x7ff.. in multi-threaded application\n");
-			  printf("--insn  :Find instructions in memRange \n");
-			  printf("--bottomUp	: enable bottom-up analysis\n");
+		  if (strcmp(memoryfile, "--help") == 0 || (strcmp(memoryfile, "-h") == 0)){
+			  printf("Using ./memgaze-analyze-loc (memorytrace) [--analysis] [--memRange min-max] [--pnum #page] [--phyPage (size)] \n\t[--zoomRUD] [--outputZoom zoomOutputFile] [--spatial] [--outputSpatial spatialOutputFile] \n\t[--blockWidth (size)] [--zoomStopPageWidth (size)] [--insn] [--heapAddrEnd address] \n");
+			  printf("Other possible options [--autoZoom] [--zoomAccess] [--bottomUp] [--model]\n");
+			  printf("--analysis\t: set to enable analysis\n");
+			  printf("--memRange min-max\t: zoom into memory address range, ignore outage memory\n");
+			  printf("--pnum\t: Change the number of pages within the memory trace address range - DEFAULT 16\n");
+			  printf("--phyPage [size]\t: Using physical page size instead of page count, [setup page size in word: example 64 for 64B]\n"); 
+			  printf("--spatial\t: display Spatial Analysis results - Analysis performed at zoom Stop page level\n");
+			  //printf("--model\t: set if enable modeling\n"); //configuration from model.config
+			  //printf("--autoZoom\t: enable automatic zoomin for contiguous hot pages\n");
+			  //printf("--zoomAccess\t: enable automatic zoomin for pages with access count above threshold value of %f \n", zoomThreshold);
+			  printf("--zoomRUD\t: enable automatic zoomin for RUD \n");
+			  printf("--blockWidth\t: Set block size in words (ex. 64 for 64 Bytes) for last level in zoomRUD analysis \n");
+			  printf("--zoomStopPageWidth\t: Set zoom Stop page width in words (ex. 16384 for 16384 Bytes) for last level in zoomRUD analysis \n");
+			  //stack changes between 0x7f.. in single threaded to 0x7ff.. in multi-threaded application
+			  printf("--heapAddrEnd\t: Set heap address max value - spcify end (length of address 12), located in memgaze.config file \n"); 
+			  printf("--insn\t: Find instructions in memRange - use with memRange\n");
+			  //printf("--bottomUp\t: enable bottom-up analysis - doesnt implement feature yet\n");
 			  return -1;
 		  }
    } else {
@@ -488,12 +487,6 @@ int main(int argc, char ** argv){
 			spatialResult=1;
 			printf("configuration for Spatial Result display = %d\n", spatialResult);	
 		}
-		if (strcmp(qpoint, "--output") == 0){
-			printf("output traces\n");
-		  out = 1;
-		  outputfile = argv[argi];
-		  argi++;			
-		}
 		if (strcmp(qpoint, "--autoZoom") == 0){
 			printf("enable automatic zoom in for contiguous hot pages\n");
 		  autoZoom  = 1;
@@ -549,9 +542,6 @@ int main(int argc, char ** argv){
       }
 		}
   }
-	if(out == 1){
-		outFile.open(outputfile, std::ofstream::out | std::ofstream::trunc);
-	}
   
 	if(model == 1){
 		if(loadConfig()==-1) return -1;
