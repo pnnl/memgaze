@@ -4,10 +4,10 @@
 using std::list;
 // Global variables for threshold values
 int32_t lvlConstBlockSize = 2; // Level for setting constant blocksize in zoom
-double zoomThreshold = 0.10; // Threshold for access count - to include in zoom
+double zoomThreshold = 0.05; // Threshold for access count - to include in zoom
 //double zoomThreshold = 0.01 ; // Minivite uses this - Cluster paper data used different threshold values - to match regions to paper use this value 
 uint64_t heapAddrEnd ; // 
-uint64_t lastLvlBlockWidth; // Added for ZoomRUD analysis - option to set last level's block width
+uint64_t cacheLineWidth; // Added for ZoomRUD analysis - option to set last level's block width
 uint64_t zoomLastLvlPageWidth ; // Added for ZoomRUD analysis - option to set last Zoom level's page width
 uint64_t OSPageSize = 4096;
 
@@ -22,6 +22,12 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
   string strNodeId; 
   uint32_t i =0;
   uint32_t j =0;
+  uint64_t levelOneSize ;
+  if(zoomLastLvlPageWidth == 16384 || zoomLastLvlPageWidth == 4096)
+    levelOneSize = 4194304*16;
+  else
+    levelOneSize = 4194304*8;
+    
   vector <uint32_t> sortPageAccess;
   sortPageAccess.clear();
   for(i = 0; i< memarea.blockCount; i++){
@@ -102,7 +108,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
             hotpage.max = memarea.min+(memarea.blockSize*(i+1))-1;
           //Set blockSize rather than using constant branching factor
           } else if(hotpage.level >= lvlConstBlockSize) { 
-            hotpage.blockSize = ((4194304*16)/((int) pow((double)4,(hotpage.level-lvlConstBlockSize))));
+            hotpage.blockSize = ((levelOneSize)/((int) pow((double)4,(hotpage.level-lvlConstBlockSize))));
 	    	    hotpage.min = memarea.min+memarea.blockSize*(i);
             hotpage.max = memarea.min+(memarea.blockSize*(i+1))-1;
           }
@@ -159,22 +165,25 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
         if (hotpage.level <lvlConstBlockSize) {
   	  	    hotpage.blockSize = memarea.blockSize;
         } else if(hotpage.level >= lvlConstBlockSize) { 
-            hotpage.blockSize = ((4194304*16)/((int) pow((double)4,(hotpage.level-lvlConstBlockSize))));
+            hotpage.blockSize = ((levelOneSize)/((int) pow((double)4,(hotpage.level-lvlConstBlockSize))));
         }
-			//printf("Using block size for last level in zoomRUD %08lx \n", lastLvlBlockWidth);
+			//printf("Using block size for last level in zoomRUD %08lx \n", cacheLineWidth);
         //if(memarea.blockSize <= 16777216) 
         if(memarea.blockSize <= zoomLastLvlPageWidth) 
-          hotpage.blockSize = lastLvlBlockWidth;
+          hotpage.blockSize = cacheLineWidth;
         hotpage.leftPid = i;
         hotpage.rightPid = i+wide-1;
 		    hotpage.strParentID = curPage.strID;
         //printf("zoomin value %d childCount %d\n", zoomin, childCount);
-        if(hotpage.max <= heapAddrEnd && (memarea.blockSize !=lastLvlBlockWidth)) { //Zoom only in heap area, end at size 128
+        if(hotpage.max <= heapAddrEnd && (memarea.blockSize !=cacheLineWidth)) { //Zoom only in heap area, end at size 128
         //printf("Add to list zoom in  memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld \n",  memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize);
       			  zoomPageList.push_back(hotpage);
   	    		  (*zoomin)++;
               childCount++;
-        } 
+        } else {
+         printf(" Not zooming in stack region min = %08lx max = %08lx blockSize = %ld level =%d \n",  hotpage.min,hotpage.max, hotpage.blockSize, hotpage.level);
+        }
+
       }
       if(curPage.level != (lvlConstBlockSize-1)) {
 		    i=i+wide;
@@ -205,7 +214,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
 	  	    hotpage.min = memarea.min+memarea.blockSize*(i);
           hotpage.max = memarea.min+(memarea.blockSize*(i+1))-1;
 	    	  hotpage.level = curPage.level+1;
-  	    	hotpage.blockSize = lastLvlBlockWidth; 
+  	    	hotpage.blockSize = cacheLineWidth; 
           if(hotpage.max <= heapAddrEnd ) { //Zoom only in heap area, end at size 128
             //printf("Add to list zoom in  memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld \n",  memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize);
       		  zoomPageList.push_back(hotpage);
@@ -301,7 +310,7 @@ int writeZoomFile(const MemArea memarea, const Memblock thisMemblock, const vect
                   << " Parent " <<  thisMemblock.strParentID << " - (" << thisMemblock.leftPid 
                   << "," << thisMemblock.rightPid << ") MemoryArea " << hex<< memarea.min << "-" << memarea.max 
                   << " Block size " <<std::dec <<  memarea.blockSize << " " ;
-    if(memarea.blockSize == lastLvlBlockWidth) {
+    if(memarea.blockSize == cacheLineWidth) {
       if(w_printPageRUD.size() !=0 && w_printPageSampleRUD.size() !=0) {
 		    zoomFile_det << "blockCount " << std::dec << memarea.blockCount <<" Access "<< printTotAccess 
             << " RUD (" << w_printPageRUD.at(w_printPageRUD.size()-1) << ", " << w_printPageRUD.at(0) << ", "<< (printAvgRUD/printAvgRUDdiv)<<") "
@@ -393,8 +402,8 @@ int main(int argc, char ** argv){
 	int coreNumber = 0;
 	int memRange = 0;
 	phyPage = 0;
-  //lastLvlBlockWidth = stol("80",0,16); // Added for ZoomRUD analysis - option to set last level's block width
-  lastLvlBlockWidth = 64 ; // Added for ZoomRUD analysis - option to set last level's block width
+  //cacheLineWidth = stol("80",0,16); // Added for ZoomRUD analysis - option to set last level's block width
+  cacheLineWidth = 64 ; // Added for ZoomRUD analysis - option to set last level's block width
   zoomLastLvlPageWidth = 16384;
 	int spatialResult = 0;
 	int out = 0;
@@ -422,7 +431,7 @@ int main(int argc, char ** argv){
   // Changed to include stack also - threaded application's heap is mapped to 0x7...
   // Minivite - Single threaded - stack starts at 0x7f
   // Others - multi-threaded stack starts at 0x7ff
-  heapAddrEnd = stol("7f0000000000",0,16); // stack region is getting included in mid-point 
+  heapAddrEnd = stol("7ff000000000",0,16); // stack region is getting included in mid-point 
 
 	//get parameters
   while(argc > argi){
@@ -518,8 +527,8 @@ int main(int argc, char ** argv){
 		  argi++;			
 		}
 		if (strcmp(qpoint, "--blockWidth") == 0){
-			lastLvlBlockWidth=stol(argv[argi],0);		
-			printf("Using block size for last level in zoomRUD %ld \n", lastLvlBlockWidth);
+			cacheLineWidth=stol(argv[argi],0);		
+			printf("Using block size for last level in zoomRUD %ld \n", cacheLineWidth);
 		  argi++;
 		}
 		if (strcmp(qpoint, "--zoomStopPageWidth") == 0){
@@ -568,10 +577,10 @@ int main(int argc, char ** argv){
   }
   printf( "Number of lines in trace %d number of lines with valid addresses %ld total access %d \n", 
           intTotalTraceLine, vecInstAddr.size(), totalAccess);
-  printf( "Sample sizes in trace min %d max %d average %f \n", windowMin, windowMax, windowAvg);
+  printf("Sample sizes in trace min %d max %d average %f \n", windowMin, windowMax, windowAvg);
   printf("Using Zoom perrcent value %lf\n", zoomThreshold); 
 	printf("Using heap address range to max of %lx \n", heapAddrEnd);
-  printf(" Using cache line width %ld Bytes\n ", lastLvlBlockWidth ); 
+  printf("Using cache line width %ld Bytes\n ", cacheLineWidth ); 
   printf("Using last level block/page size %ld Bytes\n", zoomLastLvlPageWidth); 
   bool done = 0;
   std::list<Memblock > zoomPageList;
@@ -587,7 +596,7 @@ int main(int argc, char ** argv){
     if(outZoom==1) {
       zoomInFile_det.open(outputFileZoom, std::ofstream::out | std::ofstream::trunc);
     } else {
-      zoomInFile_det.open("zoomIn.out", std::ofstream::out | std::ofstream::trunc);
+      zoomInFile_det.open("zoomIn.txt", std::ofstream::out | std::ofstream::trunc);
     }
   }
   ofstream spatialOutFile;
@@ -599,7 +608,7 @@ int main(int argc, char ** argv){
       spatialOutFile.open(outputFileSpatial, std::ofstream::out | std::ofstream::trunc);
       spatialOutInsnFile.open(outputFileSpatialInsn, std::ofstream::out | std::ofstream::trunc);
     } else
-      spatialOutFile.open("spatialRUD.out", std::ofstream::out | std::ofstream::trunc);
+      spatialOutFile.open("spatialRUD.txt", std::ofstream::out | std::ofstream::trunc);
   }
   uint32_t i=0;
   Memblock thisMemblock;
@@ -743,7 +752,7 @@ int main(int argc, char ** argv){
 			 memRange = 1;
        if(!zoomPageList.empty()) {
  				 thisMemblock = zoomPageList.front();
-         if (thisMemblock.blockSize == lastLvlBlockWidth)
+         if (thisMemblock.blockSize == cacheLineWidth)
       			  spatialRegionList.push_back(thisMemblock);
  				 zoomPageList.pop_front();
   			 memarea.max = thisMemblock.max;
@@ -878,7 +887,7 @@ int main(int argc, char ** argv){
  	    thisMemblock = *itrOSPage; 
     	memarea.max = thisMemblock.max;
 	    memarea.min = thisMemblock.min;
-      memarea.blockSize = lastLvlBlockWidth; 
+      memarea.blockSize = cacheLineWidth; 
      	memarea.blockCount =  ceil((memarea.max - memarea.min)/(double)memarea.blockSize);
       printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx \n", thisMemblock.level, memarea.blockSize, memarea.blockCount, memarea.min, memarea.max);
       vecBlockInfo.clear();
@@ -901,7 +910,7 @@ int main(int argc, char ** argv){
                    << " Block size " <<std::dec <<  memarea.blockSize << " Block count " << memarea.blockCount << endl; 
       for(i = 0; i< memarea.blockCount; i++){
           BlockInfo *curBlock = vecBlockInfo.at(i);
-          curBlock->printBlockSpatial(spatialOutFile, lastLvlBlockWidth);
+          curBlock->printBlockSpatial(spatialOutFile, cacheLineWidth);
       }
     }
     // END - STEP 3

@@ -129,7 +129,7 @@ using namespace std;
         //printf("min RUD - %d ,", minRUD);
         //printf("max RUD - %d ,", maxRUD);
         //printf("average RUD - %f, ", avgRUD);
-        printf("sample_average RUD %f", sampleAvgRUD);
+        printf("smpl-avg RUD %f", sampleAvgRUD);
       } 
       printf("\n");
     }

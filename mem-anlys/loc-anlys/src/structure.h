@@ -118,14 +118,13 @@ uint64_t areacheck(string filename, uint64_t * max, uint64_t * min, int *coreNum
     getline(fin, line);
     std::stringstream s(line);
     if(getline(s,ip2,' ')){ 
-//		if(ip.compare(ip2) == 0){
+		//if(ip.compare(ip2) == 0){
 	   // printf("find the instruction from input file\n");
-   			getline(s,addr,' ');
+   	getline(s,addr,' ');
      // Remove for miniVite trace - no need to check, the trace is final 
-			if (stoull(addr,0,16) > addrThreshold) 
-			  previousAddr = stoull(addr,0,16);//check if the addr is offsit
+			//if (stoull(addr,0,16) > addrThreshold) 
+		previousAddr = stoull(addr,0,16);//check if the addr is offsit
 			//else previousAddr = previousAddr + stoull(addr,0,16);
-			else continue;
 			//getline(s,core,' ');
 			//if ((stoi)(core) > (*coreNumber)) (*coreNumber) = (stoi)(core); //check core ID
 
