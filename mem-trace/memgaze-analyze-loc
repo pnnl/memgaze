@@ -93,10 +93,14 @@ done
 #-----------------------------------------------------------
 
 trace=$opt_trace_file
-run_rud="--zoomRUD --outputZoom ${opt_outDir}/rud.txt"
+if [[ $opt_outDir != '.' ]]; then
+  mkdir $opt_outDir
+fi
+
+run_rud=" --zoomRUD --outputZoom ${opt_outDir}/rud.txt"
 
 if [[ $opt_spatial == "1" ]] ; then
-  run_spatial="--spatial --outputSpatial ${opt_outDir}/spatial.txt"
+  run_spatial=" --spatial --outputSpatial ${opt_outDir}/spatial.txt"
 fi
 
 stack_addr=''
@@ -111,12 +115,12 @@ done < ${opt_trace_dir}/memgaze.config
 
 spec_heap=''
 if [[ $stack_addr != '' ]] ; then
-  spec_heap="--heapAddrEnd ${stack_addr}"
+  spec_heap=" --heapAddrEnd ${stack_addr}"
 fi
 #****************************************************************************
 # 
 #****************************************************************************
-echo "TRace file ${trace}"
+echo "Trace file ${trace}"
 
 if [[ $trace == '' ]] ; then
   echo " Specify trace-file or trace-dir" 
