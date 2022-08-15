@@ -59,11 +59,10 @@ using namespace std;
     
     void Window::setFuncName( std::string _name ) { funcName = _name;}
     void Window::setFuncName( ) { 
-      map <string , map <unsigned long, int>> localFuncFPMap;
+      map <Address*, map <unsigned long, int>> localFuncFPMap;
       string name = "";
       for (auto ait=this->addresses.begin(); ait != this->addresses.end(); ait++){
-        name =  (*ait)->getFuncName();
-        map <string , map <unsigned long, int>>::iterator funcIter = localFuncFPMap.find(name);
+        map <Address* , map <unsigned long, int>>::iterator funcIter = localFuncFPMap.find((*ait));
         if (funcIter != localFuncFPMap.end()){
           map <unsigned long, int>::iterator fpIter = funcIter->second.find((*ait)->addr);
           if (fpIter != funcIter->second.end()){
@@ -74,13 +73,14 @@ using namespace std;
         } else {
           map <unsigned long, int> localFPMap;
           localFPMap.insert({(*ait)->addr,1});
-          localFuncFPMap.insert({name, localFPMap});
+          localFuncFPMap.insert({(*ait), localFPMap});
         }
       }
       unsigned int maxFP = 0;
       for(auto it=localFuncFPMap.begin() ;  it != localFuncFPMap.end(); it++){
         if (maxFP < (*it).second.size()){
-          this->funcName = (*it).first;
+          this->funcName = (*it).first->getFuncName();
+          this->maxFP_addr = (*it).first;
           maxFP = (*it).second.size();
         }
       }

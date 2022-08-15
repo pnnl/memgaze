@@ -59,6 +59,7 @@ class Window {
     unsigned long mtime;
     unsigned long etime;
     std::string funcName;
+    Address* maxFP_addr;
     vector <Address *> addresses;
     pair<unsigned long, int> windowID;
     map <unsigned long, map <int,int>> fpMap; //<address < type, count> 

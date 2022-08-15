@@ -331,15 +331,16 @@ void MemgazeSource::summarizeSample(Window* node, map<Window*, uint64_t> &select
     return;
   }
   num_of_sample_children++;
-  if (selected_leaves.empty()) {
-  
-  
 
-  if (node->left == NULL && node->right == NULL) {
-     uint64_t ip = node->addresses[node->addresses.size()/2]->ip->ip;
-     selected_leaves.insert({node, ip});
+  // TODO: improve the way we select the leaf window
+  if (selected_leaves.empty()) {
+    if (node->left == NULL && node->right == NULL) {
+      node->setFuncName();
+      uint64_t ip = node->maxFP_addr->ip->ip; // node->addresses[node->addresses.size()/2]->ip->ip;
+      selected_leaves.insert({node, ip});
+    }
   }
-  }
+
   summarizeSample(node->left, selected_leaves);
   summarizeSample(node->right, selected_leaves);
 }
@@ -347,38 +348,29 @@ void MemgazeSource::summarizeSample(Window* node, map<Window*, uint64_t> &select
 // Creates the context recursively using preorder traversal. 
 void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context) {
   if (node == NULL) return; 
+
+  // do not continue after the sample window.
   if (node->parent)
     if (node->parent->sampleHead) return; 
-  //cout << "Node: " << node->addresses[node->addresses.size()/2]->getFuncName() << endl;
-  //cout << "ID: " << node->windowID.first << " " << node->windowID.second << endl;
-  //if (node->right != NULL) { 
-  //  cout << "Right: " << node->addresses[node->addresses.size()/2]->getFuncName();
-  //  cout << "ID: " << node->right->windowID.first << " " << node->right->windowID.second << endl;
-  //}
-  //if (node->left != NULL) { 
-  //  cout << "Left: " << node->addresses[node->addresses.size()/2]->getFuncName();
-  //  cout << "ID: " << node->left->windowID.first << " " << node->left->windowID.second << endl;
-  //}
-  //if (node->parent != NULL) {
-  //  cout << "Parent: " << node->addresses[node->addresses.size()/2]->getFuncName();
-  //  cout << "ID: " << node->parent->windowID.first << " " << node->parent->windowID.second << endl;
-  //} else {
-  //  cout << "Parent: null" << endl;
-  //}
-  
-  //if (node->left == NULL && node->right == NULL) {
-    //cout << "Scope: " << node->stime << endl;    
-  //  new_scope = Scope(lm, ip);
-  //  num_leaves++;
-  //}
-  
+
   Scope new_scope;
   // calculates start, mid, and end times for each window.
   // example: stime = node->addresses[node->addresses[0]->time->time;
   node->calcTime();
 
   // use the IP of midpoint address.
-  uint64_t ip = node->addresses[node->addresses.size()/2]->ip->ip;
+  // uint64_t ip = node->addresses[node->addresses.size()/2]->ip->ip;
+  //cout << "parent: " << node->windowID.second << endl;
+  node->setFuncName();
+  //if (node->left) {
+  //  cout << "left child: " << node->left->windowID.second << endl;
+  //  node->left->setFuncName();
+  //}
+  //if (node->right) {
+  //  cout << "right child: " << node->right->windowID.second << endl;
+  //  node->right->setFuncName();
+  //}
+  uint64_t ip = node->maxFP_addr->ip->ip; 
 
   // name format for function scopes = mid_time:start_time-end_time.
   double stime = (node->stime - start_time) / pow(10, 6);
@@ -414,20 +406,6 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
     }
   }
   
-  //std::optional<ProfilePipeline::Source::AccumulatorsRef> accum;
-  //accum = sink.accumulateTo(thread, node /* context ref */); 
-  //for (auto it = window_context.begin(); it != window_context.end(); it++) {
-  //accum = sink.accumulateTo(*thread, new_context);
-  // Metric value
-  //map <int, double> diagMap;
-  //map<int, double> metric_values = node->getMetrics(diagMap);
-  //for (auto metric = metric_values.begin(); metric != metric_values.end(); metric++) {
-  //  if (metric->second != 0 && !isnan(metric->second) && !isinf(metric->second)) { 
-  //    accum->add(metrics.find(metric->first)->second, metric->second); 
-      //if (metric->first == 7) cout << "in memsource: " << metric->second << endl;
-  //  }
-  //}
-  //} 
   createCCT(node->left, lm, new_context);
   createCCT(node->right, lm, new_context);
 }
@@ -464,6 +442,7 @@ void MemgazeSource::read(const DataClass& needed) {
     modules.push_back(lm);
   }
   //}
+
   // ------------------------------------------------------------
   // CCT root (from ProfileSource())
   // ------------------------------------------------------------
@@ -474,6 +453,7 @@ void MemgazeSource::read(const DataClass& needed) {
     window_context.insert({new Window(), root_context});
     start_time = memgaze_root->addresses[0]->time->time;
     cout << "first start_time: " << start_time << endl;
+
   // ------------------------------------------------------------
   // Create CCT
   // 
@@ -517,6 +497,7 @@ void MemgazeSource::read(const DataClass& needed) {
     ids.push_back(id);
     tattrs.idTuple(ids);
   }
+
   // ------------------------------------------------------------
   // Create "Metric" object
   // ------------------------------------------------------------
@@ -549,11 +530,11 @@ void MemgazeSource::read(const DataClass& needed) {
     addMetrics("FP", "FP description", FP);
     //addMetrics("UNKNOWN", "unknown description", UNKNOWN);
     addMetrics("WINDOW_SIZE", "window_size desc", WINDOW_SIZE);
-    //addMetrics("TOTAL_LOADS", "total_loads desc", TOTAL_LOADS);
-    //addMetrics("CONSTANT2LOAD_RATIO", "contload_ratio desc", CONSTANT2LOAD_RATIO);
-    //addMetrics("NPF_RATE", "npf_rate desc", NPF_RATE);
-    //addMetrics("NPF_GROWTH_RATE", "npf_growth_rate desc", NPF_GROWTH_RATE);
-    //addMetrics("GROWTH_RATE", "growth_rate desc", GROWTH_RATE);
+    addMetrics("TOTAL_LOADS", "total_loads desc", TOTAL_LOADS);
+    addMetrics("CONSTANT2LOAD_RATIO", "contload_ratio desc", CONSTANT2LOAD_RATIO);
+    addMetrics("NPF_RATE", "npf_rate desc", NPF_RATE);
+    addMetrics("NPF_GROWTH_RATE", "npf_growth_rate desc", NPF_GROWTH_RATE);
+    addMetrics("GROWTH_RATE", "growth_rate desc", GROWTH_RATE);
   }
 
   // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L381
@@ -561,6 +542,7 @@ void MemgazeSource::read(const DataClass& needed) {
     cout << "has THREADS" << endl;
     thread = &sink.thread(std::move(tattrs));
   }
+
   // ------------------------------------------------------------
   // Attribute metric values
   // ------------------------------------------------------------
@@ -605,7 +587,6 @@ DataClass MemgazeSource::provides() const noexcept {
   //if(!tracepath.empty()) ret += ctxTimepoints;
   return ret;
 }
-
 DataClass MemgazeSource::finalizeRequest(const DataClass& d) const noexcept {
   using namespace hpctoolkit::literals::data;
   DataClass o = d;
