@@ -32,9 +32,20 @@ DYNINST_ROOT="${MG_XLIB_ROOT}/dyninst-12.1.0"
 DYNINST_LIB="${DYNINST_ROOT}/lib"
 export DYNINSTAPI_RT_LIB="${DYNINST_LIB}/libdyninstAPI_RT.so"
 
-#hpcstruct="${MG_XLIB_ROOT}/hpctoolkit-2022.01.15/bin/hpcstruct"
-#hpcstruct="${MG_XLIB_ROOT}/hpctoolkit-2022.05.15/bin/hpcstruct" add if else fist develop if both exist warn and perfer the develop test both
-hpcstruct="${MG_XLIB_ROOT}/hpctoolkit-develop/bin/hpcstruct"
+#-----------------------------------------------------------
+
+hpcstruct=""
+
+hpcstruct1=hpctoolkit-2022.05.15/bin/hpcstruct
+hpcstruct2=hpctoolkit-develop/bin/hpcstruct
+
+if [[ -z ${hpcstruct} && -x ${MG_XLIB_ROOT}/${hpcstruct1} ]] ; then
+    hpcstruct="${MG_XLIB_ROOT}/${hpcstruct1}"
+elif [[ -z ${hpcstruct} && -x ${MG_XLIB_ROOT}/${hpcstruct2} ]] ; then
+    hpcstruct="${MG_XLIB_ROOT}/${hpcstruct2}"
+else
+    die "Found too many HPCToolkit installations!"
+fi
 
 #-----------------------------------------------------------
 
@@ -70,12 +81,12 @@ EOF
 usage()
 {
     cat <<EOF
-Usage: ${scriptCmd} [options] 
+Usage: ${scriptCmd} --app <app> [options]
 
 Options:
   -h / --help   => prints help
   -o / --output => output directory path
-  -i / --app    => input binary (required)
+  -i / --app <app>  => input binary (required)
   -b / --outapp => instrumented binary name (def: <bin>-memgaze)
   -l / --loads  => load analysis (1 to do 0 to skip def:1)
   -s / --stores => store analysis (1 to do 0 to skip def:0)
