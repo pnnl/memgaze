@@ -137,5 +137,5 @@ done < ${opt_trace_dir}/memgaze.config
 # 
 #****************************************************************************
 
-${mg_anal} -t ${scriptDir}/${trace} -l ${scriptDir}/${binanlys} -s ${scriptDir}/${hpcstruct} -o ${scriptDir}/${output} -m ${mode} -p ${period} -c ${scriptDir}/${callpath}
-
+#${mg_anal} -t ${scriptDir}/${trace} -l ${scriptDir}/${binanlys} -s ${scriptDir}/${hpcstruct} -o ${scriptDir}/${output} -m ${mode} -p ${period} -c ${scriptDir}/${callpath}
+${mg_anal} -t ${trace} -l ${binanlys} -s ${hpcstruct} -o ${output} -m ${mode} -p ${period} -c ${callpath}
