@@ -26,7 +26,7 @@ mg_anal="${scriptDir}/../libexec/memgaze-analyze"
 
 #****************************************************************************
 
-opt_outDir=''
+opt_outDir='.'
 opt_trace_dir=''
 opt_inst_dir=''
 opt_loads='1'
@@ -52,7 +52,12 @@ EOF
 usage()
 {
     cat <<EOF
-Usage: ${scriptCmd} [options] [--] <app> [app-args]
+Usage: ${scriptCmd} [options] 
+Options:
+  -h / --help   => print help
+  -t / --trace-dir  => trace directory 
+  -s / --inst-dir => instrumented binary directory for hpcstruct file (optional)
+  -o / --output => output directory name (optional)
 EOF
     exit 0
 }
@@ -104,6 +109,7 @@ done
 #if [[ -z $1 ]] ; then
 #    die "no command to monitor"
 #fi
+mkdir ${opt_outDir}
 
 trace=''
 binanlys=''
@@ -112,6 +118,7 @@ mode=''
 period=''
 callpath=''
 binary=''
+output='memgaze-fp.txt'
 
 while IFS=' ' read -r type value; do
     echo "type: $type value: $value"
@@ -138,4 +145,4 @@ done < ${opt_trace_dir}/memgaze.config
 #****************************************************************************
 
 #${mg_anal} -t ${scriptDir}/${trace} -l ${scriptDir}/${binanlys} -s ${scriptDir}/${hpcstruct} -o ${scriptDir}/${output} -m ${mode} -p ${period} -c ${scriptDir}/${callpath}
-${mg_anal} -t ${trace} -l ${binanlys} -s ${hpcstruct} -o ${output} -m ${mode} -p ${period} -c ${callpath}
+${mg_anal} -t ${trace} -l ${binanlys} -s ${hpcstruct} -o ${opt_outDir}/${output} -m ${mode} -p ${period} -c ${callpath}
