@@ -8,7 +8,7 @@
 #
 #***********************************************************EndPNNLCopyright*
 
-set -x
+# set -x
 
 hostName=`hostname -s`
 
@@ -61,12 +61,14 @@ usage()
     cat <<EOF
 Usage: ${scriptCmd} [options] [--] <app> [app-args]
 
-Options:
-  -h / --help   => print help
-  -e / --event  => collection type for <pt-load> <pt-time> <ldlat> (def=pt-load)
-  -b / --buffer => buffers size in bytes (def=8192)
-  -p / --period => period for sampling ( 0 for full trace) (def=0)
-  -o / --output => output folder name (def=<app>-trace-b<buffer>-p<period>
+Options (defaults in [])
+  -h / --help          help
+
+  -o / --output <path> output directory [<app>-trace-b<buffer>-p<period>]
+
+  -e / --event <e>     collection type for <pt-load> <pt-time> <ldlat> [pt-load]
+  -b / --buffer <sz>   buffers size in bytes [8192]
+  -p / --period <p>    period for sampling (0 for full trace) [0]
 EOF
     exit 0
 }

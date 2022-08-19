@@ -83,17 +83,19 @@ usage()
     cat <<EOF
 Usage: ${scriptCmd} --app <app> [options]
 
-Options:
-  -h / --help   => prints help
-  -o / --output => output directory path
-  -i / --app <app>  => input binary (required)
-  -b / --outapp => instrumented binary name (def: <bin>-memgaze)
-  -l / --loads  => load analysis (1 to do 0 to skip def:1)
-  -s / --stores => store analysis (1 to do 0 to skip def:0)
-  -t / --strided => strided analysis (req -l and/or -s to set 1) (1 to do 0 to skip def:1)
-  -n / --indirect => indirect analysis (req -l and/or -s to set 1) (1 to do 0 to skip def:1)
-  -f / --frame  => frame analysis (req -l and/or -s to set 1) (1 to do 0 to skip def:0)
+Options (defaults in []):
+  -h / --help          help
 
+  -i / --app <app>     application binary (required)
+
+  -o / --output <path> output directory path
+  -b / --outapp <name> instrumented binary name [<bin>-memgaze]
+
+  -l / --loads         instrument loads (1 or 0) [1]
+  -s / --stores        instrument stores (1 or 0) [0]
+  -t / --strided       instrument strided accesses (1 or  0) [1]
+  -n / --indirect      instrument indirect accesses (1 or 0 [1]
+  -f / --frame         instrument frame accesses (1 or 0) [0]
 EOF
     exit 0
 }

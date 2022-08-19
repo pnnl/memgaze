@@ -8,7 +8,7 @@
 #
 #***********************************************************EndPNNLCopyright*
 
- set -x
+# set -x
 
 scriptPath0="${BASH_SOURCE[0]}" # works when script is sourced (unlike $0)
 scriptPath=$(readlink -f "${scriptPath0}")
@@ -28,7 +28,7 @@ mg_anal="${scriptDir}/../libexec/memgaze-analyze"
 
 opt_outDir='.'
 opt_trace_dir=''
-opt_inst_dir=''
+#opt_inst_dir=''
 opt_loads='1'
 opt_stores='0'
 opt_strided='1'
@@ -54,9 +54,10 @@ usage()
     cat <<EOF
 Usage: ${scriptCmd} [options] 
 Options:
-  -h / --help   => print help
-  -t / --trace-dir  => trace directory 
-  -s / --inst-dir => instrumented binary directory for hpcstruct file (optional)
+  -h / --help              help
+
+  -t / --trace-dir <path>  memgaze trace directory
+
   -o / --output => output directory name (optional)
 EOF
     exit 0
@@ -85,10 +86,10 @@ while [[ $# -gt 0 ]] ; do
             shift # past value
             ;;
 
-	      -s | --inst-dir )
-            opt_inst_dir="$1"
-            shift # past value
-            ;;
+	      # -s | --inst-dir )
+        #     opt_inst_dir="$1"
+        #     shift # past value
+        #     ;;
 
 	      -- )
             break

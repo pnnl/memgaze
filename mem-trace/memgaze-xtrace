@@ -53,9 +53,10 @@ usage()
 Usage: ${scriptCmd} [options]
 
 Options:
-  -h / --help   => print help
-  -o / --output => name of output directory (def: input dir)
-  -i / --input  => directory for perf data
+  -h / --help            print help
+
+  -i / --input <in-path>  memgaze trace directory
+  -o / --output <o-path>  output directory [in-path]
 EOF
     exit 0
 }
@@ -78,7 +79,7 @@ while [[ $# -gt 0 ]] ; do
             shift # past value
             ;;
         
-	-i | --input )
+	      -i | --input )
             opt_inDir="$1"
             shift # past value
             ;;
