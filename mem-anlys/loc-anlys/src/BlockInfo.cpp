@@ -126,9 +126,9 @@ using namespace std;
     if(totalAccess != 0){
       printf("Page %d: area %08lx-%08lx, total access %d ", blockID.second, addrMin, addrMax, totalAccess);
       if (totalAccess != 1 ){
-        //printf("min RUD - %d ,", minRUD);
-        //printf("max RUD - %d ,", maxRUD);
-        //printf("average RUD - %f, ", avgRUD);
+        printf("min RUD - %d ,", minRUD);
+        printf("max RUD - %d ,", maxRUD);
+        printf("average RUD - %f, ", avgRUD);
         printf("smpl-avg RUD %f", sampleAvgRUD);
       } 
       printf("\n");

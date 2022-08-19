@@ -558,23 +558,24 @@ int main(int argc, char ** argv){
   //check the memory area for the first time
 	uint32_t totalAccess = 0;
   std::cout << "Application: " << memoryfile << "\n";
-	totalAccess = areacheck(memoryfile, &max, &min, &coreNumber);
-  if(totalAccess ==0 ) 
-  {
-    printf("Trace file not read - error in areacheck\n");
-    return -1;
-  }
+	//totalAccess = areacheck(memoryfile, &max, &min, &coreNumber);
+  //if(totalAccess ==0 ) 
+  //{
+   // printf("Trace file not read - error in areacheck\n");
+   // return -1;
+  // }
   uint32_t windowMin;
   uint32_t windowMax;
   double windowAvg;
   windowMin=0; 
   windowMax=0;
   windowAvg=0.0;
-  int readReturn = readTrace(memoryfile, &intTotalTraceLine, vecInstAddr, &windowMin, &windowMax, &windowAvg);
+  int readReturn = readTrace(memoryfile, &intTotalTraceLine, vecInstAddr, &windowMin, &windowMax, &windowAvg, &max, &min);
   if(readReturn == -1) {
     printf("Error in readTrace \n");
     return -1;
   }
+  totalAccess = intTotalTraceLine;
   printf( "Number of lines in trace %d number of lines with valid addresses %ld total access %d \n", 
           intTotalTraceLine, vecInstAddr.size(), totalAccess);
   printf("Sample sizes in trace min %d max %d average %f \n", windowMin, windowMax, windowAvg);
