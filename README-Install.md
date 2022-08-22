@@ -60,7 +60,7 @@ MemGaze has four main steps.
    library and relink instrumented `<app>`.
 
    ```
-   memgaze-inst <app-dir>/<app> [-o <inst-dir>]
+   memgaze-inst --app <app-dir>/<app> [-o <inst-dir>]
    ```
 
   Important contents of `<inst-dir>`:
