@@ -253,7 +253,6 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
   // ------------------------------------------------------------
   // cf. hpctoolkit/src/tool/hpcprof/main.cpp
   // https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/tool/hpcprof/main.cpp
-
   //ProfArgs args(argc, argv);
   util::log::Settings logSettings(false, false, false);
   util::log::Settings::set(std::move(logSettings));
@@ -299,7 +298,7 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
   // pipeSettings << make_unique_x<sinks::ExperimentXML4>(args.output, args.include_sources, nullptr);
   // TODO: take as argument
   fs::path working_dir = fs::current_path();
-  fs::path dummy_db("/memgaze-database-test-2");
+  fs::path dummy_db("memgaze-database-test-2");
   pipeSettings << make_unique_x<sinks::ExperimentXML4>(working_dir / dummy_db, false, nullptr);
   // "profile.db", "cct.db"
   pipeSettings << make_unique_x<sinks::SparseDB>(working_dir / dummy_db);
@@ -435,7 +434,8 @@ void MemgazeSource::read(const DataClass& needed) {
     cout << "has REFERENCES" << endl;
     loadmap_entry_t lm_test;
     // TODO: get from struct file or main.cpp?
-    string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/UBENCH_O3_500k_8kb_P10k/ubench-500k_O3_PTW";
+    string hardcoded_lm = "/home/cank560/memgaze/install/bin/memgaze-miniVite-v1/miniVite-v1-memgaze";
+    //string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/UBENCH_O3_500k_8kb_P10k/ubench-500k_O3_PTW";
     //string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_PTW";
     lm_test.name = &hardcoded_lm[0];
     Module& lm = sink.module(lm_test.name);
