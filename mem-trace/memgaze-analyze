@@ -52,7 +52,10 @@ EOF
 usage()
 {
     cat <<EOF
-Usage: ${scriptCmd} [options] 
+Usage: ${scriptCmd} [options] <trace-dir>
+
+Analyze memory behavior of <trace-dir>.
+
 Options:
   -h / --help              help
 
@@ -80,7 +83,8 @@ while [[ $# -gt 0 ]] ; do
             opt_outDir="$1"
             shift # past value
             ;;
-        
+
+        # FIXME: to deprecate
 	      -t | --trace-dir )
             opt_trace_dir="$1"
             shift # past value
@@ -91,13 +95,11 @@ while [[ $# -gt 0 ]] ; do
         #     shift # past value
         #     ;;
 
-	      -- )
-            break
+        -- ) # next token contains "<opt_trace_dir>..."
             ;;
 
-        * ) # beginning of <application> command line
-            set -- "$arg" "$@"
-            break
+        * ) # $arg is "<opt_trace_dir>" (and options could follow)
+            opt_trace_dir=${arg}
             ;;
     esac
 done
@@ -122,7 +124,7 @@ binary=''
 output='memgaze-fp.txt'
 
 while IFS=' ' read -r type value; do
-    echo "type: $type value: $value"
+    # echo "type: $type value: $value"
     if [[ $type == "-m" ]] ; then
       mode=$value
     elif [[ $type == "-p" ]] ; then
