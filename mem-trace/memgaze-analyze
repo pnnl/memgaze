@@ -112,7 +112,7 @@ done
 #if [[ -z $1 ]] ; then
 #    die "no command to monitor"
 #fi
-mkdir ${opt_outDir}
+mkdir -p ${opt_outDir}
 
 trace=''
 binanlys=''
