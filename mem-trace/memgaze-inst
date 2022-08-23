@@ -81,14 +81,14 @@ EOF
 usage()
 {
     cat <<EOF
-Usage: ${scriptCmd} --app <app> [options]
+Usage: ${scriptCmd} [options] <app>
+
+Instrument application binary <app> and place results in <inst-dir>.
 
 Options (defaults in []):
   -h / --help          help
 
-  -i / --app <app>     application binary (required)
-
-  -o / --output <path> output directory path
+  -o / --output <path> output directory <inst-dir>
   -b / --outapp <name> instrumented binary name [<bin>-memgaze]
 
   -l / --loads         instrument loads (1 or 0) [1]
@@ -99,6 +99,7 @@ Options (defaults in []):
 EOF
     exit 0
 }
+
 
 #-----------------------------------------------------------
 # optional arguments
@@ -118,7 +119,8 @@ while [[ $# -gt 0 ]] ; do
             opt_outDir="$1"
             shift # past value
             ;;
-        
+
+        # FIXME: to deprecate
         -i | --app )
             opt_app="$1"
             shift # past value
@@ -154,13 +156,13 @@ while [[ $# -gt 0 ]] ; do
             shift # past value
             ;;
 
-	      -- )
-            break
+        -- ) # next token contains "<app>..."
             ;;
 
-        * ) # beginning of <application> command line
-            set -- "$arg" "$@"
-            break
+        * ) # $arg is "<app>"
+            opt_app=${arg}
+            #set -- "$arg" "$@"
+            #break
             ;;
     esac
 done
