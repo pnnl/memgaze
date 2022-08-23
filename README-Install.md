@@ -60,7 +60,7 @@ MemGaze has four main steps.
    library and relink instrumented `<app>`.
 
    ```
-   memgaze-inst --app <app-dir>/<app> [-o <inst-dir>]
+   memgaze-inst [-o <inst-dir>] <app-dir>/<app>
    ```
 
   Important contents of `<inst-dir>`:
@@ -123,10 +123,10 @@ MemGaze has four main steps.
 
 
 4. Analyze memory behavior using execution interval tree and generate
-   memory-related metrics. As inputs, takes `<trace-dir>` and `<inst-dir>`
+   memory-related metrics. As inputs, takes `<trace-dir>`.
 
    ```
-   memgaze-analyze -t <trace-dir> -s <inst-dir> [-o <output>]
+   memgaze-analyze [-o <output>] <trace-dir>
    ```
 
   Currently, memgaze-analyze's default output includes two parts:
