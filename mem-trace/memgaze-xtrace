@@ -50,12 +50,14 @@ EOF
 usage()
 {
     cat <<EOF
-Usage: ${scriptCmd} [options]
+Usage: ${scriptCmd} [options] <trace-dir>
+
+Translate tracing and profiling data within <trace-dir> into open formats.
 
 Options:
   -h / --help            print help
 
-  -i / --input <in-path>  memgaze trace directory
+  -i / --input <trace-dir>  memgaze trace directory
   -o / --output <o-path>  output directory [in-path]
 EOF
     exit 0
@@ -78,20 +80,20 @@ while [[ $# -gt 0 ]] ; do
             opt_outDir="$1"
             shift # past value
             ;;
-        
+
+        # FIXME: to deprecate
 	      -i | --input )
             opt_inDir="$1"
             shift # past value
             ;;
 
-	      -- )
-            break
+        -- ) # next token contains "<opt_inDir>..."
             ;;
 
-        * ) # beginning of <application> command line
-            set -- "$arg" "$@"
-            break
+        * ) # $arg is "<opt_inDir>" (and options could follow)
+            opt_inDir=${arg}
             ;;
+
     esac
 done
 
@@ -107,9 +109,9 @@ fi
 perf_script="${perf_script_dir}/perf-script-intel-pt.py"
 
 while IFS= read -r line; do
-    echo "Text read from file: $line"
+    # echo "Text read from file: $line"
     words=($line)
-    echo "option: ${words[0]} var: ${words[1]}"
+    # echo "option: ${words[0]} var: ${words[1]}"
     if [[ ${words[0]} == '-b' ]] ; then
       app_path=${words[1]}
     fi
