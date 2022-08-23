@@ -159,10 +159,8 @@ while [[ $# -gt 0 ]] ; do
         -- ) # next token contains "<app>..."
             ;;
 
-        * ) # $arg is "<app>"
+        * ) # $arg is "<app>" (and options could follow)
             opt_app=${arg}
-            #set -- "$arg" "$@"
-            #break
             ;;
     esac
 done

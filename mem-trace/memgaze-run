@@ -61,6 +61,9 @@ usage()
     cat <<EOF
 Usage: ${scriptCmd} [options] [--] <app> [app-args]
 
+Trace memory behavior of application <app> (normally the result of
+instrumentation). Generates output in <path>.
+
 Options (defaults in [])
   -h / --help          help
 
