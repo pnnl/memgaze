@@ -109,11 +109,6 @@ done
 # required args
 #-----------------------------------------------------------
 
-#if [[ -z $1 ]] ; then
-#    die "no command to monitor"
-#fi
-mkdir -p ${opt_outDir}
-
 trace=''
 binanlys=''
 hpcstruct=''
@@ -142,10 +137,12 @@ while IFS=' ' read -r type value; do
     fi
 done < ${opt_trace_dir}/memgaze.config 
 
-
 #****************************************************************************
 # 
 #****************************************************************************
 
-#${mg_anal} -t ${scriptDir}/${trace} -l ${scriptDir}/${binanlys} -s ${scriptDir}/${hpcstruct} -o ${scriptDir}/${output} -m ${mode} -p ${period} -c ${scriptDir}/${callpath}
+if [[ ! -d ${opt_outDir} ]] ; then
+    mkdir -p ${opt_outDir}
+fi
+
 ${mg_anal} -t ${trace} -l ${binanlys} -s ${hpcstruct} -o ${opt_outDir}/${output} -m ${mode} -p ${period} -c ${callpath}
