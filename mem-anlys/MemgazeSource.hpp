@@ -56,6 +56,7 @@ public:
   ~MemgazeSource();
 
   Window* memgaze_root;
+  string lm_name;
   unsigned long start_time;
  
   ThreadAttributes tattrs;

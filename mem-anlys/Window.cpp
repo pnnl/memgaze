@@ -60,7 +60,6 @@ using namespace std;
     void Window::setFuncName( std::string _name ) { funcName = _name;}
     void Window::setFuncName( ) { 
       map <Address*, map <unsigned long, int>> localFuncFPMap;
-      string name = "";
       for (auto ait=this->addresses.begin(); ait != this->addresses.end(); ait++){
         map <Address* , map <unsigned long, int>>::iterator funcIter = localFuncFPMap.find((*ait));
         if (funcIter != localFuncFPMap.end()){

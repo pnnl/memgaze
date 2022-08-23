@@ -357,10 +357,15 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
   // example: stime = node->addresses[node->addresses[0]->time->time;
   node->calcTime();
 
-  // use the IP of midpoint address.
+  // TODO: REMOVE. This was the initial implementation. Uses the IP of midpoint address.
   // uint64_t ip = node->addresses[node->addresses.size()/2]->ip->ip;
-  //cout << "parent: " << node->windowID.second << endl;
+
+  // setFuncName() sets the name also setns the maxFP_addr which is 
+  // the address that has the highest FP.
   node->setFuncName();
+
+  // TODO: for testing.
+  //cout << "parent: " << node->windowID.second << endl;
   //if (node->left) {
   //  cout << "left child: " << node->left->windowID.second << endl;
   //  node->left->setFuncName();
@@ -369,7 +374,11 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
   //  cout << "right child: " << node->right->windowID.second << endl;
   //  node->right->setFuncName();
   //}
+ 
   uint64_t ip = node->maxFP_addr->ip->ip; 
+  
+  // TODO: Use this instead of 'lm' variable.
+  //cout << node->maxFP_addr->ip->dso_name << endl;
 
   // name format for function scopes = mid_time:start_time-end_time.
   double stime = (node->stime - start_time) / pow(10, 6);
@@ -391,7 +400,7 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
   window_context.insert({node, new_context});
 
   if (node->sampleHead) {
-    //cout << "sample" << endl;
+    //cout << "sample" << endl; // TODO: Remove. For testing.
     num_samples++;
     map<Window*, uint64_t> selected_leaves;
     summarizeSample(node, selected_leaves);
@@ -409,6 +418,7 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
   createCCT(node->right, lm, new_context);
 }
 
+// Add metrics for hpcviewer. Takes name, description and id for the metric.
 void MemgazeSource::addMetrics(string name, string description, int id) {
   // hpctoolkit uses metric_desc_t m; m.name; m.description;
   Metric::Settings settings{name, description};
@@ -433,12 +443,16 @@ void MemgazeSource::read(const DataClass& needed) {
   if (needed.hasReferences()) {
     cout << "has REFERENCES" << endl;
     loadmap_entry_t lm_test;
-    // TODO: get from struct file or main.cpp?
+    // TODO: use 'dso_name' variable in main.cpp: see line 380. Haven't changed this because 
+    // I was not able to create data with new trace format so testing was not possible.
     string hardcoded_lm = "/home/cank560/memgaze/install/bin/memgaze-miniVite-v1/miniVite-v1-memgaze";
     //string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/UBENCH_O3_500k_8kb_P10k/ubench-500k_O3_PTW";
     //string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_PTW";
     lm_test.name = &hardcoded_lm[0];
+    // create HPCToolkit module using the load module from Memgaze.
     Module& lm = sink.module(lm_test.name);
+    // TODO: keeping a list of modules in case we need it. Can be removed in future 
+    // if we use line 380 for each window. 
     modules.push_back(lm);
   }
   //}
@@ -451,7 +465,9 @@ void MemgazeSource::read(const DataClass& needed) {
     cout << "has CONTEXTS" << endl;
     auto& root_context = sink.global();
     window_context.insert({new Window(), root_context});
-    start_time = memgaze_root->addresses[0]->time->time;
+
+    memgaze_root->setFuncName();
+    start_time = memgaze_root->maxFP_addr->time->time;
     cout << "first start_time: " << start_time << endl;
 
   // ------------------------------------------------------------
@@ -484,15 +500,15 @@ void MemgazeSource::read(const DataClass& needed) {
 
   //Scope scope = Scope(lm, lm_ip); // creates Scope::point
   //Context& node = sink.context(n1, {Relation::call, scope}).second;
-  // TODO: change this when we have multiple lms
+  // TODO: change this when we are able to test new trace format. see line 380.
     cout << "createCCT" << endl;
     Module& lm = modules[0];
     createCCT(memgaze_root, lm, root_context);
   //}
 
     std::vector<pms_id_t> ids;
-  // https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/lib/prof-lean/id-tuple.h#L116
-  // struct pms_id_t: uint16_t kind, uint64_t physical index, uint64_t logical index
+    // https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/lib/prof-lean/id-tuple.h#L116
+    // struct pms_id_t: uint16_t kind, uint64_t physical index, uint64_t logical index
     pms_id_t id = {IDTUPLE_COMPOSE(IDTUPLE_RANK, IDTUPLE_IDS_BOTH_VALID), 0, 0};
     ids.push_back(id);
     tattrs.idTuple(ids);
@@ -508,7 +524,7 @@ void MemgazeSource::read(const DataClass& needed) {
   if (needed.hasAttributes()) {
     cout << "has ATTRIBUTES" << endl;
   
-    // create idTuple types
+    // Create idTuple types. Took from hpctoolkit.
     attrs.idtupleName(IDTUPLE_SUMMARY, HPCRUN_IDTUPLE_SUMMARY);
     attrs.idtupleName(IDTUPLE_NODE, HPCRUN_IDTUPLE_NODE);
     attrs.idtupleName(IDTUPLE_RANK, HPCRUN_IDTUPLE_RANK);
@@ -519,11 +535,6 @@ void MemgazeSource::read(const DataClass& needed) {
     attrs.idtupleName(IDTUPLE_CORE, HPCRUN_IDTUPLE_CORE);
     sink.attributes(std::move(attrs));
 
-  // hpctoolkit uses metric_desc_t m; m.name; m.description;
-    //Metric::Settings settings{"strided", "description for strided"};
-    //Metric& strided_metric = sink.metric(settings);
-    //metrics.insert({STRIDED, strided_metric});
-    //sink.metricFreeze(strided_metric);
     addMetrics("STRIDED", "strided description", STRIDED);
     addMetrics("CONSTANT", "constant description", CONSTANT);
     addMetrics("INDIRECT", "indirect description", INDIRECT);
@@ -561,13 +572,16 @@ void MemgazeSource::read(const DataClass& needed) {
   if (needed.hasMetrics()) {
     cout << "hasMetrics" << endl;
     std::optional<ProfilePipeline::Source::AccumulatorsRef> accum;
-    //accum = sink.accumulateTo(thread, node<context ref> ); 
+
+    // Add metrics one by one. HPCToolkit doesn't allow for adding them as we 
+    // create metrics.
     for (auto it = window_context.begin(); it != window_context.end(); it++) {
       accum = sink.accumulateTo(*thread, it->second);
-      // Metric value
       map <int, double> diagMap;
+      // get metrics from each window.
       map<int, double> metric_values = it->first->getMetrics(diagMap);
       for (auto metric = metric_values.begin(); metric != metric_values.end(); metric++) {
+        // HPCToolkit doesn't want 0, nan and inf.
         if (metric->second != 0 && !isnan(metric->second) && !isinf(metric->second)) { 
           accum->add(metrics.find(metric->first)->second, metric->second); 
           //if (metric->first == 7) cout << "in memsource: " << metric->second << endl;
@@ -575,10 +589,11 @@ void MemgazeSource::read(const DataClass& needed) {
       }
     }
   }
+
   // add post-processing?
 }
 
-// Below implementations are taken from Hpcrun4.cpp .
+// Below implementations are taken from Hpcrun4.cpp.
 bool MemgazeSource::valid() const noexcept { return false; }
 
 DataClass MemgazeSource::provides() const noexcept {
@@ -587,10 +602,10 @@ DataClass MemgazeSource::provides() const noexcept {
   //if(!tracepath.empty()) ret += ctxTimepoints;
   return ret;
 }
+
 DataClass MemgazeSource::finalizeRequest(const DataClass& d) const noexcept {
   using namespace hpctoolkit::literals::data;
   DataClass o = d;
-  // Onur: o += references; 
   if(o.hasMetrics()) o += attributes + contexts + threads;
   if(o.hasCtxTimepoints()) o += contexts + threads;
   if(o.hasThreads()) o += contexts;  // In case of outlined range trees
@@ -598,11 +613,3 @@ DataClass MemgazeSource::finalizeRequest(const DataClass& d) const noexcept {
   return o;
 }
 
-//void MemgazeSource::read(const DataClass& needed) {
-  //if(!fileValid) return;  // We don't have anything more to say
-  //if(!realread(needed)) {
-  //  util::log::error{} << "Error while parsing measurement profile " << path.string();
-  //  fileValid = false;
-  //}
-//  return;
-//}
