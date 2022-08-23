@@ -103,16 +103,16 @@ while [[ $# -gt 0 ]] ; do
             ;;
 
         -o | --output)
-            opt_output="$1"
+            opt_outDir="$1"
             shift
             ;;
 
 
-        -- )
+        -- ) # "$@" now contains "<app> <app-args>"
             break
             ;;
 
-        * ) # beginning of <application> command line
+        * ) # we have consumed one token of "<app> <app-args>", reset "$@"
             set -- "$arg" "$@"
             break
             ;;
@@ -145,18 +145,18 @@ app=${strarr[-1]}
 IFS=''
 
 
-if [[ -z ${opt_output} ]] ; then
-  opt_output="${app}-trace-b${opt_buffer}-p${opt_period}"
+if [[ -z ${opt_outDir} ]] ; then
+  opt_outDir="${app}-trace-b${opt_buffer}-p${opt_period}"
 fi
 
-mkdir ${opt_output}
+mkdir -p ${opt_outDir}
 
 
 #-----------------------------------------------------------
 # launch
 #-----------------------------------------------------------
 
-out_fnm="${opt_output}/${opt_output}.perf"
+out_fnm="${opt_outDir}/${opt_outDir}.perf"
 
 printf "${scriptCmd}: collecting data for $app with $args\n"
 
@@ -178,42 +178,39 @@ if [[ ${opt_method} =~ pt-* ]] ; then
     case "${opt_method}" in
         pt-load )
             if [[ ${hostName} = 'nuke' ]] ; then
-		event_smpl="cpu/umask=0x81,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
-	    else
-            	event_smpl="mem_inst_retired.all_loads/period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
-	    fi
-            break
+		            event_smpl="cpu/umask=0x81,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
+	          else
+            	  event_smpl="mem_inst_retired.all_loads/period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
+	          fi
             ;;
 
         pt-time )
             event_smpl="ref-cycles/period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
-            break
             ;;
 
         * )
             die "invalid trace method '${opt_method}'"
-            break
             ;;
     esac
 
     if (( ${opt_period} == ${zero} )) ; then
         ${perf} record -o "${out_fnm}" -m 4M,4M \
                 -e ${event_ptw} -- "$@" &
-	app_pid=$!
+	      app_pid=$!
     else
         ${perf} record -o "${out_fnm}" -m 2M,2M \
                 -e ${event_ptw} -e ${event_smpl} ${opt_callpath} -- "$@" &
-	app_pid=$!
+	      app_pid=$!
     fi
 
 elif [[ ${opt_method} = 'ldlat' ]] ; then
     event_ldlat="cpu/mem-loads,ldlat=1,period=${opt_period}/upp"
     if [[ ${hostName} = 'nuke' ]] ; then
-      event_ldlat="cpu/umask=0x01,event=0xcd,ldlat=3,period=${opt_period}/upp"
+        event_ldlat="cpu/umask=0x01,event=0xcd,ldlat=3,period=${opt_period}/upp"
     fi
     ${perf} record -o "${out_fnm}" -W -d \
             -e ${event_ldlat} -- "$@" &
-            #-e cpu/mem-loads,ldlat=1,period=${opt_period}/upp -- "$@"
+           #-e cpu/mem-loads,ldlat=1,period=${opt_period}/upp -- "$@"
     app_pid=$!
 fi
 
@@ -227,15 +224,15 @@ sleep 1
 # output directory
 #-----------------------------------------------------------
 
-cat <<EOF > ${opt_output}/memgaze.config
+cat <<EOF > ${opt_outDir}/memgaze.config
 -p ${opt_period}
 -m ${opt_method}
 -b ${app_path}
 -l ${app_path}.binanlys
 -h ${app_path}.hpcstruct
--data ${opt_output}.perf
--t ${opt_output}/${app}.trace
--c ${opt_output}/${app}.callpath
+-data ${opt_outDir}.perf
+-t ${opt_outDir}/${app}.trace
+-c ${opt_outDir}/${app}.callpath
 -size ${opt_buffer}
 -stack_start ${stack_addr}
 EOF
