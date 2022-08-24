@@ -219,6 +219,9 @@ fi
 
 stack_map_line=`grep -i stack /proc/$app_pid/maps`
 stack_addr="${stack_map_line%%-*}"
+sleep 1
+heap_map_line=`grep -i heap /proc/$app_pid/maps`
+heap_addr="${heap_map_line%%-*}"
 
 wait $app_pid 
 sleep 1
@@ -238,5 +241,6 @@ cat <<EOF > ${opt_outDir}/memgaze.config
 -c ${opt_outDir}/${app}.callpath
 -size ${opt_buffer}
 -stack_start ${stack_addr}
+-heap_start ${heap_addr}
 EOF
 
