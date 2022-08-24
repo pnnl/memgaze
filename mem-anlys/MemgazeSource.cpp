@@ -25,21 +25,6 @@ using std::string;
 
 //*************************** User Include Files ****************************
 
-//#include <include/gcc-attr.h>
-
-//#include <tool/hpcprof/args.hpp>
-
-//#include <lib/profile/pipeline.hpp>
-//#include <lib/profile/source.hpp>
-//#include <lib/profile/scope.hpp>
-//#include <lib/profile/module.hpp>
-//#include <lib/profile/sinks/sparsedb.hpp>
-//#include <lib/profile/sinks/experimentxml4.hpp>
-//#include <lib/profile/finalizers/denseids.hpp>
-//#include <lib/profile/finalizers/directclassification.hpp>
-//#include <lib/prof-lean/hpcrun-fmt.h>
-//#include <lib/prof/CallPath-Profile.hpp>
-//#include <lib/profile/stdshim/filesystem.hpp>
 #include "Instruction.hpp"
 #include "Address.hpp"
 #include "MemgazeSource.hpp"
@@ -54,29 +39,13 @@ using std::string;
 #include <lib/support/RealPathMgr.hpp>
 namespace fs = stdshim::filesystem;
 using namespace std;
-//*************************** Forward Declarations ***************************
-//using namespace hpctoolkit;
-// Moved to MemgazeSource.hpp
-//static int
-//realmain(int argc, char* const* argv);
 
 //****************************************************************************
 
-// tallent: opaque (FIXME)
-//class MyXFrame;
-
-//static Prof::CCT::ANode*
-//makeCCTPath(MyXFrame* path, uint n_metrics);
-
-//static Prof::CCT::ANode*
-//makeCCTFrame(Prof::LoadMap::LMId_t lmId, VMA ip, uint n_metrics);
-
-//static Prof::CCT::ANode*
-//makeCCTLeaf(Prof::LoadMap::LMId_t lmId, VMA ip, uint n_metrics);
-
-//static Prof::CCT::ANode*
-//makeCCTRoot(uint n_metrics);
-
+// We had to add this function from HPCToolkit because our summary
+// profile was empty. 'Sum' indicates aggregation across threads and we 
+// use only one thread. That was just an hack to not get a db file with 
+// missing information.
 void MemgazeFinalizers::StatisticsExtender::appendStatistics(const Metric& m, Metric::StatsAccess mas) noexcept {
   if(m.visibility() == Metric::Settings::visibility_t::invisible) return;
   Metric::Statistics s;
@@ -91,11 +60,13 @@ void MemgazeFinalizers::StatisticsExtender::appendStatistics(const Metric& m, Me
   mas.requestStatistics(std::move(s));
 }
 
+// Taken from HPCToolkit.
 template<class T, class... Args>
 static std::unique_ptr<T> make_unique_x(Args&&... args) {
   return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
+// TODO: Remove. Added for testing.
 void MemgazeSource::numWindows(Window* node) {
   if (node == NULL) return;
   num_windows++;
@@ -103,6 +74,7 @@ void MemgazeSource::numWindows(Window* node) {
   numWindows(node->right);
 }
 
+// TODO: Remove all variables start with 'num_'. Added for testing.
 MemgazeSource::MemgazeSource(Window* fullT) 
   : ProfileSource() {
   memgaze_root = fullT;
@@ -116,6 +88,7 @@ MemgazeSource::MemgazeSource(Window* fullT)
   numWindows(fullT);
 }
 
+// TODO: Remove print statements. Added for testing.
 MemgazeSource::~MemgazeSource() {
   cout << "Clean MemgazeSource" << endl;
   cout << "Num contexts: " << num_contexts << endl;
@@ -131,6 +104,7 @@ MemgazeSource::~MemgazeSource() {
 
 //https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/tool/hpcprof/main.cpp#L64
 // tallent: typical exception wrapper
+// TODO: function can be renamed.
 int hpctk_main(int argc, char* const* argv, std::string struct_file, Window* fullT) {
   int ret;
 
@@ -156,6 +130,7 @@ int hpctk_main(int argc, char* const* argv, std::string struct_file, Window* ful
   return ret;
 }
 
+// TODO: function can be renamed.
 int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window* fullT) {
   // ------------------------------------------------------------
   // Two interpretations of HPCToolkit's CCT for call path profiles.
@@ -253,10 +228,13 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
   // ------------------------------------------------------------
   // cf. hpctoolkit/src/tool/hpcprof/main.cpp
   // https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/tool/hpcprof/main.cpp
-  //ProfArgs args(argc, argv);
+
+  // We should do this before driving any Prof code. 
+  // https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/tool/hpcprof/args.cpp#L183
   util::log::Settings logSettings(false, false, false);
   util::log::Settings::set(std::move(logSettings));
 
+  // create fs::path from 'struct_file`
   fs::path struct_path(struct_file);
 
   // Get the main core of the Pipeline set up.
@@ -264,12 +242,14 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
 
   // 'PipelineSource' objects for each input source
   //for(auto& sp : args.sources) pipeSettings << std::move(sp.first);
+  // TODO: Need to update this if we have multiple sources.
   std::unique_ptr<ProfileSource> memgazesource; 
   memgazesource.reset(new MemgazeSource(fullT));
   pipeSettings << std::move(memgazesource);
 
   // 'ProfileFinalizer' objects for hpcstruct [[we can reuse]]
   // for(auto& sp : args.structs) pipeSettings << std::move(sp.first); // add structure files
+  // TODO: Need to update this if we have multiple struct files.
   std::unique_ptr<finalizers::StructFile> c;
   c.reset(new finalizers::StructFile(struct_path));
   pipeSettings << std::move(c);
@@ -282,11 +262,13 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
   // This is used as a fallback if the Structfiles aren't available.
   // finalizers::DirectClassification dc(args.dwarfMaxSize);
   finalizers::DirectClassification dc(100*1024*1024);
+  // TODO: Gives error in the following line. Ask Jonathon.
   //pipeSettings << dc;
 
-  //temporary fix
-  //std::unique_ptr<ProfileFinalizer> temp_finalizer;
-  //temp_finalizer.reset(new UnresolvedPaths());
+  // Temporary fix to get rid of unresolved path errors.
+  // Permanent fix should be done in HPCToolkit.
+  // std::unique_ptr<ProfileFinalizer> temp_finalizer;
+  // temp_finalizer.reset(new UnresolvedPaths());
   MemgazeFinalizers::UnresolvedPaths temp_finalizer;
   pipeSettings << temp_finalizer;
 
@@ -302,14 +284,13 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
   pipeSettings << make_unique_x<sinks::ExperimentXML4>(working_dir / dummy_db, false, nullptr);
   // "profile.db", "cct.db"
   pipeSettings << make_unique_x<sinks::SparseDB>(working_dir / dummy_db);
-  //pipeSettings << make_unique_x<sinks::SparseDB>("test.db");
 
   // ------------------------------------------------------------
   // 1. Reuse ProfilePipeline
   // ------------------------------------------------------------
 
-  // Create the Pipeline, let the fun begin
-  //ProfilePipeline pipeline(std::move(pipeSettings), args.threads);
+  // Create the Pipeline
+  // ProfilePipeline pipeline(std::move(pipeSettings), args.threads);
   ProfilePipeline pipeline(std::move(pipeSettings), 1);
   // Drain the Pipeline, and make everything happen.
   pipeline.run();
@@ -325,6 +306,8 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
 // New version of "class Hpcrun4": MemGazeSource (implements ProfileSource)
 //****************************************************************************
 
+// Walks down on the tree after reaching the sample and gets the leaf windows 
+// with the IP of their address that has the highest footprint. 
 void MemgazeSource::summarizeSample(Window* node, map<Window*, uint64_t> &selected_leaves) {
   if (node == NULL) {
     return;
@@ -357,10 +340,7 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
   // example: stime = node->addresses[node->addresses[0]->time->time;
   node->calcTime();
 
-  // TODO: REMOVE. This was the initial implementation. Uses the IP of midpoint address.
-  // uint64_t ip = node->addresses[node->addresses.size()/2]->ip->ip;
-
-  // setFuncName() sets the name also setns the maxFP_addr which is 
+  // setFuncName() sets the name and the maxFP_addr which is 
   // the address that has the highest FP.
   node->setFuncName();
 
@@ -385,25 +365,28 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
   double mtime = (node->mtime - start_time) / pow(10, 6);
   double etime = (node->etime - start_time) / pow(10, 6);
 
-  //cout << "Function: " << node->stime << endl;
-  //cout << "stime: " << stime << ", mtime: " << mtime << ", etime: " << etime;    
   string name = to_string(mtime) + ":" + to_string(stime) + "-" + to_string(etime);
 
-  // Create only function scopes
+  // create function scopes. We have to use heap for Function scopes 
+  // and clean them.
   Function* function = new Function(lm, ip, name); 
   functions.push_back(function);
   new_scope = Scope(*function); 
-  num_functions++;
+  num_functions++; // TODO: remove. for testing
 
+  // create new context and set parent-child relationship.
   Context& new_context = sink.context(parent_context, {Relation::call, new_scope}).second;
-  num_contexts++;
+  num_contexts++; // for testing
   window_context.insert({node, new_context});
 
   if (node->sampleHead) {
     //cout << "sample" << endl; // TODO: Remove. For testing.
-    num_samples++;
+    num_samples++; // TODO: remove. for testing
     map<Window*, uint64_t> selected_leaves;
     summarizeSample(node, selected_leaves);
+    // iterate over the selected leaves and create Point scopes for them. 
+    // 'selected_leaves' data structure is used in case we want to choose 
+    // multiple leaves. Can be changed in future.
     for (auto leaf_ip = selected_leaves.begin(); leaf_ip != selected_leaves.end(); leaf_ip++) {  
       num_leaves++;
       Scope leaf_scope = Scope(lm, leaf_ip->second);
@@ -470,41 +453,41 @@ void MemgazeSource::read(const DataClass& needed) {
     start_time = memgaze_root->maxFP_addr->time->time;
     cout << "first start_time: " << start_time << endl;
 
-  // ------------------------------------------------------------
-  // Create CCT
-  // 
-  //
-  // A Context's 'Relation' is w.r.t. node and its parent
-  //
-  // A Context's scope is w.r.t. itself
-  //   https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/scope.hpp
-  //
-  // ------------------------------------------------------------
+    // ------------------------------------------------------------
+    // Create CCT
+    // 
+    //
+    // A Context's 'Relation' is w.r.t. node and its parent
+    //
+    // A Context's scope is w.r.t. itself
+    //   https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/scope.hpp
+    //
+    // ------------------------------------------------------------
 
-  // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L448
+    // https://github.com/HPCToolkit/hpctoolkit/blob/1aa82a66e535b5c1f28a1a46bebeac1a78616be0/src/lib/profile/sources/hpcrun4.cpp#L448
 
-  // for each node in tree, where parent begins with 'root'
-  //{
-  // Initially all nodes have type 'Scope::point'. When structure is
-  // added, they are converted to Scope::line.
+    // for each node in tree, where parent begins with 'root'
+    //{
+    // Initially all nodes have type 'Scope::point'. When structure is
+    // added, they are converted to Scope::line.
 
-  // Context: The context of a node with its parent.
+    // Context: The context of a node with its parent.
   
-  // https://github.com/HPCToolkit/hpctoolkit/blob/2092e539f5584528abec371e8c4bf6f4076ffe14/src/lib/profile/pipeline.hpp#L317
+    // https://github.com/HPCToolkit/hpctoolkit/blob/2092e539f5584528abec371e8c4bf6f4076ffe14/src/lib/profile/pipeline.hpp#L317
 
-  // '<sink>.context(...).first' is the node's parent Context after expansion (corresponds to Relation (edge property))
-  // '<sink>.context(...).second' is the node's Context after expansion
+    // '<sink>.context(...).first' is the node's parent Context after expansion (corresponds to Relation (edge property))
+    // '<sink>.context(...).second' is the node's Context after expansion
 
-  //Scope s1 = Scope(lm, lm_ip); // creates Scope::point
-  //Context& n1 = sink.context(root, {Relation::call, s1}).second;
+    //Scope s1 = Scope(lm, lm_ip); // creates Scope::point
+    //Context& n1 = sink.context(root, {Relation::call, s1}).second;
 
-  //Scope scope = Scope(lm, lm_ip); // creates Scope::point
-  //Context& node = sink.context(n1, {Relation::call, scope}).second;
-  // TODO: change this when we are able to test new trace format. see line 380.
+    //Scope scope = Scope(lm, lm_ip); // creates Scope::point
+    //Context& node = sink.context(n1, {Relation::call, scope}).second;
+    // TODO: change this when we are able to test new trace format. see line 380.
     cout << "createCCT" << endl;
     Module& lm = modules[0];
     createCCT(memgaze_root, lm, root_context);
-  //}
+    //}
 
     std::vector<pms_id_t> ids;
     // https://github.com/HPCToolkit/hpctoolkit/blob/develop/src/lib/prof-lean/id-tuple.h#L116
