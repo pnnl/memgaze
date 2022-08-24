@@ -1071,24 +1071,35 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
     }
   }
     */
-  delete(refdistance);
-  delete(lifetime );
-	delete(totalDistance); 
-	delete(totalAccess); 
-  delete(lastAccess); 
-  delete(sampleLastAccess); 
-  delete(stack); 
-
-	delete(tempAccess); 
-	delete(temptotalRUD); 
-	delete(inSampleAccess); 
-  delete(inSampleTotalRUD); 
-	delete(inSampleRUDAvgCnt); 
+	delete[] distance;
+	delete[] sampleDistance ;
+  delete[] refdistance;
+  delete[] sampleRefdistance;
+  delete[] sampleStack;
+	delete[] sampleTotalLifetime; 
+	delete[] sampleLifetime ;
+	delete[] inSampleLifetimeCnt; 
+	delete[] minDistance;
+	delete[] maxDistance;
+  delete[] lifetime ;
+	delete[] totalDistance; 
+	delete[] totalAccess; 
+  delete[] lastAccess; 
+  delete[] sampleLastAccess; 
+	delete[] inSampleAvgRUD;  
+  delete[] stack; 
+	delete[] tempAccess; 
+	delete[] temptotalRUD; 
+	delete[] inSampleAccess; 
+  delete[] inSampleTotalRUD; 
+	delete[] inSampleRUDAvgCnt; 
+  delete[] totalCAccess;
+	delete[] lastAddr; 
     if(spatialResult == 1) {
-	delete(spatialDistance); 
-	delete(spatialTotalDistance);
-	delete(spatialMinDistance);
-	delete(spatialMaxDistance);
+	delete[] spatialDistance; 
+	delete[] spatialTotalDistance;
+	delete[] spatialMinDistance;
+	delete[] spatialMaxDistance;
     }
  return 0;
 }

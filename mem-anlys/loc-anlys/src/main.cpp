@@ -353,11 +353,14 @@ int writeZoomFile(const MemArea memarea, const Memblock thisMemblock, const vect
 		  } 
     }
 		zoomFile_det << endl;
-   }
-    delete(w_pageTotalAccess);
-    delete(w_Rud);
-    delete(w_sampleRud);
-   return 0;
+  }
+  w_printPageAccess.clear();
+  w_printPageRUD.clear();
+  w_printPageSampleRUD.clear();
+  delete[] w_Rud; 
+  delete[] w_sampleRud; 
+  delete[] w_pageTotalAccess; 
+  return 0;
 }
 
 int main(int argc, char ** argv){
@@ -656,6 +659,9 @@ int main(int argc, char ** argv){
         printf("k value %d\n", k);
 			  memarea.blockCount = k;
   			memarea.blockSize = ceil((memarea.max - memarea.min)/(double)memarea.blockCount);
+        for (itr_blk = vecBlockInfo.begin(); itr_blk != vecBlockInfo.end(); ++itr_blk) {
+          delete (*itr_blk);
+        }
         vecBlockInfo.clear();
         for(i = 0; i< memarea.blockCount; i++){
           pair<unsigned int, unsigned int> blockID = make_pair(k, i);
@@ -704,6 +710,9 @@ int main(int argc, char ** argv){
 		    printf("Memory address min %lx max %lx ", memarea.min, memarea.max);
 				printf(" page number = %d ", memarea.blockCount);
 				printf(" page size =  %ld\n", memarea.blockSize);
+        for (itr_blk = vecBlockInfo.begin(); itr_blk != vecBlockInfo.end(); ++itr_blk) {
+          delete (*itr_blk);
+        }
         vecBlockInfo.clear();
         for(i = 0; i< memarea.blockCount; i++){
           pair<unsigned int, unsigned int> blockID = make_pair(0, i);
@@ -812,6 +821,9 @@ int main(int argc, char ** argv){
     memarea.min = setRegionAddr[0].first;
     memarea.max = setRegionAddr[(setRegionAddr.size()-1)].second;
     memarea.blockCount = setRegionAddr.size();
+    for (itr_blk = vecBlockInfo.begin(); itr_blk != vecBlockInfo.end(); ++itr_blk) {
+        delete (*itr_blk);
+    }
     vecBlockInfo.clear(); 
     for(i = 0; i< memarea.blockCount; i++){
         pair<unsigned int, unsigned int> blockID = make_pair(0, i);
@@ -851,6 +863,9 @@ int main(int argc, char ** argv){
 		  printf("Memory address min %lx max %lx ", memarea.min, memarea.max);
 			printf(" page number = %d ", memarea.blockCount);
 			printf(" page size =  %ld\n", memarea.blockSize);
+      for (itr_blk = vecBlockInfo.begin(); itr_blk != vecBlockInfo.end(); ++itr_blk) {
+        delete (*itr_blk);
+      }
       vecBlockInfo.clear();
       // Do not move these out of the loop - memarea.blockCount is different for each run
       for(i = 0; i< memarea.blockCount; i++){
@@ -891,6 +906,9 @@ int main(int argc, char ** argv){
       memarea.blockSize = cacheLineWidth; 
      	memarea.blockCount =  ceil((memarea.max - memarea.min)/(double)memarea.blockSize);
       printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx \n", thisMemblock.level, memarea.blockSize, memarea.blockCount, memarea.min, memarea.max);
+      for (itr_blk = vecBlockInfo.begin(); itr_blk != vecBlockInfo.end(); ++itr_blk) {
+        delete (*itr_blk);
+      }
       vecBlockInfo.clear();
       for(i = 0; i< memarea.blockCount; i++){
         pair<unsigned int, unsigned int> blockID = make_pair(0, i);
@@ -938,7 +956,6 @@ int main(int argc, char ** argv){
 				printf("too small page size (<l1CacheOffset), use l1CacheOffset instead\n");
 				memarea.blockCount =  ceil((memarea.max - memarea.min)/(double)l1CacheOffset);
 				memarea.blockSize = l1CacheOffset;
-
 			}
 			printf("memory page number = %d\n", memarea.blockCount);
 			printf("memory page size = %lx\n", memarea.blockSize);
@@ -949,9 +966,6 @@ int main(int argc, char ** argv){
 			printf("memory page number = %d\n", memarea.blockCount);
 			printf("memory page size = %lx\n", memarea.blockSize);
 		}
-
-
-
 		struct timeval t1, t2;
 		gettimeofday(&t1, NULL);
 		memoryModeling( memoryfile, memarea, coreNumber);
@@ -960,13 +974,17 @@ int main(int argc, char ** argv){
 		printf("done with %4.2f ms\n", time);
 	}
 
-  for (itr_tr = vecInstAddr.begin(); itr_tr != vecInstAddr.end(); ++itr_tr)
-  {
+  for (itr_tr = vecInstAddr.begin(); itr_tr != vecInstAddr.end(); ++itr_tr) {
         delete (*itr_tr);
   }
   vecInstAddr.clear();   
+  for (itr_blk = vecBlockInfo.begin(); itr_blk != vecBlockInfo.end(); ++itr_blk) {
+        delete (*itr_blk);
+  }
+  vecBlockInfo.clear();   
   Rud.clear(); 
   sampleRud.clear(); 
   pageTotalAccess.clear(); 
+  setRegionAddr.clear();
   return 0;
 }
