@@ -64,12 +64,16 @@ def main():
     line = inputTrace.readline()
     if not line:
       break
-    words =  line.split()
-    if words[5] in dso:
-      continue
     else:
-      dso[words[5]] = index
-      index+=1
+      if "CG-LBR" in line:
+        continue
+      else:
+        words =  line.split()
+        if words[5] in dso:
+          continue
+        else:
+          dso[words[5]] = index
+          index+=1
 
   print(dso)
   outputTrace.write("DSO: <name> <id>\n")
@@ -85,7 +89,6 @@ def main():
     if "CG-LBR" in line:
       callGraph.write(line)
       continue
-
     words =  line.split()
     IP=int(words[0],16)
     Addr=int(words[1],16)
