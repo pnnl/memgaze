@@ -177,6 +177,8 @@ def process_event(param_dict):
     callGraph = param_dict["callchain"]
     if "umask=0x81" in name:
         sample_cnt[0] +=1
+    elif "mem_inst_retired.all_loads" in name:
+        sample_cnt[0] +=1
     if "cycles" in name:
         sample_cnt[0] +=1
     for i in callGraph:
