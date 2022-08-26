@@ -471,6 +471,13 @@ void MemgazeSource::read(const DataClass& needed) {
     string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_PTW";
     lm_test.name = &hardcoded_lm[0];
 
+// TODO: We should get LM seperately for each IP we use for context
+// creation if we have multiple LMs. For now, added just one LM case 
+// since we don't have data for multiple LMs.
+#ifdef LM_FIXED
+lm_test.name = &(memgaze_root->addresses[0]->ip->dso_name);
+#endif
+
     // create HPCToolkit module using the load module from Memgaze.
     Module& lm = sink.module(lm_test.name);
     // TODO: keeping a list of modules in case we need it. Can be removed in future 
