@@ -418,20 +418,25 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
     );
     
     // create the context for the function that has the most accesses.
-    Function* leaf_function = new Function(lm, ip, max_freq_func->first);
-    functions.push_back(leaf_function);
-    Scope leaf_scope = Scope(*leaf_function);
+    // TODO: THIS GIVES ERROR ON BIGNUKE!! SHOULD BE FIXED WHEN AGGREGATION 
+    // IS PROPERLY FIXED!!
+    //Function* leaf_function = new Function(lm, ip, max_freq_func->first);
+    //functions.push_back(leaf_function);
+    //Scope leaf_scope = Scope(*leaf_function);
+    //Context& leaf_context = sink.context(new_context, {Relation::call, leaf_scope}).second;
+
+    // TODO: HPCViewer requires point scopes. We use the ip of the first address of the first 
+    // leaf for now. This is a hack because lines 423-426 didn't work. 
+    // Should be fixed after properly aggregating the functions:
+    Scope leaf_scope = Scope(lm, leaves[0]->addresses[0]->ip->ip);
     Context& leaf_context = sink.context(new_context, {Relation::call, leaf_scope}).second;
     num_contexts++; // TODO: remove. for testing
-    num_leaves++;
+    num_leaves++; 
 
     // use the aggregate metrics for the context. aggregate of all leaves in a sample.
     // TODO: will be changed in future.
-    context_metrics.push_back({leaf_context, agg_metrics}); 
-
-    // We used to create point scopes for the leaf nodes. How to create point scopes:
-    //Scope leaf_scope = Scope(lm, leaf_ip->second);
-    //Context& leaf_context = sink.context(new_context, {Relation::call, leaf_scope}).second;
+    //context_metrics.push_back({leaf_context, agg_metrics});
+    context_metrics.push_back({leaf_context, agg_metrics});
   }
   
   createCCT(node->left, lm, new_context);
@@ -463,20 +468,16 @@ void MemgazeSource::read(const DataClass& needed) {
   if (needed.hasReferences()) {
     cout << "has REFERENCES" << endl;
     loadmap_entry_t lm_test;
-    // TODO: use 'dso_name' variable in main.cpp: see line 380. Haven't changed this because 
-    // I was not able to create data with new trace format so testing was not possible.
-    // For now, go to the struct file, get the name of the LM and paste it here.
+    // For old traces, go to the struct file, get the name of the LM and paste it here. Examples:
     //string hardcoded_lm = "/home/cank560/memgaze/install/bin/memgaze-miniVite-v1/miniVite-v1-memgaze";
     //string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/UBENCH_O3_500k_8kb_P10k/ubench-500k_O3_PTW";
-    string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_PTW";
-    lm_test.name = &hardcoded_lm[0];
+    //string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_PTW";
+    //lm_test.name = &hardcoded_lm[0];
 
-// TODO: We should get LM seperately for each IP we use for context
-// creation if we have multiple LMs. For now, added just one LM case 
-// since we don't have data for multiple LMs.
-#ifdef LM_FIXED
-lm_test.name = &(memgaze_root->addresses[0]->ip->dso_name);
-#endif
+    // TODO: We should get LM seperately for each IP we use for context
+    // creation if we have multiple LMs. For now, added just one LM case 
+    // since we don't have data for multiple LMs.
+    lm_test.name = &(memgaze_root->addresses[0]->ip->dso_name[0]);
 
     // create HPCToolkit module using the load module from Memgaze.
     Module& lm = sink.module(lm_test.name);
