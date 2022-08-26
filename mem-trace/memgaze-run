@@ -69,7 +69,7 @@ Options (defaults in [])
 
   -o / --output <path> output directory [<app>-trace-b<buffer>-p<period>]
 
-  -e / --event <e>     collection type for <pt-load> <pt-time> <ldlat> [pt-load]
+  -e / --event <e>     collection type for <pt-load> <pt-load-store> <pt-time> <ldlat> [pt-load]
   -b / --buffer <sz>   buffers size in bytes [8192]
   -p / --period <p>    period for sampling (0 for full trace) [0]
 EOF
@@ -188,6 +188,17 @@ if [[ ${opt_method} =~ pt-* ]] ; then
                 event_smpl_atom="cpu_atom/umask=0x81,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
 	          fi
             ;;
+
+        pt-load-store )
+            if [[ ${hostName} = 'nuke' ]] ; then
+		            event_smpl="cpu/umask=0x83,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
+	          else
+            	  # doesnt work - mem_inst_retired.any      
+                event_smpl_core="cpu_core/umask=0x83,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
+                event_smpl_atom="cpu_atom/umask=0x83,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
+	          fi
+            ;;
+
 
         pt-time )
             event_smpl="ref-cycles/period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
