@@ -64,8 +64,13 @@ public:
   PerThreadTemporary* thread;
   std::optional<ProfilePipeline::Source::AccumulatorsRef> accum;
 
-  // window_context mapping: <Window obj, Context obj>
-  map<Window*, Context&> window_context;
+  // struct to store contexts and their metrics
+  struct ctx_info {
+    Context& context;
+    map<int, double> metrics;
+  };
+  vector<ctx_info> context_metrics;  
+
   // metrics mapping: <metric_type, metric object>
   map<int, Metric&> metrics;
   vector<reference_wrapper<Module>> modules;  
@@ -89,7 +94,7 @@ public:
   DataClass finalizeRequest(const DataClass&) const noexcept override;
 
   void numWindows(Window* node);
-  void summarizeSample(Window* node, map<Window*, uint64_t> &selected_leaves);
+  void summarizeSample(Window* node, vector<Window*> &selected_leaves);
   void createCCT(Window* node, Module& lm, Context& parent_context);
   void addMetrics(string name, string description, int id);
 //private:

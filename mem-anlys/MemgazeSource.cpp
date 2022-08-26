@@ -308,23 +308,19 @@ int hpctk_realmain(int argc, char* const* argv, std::string struct_file, Window*
 
 // Walks down on the tree after reaching the sample and gets the leaf windows 
 // with the IP of their address that has the highest footprint. 
-void MemgazeSource::summarizeSample(Window* node, map<Window*, uint64_t> &selected_leaves) {
+void MemgazeSource::summarizeSample(Window* node, vector<Window*> &leaves) {
   if (node == NULL) {
     return;
   }
   num_of_sample_children++;
 
   // TODO: improve the way we select the leaf window
-  if (selected_leaves.empty()) {
-    if (node->left == NULL && node->right == NULL) {
-      node->setFuncName();
-      uint64_t ip = node->maxFP_addr->ip->ip; // node->addresses[node->addresses.size()/2]->ip->ip;
-      selected_leaves.insert({node, ip});
-    }
+  if (node->left == NULL && node->right == NULL) {
+    leaves.push_back(node);
   }
 
-  summarizeSample(node->left, selected_leaves);
-  summarizeSample(node->right, selected_leaves);
+  summarizeSample(node->left, leaves);
+  summarizeSample(node->right, leaves);
 }
 
 // Creates the context recursively using preorder traversal. 
@@ -334,15 +330,6 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
   // do not continue after the sample window.
   if (node->parent)
     if (node->parent->sampleHead) return; 
-
-  Scope new_scope;
-  // calculates start, mid, and end times for each window.
-  // example: stime = node->addresses[node->addresses[0]->time->time;
-  node->calcTime();
-
-  // setFuncName() sets the name and the maxFP_addr which is 
-  // the address that has the highest FP.
-  node->setFuncName();
 
   // TODO: for testing.
   //cout << "parent: " << node->windowID.second << endl;
@@ -354,21 +341,28 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
   //  cout << "right child: " << node->right->windowID.second << endl;
   //  node->right->setFuncName();
   //}
- 
-  uint64_t ip = node->maxFP_addr->ip->ip; 
   
   // TODO: Use this instead of 'lm' variable.
   //cout << node->maxFP_addr->ip->dso_name << endl;
 
+  // calculates start, mid, and end times for each window.
+  // example: stime = node->addresses[node->addresses[0]->time->time;
+  node->calcTime();
   // name format for function scopes = mid_time:start_time-end_time.
   double stime = (node->stime - start_time) / pow(10, 6);
   double mtime = (node->mtime - start_time) / pow(10, 6);
   double etime = (node->etime - start_time) / pow(10, 6);
-
   string name = to_string(mtime) + ":" + to_string(stime) + "-" + to_string(etime);
 
-  // create function scopes. We have to use heap for Function scopes 
-  // and clean them.
+  // setFuncName() sets the name and the maxFP_addr which is 
+  // the address that has the highest FP. HPCToolkit requires an IP.
+  // TODO: might be changed in future.
+  node->setFuncName();
+  uint64_t ip = node->maxFP_addr->ip->ip;
+
+  // Create function scopes for the time intervals. We have to use heap for 
+  // Function scopes and clean them in destructor.
+  Scope new_scope;
   Function* function = new Function(lm, ip, name); 
   functions.push_back(function);
   new_scope = Scope(*function); 
@@ -376,25 +370,68 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
 
   // create new context and set parent-child relationship.
   Context& new_context = sink.context(parent_context, {Relation::call, new_scope}).second;
-  num_contexts++; // for testing
-  window_context.insert({node, new_context});
+  num_contexts++; // TODO: remove. for testing
+  //window_context.insert({node, new_context}); TODO: remove
+
+  // get metrics from each window.
+  map <int, double> diagMap;
+  map<int, double> metrics_values = node->getMetrics(diagMap); 
+  context_metrics.push_back({new_context, metrics_values});
 
   if (node->sampleHead) {
     //cout << "sample" << endl; // TODO: Remove. For testing.
     num_samples++; // TODO: remove. for testing
-    map<Window*, uint64_t> selected_leaves;
-    summarizeSample(node, selected_leaves);
-    // iterate over the selected leaves and create Point scopes for them. 
-    // 'selected_leaves' data structure is used in case we want to choose 
-    // multiple leaves. Can be changed in future.
-    for (auto leaf_ip = selected_leaves.begin(); leaf_ip != selected_leaves.end(); leaf_ip++) {  
-      num_leaves++;
-      Scope leaf_scope = Scope(lm, leaf_ip->second);
+    vector<Window*> leaves;
+    summarizeSample(node, leaves);
 
-      Context& leaf_context = sink.context(new_context, {Relation::call, leaf_scope}).second;
-      num_contexts++;
-      window_context.insert({leaf_ip->first, leaf_context});
+    // iterate over the leaves and find the function that has the most accesses. 
+    // Can be changed in future.
+    map <string, int> func_occ;
+    map<int, double> agg_metrics;
+    for (size_t idx = 0; idx != leaves.size(); idx++) {  
+      int window_size = leaves[idx]->getSize();
+
+      // get the frequency of accesses for each function.
+      for(auto& addr: leaves[idx]->addresses) {
+        string addr_funcName = addr->getFuncName();
+        func_occ[addr_funcName]++;
+      }
+
+      // get metrics from each window.
+      map <int, double> diagMap;
+      map<int, double> metrics_values = leaves[idx]->getMetrics(diagMap);      
+      // aggregate metrics.       
+      agg_metrics = accumulate( metrics_values.begin(), metrics_values.end(), agg_metrics,
+        []( std::map<int, double> &m, const std::pair<const int, double> &p )
+        {   
+            return (m[p.first] += p.second, m);
+        });
     }
+
+    // find the function that has the most accesses.
+    auto max_freq_func = std::max_element
+    (
+      std::begin(func_occ), std::end(func_occ),
+      [] (const pair<string, int>& p1, const  pair<string, int>& p2) {
+        return p1.second < p2.second;
+      }
+    );
+    
+    // create the context for the function that has the most accesses.
+    Function* leaf_function = new Function(lm, ip, max_freq_func->first);
+    functions.push_back(leaf_function);
+    Scope leaf_scope = Scope(*leaf_function);
+    Context& leaf_context = sink.context(new_context, {Relation::call, leaf_scope}).second;
+    num_contexts++; // TODO: remove. for testing
+    num_leaves++;
+
+    // use the aggregate metrics for the context. aggregate of all leaves in a sample.
+    // TODO: will be changed in future.
+    context_metrics.push_back({leaf_context, agg_metrics}); 
+
+    // We used to create point scopes for the leaf nodes. How to create point scopes:
+    //Scope leaf_scope = Scope(lm, leaf_ip->second);
+    //Context& leaf_context = sink.context(new_context, {Relation::call, leaf_scope}).second;
   }
   
   createCCT(node->left, lm, new_context);
@@ -428,10 +465,12 @@ void MemgazeSource::read(const DataClass& needed) {
     loadmap_entry_t lm_test;
     // TODO: use 'dso_name' variable in main.cpp: see line 380. Haven't changed this because 
     // I was not able to create data with new trace format so testing was not possible.
-    string hardcoded_lm = "/home/cank560/memgaze/install/bin/memgaze-miniVite-v1/miniVite-v1-memgaze";
+    // For now, go to the struct file, get the name of the LM and paste it here.
+    //string hardcoded_lm = "/home/cank560/memgaze/install/bin/memgaze-miniVite-v1/miniVite-v1-memgaze";
     //string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/UBENCH_O3_500k_8kb_P10k/ubench-500k_O3_PTW";
-    //string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_PTW";
+    string hardcoded_lm = "/home/kili337/Projects/IPPD/gitlab/palm/intelPT_FP/Experiments/IPDPS/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_PTW";
     lm_test.name = &hardcoded_lm[0];
+
     // create HPCToolkit module using the load module from Memgaze.
     Module& lm = sink.module(lm_test.name);
     // TODO: keeping a list of modules in case we need it. Can be removed in future 
@@ -447,7 +486,6 @@ void MemgazeSource::read(const DataClass& needed) {
   if (needed.hasContexts()) {
     cout << "has CONTEXTS" << endl;
     auto& root_context = sink.global();
-    window_context.insert({new Window(), root_context});
 
     memgaze_root->setFuncName();
     start_time = memgaze_root->maxFP_addr->time->time;
@@ -556,18 +594,13 @@ void MemgazeSource::read(const DataClass& needed) {
     cout << "hasMetrics" << endl;
     std::optional<ProfilePipeline::Source::AccumulatorsRef> accum;
 
-    // Add metrics one by one. HPCToolkit doesn't allow for adding them as we 
-    // create metrics.
-    for (auto it = window_context.begin(); it != window_context.end(); it++) {
-      accum = sink.accumulateTo(*thread, it->second);
-      map <int, double> diagMap;
-      // get metrics from each window.
-      map<int, double> metric_values = it->first->getMetrics(diagMap);
-      for (auto metric = metric_values.begin(); metric != metric_values.end(); metric++) {
-        // HPCToolkit doesn't want 0, nan and inf.
-        if (metric->second != 0 && !isnan(metric->second) && !isinf(metric->second)) { 
-          accum->add(metrics.find(metric->first)->second, metric->second); 
-          //if (metric->first == 7) cout << "in memsource: " << metric->second << endl;
+    // Add metrics one by one. 
+    // HPCToolkit doesn't allow for adding them as we create metrics.
+    for (auto ctx : context_metrics) {
+      accum = sink.accumulateTo(*thread, ctx.context);
+      for (auto metric = ctx.metrics.begin(); metric != ctx.metrics.end(); metric++) {
+        if (metric->second != 0 && !isnan(metric->second) && !isinf(metric->second)) {
+          accum->add(metrics.find(metric->first)->second, metric->second);
         }
       }
     }
