@@ -433,7 +433,7 @@ int main(int argc, char* argv[], const char* envp[]) {
       // Insert into 'callPath'
       // -------------------------------------------------------
 
-      cout << "LAST id: "<<cg_sample_id_last << " CURRENT: "<<in_cg_sample_id<< endl;
+      //cout << "LAST id: "<<cg_sample_id_last << " CURRENT: "<<in_cg_sample_id<< endl;
 
       // -------------------------------
       // case 1: new call path
@@ -441,12 +441,13 @@ int main(int argc, char* argv[], const char* envp[]) {
       if (cg_sample_id_last != in_cg_sample_id) {
 
         // Prior call path is now complete
-        if (!callPath.empty()){
+	// Commenting out debug messages - appears when callgraph from perf is not empty
+        /*if (!callPath.empty()){
           cout << "Call path for sample "<<in_cg_sample_id<<endl;
           for (auto it = callPath.begin(); it != callPath.end(); it++){
             cout << "\t" <<*it<<endl; 
           }
-        }
+        } */
 
         // Begin new call path
         cg_sample_id_last = in_cg_sample_id;
@@ -463,10 +464,11 @@ int main(int argc, char* argv[], const char* envp[]) {
     // -------------------------------------------------------
     // FIXED: print last path
     // -------------------------------------------------------
-    cout << "Call path for last sample "<<in_cg_sample_id<<endl;
+    // Commenting out debug messages - appears when callgraph from perf is not empty
+    /*cout << "Call path for last sample "<<in_cg_sample_id<<endl;
     for (auto it = callPath.begin(); it != callPath.end(); it++){
       cout << "\t" <<*it<<endl; 
-    }    
+    } */   
   }
 //End of Call graph reader
 //NATHAN_E
