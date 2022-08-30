@@ -108,26 +108,9 @@ Libraries
 
 - Leverage HPCToolkit's spack recipe.
 
-  - Bug: Ideally, we would hope that on the initial HPCToolkit build
-    the dyninst patch would trigger and everything would build with
-    one "spack install". However, it seems that 'hpctk-pkgs.yaml'
-    needs to be removed to trigger the patch. That is,
-    
-    1. The intention of our spack customization is to enable a single
-       "spack install" of HPCToolkit, built with a patched and
-       consistent DynInst.
-
-    2. However, the "spack install" of HPCToolkit ignores our DynInst
-       patching.
-
-    3. When we remove "hpctk-pkgs.yaml" and run "spack install
-       dyninst", the DynInst patching works.
-    
-  - Current method: We can successfully 'spack install' HPCToolkit and
-    then 'spack install' DynInst. Currently, the reverse doesn't seem
-    to work because DynInst will select some package dependencies in a
-    way that HPCToolkit does not like.
-
+  - We customize the HPCToolkit build to patch DynInst during the
+    build. Consequently, there is a single "spack install" of
+    HPCToolkit, built with a patched and consistent DynInst.
 
 - HPCToolkit, auto-generated sources and 'develop' branch
 
