@@ -117,7 +117,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
           hotpage.rightPid = i;
   		    hotpage.strParentID = curPage.strID;
           //Zoom only in heap area
-          if(hotpage.max <= heapAddrEnd) {
+          if((hotpage.min+((hotpage.max-hotpage.min)/2)) <= heapAddrEnd) {
     			  zoomPageList.push_back(hotpage);
   	  		  (*zoomin)++;
             childCount++;
@@ -175,7 +175,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
         hotpage.rightPid = i+wide-1;
 		    hotpage.strParentID = curPage.strID;
         //printf("zoomin value %d childCount %d\n", zoomin, childCount);
-        if(hotpage.max <= heapAddrEnd && (memarea.blockSize !=cacheLineWidth)) { //Zoom only in heap area, end at size 128
+        if((hotpage.min+((hotpage.max-hotpage.min)/2)) <= heapAddrEnd && (memarea.blockSize !=cacheLineWidth)) { //Zoom only in heap area, end at size 128
         //printf("Add to list zoom in  memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld \n",  memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize);
       			  zoomPageList.push_back(hotpage);
   	    		  (*zoomin)++;
@@ -215,7 +215,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
           hotpage.max = memarea.min+(memarea.blockSize*(i+1))-1;
 	    	  hotpage.level = curPage.level+1;
   	    	hotpage.blockSize = cacheLineWidth; 
-          if(hotpage.max <= heapAddrEnd ) { //Zoom only in heap area, end at size 128
+          if((hotpage.min+((hotpage.max-hotpage.min)/2)) <= heapAddrEnd) {
             //printf("Add to list zoom in  memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld \n",  memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize);
       		  zoomPageList.push_back(hotpage);
             childCount++;
@@ -340,7 +340,7 @@ int writeZoomFile(const MemArea memarea, const Memblock thisMemblock, const vect
         uint64_t blockMinAddr = memarea.min+memarea.blockSize*(i);
         uint64_t blockMaxAddr = memarea.min+(memarea.blockSize*(i+1))-1;
         // SET access threshold to zoom in heap area - access count 
-        if((thisMemblock.level ==1 )&& (blockMaxAddr <= heapAddrEnd))
+        if((thisMemblock.level ==1 )&& ((blockMinAddr+((blockMaxAddr-blockMinAddr)/2)) <= heapAddrEnd))
             (*thresholdTotAccess) += w_pageTotalAccess[i];
         if(thisMemblock.level ==1) 
 	         zoomFile_det << std::dec << "p"<< i << ": " 
@@ -416,10 +416,8 @@ int main(int argc, char ** argv){
 	int zoomOption = 0;
   int bottomUp = 0;
   int getInsn = 0;
-	uint64_t max = 0;
-	uint64_t min ;
-  std::istringstream iss("18446744073709551610");
-  iss >> min;
+  uint64_t min = stoull("FFFFFF",0,16); // Added for invalid load address checks - range reduced because heap addresses have 0x1d49620 format
+  uint64_t max = stoull("8F0000000000", 0, 16); // Omit load addresses beyond stack range - 12 hex digits with 7F..
   uint64_t user_max = 0;
 	uint64_t user_min = 0;
 	char *qpoint;
@@ -561,6 +559,7 @@ int main(int argc, char ** argv){
   //check the memory area for the first time
 	uint32_t totalAccess = 0;
   std::cout << "Application: " << memoryfile << "\n";
+	printf("Reading trace with load address in range min %lx max %lx \n", min, max);
 	//totalAccess = areacheck(memoryfile, &max, &min, &coreNumber);
   //if(totalAccess ==0 ) 
   //{
@@ -581,11 +580,13 @@ int main(int argc, char ** argv){
   totalAccess = intTotalTraceLine;
   printf( "Number of lines in trace %d number of lines with valid addresses %ld total access %d \n", 
           intTotalTraceLine, vecInstAddr.size(), totalAccess);
+	printf("Data from Trace load address min %lx max %lx \n", min, max);
   printf("Sample sizes in trace min %d max %d average %f \n", windowMin, windowMax, windowAvg);
   printf("Using Zoom perrcent value %lf\n", zoomThreshold); 
 	printf("Using heap address range to max of %lx \n", heapAddrEnd);
   printf("Using cache line width %ld Bytes\n ", cacheLineWidth ); 
   printf("Using last level block/page size %ld Bytes\n", zoomLastLvlPageWidth); 
+  printf("******************************************\n");
   bool done = 0;
   std::list<Memblock > zoomPageList;
   std::list<Memblock > spatialRegionList;
@@ -838,7 +839,7 @@ int main(int argc, char ** argv){
       return -1;
      }
      spatialOutFile<< "***** New region starts " << " MemoryArea " << hex<< memarea.min << "-" << memarea.max 
-                   << " Region count " << std::dec << memarea.blockCount << endl; 
+                  << " Block size " <<std::dec << zoomLastLvlPageWidth <<" Region count " << std::dec << memarea.blockCount << endl; 
      for(i = 0; i< memarea.blockCount; i++){
          BlockInfo *curBlock = vecBlockInfo.at(i);
          curBlock->printBlockSpatial(spatialOutFile,zoomLastLvlPageWidth);

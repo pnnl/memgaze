@@ -60,6 +60,10 @@ int readTrace(string filename, int *intTotalTraceLine,  vector<TraceLine *>& vec
   bool isDSO = false, anyDSO = false;
   bool isTrace = false;
   TraceLine *ptrTraceLine;
+  uint64_t addrLowThreshold = *min; 
+  uint64_t addrHighThreshold = *max; 
+  *min = UINT64_MAX;
+  *max = 0;
 
   //while (!fin.eof()){
   //getline(fin, line);
@@ -88,26 +92,23 @@ int readTrace(string filename, int *intTotalTraceLine,  vector<TraceLine *>& vec
 		    getline(s,ip,' ');
      		getline(s,addr,' ');
         loadAddr = stoull(addr,0,16);
-       if (loadAddr > (*max)) (*max) = loadAddr; //check max
-       if (loadAddr < (*min)) (*min) = loadAddr; //check min
-        uint64_t instThreshold = stoull("FFFFFFFFFF",0,16); // Added for invalid IP address checks 
-        uint64_t addrHighThreshold = stoull("8fffffffffff", 0, 16); // Added for load addresses in range AXX.. and FFXX..
-  			//if ((loadAddr > addrThreshold) && (loadAddr < addrHighThreshold)) {
-        insPtrAddr = stoull(ip,0,16);
- 
-      	getline(s,core,' ');
-        coreNum= stoi(core);
-      	getline(s,inittime,' ');
-        instTime= stoull(inittime);
-      	getline(s,sampleIdStr,' ');
-        sampleId= stoull(sampleIdStr);
-        if ( (curSampleId ==-1) && (prevSampleId ==-1)) {
-            curSampleId=sampleId;
+        if ((loadAddr > addrLowThreshold) && (loadAddr < addrHighThreshold)) {
+          if (loadAddr > (*max)) (*max) = loadAddr; //check max
+          if (loadAddr < (*min)) (*min) = loadAddr; //check min
+          insPtrAddr = stoull(ip,0,16);
+      	  getline(s,core,' ');
+          coreNum= stoi(core);
+        	getline(s,inittime,' ');
+          instTime= stoull(inittime);
+        	getline(s,sampleIdStr,' ');
+          sampleId= stoull(sampleIdStr);
+          if ( (curSampleId ==-1) && (prevSampleId ==-1)) {
+             curSampleId=sampleId;
             prevSampleId=sampleId;
             numSamples++;
-         }
-         curSampleId=sampleId;
-         if ( curSampleId != prevSampleId) {
+          }
+          curSampleId=sampleId;
+          if ( curSampleId != prevSampleId) {
             if(curSampleCnt < (*windowMin) || (*windowMin ==0))
                *windowMin = curSampleCnt;
             if(curSampleCnt > (*windowMax) || (*windowMax ==0))
@@ -116,10 +117,10 @@ int readTrace(string filename, int *intTotalTraceLine,  vector<TraceLine *>& vec
             //printf(" curSampleId %d prevSampleId %d average %f curSampleCnt %d numSamples %d\n", curSampleId, prevSampleId, *windowAvg, +curSampleCnt, numSamples);
             curSampleCnt=0;
             numSamples++;
-        } else {
-          curSampleCnt++;
-        }  
-        prevSampleId = curSampleId;
+          } else {
+            curSampleCnt++;
+          }  
+          prevSampleId = curSampleId;
           // USED in GAP verification of access counts - experimental
           //uint64_t GAP_pr_low_ip = stoull("30a32c", 0, 16);  //uint64_t GAP_pr_high_ip= stoull("30a578", 0, 16);
           //uint64_t GAP_cc_low_ip = stoull("300ad0", 0, 16); // [0x300ad0-0x300be6)  //uint64_t GAP_cc_high_ip= stoull("300be6", 0, 16);
@@ -129,7 +130,7 @@ int readTrace(string filename, int *intTotalTraceLine,  vector<TraceLine *>& vec
             ptrTraceLine=new TraceLine(insPtrAddr, loadAddr, coreNum, instTime, sampleId);
             vecInstAddr.push_back(ptrTraceLine);
           //}
-      //}
+        }
       } 
     }
   }
@@ -792,10 +793,9 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
             continue;
         }
         
-        // Number of blocks does not evenly divide address space - so the last one has much more addresses included
+        // Number of blocks does not evenly divide address space - so the last one includes spill-over address range
     		if(pageID == memarea.blockCount) {
-        printf(" instAddr %ld memarea.min %ld blockSize %ld  pageID %d memarea.blockCount %d pageID %d\n", instAddr, memarea.min, memarea.blockSize, pageID , memarea.blockCount, pageID);
-         // return -1; 
+        //printf(" instAddr %ld memarea.min %ld blockSize %ld  pageID %d memarea.blockCount %d pageID %d\n", instAddr, memarea.min, memarea.blockSize, pageID , memarea.blockCount, pageID);
           pageID--;
         }
         //printf(" time %d curSampleId %d pageID %d\n", time , curSampleId, pageID);
