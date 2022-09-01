@@ -31,8 +31,10 @@ XLIB_CFG   = $(MG_XLIB_SRC)/config-lib
 
 SPK_ETC     = $(XLIB_SPACK)/etc/spack
 SPK_DYNINST = $(XLIB_SPACK)/var/spack/repos/builtin/packages/dyninst
+SPK_HPCTK = $(XLIB_SPACK)/var/spack/repos/builtin/packages/hpctoolkit
 
-MY_HPCTK_DEV   = hpctoolkit@develop -papi -mpi
+#MY_HPCTK_DEV   = hpctoolkit@develop -papi -mpi
+MY_HPCTK_DEV   = hpctoolkit@develop.commit -papi -mpi
 MY_HPCTK   = hpctoolkit@2022.05.15 -papi -mpi
 #MY_DYNINST = dyninst@12.0.1
 MY_DYNINST = dyninst@12.1.0
@@ -61,6 +63,7 @@ xlib_spack :
 	cp $(XLIB_CFG)/config.yaml     $(SPK_ETC)/ && \
 	cp $(XLIB_CFG)/dyninst.py      $(SPK_DYNINST)/package.py && \
 	cp $(XLIB_CFG)/dyninst.patch   $(SPK_DYNINST)/memgaze.patch && \
+	cp $(XLIB_CFG)/hpctk.py        $(SPK_HPCTK)/package.py && \
 	$(XLIB_SPACK)/bin/spack clean -ab && \
 	$(XLIB_SPACK)/bin/spack clean -fmps && \
 	$(XLIB_SPACK)/bin/spack install ca-certificates-mozilla
