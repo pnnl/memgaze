@@ -476,10 +476,10 @@ main (int argc, char *argv[])
     mo->addDumpFile(KnobDumpFile);
     mo->setLoadClasses(KnobLoad_classes);
     mo->setInstLoads(KnobInst_loads);
-    mo->setInstStores(KnobInst_stores);
     mo->setInstStrided(KnobInst_strided);
     mo->setInstIndirect(KnobInst_indirect);
     mo->setInstFrame(KnobInst_frame);
+    mo->setInstStores(KnobInst_stores);
     std::cout<<"CALLIng to add line map.\n";
     mo->addLinemap(KnobLinemap);
     mo->addLcFile(KnobLcFile);

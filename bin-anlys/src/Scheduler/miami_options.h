@@ -334,6 +334,11 @@ namespace MIAMI
            
       void setInstStores(bool opt) {
          inst_stores = opt;
+         if(opt){
+            inst_strided = opt;
+            inst_indirect = opt;
+            inst_frame = opt;
+         }
       }
        
       void setInstStrided(bool opt) {
