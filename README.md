@@ -8,7 +8,6 @@ MemGaze
 
 **Home**:
   - https://github.com/pnnl/memgaze
-  - https://gitlab.pnnl.gov/perf-lab/palm/memgaze
 
 
 **About**: As memory systems are the primary bottleneck in many
@@ -44,6 +43,7 @@ vs. access patterns.
   - Nathan R. Tallent (PNNL)
   - Andrés Marquez (PNNL)
   - Yasodha Suriyakumar (Portland State University)
+  - Onur Cankur (University of Maryland)
   - Chenhao Xie (PNNL)
   - Stephane Eranian (Google)
 
