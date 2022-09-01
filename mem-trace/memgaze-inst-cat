@@ -39,7 +39,10 @@ def main():
       inst = instMap[l[0]]
     else:
       inst = l[0]
-    v = (l[1],hex(int(l[2],16)),hex(int(l[3],16)),l[0])
+    if len(l) == 6:
+      v = (l[1],hex(int(l[2],16)),hex(int(l[3],16)),l[4],l[0],l[5])
+    else: 
+      v = (l[1],hex(int(l[2],16)),hex(int(l[3],16)),l[4],l[0])
 #    print v
     loadClassMap[inst] = v
 #  print loadClassMap
@@ -49,7 +52,10 @@ def main():
   floadclass = open(writeFile, "w")
 #  floadclass = open("deneme.txt", "w")
   for key, value in loadClassMap.items():
-    text = key + " " + value[0] + " " + value[1] + " " + value[2] + " " + value[3] + "\n"
+    if len(value) == 6:
+      text = key + " " + value[0] + " " + value[1] + " " + value[2] + " " + value[3] + " " + value[4] + " " + value[5] + "\n"
+    else:
+      text = key + " " + value[0] + " " + value[1] + " " + value[2] + " " + value[3] + " " + value[4] + " " + "\n"
     floadclass.write(text)
 
 if __name__ == "__main__":

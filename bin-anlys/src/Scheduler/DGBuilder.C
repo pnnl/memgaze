@@ -1474,7 +1474,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
                      //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
                      //fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
                      //fprintf(mo->lcFILE, "%lx 0 %x %x 0\n",(fnn->getAddress()),disp,scale);
-                     fprintf(mo->lcFILE, "%lx 0 %x %x 0 %s\n",(fnn->getAddress()),disp,scale,rout->Name());
+                     fprintf(mo->lcFILE, "%lx 0 %x %x 0 %s\n",(fnn->getAddress()),disp,scale,(rout->Name()).c_str());
                   }
                   std::cout<<"OZGURDBG Instrumenting Frame Load\n";
                   if (func_exist){
@@ -1512,7 +1512,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
 //                       }
 //                     }                                                                                            
                      frame_lds+=1;
-                     std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tconstant"<<std::endl;
+                     std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tconstant"<<" Routine:"<<rout->Name()<<std::endl;
                      flag_stride = false;
                      if(mo->inst_frame){
                         if (mo->lcFileExist)
@@ -1520,7 +1520,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
                             //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
                             //fprintf(mo->lcFILE, "%x 0 %x %x\n",(fnn->getAddress()),disp,scale);
                             //fprintf(mo->lcFILE, "%lx 0 %x %x 0\n",(fnn->getAddress()),disp,scale);
-                            fprintf(mo->lcFILE, "%lx 0 %x %x 0 %s\n",(fnn->getAddress()),disp,scale,rout->Name());
+                            fprintf(mo->lcFILE, "%lx 0 %x %x 0 %s\n",(fnn->getAddress()),disp,scale,(rout->Name()).c_str());
                         }
                   std::cout<<"OZGURDBG Instrumenting Constant Load\n";
                         if (func_exist){
@@ -1544,7 +1544,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
                }
                if (flag_stride){
                   strided_lds+=1;
-                  std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tstrided"<<std::endl;
+                  std::cout<<std::hex<<fnn->getAddress()<<std::dec<<"\tload"<<"\tstrided"<<" Routine:"<<rout->Name()<<std::endl;
                   if (mo->inst_strided){
                       if (mo->lcFileExist)
                       {
@@ -1562,7 +1562,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
 //                          fprintf(mo->lcFILE, "%x 1 %x %x %d\n",(fnn->getAddress()),disp,scale,total_frame_lds);
                           blockInstrumentedMapIter = blockInstrumentedMap.lower_bound(fnn->getAddress());
                           //fprintf(mo->lcFILE, "%lx 1 %x %x %d\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second);
-                          fprintf(mo->lcFILE, "%lx 1 %x %x %d %s\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second,rout->Name());
+                          fprintf(mo->lcFILE, "%lx 1 %x %x %d %s\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second,(rout->Name()).c_str());
                           blockInstrumentedMapIter->second=0;
 //                          total_frame_lds = 0;
                       }
@@ -1610,7 +1610,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
 //                      total_frame_lds = 0;
                       blockInstrumentedMapIter = blockInstrumentedMap.lower_bound(fnn->getAddress());
                       //fprintf(mo->lcFILE, "%lx 2 %x %x %d\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second);
-                      fprintf(mo->lcFILE, "%lx 2 %x %x %d %s\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second,rout->Name());
+                      fprintf(mo->lcFILE, "%lx 2 %x %x %d %s\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second,rout->Name().c_str());
                       blockInstrumentedMapIter->second=0;
 
                   }    
@@ -1646,7 +1646,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
                       //fprintf(mo->lcFILE, "%x 0\n",fnn->getAddress());
                       //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
                       //fprintf(mo->lcFILE, "%lx 0 %x %x\n",(fnn->getAddress()),disp,scale);
-                      fprintf(mo->lcFILE, "%lx 90 %x %x 0 %s\n",(fnn->getAddress()),disp,scale,rout->Name());
+                      fprintf(mo->lcFILE, "%lx 90 %x %x 0 %s\n",(fnn->getAddress()),disp,scale,rout->Name().c_str());
                   }    
                   if (func_exist){
                      daddr= fnn->getAddress();
@@ -1674,7 +1674,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
                             //fprintf(mo->lcFILE, "%x 0\n",fnn->getAddress());
                             //fprintf(mo->lcFILE, "%x 0 %x\n",(fnn->getAddress()),valueNum);
                             //fprintf(mo->lcFILE, "%lx 0 %x %x\n",(fnn->getAddress()),disp,scale);
-                            fprintf(mo->lcFILE, "%lx 90 %x %x 0 %s\n",(fnn->getAddress()),disp,scale,rout->Name());
+                            fprintf(mo->lcFILE, "%lx 90 %x %x 0 %s\n",(fnn->getAddress()),disp,scale,rout->Name().c_str());
                         }    
                         if (func_exist){
                            daddr= fnn->getAddress();
@@ -1698,7 +1698,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
                         //fprintf(mo->lcFILE, "%x 1 %x\n",(fnn->getAddress()),valueNum);
                         //fprintf(mo->lcFILE, "%lx 1 %x %x\n",(fnn->getAddress()),disp,scale);
                         blockInstrumentedMapIter = blockInstrumentedMap.lower_bound(fnn->getAddress());
-                        fprintf(mo->lcFILE, "%lx 1 %x %x %d %s\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second,rout->Name());
+                        fprintf(mo->lcFILE, "%lx 1 %x %x %d %s\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second,rout->Name().c_str());
                         blockInstrumentedMapIter->second=0;
                      }    
                      if (func_exist){
@@ -1721,7 +1721,7 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
                       //fprintf(mo->lcFILE, "%x 2 %x\n",(fnn->getAddress()),valueNum);
                       //fprintf(mo->lcFILE, "%lx 2 %x %x\n",(fnn->getAddress()),disp,scale);
                       blockInstrumentedMapIter = blockInstrumentedMap.lower_bound(fnn->getAddress());
-                      fprintf(mo->lcFILE, "%lx 2 %x %x %d %s\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second,rout->Name());
+                      fprintf(mo->lcFILE, "%lx 2 %x %x %d %s\n",(fnn->getAddress()),disp,scale,blockInstrumentedMapIter->second,rout->Name().c_str());
                       blockInstrumentedMapIter->second=0;
                   }    
                   if (func_exist){
