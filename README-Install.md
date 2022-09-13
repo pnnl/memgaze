@@ -140,7 +140,7 @@ MemGaze has four main steps.
 Trace format
 =============================================================================
 
-MemGaze:   <insn-pc> <mem-addr> <cpu-id> <timestamp> sample-id
+MemGaze:   <insn-pc> <mem-addr> <cpu-id> <timestamp> <sample-id> <LoadModule-id>
   (in initial trace, a two-source load has two lines, which are converted to one line)
 
 
