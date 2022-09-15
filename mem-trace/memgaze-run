@@ -236,10 +236,15 @@ elif [[ ${opt_method} = 'ldlat' ]] ; then
     app_pid=$!
 fi
 
-stack_map_line=`grep -i stack /proc/$app_pid/maps`
+
+sleep 1
+correct_app_pid="$(ps --no-headers -o pid= --ppid $app_pid)"
+#correct_app_pid=`echo ${correct_app_pid} | cut -d ' ' -f 2`
+correct_app_pid="${correct_app_pid## }"
+stack_map_line=`grep -i stack /proc/$correct_app_pid/maps`
 stack_addr="${stack_map_line%%-*}"
 sleep 1
-heap_map_line=`grep -i heap /proc/$app_pid/maps`
+heap_map_line=`grep -i heap /proc/$correct_app_pid/maps`
 heap_addr="${heap_map_line%%-*}"
 
 wait $app_pid 
