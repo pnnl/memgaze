@@ -1,22 +1,20 @@
-memCAMera - location based analysis on memory traces
+memgaze-analyze-loc - location based analysis on memory traces
 
-### Dependencies ###
-gcc version 7.0+
 
 ### Compile ###
-Run make to build the memCAM executable file.
+Run make to build the memgaze-analyze-loc executable file.
 
 ### RUN with default configuration ###
-memCAM needs a memorytraces file to run
-Trace format - [IP loadAddr core initialtime\n]
+memgaze-analyze-loc needs a trace file to run
+Trace format - [IP loadAddr core initialtime sample_id\n]
 
-To run the analysis toolset using the default configuration and memorytraces
+To run the analysis toolset using the default configuration and trace_file
 
-    ./memCAM memorytraces.out --analysis
+    ./memgaze-analyze-loc trace_file --analysis
 
 To list options
 
-	./memCAM --help
+	./memgaze-analyze-loc --help
 
 
 Notes from - original Fallacy analysis - not used in MemGaze
