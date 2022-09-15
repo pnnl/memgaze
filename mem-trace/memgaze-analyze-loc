@@ -8,7 +8,7 @@
 #
 #***********************************************************EndPNNLCopyright*
 
- set -x
+# set -x
 
 scriptPath0="${BASH_SOURCE[0]}" # works when script is sourced (unlike $0)
 scriptPath=$(readlink -f "${scriptPath0}")
@@ -71,7 +71,7 @@ while [[ $# -gt 0 ]] ; do
             opt_outDir="$1"
             shift # past value
             ;;
-        
+        # deprecate 
 	      -tdir | --trace-dir )
             opt_trace_dir="$1"
             shift # past value
@@ -84,6 +84,12 @@ while [[ $# -gt 0 ]] ; do
             opt_spatial="$1"
             shift # past value
             ;;
+        -- ) # next token contains "<opt_trace_dir>..."
+           ;;
+ 
+         * ) # $arg is "<opt_trace_dir>" (and options could follow)
+             opt_trace_dir=${arg}
+             ;;
     esac
 done
 
