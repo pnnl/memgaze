@@ -188,7 +188,13 @@ using namespace std;
       */
       vecDensity.clear();
       //double selfSpatialDensity=0.0;
+      
       uint32_t vecIndex=0; 
+      for(vecIndex = 0; vecIndex < vecSpatialResult.size(); vecIndex++) {
+        //outFile << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<(vecSpatialResult[vecIndex].second)->smplAvgSpatialMiddle<<" ";  
+        cout << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<(vecSpatialResult[vecIndex].second)->smplAvgSpatialMiddle<<" ";  
+      }
+      vecIndex=0; 
       for(j = 0; j < numBlocksInLevel; j++) {
           if(vecIndex<vecSpatialResult.size()) {
             if(vecSpatialResult[vecIndex].first == j) {
