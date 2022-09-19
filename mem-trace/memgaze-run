@@ -136,6 +136,7 @@ fi
 
 app=$@
 args=''
+args_arr=$@
 
 IFS=' '
 read -a strarr <<< "$app"
@@ -161,7 +162,7 @@ mkdir -p ${opt_outDir}
 
 out_fnm="${opt_outDir}/${opt_outDir}.perf"
 
-printf "${scriptCmd}: collecting data for $app with $args\n"
+printf "${scriptCmd}: collecting data for $app with ${args_arr[@]:1}\n"
 
 
 if [[ ${opt_method} =~ pt-* ]] ; then
