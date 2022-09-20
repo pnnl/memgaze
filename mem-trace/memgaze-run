@@ -240,6 +240,12 @@ fi
 
 sleep 1
 correct_app_pid="$(ps --no-headers -o pid= --ppid $app_pid)"
+while [[ $correct_app_pid == ' '* ]]; do
+       correct_app_pid="${correct_app_pid## }"
+done
+while [[ $correct_app_pid == *' ' ]]; do
+       correct_app_pid="${correct_app_pid%% }"
+done
 #correct_app_pid=`echo ${correct_app_pid} | cut -d ' ' -f 2`
 correct_app_pid="${correct_app_pid## }"
 stack_map_line=`grep -i stack /proc/$correct_app_pid/maps`
