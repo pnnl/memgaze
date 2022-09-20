@@ -134,16 +134,16 @@ using namespace std;
       printf("\n");
     }
   }
-  void BlockInfo::printBlockSpatial(std::ofstream& outFile, uint64_t blockWidth){
+  void BlockInfo::printBlockSpatialDensity(std::ofstream& outFile, uint64_t blockWidth){
     unsigned int j=0;
-    //std::map<uint32_t, class SpatialRUD*>::iterator itrSpRUD;
-    //vector <pair<uint32_t, class SpatialRUD*>> vecSpatialResult;
     vector <pair<uint32_t, class SpatialRUD*>>::iterator itrSpRUD;
     if(totalAccess != 0 && lifetime !=0){
       printf("*** Page %d: area %08lx-%08lx  Lifetime %d Access %d \n", blockID.second, addrMin, addrMax, lifetime, totalAccess);
       outFile << "*** Page "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<< std::dec <<" Lifetime "<< lifetime 
-              <<" Access " << totalAccess << " Block_count " << std::dec<< ((addrMax-addrMin)+1)/blockWidth << " Spatial " ;
-/*      outFile << "Page "<< std::dec << blockID.second << " spatial Next ";
+              <<" Access " << totalAccess << " Block_count " << std::dec<< ((addrMax-addrMin)+1)/blockWidth << " Spatial_Density " ;
+
+      /*      
+      outFile << "Page "<< std::dec << blockID.second << " spatial Next ";
       for(j=0; j<vecSpatialResult.size(); j++) { 
          if(((vecSpatialResult[j].second)->spatialNext!=0)) 
           outFile << std::dec << vecSpatialResult[j].first <<","<<(vecSpatialResult[j].second)->spatialNext<<" ";
@@ -167,28 +167,9 @@ using namespace std;
           outFile << std::dec << vecSpatialResult[j].first <<","<<(vecSpatialResult[j].second)->spatialAccessTotalMid<<" ";
       }
       outFile<<endl;
-*/
-      vector<pair<double, uint32_t>> vecDensity;
-      //outFile << " Spatial Density ";
-      /*
-      // Doesnt depict the exact relation between desnisty and lifetime - correctly
-      for(j=0; j<vecSpatialResult.size(); j++) { 
-         if(((vecSpatialResult[j].second)->spatialAccessTotalMid!=0))  {
-        vecDensity.push_back(make_pair(((double)((vecSpatialResult[j].second)->spatialAccessTotalMid)/lifetime),vecSpatialResult[j].first));
-        }
-      }
-      //outFile<<endl;
-      sort(vecDensity.begin(), vecDensity.end(), greater<>());
-      outFile << " Spatial Density in order ";
-      for(j=0; j<vecDensity.size(); j++) {
-          if(j<3)
-          outFile << std::fixed << std::setprecision(3)  << vecDensity[j].second <<","<<vecDensity[j].first<<" ";
-      }
-      //outFile<<endl;
       */
+      vector<pair<double, uint32_t>> vecDensity;
       vecDensity.clear();
-      //double selfSpatialDensity=0.0;
-      
       uint32_t vecIndex=0; 
       for(vecIndex = 0; vecIndex < vecSpatialResult.size(); vecIndex++) {
         //outFile << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<(vecSpatialResult[vecIndex].second)->smplAvgSpatialMiddle<<" ";  
@@ -258,39 +239,11 @@ using namespace std;
         for(j=0; j<vecSpatialResult.size(); j++) 
          if(((vecSpatialResult[j].second)->spatialAccessTotalMid!=0)) printf("%d,%d ",vecSpatialResult[j].first, (vecSpatialResult[j].second)->spatialAccessTotalMid); 
         printf("\n");
-        //for(j = 0; j < numBlocksInLevel; j++)
-         //if(*(spatialNext+j) !=0) printf(" %d,%d ",j, *(spatialNext+j)); 
-        //for(j = 0; j < numBlocksInLevel; j++)
-        // if(*(totalSpatialDist+j)!=0) printf("%d,%d ", j,*(totalSpatialDist+j)); 
-        //for(j = 0; j < numBlocksInLevel; j++)
-        // if(*(spatialAccess+j)!=0) printf("%d,%d ", j,*(spatialAccess+j)); 
-        //for(j = 0; j < numBlocksInLevel; j++)
-        // if(*(spatialMiddle+j)!=0) printf("%d,%d ", j,*(spatialMiddle+j)); 
       }
       /*
       printf("Spatial Probability - Access_Possibility_immediate for Page %d : [ ", blockID.second);
       for(j = 0; j < numBlocksInLevel; j++){
         if(*(spatialAccess+j)!=0) printf("%f ",  (double)(*(spatialNext+j))/(double)(totalAccess));
-        else printf("N/A ");
-      }
-      printf("]\n");
-      printf("Average spatial distance for Page %d : [ ", blockID.second);
-      for(j = 0; j < numBlocksInLevel; j++){
-        if(*(spatialAccess+j)!=0) printf("%f ",  (double)(*(totalSpatialDist+j))/(double)(*(spatialAccess+j)));
-        else printf("N/A ");
-      }
-      printf("]\n");
-      */
-      /*
-      printf("Min spatial distance for Page %d : [ ", blockID.second);
-      for(j = 0; j < numBlocksInLevel; j++){
-        if(*(spatialAccess+j)!=0) printf("%d ",  *(minSpatialDist+j));
-        else printf("N/A ");
-      }
-      printf("]\n");
-      printf("Max spatial distance for Page %d : [ ", blockID.second);
-      for(j = 0; j < numBlocksInLevel; j++){
-        if(*(spatialAccess+j)!=0) printf("%d ",  *(maxSpatialDist+j));
         else printf("N/A ");
       }
       printf("]\n");
@@ -304,51 +257,35 @@ using namespace std;
         else printf("N/A ");
       }
       printf("]\n");
-      printf("Spatial ratio - Avergae_SD_over_lifetime for Page %d : [ ", blockID.second);
-      for(j = 0; j < numBlocksInLevel; j++){
-        if ((lifetime >= 1 && (*(spatialAccess+j)!=0)))printf("%f ",(double)(*(totalSpatialDist+j))/(double)((*(spatialAccess+j)*lifetime)));
-        else printf("N/A ");
-      }
-      printf("]\n");
-
-      vector<pair<double, int>> distanceVP;
-      vector<pair<double, int>> possibilityVP;
-      for(j = 0; j < numBlocksInLevel; j++){
-        if (*(totalAccessAllBlocks+j) > 1 ){
-          //if(printDebug) printf("Page ID i %d j %d spatTotalDist %d spatAcs %d d    istance value %f spatAcsTotMid %d lifetime %d possibility value %f\n", i, j,
-          // totalSpatialDist[i][j],spatialAccess[i][j], (double)spatialTotal    Distance[i][j]/(double)(spatialAccess[i][j]),
-            //spatialAccessTotalMid[i][j], lifetime[i], (double)spatialAccessTotal    Mid[i][j]/(double)(lifetime[i]) );
-          if(*(totalSpatialDist+j)!=0)
-            distanceVP.push_back(make_pair((double)(*(totalSpatialDist+j))/(double)(*(spatialAccess+j)), j));
-          if(*(spatialMiddle+j) !=0)
-            possibilityVP.push_back(make_pair((double)(*(spatialMiddle+j))/(double)(lifetime),j));
-        }
-      }
-      sort(distanceVP.begin(), distanceVP.end());
-      sort(possibilityVP.begin(), possibilityVP.end(),greater<>());
-      printf("The closest three pages in Spatial Distance for Page %d : [", blockID.second);
-      for (uint32_t n = 0; n < 3; n++){
-        if(distanceVP.size()>n){
-          //printf("%f %d ", distanceVP[n].first, distanceVP[n].second);
-          printf("%d ", distanceVP[n].second);
-        } else {
-          printf("N/A ");
-        }
-      }
-      printf("]\n");
-      printf("The highest frequent three pages in Middle for Page %d : [", blockID.second);
-      for (uint32_t n = 0; n < 3; n++){
-        if(possibilityVP.size()>n){
-          printf("%d ",possibilityVP[n].second);
-          //printf(" %f %d, ",possibilityVP[n].first, possibilityVP[n].second);
-        } else{
-          printf("N/A ");
-        }
-      }
-      printf("]\n\n");
       */
     }
+}
+
+void BlockInfo::printBlockSpatialProb(std::ofstream& outFile, uint64_t blockWidth){
+    unsigned int j=0;
+    vector <pair<uint32_t, class SpatialRUD*>>::iterator itrSpRUD;
+    if(totalAccess != 0 && lifetime !=0){
+      printf("*** Page %d: area %08lx-%08lx  Lifetime %d Access %d \n", blockID.second, addrMin, addrMax, lifetime, totalAccess);
+      outFile << "*** Page "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<< std::dec <<" Lifetime "<< lifetime 
+              <<" Access " << totalAccess << " Block_count " << std::dec<< ((addrMax-addrMin)+1)/blockWidth << " Spatial_Prob " ;
+      
+      uint32_t vecIndex=0; 
+      for(vecIndex = 0; vecIndex < vecSpatialResult.size(); vecIndex++) {
+        //outFile << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<(vecSpatialResult[vecIndex].second)->smplAvgSpatialMiddle<<" ";  
+        cout << std::fixed << std::setprecision(3)  << vecSpatialResult[vecIndex].first <<","<<((vecSpatialResult[vecIndex].second)->spatialNext)/totalAccess<<" ";  
+      }
+      vecIndex=0; 
+      for(j = 0; j < numBlocksInLevel; j++) {
+          if(vecIndex<vecSpatialResult.size()) {
+            if(vecSpatialResult[vecIndex].first == j) {
+              outFile << std::fixed << std::setprecision(3)  << vecSpatialResult[vecIndex].first <<","<<((vecSpatialResult[vecIndex].second)->spatialNext)/totalAccess<<" ";
+              vecIndex++;
+            } 
+        }
+      }
+      outFile << endl;
   }
+}
   
   void BlockInfo::printBlockInfo(){
     printf("*** Page ID %d Area %08lx-%08lx level %d block num %d  Access %d RUD avg %lf min %d max %d lifetime %d sampleAvgRUD %f \n "

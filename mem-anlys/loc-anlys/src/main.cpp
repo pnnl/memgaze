@@ -37,7 +37,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
   sort(sortPageAccess.begin(), sortPageAccess.end(), greater<>());
   
   //printf("sortPageAccess %d %d \n", sortPageAccess.at(0), sortPageAccess.at(1) );
-  int childCount=0;
+  uint32_t childCount=0;
   // Contiguous hot pages
   if (zoomOption == 0)
   {
@@ -62,7 +62,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
         if(curPage.strID.compare("R")==0) 
            strNodeId ='A'+childCount; 
         else
-           strNodeId = curPage.strID+std::to_string((childCount));
+           strNodeId = curPage.strID+std::to_string(childCount);
         hotpage.strID = strNodeId; 
 	  	  hotpage.min = memarea.min+memarea.blockSize*(i);
         hotpage.max = memarea.min+(memarea.blockSize*(i+wide))-1;
@@ -99,7 +99,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
           if(curPage.strID.compare("R")==0) 
              strNodeId ='A'+childCount; 
           else
-             strNodeId = curPage.strID+std::to_string((childCount));
+             strNodeId = curPage.strID+std::to_string(childCount);
           hotpage.strID = strNodeId; 
 	  	    hotpage.level = curPage.level+1;
           if (hotpage.level <lvlConstBlockSize) {
@@ -149,14 +149,16 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
         zoominaccess = pageTotalAccess.at(i);
       }
       // 0.001 multiplier at level 1 - used for including heap address range at 'root+1' level 
-      if(((curPage.level == (lvlConstBlockSize-1)) && ((double)zoominaccess>=(double)0.001*totalAccessParent)) ||
+      //if(((curPage.level == (lvlConstBlockSize-1)) && ((double)zoominaccess>=(double)0.001*totalAccessParent)) ||
+      // Using 1000 - to include all heap regions
+      if(((curPage.level == (lvlConstBlockSize-1)) && ((double)zoominaccess>=1000)) ||
        ((curPage.level >= lvlConstBlockSize) && ((double)zoominaccess>=(double)zoomThreshold*totalAccessParent)))
       {
         Memblock hotpage;
         if(curPage.strID.compare("R")==0) 
            strNodeId ='A'+childCount; 
         else
-           strNodeId = curPage.strID+std::to_string((childCount));
+           strNodeId = curPage.strID+std::to_string(childCount);
         hotpage.strID = strNodeId; 
 	  	  hotpage.min = memarea.min+memarea.blockSize*(i);
         hotpage.max = memarea.min+(memarea.blockSize*(i+wide))-1;
@@ -176,7 +178,8 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
         hotpage.rightPid = i+wide-1;
 		    hotpage.strParentID = curPage.strID;
         //printf("zoomin value %d childCount %d\n", zoomin, childCount);
-        if((hotpage.max <= heapAddrEnd ) && (memarea.blockSize !=cacheLineWidth)) { //Zoom only in heap area, end at size 128
+        if(((curPage.level == (lvlConstBlockSize-1)) ||  // Zoom in stack area also at Level 1 - below root
+          ((curPage.level >= lvlConstBlockSize) && (hotpage.max <= heapAddrEnd ) && (memarea.blockSize !=cacheLineWidth)))) { //Zoom only in heap area, end at size 128
         //printf("Add to list zoom in  memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld \n",  memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize);
       			  zoomPageList.push_back(hotpage);
   	    		  (*zoomin)++;
@@ -210,7 +213,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
             // ((double)pageTotalAccess.at(i)>=(double)zoomThreshold*totalAccessParent))
         {
           Memblock hotpage;
-          strNodeId = curPage.strID+std::to_string((childCount));
+          strNodeId = curPage.strID+std::to_string(childCount);
           hotpage.strID = strNodeId; 
 	  	    hotpage.min = memarea.min+memarea.blockSize*(i);
           hotpage.max = memarea.min+(memarea.blockSize*(i+1))-1;
@@ -856,9 +859,15 @@ int main(int argc, char ** argv){
                   << " Block size " <<std::dec << zoomLastLvlPageWidth <<" Region count " << std::dec << memarea.blockCount << endl; 
      for(i = 0; i< memarea.blockCount; i++){
          BlockInfo *curBlock = vecBlockInfo.at(i);
-         curBlock->printBlockSpatial(spatialOutFile,zoomLastLvlPageWidth);
+         curBlock->printBlockSpatialDensity(spatialOutFile,zoomLastLvlPageWidth);
+    }
+    spatialOutFile << endl;
+     for(i = 0; i< memarea.blockCount; i++){
+         BlockInfo *curBlock = vecBlockInfo.at(i);
+         curBlock->printBlockSpatialProb(spatialOutFile,zoomLastLvlPageWidth);
     }
     // END - STEP 1 
+    /*
     // STEP 2 -  Zoom into objects to find OS page sized (4096 B) hot blocks
     for (itrRegion=spatialRegionList.begin(); itrRegion != spatialRegionList.end(); ++itrRegion){
  	    thisMemblock = *itrRegion; 
@@ -866,14 +875,12 @@ int main(int argc, char ** argv){
 	    memarea.min = thisMemblock.min;
       memarea.blockSize = OSPageSize; 
      	memarea.blockCount =  ceil((memarea.max - memarea.min)/(double)memarea.blockSize);
-      /*
       // FOR 100 line trace - calculate SD at root level for verification
-	    totalAccess = areacheck(memoryfile, &max, &min, &coreNumber);
-    	memarea.max = max;
-	    memarea.min = min;
-     	memarea.blockCount =  mempin; 
-	    memarea.blockSize = ceil((memarea.max - memarea.min)/(double)mempin);
-      */
+	    //totalAccess = areacheck(memoryfile, &max, &min, &coreNumber);
+    	//memarea.max = max;
+	    //memarea.min = min;
+     	//memarea.blockCount =  mempin; 
+	    //memarea.blockSize = ceil((memarea.max - memarea.min)/(double)mempin);
       printf(" in spatial %d size %ld count %d memarea.min %08lx memarea.max %08lx \n", thisMemblock.level, memarea.blockSize, memarea.blockCount, memarea.min, memarea.max);
 		  printf("Memory address min %lx max %lx ", memarea.min, memarea.max);
 			printf(" page number = %d ", memarea.blockCount);
@@ -948,6 +955,7 @@ int main(int argc, char ** argv){
       }
     }
     // END - STEP 3
+    */
     spatialOutFile.close();
   }
 
