@@ -53,7 +53,8 @@ HPCTK_ROOT = $(MG_XLIB_ROOT)/hpctoolkit-2022.05.15
 HPCTK_LIB  = $(HPCTK_ROOT)/lib
 HPCTK_SRC  = $(HPCTK_ROOT)/share/hpctoolkit/src/src
 
-HPCTK_DEV_ROOT = $(MG_XLIB_ROOT)/hpctoolkit-develop
+#HPCTK_DEV_ROOT = $(MG_XLIB_ROOT)/hpctoolkit-develop
+HPCTK_DEV_ROOT = $(MG_XLIB_ROOT)/hpctoolkit-develop.commit
 HPCTK_DEV_LIB = $(HPCTK_DEV_ROOT)/lib
 HPCTK_DEV_SRC = $(HPCTK_DEV_ROOT)/share/hpctoolkit/src/src
 #-----------------------------------------------------------

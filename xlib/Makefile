@@ -81,7 +81,6 @@ xlib_hpctoolkit_dev :
 	$(XLIB_SPACK)/bin/spack install --reuse binutils@2.38 && \
 	$(XLIB_SPACK)/bin/spack install --reuse libdwarf@20180129  
 
-
 xlib_dyninst_patch :
 	@$(PRINTF) $(_msg_infoGrp)
 	$(RM) $(SPK_ETC)/packages.yaml && \
