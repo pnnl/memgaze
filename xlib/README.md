@@ -146,3 +146,39 @@ Libraries
     Alternatives: 1) Re-run MemGaze's static binary analysis on the
     new code within the binary. 2) Propose a DynInst interface for
     exporting the details of the mapping.
+
+  There is a padding happingin on dyninst for some binaries which 
+  causes not matching IP addresses for instrumented binary. 
+    
+    We print the original to relocated address at following function:
+      dyninstAPI/src/binaryEdit.C ->  490 bool BinaryEdit::writeFile(...)
+          while it is building dyninst symbols:
+             805 void BinaryEdit::buildDyninstSymbols(...)
+      After that point dyninst start writing the binary with following 
+      call path:
+        in  dyninstAPI/src/binaryEdit.C
+          675 if (!symObj->emit(newFileName.c_str())) {
+        in symtabAPI/src/Symtab.C
+          2213 SYMTAB_EXPORT bool Symtab::emit(..)
+          2199 SYMTAB_EXPORT bool Symtab::emitSymbols(...)
+            in here it is adding static and dynamic symbols to all symbols
+        in symtabAPI/src/Object-elf.C
+          3290 bool Object::emitDriver(...)
+            in here it calls create symbol table function
+            -> in symtabAPI/src/emitElf.C
+                1640 bool emitElf<ElfTypes>::createSymbolTables()
+                  this fuction creates the final symbolTables 
+                    Note: I think extra padding is happining here:
+
+1730    Offset lastRegionAddr = 0, lastRegionSize = 0;
+1731    vector<Region *>::iterator newRegIter;
+1732    for (newRegIter = newRegs.begin(); newRegIter != newRegs.end();
+1733         ++newRegIter) {
+1734        if ((*newRegIter)->getDiskOffset() > lastRegionAddr) {
+1735            lastRegionAddr = (*newRegIter)->getDiskOffset();
+1736            lastRegionSize = (*newRegIter)->getDiskSize();
+1737        }
+1738    }
+                  
+
+            After that it will emit to the new file. 
