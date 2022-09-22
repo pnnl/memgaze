@@ -271,14 +271,13 @@ void BlockInfo::printBlockSpatialProb(std::ofstream& outFile, uint64_t blockWidt
       
       uint32_t vecIndex=0; 
       for(vecIndex = 0; vecIndex < vecSpatialResult.size(); vecIndex++) {
-        //outFile << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<(vecSpatialResult[vecIndex].second)->smplAvgSpatialMiddle<<" ";  
-        cout << std::fixed << std::setprecision(3)  << vecSpatialResult[vecIndex].first <<","<<(((double)(vecSpatialResult[vecIndex].second)->spatialNext))/(double)totalAccess<<" ";  
+        cout << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<(((double)(vecSpatialResult[vecIndex].second)->spatialNext))/(double)totalAccess<<" ";  
       }
       vecIndex=0; 
       for(j = 0; j < numBlocksInLevel; j++) {
           if(vecIndex<vecSpatialResult.size()) {
             if(vecSpatialResult[vecIndex].first == j) {
-              outFile << std::fixed << std::setprecision(3)  << vecSpatialResult[vecIndex].first <<","<<((double)(vecSpatialResult[vecIndex].second)->spatialNext)/(double)totalAccess<<" ";
+              outFile << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<((double)(vecSpatialResult[vecIndex].second)->spatialNext)/(double)totalAccess<<" ";
               vecIndex++;
             } 
         }

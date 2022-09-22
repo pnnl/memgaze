@@ -149,9 +149,9 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
         zoominaccess = pageTotalAccess.at(i);
       }
       // 0.001 multiplier at level 1 - used for including heap address range at 'root+1' level 
-      //if(((curPage.level == (lvlConstBlockSize-1)) && ((double)zoominaccess>=(double)0.001*totalAccessParent)) ||
+      if(((curPage.level == (lvlConstBlockSize-1)) && ((double)zoominaccess>=(double)0.001*totalAccessParent)) ||
       // Using 1000 - to include all heap regions
-      if(((curPage.level == (lvlConstBlockSize-1)) && ((double)zoominaccess>=1000)) ||
+      //if(((curPage.level == (lvlConstBlockSize-1)) && ((double)zoominaccess>=1000)) ||
        ((curPage.level >= lvlConstBlockSize) && ((double)zoominaccess>=(double)zoomThreshold*totalAccessParent)))
       {
         Memblock hotpage;
@@ -349,11 +349,17 @@ int writeZoomFile(const MemArea memarea, const Memblock thisMemblock, const vect
         if(thisMemblock.level ==1) 
 	         zoomFile_det << std::dec << "p"<< i << ": " 
                     <<hex << blockMinAddr <<"-" << hex<< blockMaxAddr 
-                    << " "<< std::dec<< w_pageTotalAccess[i] << "(" << w_Rud[i]<< ","<<w_sampleRud[i]<< "); ";
-        else
-			      zoomFile_det << std::dec << "p"<< i << ": " 
+                    //<< " "<< std::dec<< w_pageTotalAccess[i] << "(" << w_Rud[i]<< ","<<w_sampleRud[i]<< "); ";
+                    << std::dec<< w_pageTotalAccess[i] << " ";
+        else if(memarea.blockSize == cacheLineWidth) 
+			      zoomFile_det << std::dec << "p"<< i << ":" 
                     //<<hex << blockMinAddr <<"-" << hex<< blockMaxAddr 
-                    << " "<< std::dec<< w_pageTotalAccess[i] << "(" << w_Rud[i]<< ","<<w_sampleRud[i]<< "); ";
+                    //<< " "<< std::dec<< w_pageTotalAccess[i] << "(" << w_Rud[i]<< ","<<w_sampleRud[i]<< "); ";
+                    << std::dec<< w_pageTotalAccess[i] << "(" << w_sampleRud[i]<< "); ";
+        else
+			      zoomFile_det << std::dec << "p"<< i << ":" 
+                    //<<hex << blockMinAddr <<"-" << hex<< blockMaxAddr 
+                    << std::dec<< w_pageTotalAccess[i] << " " ;
 		  } 
     }
 		zoomFile_det << endl;
