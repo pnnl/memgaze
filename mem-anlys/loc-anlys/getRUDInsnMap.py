@@ -33,6 +33,8 @@ def readFile(inFile, outFile,appName):
         variantFile = '/files0/suri836/RUD_Zoom/GAP_CC_SV'
     elif(appName == 'gap_cc'):
         variantFile = '/files0/suri836/RUD_Zoom/GAP_CC'
+    elif(appName == 'vec_store'):
+        variantFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large/vec_gpp_st_no_frame_gh'
     with open(inFile) as f:
         blFnMap=0
         varVersion =''
@@ -53,6 +55,11 @@ def readFile(inFile, outFile,appName):
                   index = data[6].rindex('.trace')
                   varVersion = data[6][index-2:index]
                   print (variantFile, varVersion, curRange)
+                if (appName == 'vec_store'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large/vec_gpp_st_no_frame_gh/vec_gpp_exe-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large/vec_gpp_st_no_frame_gh/obj_vec_gpp'
+                  objFile_C = ''
+                  varVersion = 'vs: '
                 if (variantFile == '../MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1.trace.final'):
                   logFile = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1*.log'
                   objFile = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_obj_nuke_line' 
@@ -157,8 +164,8 @@ def readFile(inFile, outFile,appName):
                                 else:
                                     dictFnMap[arrFnMapData[0]] = arrFnMapData[1]
                                 dictFnIdentify[int(arrFnMapData[0],16)] = arrFnMapData[0]
-                    #print(dictFnMap)
-                    #print(dictFnIdentify)
+                    print(dictFnMap)
+                    print(dictFnIdentify)
             elif data[0].isnumeric():
                 strMapping=''
                 strBinLine=''
@@ -167,14 +174,21 @@ def readFile(inFile, outFile,appName):
                   varInst = data[1]
                 else:
                   varInst = data[2]
-                #print (varInst)
+                print ('file ', varInst)
                 varInstgr=varInst[2:]
+                if (appName == 'vec_store'): 
+                  traceIns = int(str(varInst), 16)
+                  dyninstBase = int(str(1000), 16)
+                  logInst = traceIns - dyninstBase
+                  print ('1 ', traceIns, dyninstBase, logInst )
+                  varInstgr=hex(logInst)
+                  print ('2 ', logInst, varInstgr)
                 command = 'grep '+varInstgr+' '+logFile
                 strMapping =''
                 try:
                   strMapping = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT,universal_newlines=True)
                 except subprocess.CalledProcessError as grepexc:
-                  print("error code ", command, grepexc.returncode, grepexc.output)
+                  print("log file error code ", command, grepexc.returncode, grepexc.output)
                 if (strMapping !=''):
                   strMapping = str(strMapping.strip())
                   if('\n' in strMapping):
@@ -185,29 +199,29 @@ def readFile(inFile, outFile,appName):
                         strMapping = strCorrectMap
                   #print(strMapping)
                   grData=strMapping.split(' ')
-                  #print (varInst, grData[0])
-                  command = 'grep ' + grData[0] + ': '+objFile
+                  #print (varInst, grData[5])
+                  command = 'grep ' + grData[5] + ': '+objFile
                   strBinLine =''
                   try:
                     strBinLine = subprocess.check_output(command, shell=True)
                   except subprocess.CalledProcessError as grepexc:
-                    print("error code ", strMapping, command, grepexc.returncode, grepexc.output)
+                    print("objFile error code ", strMapping, command, grepexc.returncode, grepexc.output)
                   if(strBinLine !=''):
                     strBinLine = str(strBinLine.strip())
                     strBinLine1 = strBinLine.replace('\t','_').replace(' ','_')
                     strBinLine1 = strBinLine1[2:]
                     #print(strBinLine1)
                     if(objFile_C != ''):
-                      command = 'grep ' + grData[0] + ': '+objFile_C
+                      command = 'grep ' + grData[5] + ': '+objFile_C
                       strBinLine_C =''
                       try:
                         strBinLine_C = subprocess.check_output(command, shell=True)
                       except subprocess.CalledProcessError as grepexc:
-                        print("error code ", strMapping, command, grepexc.returncode, grepexc.output)
+                        print("objFile_C error code ", strMapping, command, grepexc.returncode, grepexc.output)
                       strBinLine_C = str(strBinLine.strip())
                       if(strBinLine != strBinLine_C):
-                        print ('Error ' , varVersion, varInst, grData[0], strBinLine, strBinLine_C)
-                    command = 'grep -B 10 '+grData[0]+': '+objFile +' | grep \/'
+                        print ('Error ' , varVersion, varInst, grData[5], strBinLine, strBinLine_C)
+                    command = 'grep -B 10 '+grData[5]+': '+objFile +' | grep \/'
                     strResult=''
                     try:
                       strResult = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT,universal_newlines=True)
@@ -226,15 +240,16 @@ def readFile(inFile, outFile,appName):
                       f_obj_c.write('\n')
                     f_obj_l.write( strBinLine)
                     f_obj_l.write('\n')
+                    fnStartIP=''
                     for key in sorted(dictFnIdentify):
-                        #print( 'key ', int(key), "int(grData[0],16)", int(grData[0],16), "int(grData[0],16)) < int(key)", ((int(grData[0],16)) < int(key)))
-                        if ((int(grData[0],16)) < key):
+                        #print( 'key ', int(key), "int(grData[5],16)", int(grData[5],16), "int(grData[5],16)) < int(key)", ((int(grData[5],16)) < int(key)))
+                        if ((int(grData[5],16)) < key):
                             continue
                         else:
                             #print("ELSE", key)
                             fnStartIP = dictFnIdentify[key]
                             fnName = dictFnMap[fnStartIP]
-                  writeLine = varVersion+' '+data[0]+ ' '+varInst+' '+ grData[0] + ' '+fnStartIP+ ' '+fnName+' '+ strResult+' \n'
+                  writeLine = varVersion+' '+data[0]+ ' '+varInstgr+' '+ grData[5] + ' '+fnStartIP+ ' '+fnName+' '+ strResult+' \n'
             if(processLine ==0):
               f_out.write(fileLine)
             else:
