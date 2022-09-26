@@ -729,22 +729,15 @@ std::cout<<"OZGURDBG in load_classes"<<std::endl;
          std::cout<<std::dec<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
 
          std::string newName;
-         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
          if (mo->outBinName.size() >0 ){
-         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
             newName = mo->outBinName; 
-         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
          } else {
-         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
             newName = iname+"-memgaze";
-         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
          }
-         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
 //        Dyninst::PatchAPI::PatchMgrPtr patchMgr = Dyninst::PatchAPI::convert(BPapp);
 //        Dyninst::PatchAPI::PatchMgrPtr patchMgr = newimg->getPatchMgrPtr();
 //         Dyninst::PatchAPI::Patcher patcher(patchMgr);
 //         Dyninst::PatchAPI::Patcher* patcher =newimg->getPatcher();
-         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
         
          if (!patcher.commit()){
          std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
@@ -752,12 +745,9 @@ std::cout<<"OZGURDBG in load_classes"<<std::endl;
          } else {
           std::cout<<"DID I COMMIT???"<<std::endl;
          }
-         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
 //
          std::cout << "Start Writing to a file\n";
-         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
          BPapp->writeFile(newName.c_str());
-         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
 std::cout<<"OZGURDBG::I Wrote to a file named "<<newName<<" image: "<<iname<<std::endl;
       } else {
          newimg->createDyninstImage(bpatch);

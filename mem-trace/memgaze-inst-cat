@@ -1,11 +1,24 @@
 #!/usr/bin/python
 import sys 
+import subprocess
 #TO run first arg will be instrumentation log
 #second arg is load classigficaton file .lc
 def main():
   instMap = {}  
   fmap = open(sys.argv[1], "r")
   inSection = False
+  
+  binaryPath = sys.argv[3]
+  command = "objdump -h {} | grep .dyninstInst".format(binaryPath)
+  dumpOut=subprocess.Popen(['objdump', '-h', binaryPath],stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+  stdout,stderr = dumpOut.communicate()
+  objdump = stdout.split()
+  index = objdump.index( b".dyninstInst")
+  binBaseAddr = int(objdump[index+2], 16)
+  print ("Bin Base {}".format(hex(binBaseAddr)))
+  isFirstAddr = False
+  dyninstPadding = 0
+
   while True:
     line = fmap.readline()
 #    print line
@@ -13,6 +26,7 @@ def main():
       break
     if "Start Writing to a file" in line:
       inSection = True
+      isFirstAddr = True
       continue
     if inSection:
       if "I Wrote to a file named" in line:
@@ -24,7 +38,12 @@ def main():
       hex_int = int(l[1], 16)
 #      new_int = hex_int + 0x1000
       new_int = hex_int
-#      print new_int
+      if isFirstAddr:
+        print (l)
+        isFirstAddr = False
+        dyninstPadding =  binBaseAddr - new_int
+        print ("new int: {} ".format(hex(new_int)))
+      new_int = new_int + dyninstPadding
       if l[0] in instMap:
         continue
       else:

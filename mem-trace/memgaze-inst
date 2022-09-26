@@ -207,7 +207,7 @@ ${mg_inst} --bin_path ${opt_outDir}/${app}  --load_class 1 \
            --outBinName=${opt_outDir}/${opt_instBin_name} \
     &> ${opt_outDir}/${opt_instBin_name}.binanlys.log
 
-${mg_inst_cat} ${opt_outDir}/${opt_instBin_name}.binanlys.log ${opt_outDir}/${opt_instBin_name}.binanlys
+${mg_inst_cat} ${opt_outDir}/${opt_instBin_name}.binanlys.log ${opt_outDir}/${opt_instBin_name}.binanlys ${opt_outDir}/${opt_instBin_name}
 
 ${hpcstruct} ${opt_outDir}/${opt_instBin_name} -o ${opt_outDir}/${opt_instBin_name}.hpcstruct
 
