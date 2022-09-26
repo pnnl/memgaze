@@ -187,7 +187,14 @@ MIAMI Notes
   
   Any definition files for other microarchitectures?
 
-
+* Problem with not able to instrument static library minivita
+  - Problem: end address of a given routine is  misleading 
+    this is coming from dyninst and when I looked it seems like 
+    some functions has basic block that are not continious
+  - hacked solution:
+    In Function 1365 int LoadModule::dyninstAnalyzeRoutines(ProgScope *prog, const MiamiOptions *mo, Dyninst::PatchAPI::Patcher* patcher){
+      I check if blocks are continious if not I set end as the end of the first continious series.
+  - Betters solution would be using CFG from dyninst which has every block. our way of creating the cfg gets start and end  and assume it is continious
 -----------------------------------------------------------------------------
 Notes on Xia's SeaPearl Working Directory
 =============================================================================

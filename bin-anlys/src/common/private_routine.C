@@ -556,7 +556,7 @@ PrivateRoutine::discover_CFG(addrtype pc)
       while (pc<eaddr && !res && !res2)
       {
          //OZGUROPEN
-         //cout<<"YY "<<name<<" pc: "<<(unsigned int*)pc<<" "<<(unsigned int*)reloc<<" "<<(unsigned int*)(pc+reloc)<<" "<<(unsigned int*)saddr<<" "<<(unsigned int*)eaddr<<endl;
+         cout<<"YY "<<name<<" pc: "<<(unsigned int*)pc<<" "<<(unsigned int*)reloc<<" "<<(unsigned int*)(pc+reloc)<<" "<<(unsigned int*)saddr<<" "<<(unsigned int*)eaddr<<endl;
          // check if instruction is a branch
          res = instruction_at_pc_transfers_control((void*)(pc+reloc), eaddr-pc, len);
          //dump_instruction_at_pc((void*)(pc+reloc),15);
@@ -577,7 +577,7 @@ PrivateRoutine::discover_CFG(addrtype pc)
             res2 = instruction_at_pc_stutters((void*)(pc+reloc), len, len);
          pc += len;
       }
-//      cout<<"XX "<<name<<" pc: "<<(unsigned int*)pc<<" "<<(unsigned int*)saddr<<" "<<(unsigned int*)eaddr<<" "<<res<<" "<<res2<<endl;
+      cout<<"XX "<<name<<" pc: "<<(unsigned int*)pc<<" "<<(unsigned int*)saddr<<" "<<(unsigned int*)eaddr<<" "<<res<<" "<<res2<<endl;
 //         dump_instruction_at_pc((void*)(pc+reloc),15);
       
 #if DEBUG_BBLs
@@ -591,7 +591,7 @@ PrivateRoutine::discover_CFG(addrtype pc)
       // which we consider to terminate the basic block
       if (0 && pc>eaddr)
       {
-//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
+std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
          // This case is actually possible when an instruction has a prefix, but there is
          // a path that jumps to the instruction itself, while another path falls through
          // the prefix.

@@ -1399,9 +1399,63 @@ int LoadModule::dyninstAnalyzeRoutines(ProgScope *prog, const MiamiOptions *mo, 
       //   }
       std::cout<<__func__<<__LINE__<<std::endl; 
       Dyninst::Address start,end;
+      func->getAddressRange(start,end);
+      cout <<hex<< " Start:"<<start<<" End:"<<end<<endl;
+      //if (func->isInstrumentable()){
+      //std::cout<<routName<<" is Instrumentable"<<std::endl; 
+      BPatch_flowGraph *fg =func->getCFG();
+      std::set<BPatch_basicBlock*> blks;
+      //BPatch_Vector<BPatch_basicBlock*> eblks, xblks;
+      fg->getAllBasicBlocks(blks);
+      //fg->getEntryBasicBlock(eblks);
+      //fg->getExitBasicBlock(xblks);
+      
+      Dyninst::Address  Pend=start;
+      cout<<"num basic blocks: "<<blks.size()<<std::endl;
+      //cout<<"num Entry blocks: "<<eblks.size()<<std::endl;
+      //for (auto blk :  eblks){
+      //  cout <<hex<<"Entry Start:"<<blk->getStartAddress()<<" End:"<<blk->getEndAddress()<<dec<<endl;
+      //}
+      //for (auto blk :  xblks){
+      //  cout <<hex<<"Exit Start:"<<blk->getStartAddress()<<" End:"<<blk->getEndAddress()<<dec<<endl;
+      //}
+
+      for (auto blk :  blks){
+        if (Pend != blk->getStartAddress()){
+          cout <<"Someting Wrong:"<<endl;
+          cout <<hex<<"Prev End:"<<Pend<<" Start:"<<blk->getStartAddress()<<" End:"<<blk->getEndAddress()<<dec<<endl;
+          if (Pend != start)
+            end = Pend;
+          break;
+        } else {
+          cout <<hex<<"Prev End:"<<Pend<<" Start:"<<blk->getStartAddress()<<" End:"<<blk->getEndAddress()<<dec<<endl;
+          Pend = blk->getEndAddress();
+        }
+      }
+      //cout<<"num Exit blocks: "<<xblks.size()<<std::endl;
+        //    Dyninst::SymtabAPI::Symtab* symtab = Dyninst::SymtabAPI::convert(func->getModule()->getObject());
+        //    if (symtab!=NULL){
+        //       Dyninst::SymtabAPI::Function* tf;
+        //       if(symtab->findFuncByEntryOffset(tf,(Dyninst::Offset)func->getBaseAddr())){
+        //          Dyninst::SymtabAPI::InlineCollection inlines = tf->getInlines();
+        //                      cout<<"inlined: "<<inlines.size()<<std::endl;
+        //          for(Dyninst::SymtabAPI::InlineCollection::iterator it = inlines.begin();it != inlines.end(); ++it){
+        //             Dyninst::SymtabAPI::FunctionBase* inFunc = (*it);
+        //                            cout<<"\t"<<inFunc->getName()<<std::endl;
+        //             std::pair<std::string, Dyninst::Offset> callSite = dynamic_cast<Dyninst::SymtabAPI::InlinedFunction*>(inFunc)->getCallsite();
+        //                            cout<<callSite.first<<" "<<callSite.second<<std::endl;
+        //          }
+        //       }
+        //      }
+
+      //}else {
+      //  std::cout<<routName<<" is NOT Instrumentable"<<std::endl; 
+      //}
+      //Dyninst::Address start,end;
       std::cout<<__func__<<__LINE__<<std::endl; 
       //   tfunctions[0]->getAddressRange(start,end);
-      func->getAddressRange(start,end);
+      //func->getAddressRange(start,end);
+
       std::cout<<__func__<<__LINE__<<std::endl; 
       //   Dyninst::ParseAPI::CodeSource* codeSrc = Dyninst::ParseAPI::convert(tfunctions[0])->obj()->cs();
       Dyninst::ParseAPI::CodeSource* codeSrc = Dyninst::ParseAPI::convert(func)->obj()->cs();
@@ -1529,7 +1583,7 @@ int LoadModule::dyninstAnalyzeRoutines(ProgScope *prog, const MiamiOptions *mo, 
    }
 
 
-
+   std::cout << "Creating Routine:: "<<string(routName)<<" Start: "<<std::hex<<(addrtype)start<<" End: "<<(addrtype)end<< " Reloc Off: "<<reloc_offset<<std::dec<<std::endl;
    Routine* rout = new Routine(this, (addrtype)start, (usize_t) end-start, string(routName), (addrtype)start, reloc_offset);
 
    std::cerr << "[INFO]LoadModule::dynInstAnalyzeRoutines(): '" << rout->Name() <<" "<<(unsigned int*)reloc_offset<< "'\n";
