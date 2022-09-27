@@ -35,6 +35,10 @@ def readFile(inFile, outFile,appName):
         variantFile = '/files0/suri836/RUD_Zoom/GAP_CC'
     elif(appName == 'vec_store'):
         variantFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large/vec_gpp_st_no_frame_gh'
+    elif(appName == 'vec_store_lm'):
+        variantFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/vec_gpp_st_no_frame_gh'
+    elif(appName == 'vec_store_lm_st'):
+        variantFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/line_map'
     with open(inFile) as f:
         blFnMap=0
         varVersion =''
@@ -60,6 +64,16 @@ def readFile(inFile, outFile,appName):
                   objFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large/vec_gpp_st_no_frame_gh/obj_vec_gpp'
                   objFile_C = ''
                   varVersion = 'vs: '
+                if (appName == 'vec_store_lm'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/vec_gpp_st_no_frame_gh/vec_gpp_exe-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/vec_gpp_st_no_frame_gh/obj_vec_gpp'
+                  objFile_C = ''
+                  varVersion = 'vsl: '
+                if (appName == 'vec_store_lm_st'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/line_map/vec_gpp_exe-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/line_map/obj_vec_gpp'
+                  objFile_C = ''
+                  varVersion = 'vsl: '
                 if (variantFile == '../MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1.trace.final'):
                   logFile = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1*.log'
                   objFile = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_obj_nuke_line' 
