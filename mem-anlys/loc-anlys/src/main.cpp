@@ -349,8 +349,8 @@ int writeZoomFile(const MemArea memarea, const Memblock thisMemblock, const vect
         if(thisMemblock.level ==1) 
 	         zoomFile_det << std::dec << "p"<< i << ": " 
                     <<hex << blockMinAddr <<"-" << hex<< blockMaxAddr 
-                    //<< " "<< std::dec<< w_pageTotalAccess[i] << "(" << w_Rud[i]<< ","<<w_sampleRud[i]<< "); ";
-                    << std::dec<< w_pageTotalAccess[i] << " ";
+                    //<< " "<< std::dec<< w_pageTotalAccess[i] << "(" << w_Rud[i]<< ","<<w_sampleRud[i]<< ");";
+                    << " " << std::dec<< w_pageTotalAccess[i] << " ";
         else if(memarea.blockSize == cacheLineWidth) 
 			      zoomFile_det << std::dec << "p"<< i << ":" 
                     //<<hex << blockMinAddr <<"-" << hex<< blockMaxAddr 
