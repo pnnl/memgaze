@@ -1652,7 +1652,8 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
                      daddr= fnn->getAddress();
                      loadPtr = funcs[0]->findPoint(daddr);
                      if (loadPtr){
-                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                        //lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callBefore);
                         addPTWSnippet(patcher, lps , fnn);
                      }
                }
@@ -1680,7 +1681,8 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
                            daddr= fnn->getAddress();
                            loadPtr = funcs[0]->findPoint(daddr);
                            if (loadPtr){
-                              lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                              //lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                              lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callBefore);
                               addPTWSnippet(patcher, lps , fnn);
                            }
                         }
@@ -1705,7 +1707,8 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
                         daddr= fnn->getAddress();
                         loadPtr = funcs[0]->findPoint(daddr);
                         if (loadPtr){
-                           lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                           //lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                           lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callBefore);
                            addPTWSnippet(patcher, lps , fnn);
                         }
                      }
@@ -1728,7 +1731,8 @@ float DGBuilder::printLoadClassifications(const MIAMI::MiamiOptions *mo, MIAMI::
                      daddr= fnn->getAddress();
                      loadPtr = funcs[0]->findPoint(daddr);
                      if (loadPtr){
-                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                        //lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callAfter);
+                        lps = Dyninst::PatchAPI::convert(loadPtr, BPatch_callBefore);
                            addPTWSnippet(patcher, lps , fnn);
                      }
                   }
