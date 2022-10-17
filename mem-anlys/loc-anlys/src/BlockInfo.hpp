@@ -42,6 +42,7 @@ using namespace std;
 class BlockInfo {
   public:
     std::pair<unsigned int, unsigned int> blockID;
+    string strBlockId;
     uint64_t addrMin;
     uint64_t addrMax;
     unsigned int numBlocksInLevel;
@@ -61,7 +62,7 @@ class BlockInfo {
     int *minSpatialDist;
     int *maxSpatialDist;
 
-  BlockInfo(pair< unsigned int, unsigned int> _blockID,  uint64_t _addrMin, uint64_t _addrMax, unsigned int _numBlocksInLevel, int spatialResult);
+  BlockInfo(pair< unsigned int, unsigned int> _blockID,  uint64_t _addrMin, uint64_t _addrMax, unsigned int _numBlocksInLevel, int spatialResult, string _strBlockId);
   ~BlockInfo();
   
   void setAccessRUD(uint32_t _totalAccess, int _totalRUD, int _minRUD, int _maxRUD, uint32_t lifetime, double _sampleAvgRUD);
@@ -84,8 +85,8 @@ class BlockInfo {
   int getMaxRUD(); 
 
   void printBlockInfo();
-  void printBlockSpatialDensity(std::ofstream& outFile, uint64_t blockWidth);
-  void printBlockSpatialProb(std::ofstream& outFile, uint64_t blockWidth);
+  void printBlockSpatialDensity(std::ofstream& outFile, uint64_t blockWidth, bool flagLastLevel);
+  void printBlockSpatialProb(std::ofstream& outFile, uint64_t blockWidth, bool flagLastLevel);
   void printBlockRUD();
 
 };

@@ -20,13 +20,14 @@
 using namespace std;
 
 //This class holds the Block's results - information on RUD, access counts, spatial distance
-  BlockInfo::BlockInfo(pair<unsigned int, unsigned int> _blockID, uint64_t _addrMin, uint64_t _addrMax, unsigned int _numBlocksInLevel, int spatialResult)
+  BlockInfo::BlockInfo(pair<unsigned int, unsigned int> _blockID, uint64_t _addrMin, uint64_t _addrMax, unsigned int _numBlocksInLevel, int spatialResult, string _strBlockId)
   {
     blockID.first = _blockID.first;
     blockID.second = _blockID.second;
     addrMin = _addrMin;
     addrMax = _addrMax;
     numBlocksInLevel = _numBlocksInLevel;
+    strBlockId = _strBlockId;
     totalAccess=0;
     totalRUD=-1;
     avgRUD=-1.0;
@@ -134,59 +135,50 @@ using namespace std;
       printf("\n");
     }
   }
-  void BlockInfo::printBlockSpatialDensity(std::ofstream& outFile, uint64_t blockWidth){
+
+  void BlockInfo::printBlockSpatialDensity(std::ofstream& outFile, uint64_t blockWidth, bool flagLastLevel) {
     unsigned int j=0;
     vector <pair<uint32_t, class SpatialRUD*>>::iterator itrSpRUD;
     if(totalAccess != 0 && lifetime !=0){
       printf("*** Page %d: area %08lx-%08lx  Lifetime %d Access %d \n", blockID.second, addrMin, addrMax, lifetime, totalAccess);
-      outFile << "*** Page "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<< std::dec <<" Lifetime "<< lifetime 
+      outFile << "*** ID " << strBlockId<< " Page "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<< std::dec <<" Lifetime "<< lifetime 
               <<" Access " << totalAccess << " Block_count " << std::dec<< ((addrMax-addrMin)+1)/blockWidth << " Spatial_Density " ;
 
-      /*      
-      outFile << "Page "<< std::dec << blockID.second << " spatial Next ";
-      for(j=0; j<vecSpatialResult.size(); j++) { 
-         if(((vecSpatialResult[j].second)->spatialNext!=0)) 
-          outFile << std::dec << vecSpatialResult[j].first <<","<<(vecSpatialResult[j].second)->spatialNext<<" ";
-      }
-      outFile<<endl;
-      outFile << "Page "<< std::dec << blockID.second << " spatial Distance ";
-      for(j=0; j<vecSpatialResult.size(); j++) { 
-         if(((vecSpatialResult[j].second)->spatialTotalDistance!=0)) 
-          outFile << std::dec << vecSpatialResult[j].first <<","<<(vecSpatialResult[j].second)->spatialTotalDistance<<" ";
-      }
-      outFile<<endl;
-      outFile << "Page "<< std::dec << blockID.second << " spatial Access ";
-      for(j=0; j<vecSpatialResult.size(); j++) { 
-         if(((vecSpatialResult[j].second)->spatialAccess!=0)) 
-          outFile << std::dec << vecSpatialResult[j].first <<","<<(vecSpatialResult[j].second)->spatialAccess<<" ";
-      }
-      outFile<<endl;
-      outFile << " spatial Middle ";
-      for(j=0; j<vecSpatialResult.size(); j++) { 
-         if(((vecSpatialResult[j].second)->spatialAccessTotalMid!=0)) 
-          outFile << std::dec << vecSpatialResult[j].first <<","<<(vecSpatialResult[j].second)->spatialAccessTotalMid<<" ";
-      }
-      outFile<<endl;
-      */
       vector<pair<double, uint32_t>> vecDensity;
       vecDensity.clear();
-      uint32_t vecIndex=0; 
+      uint32_t vecIndex=0;
+      // debug START 
       for(vecIndex = 0; vecIndex < vecSpatialResult.size(); vecIndex++) {
         //outFile << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<(vecSpatialResult[vecIndex].second)->smplAvgSpatialMiddle<<" ";  
         cout << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<(vecSpatialResult[vecIndex].second)->smplAvgSpatialMiddle<<" ";  
       }
-      vecIndex=0; 
-      for(j = 0; j < numBlocksInLevel; j++) {
+      // debug END 
+      if ( flagLastLevel == true) {
+        vecIndex=0; 
+        for(j = 0; j < numBlocksInLevel; j++) {
+          if(vecIndex<vecSpatialResult.size()) {
+            if(vecSpatialResult[vecIndex].first == j) {
+              if ((vecSpatialResult[vecIndex].second)->smplAvgSpatialMiddle >= 0.01) {
+                outFile << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<(vecSpatialResult[vecIndex].second)->smplAvgSpatialMiddle<<" ";
+              }
+              vecIndex++;
+            } 
+          }
+        }
+      } else {
+        vecIndex=0; 
+        for(j = 0; j < numBlocksInLevel; j++) {
           if(vecIndex<vecSpatialResult.size()) {
             if(vecSpatialResult[vecIndex].first == j) {
               outFile << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<(vecSpatialResult[vecIndex].second)->smplAvgSpatialMiddle<<" ";
               vecIndex++;
             } 
+          }
         }
       }
       outFile << endl;
-      // Print  Self and top-3 spatial density
       /*
+      // Print  Self and top-3 spatial density
       for(j=0; j<vecSpatialResult.size(); j++) {
         if(vecSpatialResult[j].first != blockID.second) 
           vecDensity.push_back(make_pair((vecSpatialResult[j].second)->smplAvgSpatialMiddle,vecSpatialResult[j].first));
@@ -200,30 +192,16 @@ using namespace std;
       }
       outFile << " Self "<< std::fixed << std::setprecision(2)  << blockID.second <<","<< selfSpatialDensity ; 
       outFile<<endl;
-      */
     
-    /*   
-      outFile << "Page "<< std::dec << blockID.second << " Spatial Probability ";
-      for(j=0; j<vecSpatialResult.size(); j++) { 
-         if(((vecSpatialResult[j].second)->spatialAccess!=0)) 
-          outFile << std::fixed << std::setprecision(3)  << vecSpatialResult[j].first <<","<<(double)((vecSpatialResult[j].second)->spatialAccess)/totalAccess<<" ";
-      }
-      outFile<<endl;
       outFile << "Page "<< std::dec << blockID.second << " Spatial Ratio ";
       for(j=0; j<vecSpatialResult.size(); j++) { 
          if(((vecSpatialResult[j].second)->spatialAccess!=0)) 
           outFile << std::fixed << std::setprecision(3) << vecSpatialResult[j].first <<","<<(double)(((vecSpatialResult[j].second)->spatialTotalDistance)/(vecSpatialResult[j].second)->spatialAccess)/lifetime<<" ";
       }
       outFile<<endl;
-      outFile << "Page "<< std::dec << blockID.second << " Spatial Next-Coexistence ";
-      for(j=0; j<vecSpatialResult.size(); j++) { 
-         if(((vecSpatialResult[j].second)->spatialNext!=0)) 
-          outFile << std::fixed << std::setprecision(3) << vecSpatialResult[j].first <<","<<(double)((vecSpatialResult[j].second)->spatialNext)/totalAccess<<" ";
-      }
-      outFile<<endl;
-  */
+      */
 
-      int printDebug =1;
+      int printDebug =0;
       if(printDebug){
         //printf("lifetime %d\n", lifetime); 
         printf("Page %d spatial Next ", blockID.second);
@@ -240,41 +218,39 @@ using namespace std;
          if(((vecSpatialResult[j].second)->spatialAccessTotalMid!=0)) printf("%d,%d ",vecSpatialResult[j].first, (vecSpatialResult[j].second)->spatialAccessTotalMid); 
         printf("\n");
       }
-      /*
-      printf("Spatial Probability - Access_Possibility_immediate for Page %d : [ ", blockID.second);
-      for(j = 0; j < numBlocksInLevel; j++){
-        if(*(spatialAccess+j)!=0) printf("%f ",  (double)(*(spatialNext+j))/(double)(totalAccess));
-        else printf("N/A ");
-      }
-      printf("]\n");
-      */
-      /*
-      printf("Spatial density - Access_Possibility_in_Middle for Page %d : [ ", blockID.second);
-      for(j = 0; j < numBlocksInLevel; j++){
-        // Original code
-        //if ((totalAccess > 1 )  && (*(spatialMiddle+j)!=0 ))printf("(%d, %f) ", j, (double)(*(spatialMiddle+j))/(double)(lifetime));
-        if ((totalAccess > 1 ) &&(*(spatialMiddle+j) !=0))printf("%f ", (double)(*(spatialMiddle+j))/(double)(totalAccess-1));
-        else printf("N/A ");
-      }
-      printf("]\n");
-      */
-    }
+  }
 }
 
-void BlockInfo::printBlockSpatialProb(std::ofstream& outFile, uint64_t blockWidth){
+void BlockInfo::printBlockSpatialProb(std::ofstream& outFile, uint64_t blockWidth, bool flagLastLevel){
     unsigned int j=0;
     vector <pair<uint32_t, class SpatialRUD*>>::iterator itrSpRUD;
     if(totalAccess != 0 && lifetime !=0){
-      printf("*** Page %d: area %08lx-%08lx  Lifetime %d Access %d \n", blockID.second, addrMin, addrMax, lifetime, totalAccess);
-      outFile << "*** Page "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<< std::dec <<" Lifetime "<< lifetime 
+      printf("=== Page %d: area %08lx-%08lx  Lifetime %d Access %d \n", blockID.second, addrMin, addrMax, lifetime, totalAccess);
+      outFile << "=== ID " << strBlockId << " Page "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<< std::dec <<" Lifetime "<< lifetime 
               <<" Access " << totalAccess << " Block_count " << std::dec<< ((addrMax-addrMin)+1)/blockWidth << " Spatial_Prob " ;
       
-      uint32_t vecIndex=0; 
+      uint32_t vecIndex=0;
+      // debug START 
       for(vecIndex = 0; vecIndex < vecSpatialResult.size(); vecIndex++) {
         cout << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<(((double)(vecSpatialResult[vecIndex].second)->spatialNext))/(double)totalAccess<<" ";  
       }
-      vecIndex=0; 
-      for(j = 0; j < numBlocksInLevel; j++) {
+      // debug END
+      if ( flagLastLevel == true) {
+        vecIndex=0; 
+        for(j = 0; j < numBlocksInLevel; j++) {
+          if(vecIndex<vecSpatialResult.size()) {
+            double printProbValue = ((double)(vecSpatialResult[vecIndex].second)->spatialNext)/(double)totalAccess;
+            if(vecSpatialResult[vecIndex].first == j) {
+              if((printProbValue>=0.01)) {
+                outFile << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<printProbValue<<" ";
+              }
+              vecIndex++;
+            } 
+        }
+      }
+    } else {
+        vecIndex=0; 
+        for(j = 0; j < numBlocksInLevel; j++) {
           if(vecIndex<vecSpatialResult.size()) {
             if(vecSpatialResult[vecIndex].first == j) {
               outFile << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<((double)(vecSpatialResult[vecIndex].second)->spatialNext)/(double)totalAccess<<" ";
@@ -282,6 +258,7 @@ void BlockInfo::printBlockSpatialProb(std::ofstream& outFile, uint64_t blockWidt
             } 
         }
       }
+    }
       outFile << endl;
   }
 }

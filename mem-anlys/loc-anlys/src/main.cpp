@@ -4,12 +4,12 @@
 using std::list;
 // Global variables for threshold values
 int32_t lvlConstBlockSize = 2; // Level for setting constant blocksize in zoom
-double zoomThreshold = 0.10; // Threshold for access count - to include in zoom
-//double zoomThreshold = 0.01 ; // Minivite uses this - Cluster paper data used different threshold values - to match regions to paper use this value 
+//double zoomThreshold = 0.10; // Threshold for access count - to include in zoom
+double zoomThreshold = 0.05 ; // Minivite uses this - Cluster paper data used different threshold values - to match regions to paper use this value 
 uint64_t heapAddrEnd ; // 
 uint64_t cacheLineWidth; // Added for ZoomRUD analysis - option to set last level's block width
 uint64_t zoomLastLvlPageWidth ; // Added for ZoomRUD analysis - option to set last Zoom level's page width
-uint64_t OSPageSize = 4096;
+uint64_t OSPageSize = 16384;
 
 void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud, 
                   vector<uint32_t>& pageTotalAccess, uint32_t thresholdTotAccess, int *zoomin, Memblock curPage, 
@@ -181,6 +181,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
         if(((curPage.level == (lvlConstBlockSize-1)) ||  // Zoom in stack area also at Level 1 - below root
           ((curPage.level >= lvlConstBlockSize) && (hotpage.max <= heapAddrEnd ) && (memarea.blockSize !=cacheLineWidth)))) { //Zoom only in heap area, end at size 128
         //printf("Add to list zoom in  memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld \n",  memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize);
+            printf("Add to list zoom in  memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld iparent %s , ID %s \n",  memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize, (curPage.strID).c_str(), (hotpage.strID).c_str());
       			  zoomPageList.push_back(hotpage);
   	    		  (*zoomin)++;
               childCount++;
@@ -197,6 +198,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
   if(zoomOption ==3)
   {
     int cntListAdd=0;
+    childCount=0;
      for(i = 0; i<memarea.blockCount; i++  ){
       if(pageTotalAccess.at(i) !=0 )
       {
@@ -219,8 +221,9 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
           hotpage.max = memarea.min+(memarea.blockSize*(i+1))-1;
 	    	  hotpage.level = curPage.level+1;
   	    	hotpage.blockSize = cacheLineWidth; 
+		      hotpage.strParentID = curPage.strID;
           if(hotpage.max <= heapAddrEnd) {
-            //printf("Add to list zoom in  memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld \n",  memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize);
+            printf("Add to list zoom in  memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld iparent %s , ID %s \n",  memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize, (curPage.strID).c_str(), (hotpage.strID).c_str());
       		  zoomPageList.push_back(hotpage);
             childCount++;
             cntListAdd++;
@@ -442,7 +445,7 @@ int main(int argc, char ** argv){
   // Changed to include stack also - threaded application's heap is mapped to 0x7...
   // Minivite - Single threaded - stack starts at 0x7f
   // Others - multi-threaded stack starts at 0x7ff
-  heapAddrEnd = stol("7ff000000000",0,16); // stack region is getting included in mid-point 
+  heapAddrEnd = stol("7f0000000000",0,16); // stack region is getting included in mid-point 
 
 	//get parameters
   while(argc > argi){
@@ -677,7 +680,7 @@ int main(int argc, char ** argv){
         for(i = 0; i< memarea.blockCount; i++){
           pair<unsigned int, unsigned int> blockID = make_pair(k, i);
           BlockInfo *newBlock = new BlockInfo(blockID, memarea.min+(i*memarea.blockSize), memarea.min+((i+1)*memarea.blockSize)-1, 
-                                              memarea.blockCount, 0); //spatialResult =0
+                                              memarea.blockCount, 0, "bu"); //spatialResult =0
           vecBlockInfo.push_back(newBlock);
         }
         printf("Size of vector BlockInfo %ld\n", vecBlockInfo.size());
@@ -716,7 +719,7 @@ int main(int argc, char ** argv){
         if(writeReturn ==-1)
           return -1;
       } else {
-		    printf("start memory analysis for itr %d ", zoominTimes);
+		    printf("start memory analysis for itr %d ID %s ", zoominTimes, thisMemblock.strID.c_str());
 		    //printf("Memory address min %lx max %lx min %ld max %ld \n", memarea.min, memarea.max, memarea.min, memarea.max);
 		    printf("Memory address min %lx max %lx ", memarea.min, memarea.max);
 				printf(" page number = %d ", memarea.blockCount);
@@ -729,7 +732,7 @@ int main(int argc, char ** argv){
           pair<unsigned int, unsigned int> blockID = make_pair(0, i);
           // Correlational RUD analysis not done in this loop - costly space & time overhead
           BlockInfo *newBlock = new BlockInfo(blockID, memarea.min+(i*memarea.blockSize), memarea.min+((i+1)*memarea.blockSize-1), 
-                                              memarea.blockCount, 0); // spatialResult=0
+                                              memarea.blockCount, 0, thisMemblock.strID); // spatialResult=0
           vecBlockInfo.push_back(newBlock);
         }
 		    analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, out, vecBlockInfo,false, setRegionAddr); // spatialResult=0
@@ -827,13 +830,16 @@ int main(int argc, char ** argv){
       }
     }
     // STEP 1 - Calculate spatial correlational RUD at data object (region) level
+    std::unordered_map<uint64_t, std::string> mapMinAddrToID;
     for (itrRegion=spatialRegionList.begin(); itrRegion != spatialRegionList.end(); ++itrRegion){
  	    thisMemblock = *itrRegion; 
       if( thisMemblock.blockSize == spatiallastlvlBlockSize) {
     	  minRegionAddr = thisMemblock.min;
   	    maxRegionAddr = thisMemblock.max;
         setRegionAddr.push_back(make_pair(minRegionAddr, maxRegionAddr));
+        mapMinAddrToID[minRegionAddr] = thisMemblock.strID;
       }
+      printf(" STEP1 in before zoom spatial %d ID %s \n", thisMemblock.level, (thisMemblock.strID).c_str());
     }
     sort(setRegionAddr.begin(), setRegionAddr.end());
     //for(uint32_t k=0; k<setRegionAddr.size(); k++)
@@ -845,6 +851,7 @@ int main(int argc, char ** argv){
     memarea.min = setRegionAddr[0].first;
     memarea.max = setRegionAddr[(setRegionAddr.size()-1)].second;
     memarea.blockCount = setRegionAddr.size();
+      printf(" STEP1 in before zoom spatial %d size %ld count %d memarea.min %08lx memarea.max %08lx ID %s \n", thisMemblock.level, memarea.blockSize, memarea.blockCount, memarea.min, memarea.max, (thisMemblock.strID).c_str());
     for (itr_blk = vecBlockInfo.begin(); itr_blk != vecBlockInfo.end(); ++itr_blk) {
         delete (*itr_blk);
     }
@@ -852,7 +859,7 @@ int main(int argc, char ** argv){
     for(i = 0; i< memarea.blockCount; i++){
         pair<unsigned int, unsigned int> blockID = make_pair(0, i);
         BlockInfo *newBlock = new BlockInfo(blockID, setRegionAddr[i].first, setRegionAddr[i].second, 
-                                              memarea.blockCount, spatialResult); 
+                                              memarea.blockCount, spatialResult, mapMinAddrToID[setRegionAddr[i].first]); 
           vecBlockInfo.push_back(newBlock);
       }
         // Correlational RUD analysis done at region based range - to identify co-existence of objects
@@ -861,76 +868,82 @@ int main(int argc, char ** argv){
       printf("Spatial Analysis at region level returned without results \n");
       return -1;
      }
-     spatialOutFile<< "***** New region starts " << " MemoryArea " << hex<< memarea.min << "-" << memarea.max 
-                  << " Block size " <<std::dec << zoomLastLvlPageWidth <<" Region count " << std::dec << memarea.blockCount << endl; 
+     spatialOutFile << endl;
+     spatialOutFile<< "----- New region starts " << " MemoryArea " << hex<< memarea.min << "-" << memarea.max 
+                  << " Block size " <<std::dec << zoomLastLvlPageWidth <<" Region count " << std::dec << memarea.blockCount << " -----" << endl; 
      for(i = 0; i< memarea.blockCount; i++){
          BlockInfo *curBlock = vecBlockInfo.at(i);
-         curBlock->printBlockSpatialDensity(spatialOutFile,zoomLastLvlPageWidth);
+         curBlock->printBlockSpatialDensity(spatialOutFile,zoomLastLvlPageWidth, false);
     }
     spatialOutFile << endl;
      for(i = 0; i< memarea.blockCount; i++){
          BlockInfo *curBlock = vecBlockInfo.at(i);
-         curBlock->printBlockSpatialProb(spatialOutFile,zoomLastLvlPageWidth);
+         curBlock->printBlockSpatialProb(spatialOutFile,zoomLastLvlPageWidth, false);
     }
     // END - STEP 1 
-    /*
     // STEP 2 -  Zoom into objects to find OS page sized (4096 B) hot blocks
+    mapMinAddrToID.clear(); 
     for (itrRegion=spatialRegionList.begin(); itrRegion != spatialRegionList.end(); ++itrRegion){
  	    thisMemblock = *itrRegion; 
-    	memarea.max = thisMemblock.max;
-	    memarea.min = thisMemblock.min;
-      memarea.blockSize = OSPageSize; 
-     	memarea.blockCount =  ceil((memarea.max - memarea.min)/(double)memarea.blockSize);
-      // FOR 100 line trace - calculate SD at root level for verification
-	    //totalAccess = areacheck(memoryfile, &max, &min, &coreNumber);
-    	//memarea.max = max;
-	    //memarea.min = min;
-     	//memarea.blockCount =  mempin; 
-	    //memarea.blockSize = ceil((memarea.max - memarea.min)/(double)mempin);
-      printf(" in spatial %d size %ld count %d memarea.min %08lx memarea.max %08lx \n", thisMemblock.level, memarea.blockSize, memarea.blockCount, memarea.min, memarea.max);
-		  printf("Memory address min %lx max %lx ", memarea.min, memarea.max);
-			printf(" page number = %d ", memarea.blockCount);
-			printf(" page size =  %ld\n", memarea.blockSize);
-      for (itr_blk = vecBlockInfo.begin(); itr_blk != vecBlockInfo.end(); ++itr_blk) {
-        delete (*itr_blk);
-      }
-      vecBlockInfo.clear();
-      // Do not move these out of the loop - memarea.blockCount is different for each run
-      for(i = 0; i< memarea.blockCount; i++){
-        pair<unsigned int, unsigned int> blockID = make_pair(0, i);
-        BlockInfo *newBlock = new BlockInfo(blockID, memarea.min+(i*memarea.blockSize), memarea.min+((i+1)*memarea.blockSize-1), 
-                                              memarea.blockCount, 0); 
+      if( thisMemblock.blockSize == spatiallastlvlBlockSize) {
+    	  memarea.max = thisMemblock.max;
+  	    memarea.min = thisMemblock.min;
+        mapMinAddrToID[memarea.min] = thisMemblock.strID;
+        memarea.blockSize = OSPageSize; 
+       	memarea.blockCount =  ceil((memarea.max - memarea.min)/(double)memarea.blockSize);
+        // FOR 100 line trace - calculate SD at root level for verification
+	      //totalAccess = areacheck(memoryfile, &max, &min, &coreNumber);
+      	//memarea.max = max;
+  	    //memarea.min = min;
+       	//memarea.blockCount =  mempin; 
+  	    //memarea.blockSize = ceil((memarea.max - memarea.min)/(double)mempin);
+        printf(" STEP2 in before zoom spatial %d size %ld count %d memarea.min %08lx memarea.max %08lx ID %s \n", thisMemblock.level, memarea.blockSize, memarea.blockCount, memarea.min, memarea.max, (thisMemblock.strID).c_str());
+	  	  printf("Memory address min %lx max %lx ", memarea.min, memarea.max);
+  			printf(" page number = %d ", memarea.blockCount);
+  			printf(" page size =  %ld\n", memarea.blockSize);
+        for (itr_blk = vecBlockInfo.begin(); itr_blk != vecBlockInfo.end(); ++itr_blk) {
+          delete (*itr_blk);
+        }
+        vecBlockInfo.clear();
+        // Do not move these out of the loop - memarea.blockCount is different for each run
+        for(i = 0; i< memarea.blockCount; i++){
+          pair<unsigned int, unsigned int> blockID = make_pair(0, i);
+          BlockInfo *newBlock = new BlockInfo(blockID, memarea.min+(i*memarea.blockSize), memarea.min+((i+1)*memarea.blockSize-1), 
+                                              memarea.blockCount, 0, mapMinAddrToID[memarea.min]); 
           vecBlockInfo.push_back(newBlock);
-      }
-		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, out, vecBlockInfo,false, setRegionAddr); // spatialResult=0
-      if(analysisReturn ==-1) {
+        }
+  		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, out, vecBlockInfo,false, setRegionAddr); // spatialResult=0
+        if(analysisReturn ==-1) {
           printf("Spatial Analysis Step 2 - Zoom into objects to find OS page sized (4096 B) hot blocks returned without results\n");
           return -1;
-      }
-	    pageTotalAccess.clear();
-      Rud.clear();
-      sampleRud.clear();
-      for(i = 0; i< memarea.blockCount; i++){
+        }
+  	    pageTotalAccess.clear();
+        Rud.clear();
+        sampleRud.clear();
+        for(i = 0; i< memarea.blockCount; i++){
           BlockInfo *curBlock = vecBlockInfo.at(i);
           curBlock->printBlockRUD();
           pageTotalAccess.push_back(curBlock->getTotalAccess());
           sampleRud.push_back(curBlock->getSampleAvgRUD());
-      }
-      zoomOption =3;
-      findHotPage(memarea, zoomOption, sampleRud, pageTotalAccess,thresholdTotAccess, &zoomin, thisMemblock, zoomPageList);
-      while(!zoomPageList.empty()) {
- 				  thisMemblock = zoomPageList.front();
-          printf(" in spatial zoom list %d thisMemblock.min %08lx thisMemblock.max %08lx \n", thisMemblock.level, thisMemblock.min, thisMemblock.max);
-      		spatialOSPageList.push_back(thisMemblock);
- 				  zoomPageList.pop_front();
+        }
+        zoomOption =3;
+        findHotPage(memarea, zoomOption, sampleRud, pageTotalAccess,thresholdTotAccess, &zoomin, thisMemblock, zoomPageList);
+        while(!zoomPageList.empty()) {
+ 	  			  thisMemblock = zoomPageList.front();
+            printf(" STEP 2 after zoom spatial list %d thisMemblock.min %08lx thisMemblock.max %08lx ID %s \n", thisMemblock.level, thisMemblock.min, thisMemblock.max, thisMemblock.strID.c_str());
+        		spatialOSPageList.push_back(thisMemblock);
+   				  zoomPageList.pop_front();
+        }
       }
     }
       // END - STEP 2
       // STEP 3 - Calculate spatial correlational RUD at OS page level - using 64 B cache line 
+      mapMinAddrToID.clear(); 
       for (itrOSPage=spatialOSPageList.begin(); itrOSPage != spatialOSPageList.end(); ++itrOSPage){
  	    thisMemblock = *itrOSPage; 
     	memarea.max = thisMemblock.max;
 	    memarea.min = thisMemblock.min;
+      mapMinAddrToID[memarea.min] = thisMemblock.strID;
       memarea.blockSize = cacheLineWidth; 
      	memarea.blockCount =  ceil((memarea.max - memarea.min)/(double)memarea.blockSize);
       printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx \n", thisMemblock.level, memarea.blockSize, memarea.blockCount, memarea.min, memarea.max);
@@ -941,10 +954,11 @@ int main(int argc, char ** argv){
       for(i = 0; i< memarea.blockCount; i++){
         pair<unsigned int, unsigned int> blockID = make_pair(0, i);
         BlockInfo *newBlock = new BlockInfo(blockID, memarea.min+(i*memarea.blockSize), memarea.min+((i+1)*memarea.blockSize-1), 
-                                              memarea.blockCount, spatialResult); 
+                                              memarea.blockCount, spatialResult,mapMinAddrToID[memarea.min]); 
         vecBlockInfo.push_back(newBlock);
       }
       //printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx \n", thisMemblock.level, memarea.blockSize, memarea.blockCount, memarea.min, memarea.max);
+      printf(" STEP3 in spatial %d size %ld count %d memarea.min %08lx memarea.max %08lx ID %s \n", thisMemblock.level, memarea.blockSize, memarea.blockCount, memarea.min, memarea.max, (thisMemblock.strID).c_str());
 		  printf("Memory address min %lx max %lx ", memarea.min, memarea.max);
 			printf(" page number = %d ", memarea.blockCount);
 			printf(" page size =  %ld\n", memarea.blockSize);
@@ -953,15 +967,20 @@ int main(int argc, char ** argv){
         printf("Spatial Analysis Step 2 - Zoom into objects to find OS page sized (4096 B) hot blocks returned without results\n");
         return -1;
       }
-      spatialOutFile << "***** New region starts " << " MemoryArea " << hex<< memarea.min << "-" << memarea.max
-                   << " Block size " <<std::dec <<  memarea.blockSize << " Block count " << memarea.blockCount << endl; 
+      spatialOutFile << endl;
+      spatialOutFile << "----- New region starts " << " MemoryArea " << hex<< memarea.min << "-" << memarea.max
+                   << " Block size " <<std::dec <<  memarea.blockSize << " Block count " << memarea.blockCount <<" -----" << endl; 
       for(i = 0; i< memarea.blockCount; i++){
           BlockInfo *curBlock = vecBlockInfo.at(i);
-          curBlock->printBlockSpatial(spatialOutFile, cacheLineWidth);
+          curBlock->printBlockSpatialDensity(spatialOutFile, cacheLineWidth, true);
+      }
+      spatialOutFile << endl;
+      for(i = 0; i< memarea.blockCount; i++){
+         BlockInfo *curBlock = vecBlockInfo.at(i);
+         curBlock->printBlockSpatialProb(spatialOutFile,cacheLineWidth, true);
       }
     }
     // END - STEP 3
-    */
     spatialOutFile.close();
   }
 

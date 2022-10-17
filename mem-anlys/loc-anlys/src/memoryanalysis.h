@@ -165,7 +165,7 @@ void getInstInRange(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,Mem
   sort(sortInstr.begin(), sortInstr.end(),greater<>()); 
   for (itr=sortInstr.begin(); itr!=sortInstr.end(); itr++){
     if(outFile==nullptr)
-      printf("%ld\t0x%lx \n", itr->first, itr->second);
+      printf("%u\t0x%lx \n", itr->first, itr->second);
     else 
       *outFile << std::dec <<itr->first<<"\t0x"<< std::hex<< itr->second<<endl;
   }
@@ -559,7 +559,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
           itrSpRUD = spatialRUD.find((i*memarea.blockCount)+j);
               if (itrSpRUD != spatialRUD.end()) {
                 curBlock->setSpatialRUD(j, itrSpRUD->second);
-                printf("Spatial assign  i %d, j %d \n"  , i, j);
+                //printf("Spatial assign  i %d, j %d \n"  , i, j);
               }
         }
         //fprintf(out_file, "Page %d\n",i);
