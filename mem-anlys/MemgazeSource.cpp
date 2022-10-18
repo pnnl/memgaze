@@ -363,7 +363,7 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
   // Create function scopes for the time intervals. We have to use heap for 
   // Function scopes and clean them in destructor.
   Scope new_scope;
-  Function* function = new Function(lm, ip, name); 
+  Function* function = new Function(lm, ip, name, 24); 
   functions.push_back(function);
   new_scope = Scope(*function); 
   num_functions++; // TODO: remove. for testing

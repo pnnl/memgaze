@@ -42,6 +42,8 @@ namespace memgaze {
 class Function {
   public:
     int fp;
+    int ncpus;
+    std::vector<int> cpuFP;
     double totalLoads;
     std::string name;
     unsigned long startIP;
@@ -49,17 +51,22 @@ class Function {
     std::vector<Function *> children;
     Function * parrent;
     std::vector<AccessTime *> timeVec;
-    map <unsigned long, map <int,int>> fpMap; //<address < type, count> 
+    map <unsigned long, map <int,int>> fpMap; //<address < type, count>
+    std::vector <map <unsigned long, map <int,int>>> cpuFPMap; //<address < type, count>
     void getdiagMap (map <int,int> *typeMap, map <int, double> *fpDiagMap);  
-    void  getFPDiag(map <int, double> *diagMap); 
+    void getFPDiag(map <int, double> *diagMap); 
+    void getCPUFPDiag(map <int, double> *cpuDiagMap, int cpuid);
     int getFP();    
     void calcFP();
-    Function  (std::string _name, unsigned long _s = 0,  unsigned long _e = 0);
-    std::vector<AccessTime *> calculateFunctionFP();
+    void calcCPUFP();
+    Function  (std::string _name, unsigned long _s = 0,  unsigned long _e = 0, int _ncpus = 24);
+    std::vector<AccessTime *> calculateFunctionFP(); // depricate TODO: remove/revisit
+    std::vector<AccessTime *> calculateFunctionCPUFP(); // depricated TODO: remove/revisit
     void  printFunctionTree();
     float getMultiplier(unsigned long  period, bool is_load = false);
   private:
     std::vector<AccessTime *> calculateFunctionFPRec(Function *root,  int level );
+    std::vector<AccessTime *> calculateFunctionCPUFPRec(Function *root,  int level );
     void  printFunctionTreeRec(Function *root, int level );
 };
 

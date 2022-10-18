@@ -282,7 +282,7 @@ int main(int argc, char* argv[], const char* envp[]) {
   //Setting Option Parser
   CmdOptionParser opps(argc, argv);
   if (opps.cmdOptionExists("-h")){
-    cout << "-t Trace File\n-l Load Classification File\n-s hpcstruct File\n-o Graph Output File\n-m Mode o for time based and 1 for load based\n-p Period\n-f Focus Function Name\n-b block size mask def 0xffffffffffff\n-c CallPath File\n-d detailed function view\n-h Help"<<endl;
+    cout << "-t Trace File\n-l Load Classification File\n-s hpcstruct File\n-o Graph Output File\n-m Mode o for time based and 1 for load based\n-p Period\n-f Focus Function Name\n-b block size mask def 0xffffffffffff\n-c CallPath File\n-d detailed function view\n -h Help"<<endl;
     return 1;
   }
 
@@ -332,7 +332,7 @@ int main(int argc, char* argv[], const char* envp[]) {
   int is_load = 0;
   int is_LDLAT = 0;
   string mode = opps.getCmdOption("-m");
-  if (mode == "pt-load"){
+  if (mode == "pt-load" || mode == "pt-load-store"){
     is_load = 1;
   } else if (mode == "ldlat"){
     is_LDLAT = 1;
@@ -347,6 +347,8 @@ int main(int argc, char* argv[], const char* envp[]) {
   if (opps.cmdOptionExists("-f")){
     do_focus = true;
   }
+  cout << "@@@@ do_focus: " << do_focus << endl;
+  cout << "@@@@ function name: " << functionName << endl;
   bool do_lc = false;
   if (opps.cmdOptionExists("-l")){
     do_lc = true;
@@ -512,7 +514,7 @@ int main(int argc, char* argv[], const char* envp[]) {
               zz --;
               zz->second->endIP = func_start - 1;
             }
-            func = new memgaze::Function(name_token ,  func_start);
+            func = new memgaze::Function(name_token ,  func_start, 24);
             funcMAP.insert({func_start, func});
           }
         }
@@ -1146,6 +1148,14 @@ int main(int argc, char* argv[], const char* envp[]) {
       local_multiplier =  (*it).second->getMultiplier(period, is_load);
       map <int, double> diagMap;
       (*it).second->getFPDiag(&diagMap);
+
+      (*it).second->calcCPUFP();
+      int ncpus = (*it).second->ncpus;
+      map <int, double> cpuDiagMap[ncpus];
+      for (int i=0; i<ncpus; i++)
+        (*it).second->getCPUFPDiag(&(cpuDiagMap[i]), i);
+
+
   //    cout << "General Multipliler = "<<multiplier<<endl;
   //    cout << (*it).second->name << " StartIP:"<<hex<<(*it).second->startIP<<dec <<" Size:"<< it->second->timeVec.size() << " FP:"<<(*it).second->fp*multiplier << " lds:"<<(*it).second->totalLoads ;
   //    cout<<" Strided:"<<diagMap[1]*multiplier <<" Indirect:"<<diagMap[2]*multiplier <<" Constant:"<<diagMap[0]*multiplier <<" Unknown:"<<diagMap[-1]*multiplier<<endl;
@@ -1169,13 +1179,27 @@ int main(int argc, char* argv[], const char* envp[]) {
       cout << (*it).second->name << " tot StartIP: "<<hex<<(*it).second->startIP<<" EndIP: "<< (*it).second->endIP<<dec <<" Size: "<< it->second->timeVec.size() << " FP: "<<(*it).second->fp*local_multiplier << " lds: "<<(*it).second->timeVec.size()*imp_to_all_ratio*local_multiplier<<" collected/total: "<<imp_to_all_ratio;
       cout<<" Strided: "<<diagMap[1]*local_multiplier <<" Indirect: "<<diagMap[2]*local_multiplier<<" Constant: "<<diagMap[0]*local_multiplier <<" Unknown: "<<diagMap[-1]*local_multiplier;
       cout << " Multiplier = "<<local_multiplier<<" Growth Rate: "<<((*it).second->fp*local_multiplier)/((*it).second->timeVec.size()*imp_to_all_ratio*local_multiplier)<<endl;
-
-
+    
+    cout << "_____________________________________________________________" << endl;
+    cout << "Function Name: " << (*it).second->name << endl; 
+    cout << "tot StartIP: "<<hex<<(*it).second->startIP<< endl
+         << "EndIP: "<< (*it).second->endIP<<dec << endl
+         << "Timevec Size: "<< it->second->timeVec.size() << endl
+         << "Percore Stats:" << endl
+         << "\tCPUID, FP Size, FP, lds, collected/total, Strided, Indirect, Constant, Unknown, Multiplier, Growth Rate" << endl;
+    for (int cpuid=0; cpuid<ncpus; cpuid++) {
+        cout << "\t"<< cpuid  <<", " << (*it).second->cpuFP[cpuid] << ", "<<(*it).second->cpuFP[cpuid]*local_multiplier << ", "<<(*it).second->timeVec.size()*imp_to_all_ratio*local_multiplier<<", "<<imp_to_all_ratio<<", "<<cpuDiagMap[cpuid][1]*local_multiplier <<", "<<cpuDiagMap[cpuid][2]*local_multiplier<<", "<<cpuDiagMap[cpuid][0]*local_multiplier <<", "<<cpuDiagMap[cpuid][-1]*local_multiplier;
+      cout << ", "<<local_multiplier<<", "<<((*it).second->cpuFP[cpuid]*local_multiplier)/((*it).second->timeVec.size()*imp_to_all_ratio*local_multiplier)<<endl;
+    }
+    cout << "--------------------------------------------------------------" << endl;
     }
   }
 
 //PRINT TREE Averages:
-  cout << "FULL TRACE FP: "<<fullT->getFP()* multiplier<<endl;
+  cout << "FULL TRACE FP: "<<fullT->getFP() * multiplier<<endl;
+//   cout << "FULL TRACE CPU FP: "<<endl;
+//   for (int cpuid=0; cpuid < fullT->ncpus; cpuid++)
+//     cout << "\tCPU " << cpuid << ": " << fullT->cpuFP[cpuid] * multiplier << endl;
   cout<<endl << "Printing Level Averages"<<endl;
   const char filler = ' ';
   const int cellsize = 16;
@@ -1312,7 +1336,7 @@ int main(int argc, char* argv[], const char* envp[]) {
   fullT->calcMultiplier(period, is_load);
   if(do_focus){
     //PRINT IMPORTANT FUNCTION
-    memgaze::Function *imp_func = new memgaze::Function(functionName ,  0);
+    memgaze::Function *imp_func = new memgaze::Function(functionName , 0, 24);
     cout<<endl << "Printing important function: "<<functionName<<endl;
     unsigned long sTime = 0 , eTime=0;
     for (auto  it =funcVec.begin(); it != funcVec.end(); it++){
@@ -1324,17 +1348,36 @@ int main(int argc, char* argv[], const char* envp[]) {
     }
     map <int, double> diagMap;
     imp_func->calcFP();
+    imp_func->calcCPUFP();
     cout << " Start time: "<< sTime <<" End time: "<<eTime<<endl;
+
     local_multiplier =  imp_func->getMultiplier(period, is_load);
     if (is_LDLAT){
       local_multiplier = 1;
     }
+
     imp_func->getFPDiag(&diagMap);
+
+    cout << "MEM FP analysis on focus function:" <<  imp_func->name << endl;
+
     cout << imp_func->name << " StartIP: "<<hex<<imp_func->startIP<<dec <<" Size: "<<imp_func->timeVec.size() << " FP: "<<imp_func->fp*local_multiplier << " lds: "<<imp_func->totalLoads ;
 
     cout<<" Strided: "<<diagMap[1]*local_multiplier <<" Indirect: "<<diagMap[2]*local_multiplier<<" Constant: "<<diagMap[0]*local_multiplier <<" Unknown: "<<diagMap[-1]*local_multiplier;
     cout << " Local multiplier = "<<local_multiplier<<" time(s):"<<(eTime-sTime)/1000000000.0<<endl;
 
+    int ncpus = imp_func->ncpus;
+    // vector<map <int, double>> cpuDiagMap;
+    // cpuDiagMap.reserve(ncpus);
+    cout << endl << "_________________________________________________________________" << endl;
+    cout << "[New] CPU+MEM FP analysis on focus function:" <<  imp_func->name << endl;
+    cout <<"CPUID, StartIP, Size, FP, lds, Strided, Indirect, Constant, Unknown, Local multiplier,time(s)"<<endl;
+    for (int cpuid=0; cpuid<ncpus; cpuid++) {
+        map <int, double> cpuDiagMap;
+        imp_func->getCPUFPDiag(&cpuDiagMap, cpuid);
+
+        cout << cpuid << ", " <<hex<<imp_func->startIP<<dec <<", "<<imp_func->cpuFP[cpuid] << ", "<<imp_func->cpuFP[cpuid]*local_multiplier << ", "<<imp_func->totalLoads << "," <<cpuDiagMap[1]*local_multiplier <<", "<<cpuDiagMap[2]*local_multiplier<<", "<<cpuDiagMap[0]*local_multiplier <<", "<<cpuDiagMap[-1]*local_multiplier;
+        cout << ", "<<local_multiplier<<", "<<(eTime-sTime)/1000000000.0<<endl;
+    }
   }
 // Here We are trying to calculate function total fp by checking each window
 // This is work in porgress not finalized

@@ -39,11 +39,26 @@
 using namespace std;
 using namespace memgaze;
 
-Function::Function  (std::string _name, unsigned long _s,  unsigned long _e) { 
+// Function::Function  (std::string _name, unsigned long _s,  unsigned long _e) { 
+//   startIP = _s;
+//   endIP = _e;
+//   name = _name;
+//   totalLoads =  0;
+// }
+
+Function::Function  (std::string _name, unsigned long _s,  unsigned long _e, int _ncpus) { 
   startIP = _s;
   endIP = _e;
   name = _name;
   totalLoads =  0;
+  ncpus = _ncpus;
+  cpuFP.reserve(ncpus);
+  cpuFPMap.reserve(ncpus);
+  for (int i=0; i<ncpus; i++) {
+    map <unsigned long, map <int,int>> tmp;
+    cpuFPMap.push_back(tmp);
+    cpuFP.push_back(-1);
+  }
 }
 
 int Function::getFP(){return fp;}
@@ -67,6 +82,35 @@ void Function::calcFP(){
     }
   }
   fp = this->fpMap.size();
+}
+
+void Function::calcCPUFP(){
+//   cout << "[NVDBG]: Begin CPU FP" << endl;
+//   cout << "[NVDBG]: cpuFPMap size " << cpuFPMap.size() << endl;
+//   cout << "[NVDBG]: timeVec size " << timeVec.size() << endl;
+  map <int,int>typemap;
+  map <unsigned long, map <int, int>>::iterator typeMapIt;
+  for(auto it = timeVec.begin(); it != timeVec.end(); it++) {
+    int cpuid = (*it)->cpu->cpu;
+    typeMapIt = (this->cpuFPMap[cpuid]).find((*it)->addr->addr);
+    // cout << "[NVDBG]: cpuid " << cpuid << " typeMapIt " << endl;
+
+    if (typeMapIt != cpuFPMap[cpuid].end()){
+      map <int, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
+      if (tit != typeMapIt->second.end()){
+        tit->second++;
+      } else {
+        typeMapIt->second.insert({(*it)->ip->type, 1});
+      }
+    } else {
+      typemap.insert({(*it)->ip->type,  1});
+      this->cpuFPMap[cpuid].insert({(*it)->addr->addr, typemap});
+      typemap.clear();
+    }
+  }
+//   cout << "[NVDBG]: cpuFPMap sucessfully constructed" << endl;
+  for (int cpuid=0; cpuid<this->ncpus; cpuid++)
+    this->cpuFP[cpuid] =  this->cpuFPMap[cpuid].size();
 }
 
 void Function::getdiagMap (map <int,int> *typeMap, map <int, double> *fpDiagMap) {
@@ -102,6 +146,22 @@ void  Function::getFPDiag(map <int, double> *diagMap){ // this map holds fp per 
       getdiagMap(&(fp_it->second), diagMap);    
     }
   } 
+}
+
+void Function::getCPUFPDiag(map <int, double> *cpuDiagMap, int cpuid) {
+    map <unsigned long, map <int,int>>::iterator fp_it = this->cpuFPMap[cpuid].begin();
+    for (; fp_it != this->cpuFPMap[cpuid].end() ;  fp_it++){
+        if (fp_it->second.size() ==1){
+        map <int, double >::iterator dmit = (cpuDiagMap)->find(fp_it->second.begin()->first);
+        if (dmit != (cpuDiagMap)->end()){
+            dmit->second++;
+        } else {
+            (cpuDiagMap)->insert({fp_it->second.begin()->first, 1.0});
+        }
+        } else { 
+            getdiagMap(&(fp_it->second), (cpuDiagMap));    
+        }
+    }
 }
 
 
@@ -205,6 +265,118 @@ std::vector<AccessTime *> Function::calculateFunctionFPRec(Function *root,  int 
     root->fp =  functionFPMap.size();
     map <int, double> diagMap;
     root->getFPDiag(&diagMap);
+
+    return childTimeVec;
+}
+
+std::vector<AccessTime *> Function::calculateFunctionCPUFP(){
+  return calculateFunctionCPUFPRec(this, 0);
+}
+
+std::vector<AccessTime *> Function::calculateFunctionCPUFPRec(Function *root,  int level ){
+    std::vector<AccessTime *> childTimeVec ;
+    std::vector< std::vector<AccessTime *> > tempVec;
+    if (root == NULL){
+      return childTimeVec;
+    } 
+    for (auto it = root->children.begin(); it != root->children.end(); it++){
+      std::vector<AccessTime *> t1 = calculateFunctionCPUFPRec(*it , level+1);
+      if (t1.empty()){
+        cout << "ERROR child vector is empty. " << root->name << " level: " <<level<<endl;
+      } else {
+        tempVec.push_back(t1);
+      }
+    }
+    // map <unsigned long, int> functionFPMap; // will hold every new access 
+    map <unsigned long, int> funcCPUFPMap [root->ncpus]; // will hold every new access
+
+    map <int,int>typemap;
+    map <unsigned long, map <int, int>>::iterator typeMapIt;
+    if (tempVec.empty()){
+      for(auto it = root->timeVec.begin(); it != root->timeVec.end(); it++) {
+        int cpuid = (*it)->cpu->cpu;
+        root->totalLoads++;
+        map <unsigned long, int>::iterator fmapIter = funcCPUFPMap[cpuid].find((*it)->addr->addr);
+        if (fmapIter != funcCPUFPMap[cpuid].end()){
+          fmapIter->second++;
+        } else {
+          funcCPUFPMap[cpuid].insert({(*it)->addr->addr,1});
+          childTimeVec.push_back(*it);
+        } 
+        typeMapIt = root->cpuFPMap[cpuid].find((*it)->addr->addr);
+        if (typeMapIt != root->cpuFPMap[cpuid].end()){
+          map <int, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
+          if (tit != typeMapIt->second.end()){
+            tit->second++;
+          } else {
+            typeMapIt->second.insert({(*it)->ip->type, 1});
+          }
+        } else {
+          typemap.insert({(*it)->ip->type,  1});
+          root->cpuFPMap[cpuid].insert({(*it)->addr->addr, typemap});
+          typemap.clear();
+        }
+      }
+    } else {
+      for (auto tit = tempVec.begin(); tit  != tempVec.end(); tit++){
+        for(auto it = tit->begin(); it != tit->end(); it++) {
+          int cpuid = (*it)->cpu->cpu;
+          map <unsigned long, int>::iterator fmapIter = funcCPUFPMap[cpuid].find((*it)->addr->addr);
+          if (fmapIter != funcCPUFPMap[cpuid].end()){
+            fmapIter->second++;
+          } else {
+            funcCPUFPMap[cpuid].insert({(*it)->addr->addr,1});
+            childTimeVec.push_back(*it);
+          }
+          typeMapIt = root->cpuFPMap[cpuid].find((*it)->addr->addr);
+          if (typeMapIt != root->cpuFPMap[cpuid].end()){
+            map <int, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
+            if (tit != typeMapIt->second.end()){
+              tit->second++;
+            } else {
+              typeMapIt->second.insert({(*it)->ip->type, 1});
+            }
+          } else {
+            typemap.insert({(*it)->ip->type,  1});
+            root->cpuFPMap[cpuid].insert({(*it)->addr->addr, typemap});
+            typemap.clear();
+          }
+        }
+      }
+      for(auto it = root->timeVec.begin(); it != root->timeVec.end(); it++) {
+        int cpuid = (*it)->cpu->cpu;
+        root->totalLoads++;
+        map <unsigned long, int>::iterator fmapIter = funcCPUFPMap[cpuid].find((*it)->addr->addr);
+        if (fmapIter != funcCPUFPMap[cpuid].end()){
+          funcCPUFPMap[cpuid].insert({(*it)->addr->addr,fmapIter->second +1});
+        } else {
+          funcCPUFPMap[cpuid].insert({(*it)->addr->addr,1});
+          childTimeVec.push_back(*it);
+        }
+        typeMapIt = root->cpuFPMap[cpuid].find((*it)->addr->addr);
+        if (typeMapIt != root->cpuFPMap[cpuid].end()){
+          map <int, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
+          if (tit != typeMapIt->second.end()){
+            tit->second++;
+          } else {
+            typeMapIt->second.insert({(*it)->ip->type, 1});
+          }
+        } else {
+          typemap.insert({(*it)->ip->type,  1});
+          root->cpuFPMap[cpuid].insert({(*it)->addr->addr, typemap});
+          typemap.clear();
+        }
+      }
+      for (auto it = root->children.begin(); it != root->children.end(); it++){
+        root->totalLoads += (*it)->totalLoads;
+      }
+    }
+    // for (auto it= funcCPUFPMap->begin(); it != funcCPUFPMap->end(); it++) {
+    //     int cpuid = (*it)->cpu->cpu;
+    //     root->cpuFP[cpuid] =  funcCPUFPMap[cpuid].size();
+    // }
+    // map <int, double> diagMap;
+    // root->getFPDiag(&diagMap);
 
     return childTimeVec;
 }
