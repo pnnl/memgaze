@@ -10,12 +10,25 @@
 
 # set -x
 
-hostName=`hostname -s`
 
+hostName=`hostname -s`
 scriptPath0="${BASH_SOURCE[0]}" # works when script is sourced (unlike $0)
 scriptPath=$(readlink -f "${scriptPath0}")
 scriptCmd=${scriptPath##*/} # cf. $(basename ...)
 scriptDir=${scriptPath%/*}  # cf. $(dirname ...)
+
+use_stdin=0
+stdin_file_path=$PWD
+stdin_file="$stdin_file_path/stdin_file"
+rm $stdin_file
+touch $stdin_file 
+if test ! -t 0; then
+  use_stdin=1
+  echo "Redirecting STDIN to new file $stdin_file & using it as argument for application"
+  while IFS= read -r line; do
+    printf '%s\n' "$line" >> $stdin_file 
+  done
+fi
 
 #****************************************************************************
 
@@ -165,6 +178,7 @@ out_fnm="${opt_outDir}/${opt_outDir}.perf"
 printf "${scriptCmd}: collecting data for $app with ${args_arr[@]:1}\n"
 
 
+
 if [[ ${opt_method} =~ pt-* ]] ; then
 
     # mmap for perf's data:  -m
@@ -209,20 +223,35 @@ if [[ ${opt_method} =~ pt-* ]] ; then
             die "invalid trace method '${opt_method}'"
             ;;
     esac
-
     if (( ${opt_period} == ${zero} )) ; then
+      if [ $use_stdin -eq 0 ]; then
         ${perf} record -o "${out_fnm}" -m 4M,4M \
                 -e ${event_ptw} -- "$@" &
 	      app_pid=$!
+      else
+        ${perf} record -o "${out_fnm}" -m 4M,4M  -e ${event_ptw} -- "$@" < $stdin_file &
+	      app_pid=$!
+      fi
     else
         if [[ ${hostName} = 'nuke' ]] ; then
-          ${perf} record -o "${out_fnm}" -m 2M,2M \
+          if [ $use_stdin -eq 0 ]; then
+            ${perf} record -o "${out_fnm}" -m 2M,2M \
                 -e ${event_ptw} -e "${event_smpl}" ${opt_callpath} -- "$@" &
-	        app_pid=$!
-        else
-          ${perf} record -o "${out_fnm}" -m 2M,2M \
-                -e ${event_ptw} -e "${event_smpl_core}" -e "${event_smpl_atom}" ${opt_callpath} -- "$@" &
-	        app_pid=$!
+	          app_pid=$!
+          else
+            ${perf} record -o "${out_fnm}" -m 2M,2M  -e ${event_ptw} -e "${event_smpl}" ${opt_callpath} -- "$@" < $stdin_file &
+	          app_pid=$!
+          fi
+        else #bignuke - use core and atom events
+          if [ $use_stdin -eq 0 ]; then
+            ${perf} record -o "${out_fnm}" -m 2M,2M \
+                -e ${event_ptw} -e "${event_smpl_core}" -e "${event_smpl_atom}" ${opt_callpath} -- "$@" & 
+	          app_pid=$!
+          else
+            ${perf} record -o "${out_fnm}" -m 2M,2M \
+                -e ${event_ptw} -e "${event_smpl_core}" -e "${event_smpl_atom}" ${opt_callpath} -- "$@" < $stdin_file & 
+	          app_pid=$!
+          fi
         fi
     fi
 
@@ -231,10 +260,15 @@ elif [[ ${opt_method} = 'ldlat' ]] ; then
     if [[ ${hostName} = 'nuke' ]] ; then
         event_ldlat="cpu/umask=0x01,event=0xcd,ldlat=3,period=${opt_period}/upp"
     fi
-    ${perf} record -o "${out_fnm}" -W -d \
+    if [ $use_stdin -eq 0 ]; then
+      ${perf} record -o "${out_fnm}" -W -d \
             -e ${event_ldlat} -- "$@" &
            #-e cpu/mem-loads,ldlat=1,period=${opt_period}/upp -- "$@"
-    app_pid=$!
+      app_pid=$!
+    else
+      ${perf} record -o "${out_fnm}" -W -d -e ${event_ldlat} -- "$@" < $stdin_file &
+      app_pid=$!
+    fi
 fi
 
 
@@ -250,7 +284,6 @@ done
 correct_app_pid="${correct_app_pid## }"
 stack_map_line=`grep -i stack /proc/$correct_app_pid/maps`
 stack_addr="${stack_map_line%%-*}"
-sleep 1
 heap_map_line=`grep -i heap /proc/$correct_app_pid/maps`
 heap_addr="${heap_map_line%%-*}"
 

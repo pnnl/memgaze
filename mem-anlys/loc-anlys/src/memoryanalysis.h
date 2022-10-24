@@ -540,17 +540,15 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
       //curBlock->printBlockRUD();
     }
   }
-    /* 
-    for (itrSpRUD = spatialRUD.begin(); itrSpRUD!=spatialRUD.end(); ++itrSpRUD) {
-           curSpatialRUD = itrSpRUD->second;
-           if(printDebug) printf("Spatial hash i %d, j %d \n", (itrSpRUD->first)/memarea.blockCount, (itrSpRUD->first)%memarea.blockCount); 
-      uint32_t curPageID = floor(itrSpRUD->first/memarea.blockCount);
-      uint32_t corrPageID = floor(itrSpRUD->first%memarea.blockCount);
-      if(printDebug) printf(" curSampleId %d curPageID %d corrPageID %d sampleLifetime %d smplMiddle %d smplAvgSpatialMiddle %f \n", curSampleId, curPageID, corrPageID, sampleLifetime[curPageID], curSpatialRUD->smplMiddle, curSpatialRUD->smplAvgSpatialMiddle);
+    if (printDebug) {
+      for (itrSpRUD = spatialRUD.begin(); itrSpRUD!=spatialRUD.end(); ++itrSpRUD) {
+        curSpatialRUD = itrSpRUD->second;
+        printf("Spatial hash i %d, j %d \n", (itrSpRUD->first)/memarea.blockCount, (itrSpRUD->first)%memarea.blockCount); 
+        uint32_t curPageID = floor(itrSpRUD->first/memarea.blockCount);
+        uint32_t corrPageID = floor(itrSpRUD->first%memarea.blockCount);
+        printf(" curSampleId %d curPageID %d corrPageID %d sampleLifetime %d smplMiddle %d smplAvgSpatialMiddle %f \n", curSampleId, curPageID, corrPageID, sampleLifetime[curPageID], curSpatialRUD->smplMiddle, curSpatialRUD->smplAvgSpatialMiddle);
+      }
     }
-    */
-    //FILE *out_file = fopen("./Spatial_RUD/100_trace/spatial_log", "a+");
-    //FILE *out_file = fopen("./Spatial_RUD/minivite_results/spatial_log", "a+");
 
     for(i = 0; i < memarea.blockCount; i++){
       if(totalAccess[i]!=0) {  
@@ -562,6 +560,8 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
                 //printf("Spatial assign  i %d, j %d \n"  , i, j);
               }
         }
+    //FILE *out_file = fopen("./Spatial_RUD/100_trace/spatial_log", "a+");
+    //FILE *out_file = fopen("./Spatial_RUD/minivite_results/spatial_log", "a+");
         //fprintf(out_file, "Page %d\n",i);
         //fprintf(out_file, "lifetime %d intra-sample lifetime %d \n", lifetime[i], sampleTotalLifetime[i]);
         /*fprintf(out_file, "Page %d spatial Next ", i);

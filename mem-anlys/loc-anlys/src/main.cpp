@@ -4,8 +4,8 @@
 using std::list;
 // Global variables for threshold values
 int32_t lvlConstBlockSize = 2; // Level for setting constant blocksize in zoom
-//double zoomThreshold = 0.10; // Threshold for access count - to include in zoom
-double zoomThreshold = 0.05 ; // Minivite uses this - Cluster paper data used different threshold values - to match regions to paper use this value 
+double zoomThreshold = 0.10; // Threshold for access count - to include in zoom
+//double zoomThreshold = 0.05 ; // Minivite uses this - Cluster paper data used different threshold values - to match regions to paper use this value 
 uint64_t heapAddrEnd ; // 
 uint64_t cacheLineWidth; // Added for ZoomRUD analysis - option to set last level's block width
 uint64_t zoomLastLvlPageWidth ; // Added for ZoomRUD analysis - option to set last Zoom level's page width
@@ -801,7 +801,7 @@ int main(int argc, char ** argv){
   // Steps
   // 0. Find instructions to map regions to objects - using getInstInRange
   // 1. Calculate spatial correlational RUD at data object (region) level
-  // 2. Zoom into objects to find OS page sized (4096 B) hot blocks 
+  // 2. Zoom into objects to find OS page sized hot blocks 
   // 3. Calculate spatial correlational RUD at OS page level - using 64 B cache line 
   if(spatialResult == 1)
   {
@@ -869,7 +869,13 @@ int main(int argc, char ** argv){
       return -1;
      }
      spatialOutFile << endl;
+     uint64_t regionTotalAccess=0;
+     for(i = 0; i< memarea.blockCount; i++){
+         BlockInfo *curBlock = vecBlockInfo.at(i);
+         regionTotalAccess += curBlock->getTotalAccess();
+      }
      spatialOutFile<< "----- New region starts " << " MemoryArea " << hex<< memarea.min << "-" << memarea.max 
+                  << " Total-access "<<std::dec << regionTotalAccess 
                   << " Block size " <<std::dec << zoomLastLvlPageWidth <<" Region count " << std::dec << memarea.blockCount << " -----" << endl; 
      for(i = 0; i< memarea.blockCount; i++){
          BlockInfo *curBlock = vecBlockInfo.at(i);
@@ -881,7 +887,7 @@ int main(int argc, char ** argv){
          curBlock->printBlockSpatialProb(spatialOutFile,zoomLastLvlPageWidth, false);
     }
     // END - STEP 1 
-    // STEP 2 -  Zoom into objects to find OS page sized (4096 B) hot blocks
+    // STEP 2 -  Zoom into objects to find OS page sized hot blocks
     mapMinAddrToID.clear(); 
     for (itrRegion=spatialRegionList.begin(); itrRegion != spatialRegionList.end(); ++itrRegion){
  	    thisMemblock = *itrRegion; 
@@ -914,7 +920,7 @@ int main(int argc, char ** argv){
         }
   		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, out, vecBlockInfo,false, setRegionAddr); // spatialResult=0
         if(analysisReturn ==-1) {
-          printf("Spatial Analysis Step 2 - Zoom into objects to find OS page sized (4096 B) hot blocks returned without results\n");
+          printf("Spatial Analysis Step 2 - Zoom into objects to find OS page sized %ld B hot blocks returned without results\n", OSPageSize);
           return -1;
         }
   	    pageTotalAccess.clear();
@@ -964,11 +970,17 @@ int main(int argc, char ** argv){
 			printf(" page size =  %ld\n", memarea.blockSize);
 		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, out, vecBlockInfo, false, setRegionAddr);
       if(analysisReturn ==-1) {
-        printf("Spatial Analysis Step 2 - Zoom into objects to find OS page sized (4096 B) hot blocks returned without results\n");
+        printf("Spatial Analysis Step 2 - Zoom into objects to find OS page sized %ld B hot blocks returned without results\n", OSPageSize);
         return -1;
       }
       spatialOutFile << endl;
+      regionTotalAccess = 0; 
+      for(i = 0; i< memarea.blockCount; i++){
+         BlockInfo *curBlock = vecBlockInfo.at(i);
+         regionTotalAccess += curBlock->getTotalAccess();
+      }
       spatialOutFile << "----- New region starts " << " MemoryArea " << hex<< memarea.min << "-" << memarea.max
+                  << " Total-access "<<std::dec << regionTotalAccess 
                    << " Block size " <<std::dec <<  memarea.blockSize << " Block count " << memarea.blockCount <<" -----" << endl; 
       for(i = 0; i< memarea.blockCount; i++){
           BlockInfo *curBlock = vecBlockInfo.at(i);
