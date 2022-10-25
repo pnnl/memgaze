@@ -64,6 +64,16 @@ def readFile(inFile, outFile,appName):
                   objFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large/vec_gpp_st_no_frame_gh/obj_vec_gpp'
                   objFile_C = ''
                   varVersion = 'vs: '
+                if (appName == 'sd_darknet_al'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet/darknet-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet/obj_darknet'
+                  objFile_C = ''
+                  varVersion = 'sd_al: '
+                if (appName == 'sd_darknet_rs'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet/darknet-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet/obj_darknet'
+                  objFile_C = ''
+                  varVersion = 'sd_rd: '
                 if (appName == 'vec_store_lm'): 
                   logFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/vec_gpp_st_no_frame_gh/vec_gpp_exe-memgaze.binanlys'
                   objFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/vec_gpp_st_no_frame_gh/obj_vec_gpp'
