@@ -18,12 +18,14 @@ scriptCmd=${scriptPath##*/} # cf. $(basename ...)
 scriptDir=${scriptPath%/*}  # cf. $(dirname ...)
 
 use_stdin=0
-stdin_file_path=$PWD
-stdin_file="$stdin_file_path/stdin_file"
-rm $stdin_file
-touch $stdin_file 
 if test ! -t 0; then
   use_stdin=1
+  stdin_file_path=$PWD
+  stdin_file="$stdin_file_path/stdin_file"
+  if [ -f "$stdin_file" ] ; then
+    rm "$stdin_file"
+  fi
+  touch $stdin_file 
   echo "Redirecting STDIN to new file $stdin_file & using it as argument for application"
   while IFS= read -r line; do
     printf '%s\n' "$line" >> $stdin_file 
