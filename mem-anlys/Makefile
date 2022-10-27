@@ -68,7 +68,7 @@ ifdef DEVELOP
           $(HPCTKLIB_ProfileStandalone)/$(HPCTKLIB_ProfileStandalone_a) \
           $(HPCTKLIB_ProfLean)/$(HPCTKLIB_ProfLean_a) \
 	  $(HPCTKLIB_SupportLean)/$(HPCTKLIB_SupportLean_a) \
-          $(HPCTKLIB_Support)/$(HPCTKLIB_Support_a)
+          $(HPCTKLIB_Support)/$(HPCTKLIB_Support_a) 
 
   XERCES_LDFLAGS += \
         -L$(XERCES_LIB) -Wl,-rpath $(XERCES_LIB)
@@ -107,8 +107,8 @@ ifdef DEVELOP
   $(mg_analyze)_LDFLAGS += \
           $(HPCTK_LDFLAGS) \
           $(XERCES_LDFLAGS) \
-	  $(LIBIBERTY_LDFLAGS) \
-	  $(LIBELF_LDFLAGS) 
+	  $(LIBELF_LDFLAGS) \
+	  $(LIBIBERTY_LDFLAGS)
 
   # HPCToolkit requires -lstdc++fs and -lxerces-c
   $(mg_analyze)_LDADD += \
@@ -118,6 +118,7 @@ ifdef DEVELOP
 	   -ldw \
 	   -lelf \
 	   -liberty
+
 else
   $(mg_analyze)_SRCS += \
           main.cpp \
