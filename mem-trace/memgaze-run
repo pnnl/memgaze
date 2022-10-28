@@ -20,16 +20,7 @@ scriptDir=${scriptPath%/*}  # cf. $(dirname ...)
 use_stdin=0
 if test ! -t 0; then
   use_stdin=1
-  stdin_file_path=$PWD
-  stdin_file="$stdin_file_path/stdin_file"
-  if [ -f "$stdin_file" ] ; then
-    rm "$stdin_file"
-  fi
-  touch $stdin_file 
-  echo "Redirecting STDIN to new file $stdin_file & using it as argument for application"
-  while IFS= read -r line; do
-    printf '%s\n' "$line" >> $stdin_file 
-  done
+  echo "Redirecting STDIN to use it as argument for application"
 fi
 
 #****************************************************************************
@@ -231,7 +222,7 @@ if [[ ${opt_method} =~ pt-* ]] ; then
                 -e ${event_ptw} -- "$@" &
 	      app_pid=$!
       else
-        ${perf} record -o "${out_fnm}" -m 4M,4M  -e ${event_ptw} -- "$@" < $stdin_file &
+        ${perf} record -o "${out_fnm}" -m 4M,4M  -e ${event_ptw} -- "$@"   <&0 &
 	      app_pid=$!
       fi
     else
@@ -241,7 +232,7 @@ if [[ ${opt_method} =~ pt-* ]] ; then
                 -e ${event_ptw} -e "${event_smpl}" ${opt_callpath} -- "$@" &
 	          app_pid=$!
           else
-            ${perf} record -o "${out_fnm}" -m 2M,2M  -e ${event_ptw} -e "${event_smpl}" ${opt_callpath} -- "$@" < $stdin_file &
+            ${perf} record -o "${out_fnm}" -m 2M,2M  -e ${event_ptw} -e "${event_smpl}" ${opt_callpath} -- "$@"  <&0  &
 	          app_pid=$!
           fi
         else #bignuke - use core and atom events
@@ -251,7 +242,7 @@ if [[ ${opt_method} =~ pt-* ]] ; then
 	          app_pid=$!
           else
             ${perf} record -o "${out_fnm}" -m 2M,2M \
-                -e ${event_ptw} -e "${event_smpl_core}" -e "${event_smpl_atom}" ${opt_callpath} -- "$@" < $stdin_file & 
+                -e ${event_ptw} -e "${event_smpl_core}" -e "${event_smpl_atom}" ${opt_callpath} -- "$@"  <&0 & 
 	          app_pid=$!
           fi
         fi
@@ -268,7 +259,7 @@ elif [[ ${opt_method} = 'ldlat' ]] ; then
            #-e cpu/mem-loads,ldlat=1,period=${opt_period}/upp -- "$@"
       app_pid=$!
     else
-      ${perf} record -o "${out_fnm}" -W -d -e ${event_ldlat} -- "$@" < $stdin_file &
+      ${perf} record -o "${out_fnm}" -W -d -e ${event_ldlat} -- "$@"  <&0 &
       app_pid=$!
     fi
 fi
