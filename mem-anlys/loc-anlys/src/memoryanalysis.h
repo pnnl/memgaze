@@ -27,7 +27,6 @@ int printProgress =1;
 
 // Print a memory record with block ID, RUD and stride
 void RecordMem(string input, int ID, double rud, double stride, double centrePage, int minPage, int maxPage)
-//void RecordMem(string input, int ID, double rud, double stride) 
 {
     outFile << input << ":" << ID << " " << rud << " " << stride << " " << centrePage << " " << minPage <<" " << maxPage << endl;
     //outFile << input << ": " << ID << " " << rud << " " << stride << endl;
@@ -38,7 +37,6 @@ int readTrace(string filename, int *intTotalTraceLine,  vector<TraceLine *>& vec
 {
 	// File pointer 
   fstream fin; 
-  // Open an existing file 
   fin.open(filename, ios::in); 
   if (!(fin.is_open())) {
     cout <<"Error in file open - " << filename << endl;
@@ -65,8 +63,6 @@ int readTrace(string filename, int *intTotalTraceLine,  vector<TraceLine *>& vec
   *min = UINT64_MAX;
   *max = 0;
 
-  //while (!fin.eof()){
-  //getline(fin, line);
   if(fin.is_open()){
     while(getline(fin, line)){
 		  std::stringstream s(line);
@@ -136,6 +132,10 @@ int readTrace(string filename, int *intTotalTraceLine,  vector<TraceLine *>& vec
   }
   return 0;
 }
+
+/*
+Get IP for data addresses in memarea
+*/
 void getInstInRange(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,MemArea memarea)
 {
 	uint64_t loadAddr =0;  //used for offsit check
@@ -172,9 +172,55 @@ void getInstInRange(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,Mem
   for (itr=sortInstr.begin(); itr!=sortInstr.end(); itr++)
     printf("%lx\\\|", itr->second);
   printf("\n");
-  
 }
 
+/* 
+Get access count, lifetime only - NO RUD analysis
+*/
+int getAccessCount(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int coreNumber , vector<BlockInfo *>& vecBlockInfo ){
+  TraceLine *ptrTraceLine;
+	uint32_t * totalAccess = new uint32_t [memarea.blockCount]; //Total memory access
+	uint32_t * lifetime = new uint32_t [memarea.blockCount]; // lifetime of block
+	uint32_t * sampleTotalLifetime = new uint32_t [memarea.blockCount]; // total intra-sample lifetime of block
+	uint32_t * sampleLifetime = new uint32_t [memarea.blockCount]; // intra-sample lifetime of block
+  int curSampleId, prevSampleId; 
+	uint64_t previousAddr =0;  //used for offset check
+  uint32_t i, j;
+  uint64_t totalinst = 0;
+  prevSampleId = -1;
+  curSampleId = -1;
+	for(i = 0; i < memarea.blockCount; i++){
+	  totalAccess[i] = 0;
+		lifetime[i] = 0;
+		sampleTotalLifetime[i] = 0;
+		sampleLifetime[i] = 0;
+  }
+  for (uint32_t itr=0; itr<vecInstAddr.size(); itr++){
+    if(printProgress) {
+      if(itr%1000000==0) printf("in getAccessCount procesing trace line %d\n", itr);
+    }
+    ptrTraceLine=vecInstAddr.at(itr);
+    previousAddr = ptrTraceLine->getLoadAddr();
+    //if(printDebug) printf("previous Addr %08lx less than %d greater than %d \n", previousAddr, (previousAddr<=memarea.max), (previousAddr>=memarea.min));
+    if(( (previousAddr>=memarea.min)&&(previousAddr<=memarea.max) ) ){
+      totalinst++; 
+    	curSampleId = ptrTraceLine->getSampleId();
+      if ((((itr!=0) && (curSampleId != prevSampleId))) ) {
+        for(i = 0; i < memarea.blockCount; i++){
+          if(sampleLifetime[i]!=0) {
+              sampleLifetime[i]++; // Lifetime = total distance between first and last access +1
+          }
+        }
+      }
+    }
+  }
+}
+
+/* 
+* RUD analysis if spatialResult == 0
+* Spatial Correlational analysis if spatialResult == 1
+* Spatial Correlational analysis between set of regions if flagSetRegion ==1
+*/
 int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int coreNumber, int spatialResult, 
                         int out, vector<BlockInfo *>& vecBlockInfo, bool flagSetRegion, vector<pair<uint64_t, uint64_t>> setRegionAddr){
   TraceLine *ptrTraceLine;
@@ -256,7 +302,6 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
   if(printDebug) printf("Size of vector %ld\n", vecBlockInfo.size()); 
   //for(uint32_t k=0; k<setRegionAddr.size(); k++)
    //  printf("memcode - Spatial set min-max %d %lx-%lx \n", k, setRegionAddr[k].first, setRegionAddr[k].second);
-
   //printf( "in memory analysis vector size %d \n", vecInstAddr.size());
   for (uint32_t itr=0; itr<vecInstAddr.size(); itr++){
     if(printProgress) {
@@ -354,7 +399,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
   			else if(totalAccess[pageID] > 1){
   				//search the page in stack	
   				int pos = 0;
-  				for(int j = 0; j< stacklength; ++j){
+  				for(uint32_t j = 0; j< stacklength; ++j){
   					if(stack[j] == pageID) {
   						pos = j;
   						break;
@@ -363,7 +408,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
   				refdistance[pageID] = time - lastAccess[pageID];
   				distance[pageID] = stacklength - pos-1;
   				//update the page in stack
-  				for(int j = pos; j< stacklength-1; ++j){
+  				for(uint32_t j = pos; j< stacklength-1; ++j){
     					stack[j]=stack[j+1];
   				}
   				stack[stacklength-1]= pageID;
@@ -380,7 +425,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
     		else if(inSampleAccess[pageID] > 1){
     			//search the page in stack	
     			int samplePos = 0;
-    			for(int j = 0; j< sampleStackLength; ++j){
+    			for(uint32_t j = 0; j< sampleStackLength; ++j){
     				if(sampleStack[j] == pageID) {
     					samplePos = j;
     					break;
@@ -388,7 +433,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
     			}
     			sampleDistance[pageID] = sampleStackLength - samplePos-1;
     			//update the page in stack
-    			for(int j = samplePos; j< sampleStackLength-1; ++j){
+    			for(uint32_t j = samplePos; j< sampleStackLength-1; ++j){
     				sampleStack[j]=sampleStack[j+1];
     			}
     			sampleStack[sampleStackLength-1]= pageID;

@@ -59,21 +59,37 @@ def readFile(inFile, outFile,appName):
                   index = data[6].rindex('.trace')
                   varVersion = data[6][index-2:index]
                   print (variantFile, varVersion, curRange)
+                if (appName == 'amg'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/amg/mg-amg_O3/amg_O3-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/amg/mg-amg_O3/obj_amg_O3'
+                  objFile_C = ''
+                  varVersion = 'amg: '
                 if (appName == 'vec_store'): 
                   logFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large/vec_gpp_st_no_frame_gh/vec_gpp_exe-memgaze.binanlys'
                   objFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large/vec_gpp_st_no_frame_gh/obj_vec_gpp'
                   objFile_C = ''
                   varVersion = 'vs: '
                 if (appName == 'sd_darknet_al'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet/darknet-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet/obj_darknet'
+                  logFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet_O3-capture_ABC/darknet_O3-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet_O3-capture_ABC/obj_darknet_O3'
                   objFile_C = ''
                   varVersion = 'sd_al: '
                 if (appName == 'sd_darknet_rs'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet/darknet-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet/obj_darknet'
+                  logFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet_O3-capture_ABC/darknet_O3-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet_O3-capture_ABC/obj_darknet_O3'
                   objFile_C = ''
                   varVersion = 'sd_rd: '
+                # doesnt work - selective instrumentation mapping has errors
+                if (appName == 'sd_darknet_al_gemm'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet-gemm/darknet-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet-gemm/obj_darknet'
+                  objFile_C = ''
+                  varVersion = 'sd_al: '
+                if (appName == 'sd_darknet_rs_gemm'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet-gemm/darknet-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet-gemm/obj_darknet'
+                  objFile_C = ''
+                  varVersion = 'sd_rs: '
                 if (appName == 'vec_store_lm'): 
                   logFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/vec_gpp_st_no_frame_gh/vec_gpp_exe-memgaze.binanlys'
                   objFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/vec_gpp_st_no_frame_gh/obj_vec_gpp'
@@ -181,7 +197,7 @@ def readFile(inFile, outFile,appName):
                         arrStrFnMap= strFnMap.split('\n')
                         for i in range(0,len(arrStrFnMap)):
                             arrFnMapData = arrStrFnMap[i].split(' ')
-                            #print(arrFnMapData)
+                            print(arrFnMapData)
                             if(len(arrFnMapData)>1):
                                 if (len(arrFnMapData)==3):
                                     dictFnMap[arrFnMapData[0]] = arrFnMapData[1] + arrFnMapData[2]

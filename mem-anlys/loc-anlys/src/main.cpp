@@ -86,7 +86,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
       //Zoom in block with 10percent access of parent 
       //if(((double)pageTotalAccess.at(i)>0.1*totalAccessParent))   
       bool flZoomBlock=false;
-      uint32_t tmpCompare;
+      //uint32_t tmpCompare;
       //Zoom logic
       // top three levels - three blocks
       // level FOUR and up - top block in each parent OR block with access count of 1000
@@ -130,6 +130,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
   }
   if(zoomOption == 2) {
     // Zoom in blocks with high access counts upto block size 16384
+    // Find contiguous blocks - form a region
     // After 16384 - join and look for 1024 or 256
       for(i = 0; i<memarea.blockCount; i++  ){
        zoominaccess = 0;
@@ -181,7 +182,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
         if(((curPage.level == (lvlConstBlockSize-1)) ||  // Zoom in stack area also at Level 1 - below root
           ((curPage.level >= lvlConstBlockSize) && (hotpage.max <= heapAddrEnd ) && (memarea.blockSize !=cacheLineWidth)))) { //Zoom only in heap area, end at size 128
         //printf("Add to list zoom in  memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld \n",  memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize);
-            printf("Add to list zoom in  memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld iparent %s , ID %s \n",  memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize, (curPage.strID).c_str(), (hotpage.strID).c_str());
+            printf("Add to list zoom in option = %d memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld iparent %s , ID %s \n",  zoomOption, memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize, (curPage.strID).c_str(), (hotpage.strID).c_str());
       			  zoomPageList.push_back(hotpage);
   	    		  (*zoomin)++;
               childCount++;
@@ -195,6 +196,8 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
       }
     }
   }
+  /* Find three highest access blocks in the region 
+  */
   if(zoomOption ==3)
   {
     int cntListAdd=0;
@@ -223,7 +226,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
   	    	hotpage.blockSize = cacheLineWidth; 
 		      hotpage.strParentID = curPage.strID;
           if(hotpage.max <= heapAddrEnd) {
-            printf("Add to list zoom in  memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld iparent %s , ID %s \n",  memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize, (curPage.strID).c_str(), (hotpage.strID).c_str());
+            printf("Add to list zoom in  zoomOption = %d, memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld iparent %s , ID %s \n",  zoomOption, memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize, (curPage.strID).c_str(), (hotpage.strID).c_str());
       		  zoomPageList.push_back(hotpage);
             childCount++;
             cntListAdd++;
@@ -439,7 +442,7 @@ int main(int argc, char ** argv){
   int intTotalTraceLine = 0;
   vector<TraceLine *> vecInstAddr;
   vector<TraceLine *>::iterator itr_tr;
-  TraceLine *ptrTraceLine;
+  //TraceLine *ptrTraceLine;
   vector<BlockInfo *> vecBlockInfo;
   vector<BlockInfo *>::iterator itr_blk;
   // Changed to include stack also - threaded application's heap is mapped to 0x7...
@@ -825,7 +828,7 @@ int main(int argc, char ** argv){
         printf("--insn  : Find instructions for %s in memRange ", memoryfile);
         printf("%08lx-%08lx\n",thisMemblock.min,thisMemblock.max);
         //--insn  : Find instructions for ../MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1.trace.final in memRange 56122007b08a-56122007f089
-        spatialOutInsnFile << " --insn  : Find instructions for " << memoryfile << " in memRange " << hex<< insnMemArea.min << "-" << insnMemArea.max << endl;
+        spatialOutInsnFile << " --insn  : Find instructions in " << memoryfile << " for memRange " << hex<< insnMemArea.min << "-" << insnMemArea.max << "ID " << thisMemblock.strID << endl;
         getInstInRange(&spatialOutInsnFile, vecInstAddr,insnMemArea);
       }
     }
