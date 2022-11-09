@@ -6,7 +6,7 @@ Run make to build the memgaze-analyze-loc executable file.
 
 ### RUN with default configuration ###
 memgaze-analyze-loc needs a trace file to run
-Trace format - [IP loadAddr core initialtime sample_id\n]
+Trace format - [<IP> <Addrs> <CPU> <time> <sampleID> <DSO_id>]
 
 To run the analysis toolset using the default configuration and trace_file
 
@@ -17,15 +17,15 @@ To list options
 	./memgaze-analyze-loc --help
 
 
-Notes from - original Fallacy analysis - not used in MemGaze
-### RUN with customize configruation ###
-The memCAM tool provides two kinds of configurations: usability configurations (such as #page and #queue) and architecture configurations (such as cache size, cache Latency, queue policy).
+#Notes from Fallacy analysis - not used in MemGaze#
+RUN with custom configuration 
+The memgaze-analyze-loc tool provides two kinds of configurations: usability configurations (such as #page and #queue) and architecture configurations (such as cache size, cache Latency, queue policy).
 
-To change the usablity configuration, typing the follow comment for detail or see the usability bellow.
+To change the usability configuration.
 
-	./memCAM --help
+	./memgaze-analyze-loc --help
 
-To change the architecture configuration, see model.config for detail.
+To change the architecture configuration, see memorymodeling.h, model.config for details.
 
 
 
