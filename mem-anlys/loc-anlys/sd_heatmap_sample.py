@@ -155,9 +155,9 @@ def callPlot(plotApp):
 
 # Read spatial.txt and write inter-region file, intra-region files for callPlot
 # Works for spatial denity now - ***
-def intraObjectPlot(strApp, strFileName):
+def intraObjectPlot(strApp, strFileName,numRegion):
     strPath=strFileName[0:strFileName.rindex('/')]
-    print(strPath)
+    #print(strPath)
     # Write inter-object_sd.txt
     strInterRegionFile=strPath+'/inter_object_sd.txt'
     f_out=open(strInterRegionFile,'w')
@@ -165,19 +165,26 @@ def intraObjectPlot(strApp, strFileName):
         for fileLine in f:
             data=fileLine.strip().split(' ')
             if (data[0] == '***'):
-                print (fileLine)
+                #print (fileLine)
                 f_out.write(fileLine)
             if (data[0] == '==='):
                 f_out.close()
                 break
     f.close()
+    plotFilename=strInterRegionFile
+    appName=strApp
+    colSelect=0
+    sampleSize=0
+    print(plotFilename,colSelect,appName,sampleSize)
+    spatialPlot(plotFilename, colSelect, appName,sampleSize)
 
     df_inter=pd.read_table(strInterRegionFile, sep=" ", skipinitialspace=True, usecols=range(2,14),
                      names=['RegionId_Name','Page', 'RegionId_Num','colon', 'ar', 'Address Range', 'lf', 'Lifetime', 'ac', 'Access count', 'bc', 'Block count'])
     df_inter_data=df_inter[['RegionId_Name', 'RegionId_Num', 'Address Range', 'Lifetime', 'Access count', 'Block count']]
     df_inter_data['Reg_Num-Name']=df_inter_data.apply(lambda x:'%s-%s' % (x['RegionId_Num'],x['RegionId_Name']),axis=1)
-    df_inter_data_sample=df_inter_data.sample(n=6, random_state=1, weights='Access count')
-    print(df_inter_data_sample)
+
+    df_inter_data_sample=df_inter_data.nlargest(n=numRegion,  columns=['Access count'])
+
     arRegionId = df_inter_data_sample['Reg_Num-Name'].values.flatten().tolist()
     for regionIdNumName in arRegionId:
         regionIdName =regionIdNumName[regionIdNumName.index('-')+1:]
@@ -191,7 +198,6 @@ def intraObjectPlot(strApp, strFileName):
                 data=fileLine.strip().split(' ')
                 if (data[0] == '***' and (data[2][0:len(data[2])-1]) == regionIdName):
                     if(int(data[2][-1]) ==blockId):
-                        #print (fileLine)
                         f_out.write(fileLine)
                         lineCnt=lineCnt+1
                     else:
@@ -225,7 +231,9 @@ def intraObjectPlot(strApp, strFileName):
         print(plotFilename,colSelect,appName,sampleSize)
         spatialPlot(plotFilename, colSelect, appName,sampleSize)
 
-intraObjectPlot('AMG', '/Users/suri836/Projects/spatial_rud/mg-amg_O3/amg-trace-b8192-p4000000/spatial.txt')
+#intraObjectPlot('AMG', '/Users/suri836/Projects/spatial_rud/mg-amg_O3/amg-trace-b8192-p4000000/spatial.txt',6)
+intraObjectPlot('AlexNet', '/Users/suri836/Projects/spatial_rud/darknet_cluster/alexnet_single/spatial.txt',5)
+#intraObjectPlot('ResNet', '/Users/suri836/Projects/spatial_rud/darknet_cluster/resnet152_single/spatial.txt',3)
 # For debug
 #/Users/suri836/Projects/spatial_rud/mg-amg_O3/amg-trace-b8192-p4000000/C2000000_1.txt 1 AMG C2000000_1 40
 #filename='/Users/suri836/Projects/spatial_rud/mg-amg_O3/amg-trace-b8192-p4000000/C2000000_1.txt'
