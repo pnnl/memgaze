@@ -183,14 +183,22 @@ int getAccessCount(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int core
 	uint32_t * lifetime = new uint32_t [memarea.blockCount]; // lifetime of block
 	uint32_t * sampleTotalLifetime = new uint32_t [memarea.blockCount]; // total intra-sample lifetime of block
 	uint32_t * sampleLifetime = new uint32_t [memarea.blockCount]; // intra-sample lifetime of block
+	uint32_t * lastAccess = new uint32_t [memarea.blockCount]; //Record the temp access timing
+	uint32_t * sampleLastAccess = new uint32_t [memarea.blockCount]; //Record the temp access timing
+	uint32_t * inSampleAccess = new uint32_t [memarea.blockCount];    //Total memory access inside a sample 
+	uint32_t * refdistance = new uint32_t [memarea.blockCount]; // ref distance
+	uint32_t * sampleRefdistance = new uint32_t [memarea.blockCount]; // ref distance
   int curSampleId, prevSampleId; 
 	uint64_t previousAddr =0;  //used for offset check
   uint32_t i, j;
   uint64_t totalinst = 0;
+  uint64_t time = 0;
   prevSampleId = -1;
   curSampleId = -1;
 	for(i = 0; i < memarea.blockCount; i++){
 	  totalAccess[i] = 0;
+    lastAccess[i] = 0;  
+    sampleLastAccess[i] = 0;
 		lifetime[i] = 0;
 		sampleTotalLifetime[i] = 0;
 		sampleLifetime[i] = 0;
@@ -204,15 +212,37 @@ int getAccessCount(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int core
     //if(printDebug) printf("previous Addr %08lx less than %d greater than %d \n", previousAddr, (previousAddr<=memarea.max), (previousAddr>=memarea.min));
     if(( (previousAddr>=memarea.min)&&(previousAddr<=memarea.max) ) ){
       totalinst++; 
-    	curSampleId = ptrTraceLine->getSampleId();
+      curSampleId = ptrTraceLine->getSampleId();
       if ((((itr!=0) && (curSampleId != prevSampleId))) ) {
         for(i = 0; i < memarea.blockCount; i++){
           if(sampleLifetime[i]!=0) {
               sampleLifetime[i]++; // Lifetime = total distance between first and last access +1
+
+
           }
         }
       }
     }
+    uint64_t instAddr =  previousAddr;
+    uint32_t pageID = 0 ;
+    pageID = floor((instAddr-memarea.min)/memarea.blockSize);
+    // Number of blocks does not evenly divide address space - so the last one includes spill-over address range
+    if(pageID == memarea.blockCount) {
+    //printf(" instAddr %ld memarea.min %ld blockSize %ld  pageID %d memarea.blockCount %d pageID %d\n", instAddr, memarea.min, memarea.blockSize, pageID , memarea.blockCount, pageID);
+          pageID--;
+    }
+    totalAccess[pageID]++;
+    inSampleAccess[pageID]++;
+    time = totalinst; 
+    
+    lifetime[pageID] +=  refdistance[pageID];
+    sampleTotalLifetime[pageID] +=  sampleRefdistance[pageID];
+    sampleLifetime[pageID] +=  sampleRefdistance[pageID];
+    //if(printDebug) printf("time %d, pageID %d, sampleRef[%d] %d samplelife[%d] %d \n", time, pageID, pageID, sampleRefdistance[pageID], pageID, sampleTotalLifetime[pageID]);
+    //if(printDebug) printf(" lifetime[%d] %d\n", pageID, lifetime[pageID]);
+    lastAccess[pageID] = time; //update the page access time
+    sampleLastAccess[pageID] = time; //update the page access time
+
   }
 }
 

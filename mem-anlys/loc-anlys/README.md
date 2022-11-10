@@ -18,8 +18,7 @@ To list options
 
 
 ##### Notes from Fallacy analysis - not used in MemGaze #####
-RUN with custom configuration 
-The memgaze-analyze-loc tool provides two kinds of configurations: usability configurations (such as #page and #queue) and architecture configurations (such as cache size, cache Latency, queue policy).
+RUN with custom configuration - memgaze-analyze-loc tool provides two configurations: usability configurations (such as #page and #queue) and architecture configurations (such as cache size, cache Latency, queue policy).
 
 To change the usability configuration.
 
