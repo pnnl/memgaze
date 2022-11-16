@@ -35,10 +35,10 @@
 #include <sstream>
 #include <algorithm>
 //***************************************************************************
-class Address;
-class Instruction;
-class CPU;
-class AccessTime;
+ //OZGURCLEANUP class Address;
+ //OZGURCLEANUP class Instruction;
+ //OZGURCLEANUP class CPU;
+ //OZGURCLEANUP class AccessTime;
 //***************************************************************************
 using namespace std;
 
@@ -49,27 +49,30 @@ using namespace std;
 //v2: Holds a list of ponters of  IP Addresses and pointer to the time.
 class CPU {
   public:
-    int cpu;
-    AccessTime *time;
+    uint16_t cpu;
+//OZGURCLEANUP    AccessTime *time;
     //For v1
-    Instruction *ip;
-    Address *addr;
+//OZGURCLEANUP    Instruction *ip;
+//OZGURCLEANUP    Address *addr;
 
-    CPU(int _cpu, Address *_addr = NULL, AccessTime *_time = NULL, Instruction *_ip = NULL ){
+    CPU(uint16_t _cpu){ cpu = _cpu;}
+//OZGURCLEANUP
+/*    CPU(int _cpu, Address *_addr = NULL, AccessTime *_time = NULL, Instruction *_ip = NULL ){
       cpu = _cpu;
       time = _time;
       ip = _ip;
       addr= _addr;
     }
-
-    void setCPU(int _cpu){ cpu = _cpu;}
-    void setAll(int _cpu,  Address *_addr , AccessTime *_time , Instruction *_ip){
+*/
+    void setCPU(uint16_t _cpu){ cpu = _cpu;}
+    uint16_t getCPU(){return cpu;}
+/*    void setAll(int _cpu,  Address *_addr , AccessTime *_time , Instruction *_ip){
       cpu = _cpu;
       time = _time;
       ip = _ip;
       addr = _addr;
     }
-
+*/
     bool operator < (const CPU& input) const
     {
       return (cpu < input.cpu);

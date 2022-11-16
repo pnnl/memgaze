@@ -39,12 +39,31 @@
 using namespace std;
 using namespace memgaze;
 
+
 // Function::Function  (std::string _name, unsigned long _s,  unsigned long _e) { 
 //   startIP = _s;
 //   endIP = _e;
 //   name = _name;
 //   totalLoads =  0;
 // }
+
+Function::Function  (std::string _name, uint16_t _load_module, unsigned long _s,  unsigned long _e, int _ncpus) { 
+  startIP = _s;
+  endIP = _e;
+  name = _name;
+  totalLoads =  0;
+  ncpus = _ncpus;
+  cpuFP.reserve(ncpus);
+  cpuFPMap.reserve(ncpus);
+  load_module = _load_module;
+  for (int i=0; i<ncpus; i++) {
+    map <unsigned long, map <enum Metrics,int>> tmp;
+    cpuFPMap.push_back(tmp);
+    cpuFP.push_back(-1);
+  }
+  trace = new Trace();
+}
+
 
 Function::Function  (std::string _name, unsigned long _s,  unsigned long _e, int _ncpus) { 
   startIP = _s;
@@ -55,21 +74,23 @@ Function::Function  (std::string _name, unsigned long _s,  unsigned long _e, int
   cpuFP.reserve(ncpus);
   cpuFPMap.reserve(ncpus);
   for (int i=0; i<ncpus; i++) {
-    map <unsigned long, map <int,int>> tmp;
+    map <unsigned long, map <enum Metrics,int>> tmp;
     cpuFPMap.push_back(tmp);
     cpuFP.push_back(-1);
   }
+  trace = new Trace();
 }
 
 int Function::getFP(){return fp;}
 
 void Function::calcFP(){
-  map <int,int>typemap;
-  map <unsigned long, map <int, int>>::iterator typeMapIt;
-  for(auto it = timeVec.begin(); it != timeVec.end(); it++) {
+  map <enum Metrics,int>typemap;
+  map <unsigned long, map <enum Metrics, int>>::iterator typeMapIt;
+//OZGURCLEANUP  for(auto it = timeVec.begin(); it != timeVec.end(); it++) {
+  for(auto it = trace->trace.begin(); it != trace->trace.end(); it++) {
     typeMapIt = this->fpMap.find((*it)->addr->addr);
     if (typeMapIt != fpMap.end()){
-      map <int, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
+      map <enum Metrics, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
       if (tit != typeMapIt->second.end()){
         tit->second++;
       } else {
@@ -88,15 +109,16 @@ void Function::calcCPUFP(){
 //   cout << "[NVDBG]: Begin CPU FP" << endl;
 //   cout << "[NVDBG]: cpuFPMap size " << cpuFPMap.size() << endl;
 //   cout << "[NVDBG]: timeVec size " << timeVec.size() << endl;
-  map <int,int>typemap;
-  map <unsigned long, map <int, int>>::iterator typeMapIt;
-  for(auto it = timeVec.begin(); it != timeVec.end(); it++) {
-    int cpuid = (*it)->cpu->cpu;
+  map <enum Metrics,int>typemap;
+  map <unsigned long, map <enum Metrics, int>>::iterator typeMapIt;
+//OZGURCLEANUP  for(auto it = timeVec.begin(); it != timeVec.end(); it++) {
+  for(auto it = trace->trace.begin(); it != trace->trace.end(); it++) {
+    uint16_t cpuid = (*it)->cpu->cpu;
     typeMapIt = (this->cpuFPMap[cpuid]).find((*it)->addr->addr);
     // cout << "[NVDBG]: cpuid " << cpuid << " typeMapIt " << endl;
 
     if (typeMapIt != cpuFPMap[cpuid].end()){
-      map <int, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
+      map <enum Metrics, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
       if (tit != typeMapIt->second.end()){
         tit->second++;
       } else {
@@ -113,9 +135,9 @@ void Function::calcCPUFP(){
     this->cpuFP[cpuid] =  this->cpuFPMap[cpuid].size();
 }
 
-void Function::getdiagMap (map <int,int> *typeMap, map <int, double> *fpDiagMap) {
-  map <int, int>::iterator tit = typeMap->begin();
-  map <int, double>::iterator did;
+void Function::getdiagMap (map <enum Metrics,int> *typeMap, map <enum Metrics, double> *fpDiagMap) {
+  map <enum Metrics, int>::iterator tit = typeMap->begin();
+  map <enum Metrics, double>::iterator did;
   double total = 0;
   double freq = 1.0; 
   for (;tit != typeMap->end(); tit++){
@@ -132,11 +154,11 @@ void Function::getdiagMap (map <int,int> *typeMap, map <int, double> *fpDiagMap)
   }
 }
 
-void  Function::getFPDiag(map <int, double> *diagMap){ // this map holds fp per type
-  map <unsigned long, map <int,int>>::iterator fp_it = this->fpMap.begin();
+void  Function::getFPDiag(map <enum Metrics, double> *diagMap){ // this map holds fp per type
+  map <unsigned long, map <enum Metrics,int>>::iterator fp_it = this->fpMap.begin();
   for (; fp_it != this->fpMap.end() ;  fp_it++){
     if (fp_it->second.size() ==1){
-      map <int, double >::iterator dmit =  diagMap->find(fp_it->second.begin()->first);
+      map <enum Metrics, double >::iterator dmit =  diagMap->find(fp_it->second.begin()->first);
       if (dmit != diagMap->end()){
         dmit->second++;
       } else {
@@ -148,11 +170,11 @@ void  Function::getFPDiag(map <int, double> *diagMap){ // this map holds fp per 
   } 
 }
 
-void Function::getCPUFPDiag(map <int, double> *cpuDiagMap, int cpuid) {
-    map <unsigned long, map <int,int>>::iterator fp_it = this->cpuFPMap[cpuid].begin();
+void Function::getCPUFPDiag(map <enum Metrics, double> *cpuDiagMap, uint16_t cpuid) {
+    map <unsigned long, map <enum Metrics,int>>::iterator fp_it = this->cpuFPMap[cpuid].begin();
     for (; fp_it != this->cpuFPMap[cpuid].end() ;  fp_it++){
         if (fp_it->second.size() ==1){
-        map <int, double >::iterator dmit = (cpuDiagMap)->find(fp_it->second.begin()->first);
+        map <enum Metrics, double >::iterator dmit = (cpuDiagMap)->find(fp_it->second.begin()->first);
         if (dmit != (cpuDiagMap)->end()){
             dmit->second++;
         } else {
@@ -165,40 +187,40 @@ void Function::getCPUFPDiag(map <int, double> *cpuDiagMap, int cpuid) {
 }
 
 
-std::vector<AccessTime *> Function::calculateFunctionFP(){
-  return calculateFunctionFPRec(this, 0);
-}
+//Trace * Function::calculateFunctionFP(){
+//  return calculateFunctionFPRec(this, 0);
+//}
 
-std::vector<AccessTime *> Function::calculateFunctionFPRec(Function *root,  int level ){
-    std::vector<AccessTime *> childTimeVec ;
-    std::vector< std::vector<AccessTime *> > tempVec;
+Trace * Function::calculateFunctionFPRec(Function *root,  int level ){
+    Trace * childTimeVec = new Trace();
+    std::vector<Trace * > tempVec;
     if (root == NULL){
       return childTimeVec;
     } 
     for (auto it = root->children.begin(); it != root->children.end(); it++){
-      std::vector<AccessTime *> t1 = calculateFunctionFPRec(*it , level+1);
-      if (t1.empty()){
+      Trace * t1 = calculateFunctionFPRec(*it , level+1);
+      if (t1->getSize() == 0){
         cout << "ERROR child vector is empty. " << root->name << " level: " <<level<<endl;
       } else {
         tempVec.push_back(t1);
       }
     }
     map <unsigned long, int> functionFPMap; // will hold every new access 
-    map <int,int>typemap;
-    map <unsigned long, map <int, int>>::iterator typeMapIt;
+    map <enum Metrics,int>typemap;
+    map <unsigned long, map <enum Metrics, int>>::iterator typeMapIt;
     if (tempVec.empty()){
-      for(auto it = root->timeVec.begin(); it != root->timeVec.end(); it++) {
+      for(auto it = root->trace->trace.begin(); it != root->trace->trace.end(); it++) {
         root->totalLoads++;
         map <unsigned long, int>::iterator fmapIter = functionFPMap.find((*it)->addr->addr);
         if (fmapIter != functionFPMap.end()){
           fmapIter->second++;
         } else {
           functionFPMap.insert({(*it)->addr->addr,1});
-          childTimeVec.push_back(*it);
+          childTimeVec->addAccess(*it);
         } 
         typeMapIt = root->fpMap.find((*it)->addr->addr);
         if (typeMapIt != root->fpMap.end()){
-          map <int, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
+          map <enum Metrics, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
           if (tit != typeMapIt->second.end()){
             tit->second++;
           } else {
@@ -212,17 +234,17 @@ std::vector<AccessTime *> Function::calculateFunctionFPRec(Function *root,  int 
       }
     } else {
       for (auto tit = tempVec.begin(); tit  != tempVec.end(); tit++){
-        for(auto it = tit->begin(); it != tit->end(); it++) {
+        for(auto it = (*tit)->trace.begin(); it != (*tit)->trace.end(); it++) {
           map <unsigned long, int>::iterator fmapIter = functionFPMap.find((*it)->addr->addr);
           if (fmapIter != functionFPMap.end()){
             fmapIter->second++;
           } else {
             functionFPMap.insert({(*it)->addr->addr,1});
-            childTimeVec.push_back(*it);
+            childTimeVec->addAccess(*it);
           }
           typeMapIt = root->fpMap.find((*it)->addr->addr);
           if (typeMapIt != root->fpMap.end()){
-            map <int, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
+            map <enum Metrics, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
             if (tit != typeMapIt->second.end()){
               tit->second++;
             } else {
@@ -235,18 +257,18 @@ std::vector<AccessTime *> Function::calculateFunctionFPRec(Function *root,  int 
           }
         }
       }
-      for(auto it = root->timeVec.begin(); it != root->timeVec.end(); it++) {
+      for(auto it = root->trace->trace.begin(); it != root->trace->trace.end(); it++) {
         root->totalLoads++;
         map <unsigned long, int>::iterator fmapIter = functionFPMap.find((*it)->addr->addr);
         if (fmapIter != functionFPMap.end()){
           functionFPMap.insert({(*it)->addr->addr,fmapIter->second +1});
         } else {
           functionFPMap.insert({(*it)->addr->addr,1});
-          childTimeVec.push_back(*it);
+          childTimeVec->addAccess(*it);
         }
         typeMapIt = root->fpMap.find((*it)->addr->addr);
         if (typeMapIt != root->fpMap.end()){
-          map <int, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
+          map <enum Metrics, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
           if (tit != typeMapIt->second.end()){
             tit->second++;
           } else {
@@ -263,25 +285,25 @@ std::vector<AccessTime *> Function::calculateFunctionFPRec(Function *root,  int 
       }
     }
     root->fp =  functionFPMap.size();
-    map <int, double> diagMap;
+    map <enum Metrics, double> diagMap;
     root->getFPDiag(&diagMap);
 
     return childTimeVec;
 }
 
-std::vector<AccessTime *> Function::calculateFunctionCPUFP(){
-  return calculateFunctionCPUFPRec(this, 0);
-}
+//std::vector<AccessTime *> Function::calculateFunctionCPUFP(){
+//  return calculateFunctionCPUFPRec(this, 0);
+//}
 
-std::vector<AccessTime *> Function::calculateFunctionCPUFPRec(Function *root,  int level ){
-    std::vector<AccessTime *> childTimeVec ;
-    std::vector< std::vector<AccessTime *> > tempVec;
+Trace * Function::calculateFunctionCPUFPRec(Function *root,  int level ){
+    Trace * childTimeVec =  new Trace();
+    std::vector< Trace * > tempVec;
     if (root == NULL){
       return childTimeVec;
     } 
     for (auto it = root->children.begin(); it != root->children.end(); it++){
-      std::vector<AccessTime *> t1 = calculateFunctionCPUFPRec(*it , level+1);
-      if (t1.empty()){
+      Trace *t1 = calculateFunctionCPUFPRec(*it , level+1);
+      if (t1->getSize()==0){
         cout << "ERROR child vector is empty. " << root->name << " level: " <<level<<endl;
       } else {
         tempVec.push_back(t1);
@@ -290,10 +312,10 @@ std::vector<AccessTime *> Function::calculateFunctionCPUFPRec(Function *root,  i
     // map <unsigned long, int> functionFPMap; // will hold every new access 
     map <unsigned long, int> funcCPUFPMap [root->ncpus]; // will hold every new access
 
-    map <int,int>typemap;
-    map <unsigned long, map <int, int>>::iterator typeMapIt;
+    map <enum Metrics,int>typemap;
+    map <unsigned long, map <enum Metrics, int>>::iterator typeMapIt;
     if (tempVec.empty()){
-      for(auto it = root->timeVec.begin(); it != root->timeVec.end(); it++) {
+      for(auto it = root->trace->trace.begin(); it != root->trace->trace.end(); it++) {
         int cpuid = (*it)->cpu->cpu;
         root->totalLoads++;
         map <unsigned long, int>::iterator fmapIter = funcCPUFPMap[cpuid].find((*it)->addr->addr);
@@ -301,11 +323,11 @@ std::vector<AccessTime *> Function::calculateFunctionCPUFPRec(Function *root,  i
           fmapIter->second++;
         } else {
           funcCPUFPMap[cpuid].insert({(*it)->addr->addr,1});
-          childTimeVec.push_back(*it);
+          childTimeVec->addAccess(*it);
         } 
         typeMapIt = root->cpuFPMap[cpuid].find((*it)->addr->addr);
         if (typeMapIt != root->cpuFPMap[cpuid].end()){
-          map <int, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
+          map <enum Metrics, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
           if (tit != typeMapIt->second.end()){
             tit->second++;
           } else {
@@ -319,18 +341,18 @@ std::vector<AccessTime *> Function::calculateFunctionCPUFPRec(Function *root,  i
       }
     } else {
       for (auto tit = tempVec.begin(); tit  != tempVec.end(); tit++){
-        for(auto it = tit->begin(); it != tit->end(); it++) {
+        for(auto it = (*tit)->trace.begin(); it != (*tit)->trace.end(); it++) {
           int cpuid = (*it)->cpu->cpu;
           map <unsigned long, int>::iterator fmapIter = funcCPUFPMap[cpuid].find((*it)->addr->addr);
           if (fmapIter != funcCPUFPMap[cpuid].end()){
             fmapIter->second++;
           } else {
             funcCPUFPMap[cpuid].insert({(*it)->addr->addr,1});
-            childTimeVec.push_back(*it);
+            childTimeVec->addAccess(*it);
           }
           typeMapIt = root->cpuFPMap[cpuid].find((*it)->addr->addr);
           if (typeMapIt != root->cpuFPMap[cpuid].end()){
-            map <int, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
+            map <enum Metrics, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
             if (tit != typeMapIt->second.end()){
               tit->second++;
             } else {
@@ -343,7 +365,7 @@ std::vector<AccessTime *> Function::calculateFunctionCPUFPRec(Function *root,  i
           }
         }
       }
-      for(auto it = root->timeVec.begin(); it != root->timeVec.end(); it++) {
+      for(auto it = root->trace->trace.begin(); it != root->trace->trace.end(); it++) {
         int cpuid = (*it)->cpu->cpu;
         root->totalLoads++;
         map <unsigned long, int>::iterator fmapIter = funcCPUFPMap[cpuid].find((*it)->addr->addr);
@@ -351,11 +373,11 @@ std::vector<AccessTime *> Function::calculateFunctionCPUFPRec(Function *root,  i
           funcCPUFPMap[cpuid].insert({(*it)->addr->addr,fmapIter->second +1});
         } else {
           funcCPUFPMap[cpuid].insert({(*it)->addr->addr,1});
-          childTimeVec.push_back(*it);
+          childTimeVec->addAccess(*it);
         }
         typeMapIt = root->cpuFPMap[cpuid].find((*it)->addr->addr);
         if (typeMapIt != root->cpuFPMap[cpuid].end()){
-          map <int, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
+          map <enum Metrics, int>::iterator tit = typeMapIt->second.find((*it)->ip->type);
           if (tit != typeMapIt->second.end()){
             tit->second++;
           } else {
@@ -392,13 +414,13 @@ void  Function::printFunctionTreeRec(Function *root, int level ){
       cout << "\t" ;
     }
     cout << root->name << " StartIP:"<<hex<<root->startIP<<dec << " FP: "<<root->fp << " lds: "<<root->totalLoads ;
-    map <int, double> diagMap;
+    map <enum Metrics, double> diagMap;
     root->getFPDiag(&diagMap);
-    cout<<" Strided: "<<diagMap[1]<<" Indirect: "<<diagMap[2]<<" Constant: "<<diagMap[0]<<" Unknown: "<<diagMap[-1]<<endl;
+    cout<<" Strided: "<<diagMap[STRIDED]<<" Indirect: "<<diagMap[INDIRECT]<<" Constant: "<<diagMap[CONSTANT]<<" Unknown: "<<diagMap[UNKNOWN]<<endl;
     for (int i =0; i < level ; i++){
       cout << "\t" ;
     }
-    cout<<"  GrowtRate for Strided: "<<diagMap[1]/root->totalLoads<<" Indirect: "<<diagMap[2]/root->totalLoads<<" Constant: "<<diagMap[0]/root->totalLoads<<" Unknown: "<<diagMap[-1]/root->totalLoads<<endl;
+    cout<<"  GrowtRate for Strided: "<<diagMap[STRIDED]/root->totalLoads<<" Indirect: "<<diagMap[INDIRECT]/root->totalLoads<<" Constant: "<<diagMap[CONSTANT]/root->totalLoads<<" Unknown: "<<diagMap[UNKNOWN]/root->totalLoads<<endl;
     for (auto it = root->children.begin(); it != root->children.end(); it++){
       printFunctionTreeRec(*it , level+1);
     }
@@ -423,22 +445,22 @@ void  Function::printFunctionTreeRec(Function *root, int level ){
       vector <unsigned long> wTime;
       vector <double> wMultipliers;
       bool new_sample =  false;
-      int prev_sampleID = 0; 
+      uint32_t prev_sampleID = 0; 
       int total_loads_in_trace = 0;
       int total_loads_in_window = 0;
 
 
-      for(auto it = timeVec.begin(); it != timeVec.end(); it++) {
+      for(auto it = trace->trace.begin(); it != trace->trace.end(); it++) {
         total_loads_in_trace = total_loads_in_trace + 1 + (*it)->ip->getExtraFrameLds();
         total_loads_in_window = total_loads_in_window + 1 + (*it)->ip->getExtraFrameLds();
         current_ws++;
         if (is_first){
           is_first = false;
-          window_first_time = (*it)->time;
-          prev_sampleID = (*it)->getSampleID();
+          window_first_time = (*it)->time->time;
+          prev_sampleID = (*it)->time->getSampleID();
         }
 //Dividing trace regarding the sampling frequency/period
-          if (prev_sampleID != (*it)->getSampleID()){
+          if (prev_sampleID != (*it)->time->getSampleID()){
             new_sample = true;
           } else {
             new_sample = false;
@@ -450,9 +472,9 @@ void  Function::printFunctionTreeRec(Function *root, int level ){
            number_of_windows++;
            window_size+=current_ws;
            wSize.push_back(current_ws);
-           skip_time+=((*it)->time-prevTime);
-           Zt.push_back((*it)->time-prevTime);
-           current_ztime = ((*it)->time-prevTime);
+           skip_time+=((*it)->time->time-prevTime);
+           Zt.push_back((*it)->time->time-prevTime);
+           current_ztime = ((*it)->time->time-prevTime);
            unsigned long z_curr;
            if (prevTime - window_first_time){
             z_curr = (current_ws*current_ztime)/(prevTime - window_first_time);
@@ -462,14 +484,14 @@ void  Function::printFunctionTreeRec(Function *root, int level ){
            Zs.push_back(z_curr);
            window_time += prevTime - window_first_time;
            wTime.push_back(prevTime - window_first_time);
-           window_first_time =  (*it)->time;
+           window_first_time =  (*it)->time->time;
            wMultipliers.push_back((double)period/(double)total_loads_in_window);
            total_loads_in_window = 0;
 
            current_ws = 0;
           }
-        prevTime = (*it)->time;
-        prev_sampleID =  (*it)->getSampleID();
+        prevTime = (*it)->time->time;
+        prev_sampleID =  (*it)->time->getSampleID();
       }
 
       //calculating LoadBased Multiplier versions:

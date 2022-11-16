@@ -33,11 +33,12 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include "metrics.hpp"
 //***************************************************************************
-class Address;
-class Instruction;
-class CPU;
-class AccessTime;
+//OZGURCLEANUP class Address;
+//OZGURCLEANUP class Instruction;
+//OZGURCLEANUP class CPU;
+//OZGURCLEANUP class AccessTime;
 //***************************************************************************
 
 using namespace std;
@@ -48,38 +49,57 @@ using namespace std;
 class Instruction {
   public:
     unsigned long ip;
-    AccessTime *time;
-    CPU *cpu;
+    enum Metrics type;
+//OZGURCLEANUP    AccessTime *time;
+//OZGURCLEANUP    CPU *cpu;
     //v1
-    Address *addr; 
-    int type; //This is a type selector
+//OZGURCLEANUP    Address *addr; 
+//OZGURCLEANUP   int type; //This is a type selector //OZGURCLEANUP TODO this should be enum
              // -1 is uknown
              // 0 is frame/constant
              // 1 strided
              // 2 is indirect
-    int extra_frame_lds;
-    string dso_name;
+    uint16_t extra_frame_lds;
+    uint16_t load_module;
+    uint32_t func_name;
+//OZGURCLEANUP    string dso_name; //OZGURCLEANUP TODO some type of map
+//OZGURCLEANUP    string funcName; //OZGURCLEANUP TODO  some type of map
 
-    Instruction(unsigned long _ip, Address *_addr = NULL, AccessTime *_time = NULL, CPU *_cpu = NULL ){
+    Instruction(unsigned long _ip){ ip=_ip;}
+
+//OZGURCLEANUP
+/*    Instruction(unsigned long _ip, Address *_addr = NULL, AccessTime *_time = NULL, CPU *_cpu = NULL ){
       cpu = _cpu;
       time = _time;
       ip = _ip;
       addr= _addr;
     }
-    
-    void setExtraFrameLds(int _lds){extra_frame_lds = _lds;}
-    void setDSOName(string inName){dso_name = inName;}
-    string getDSOName(){ return dso_name;}
-    int getExtraFrameLds(){ return extra_frame_lds;}
+*/    
+    void setLoadModule(uint16_t inName){load_module = inName;}
+    string getLoadModule(map <uint16_t, string> lm_map){ return lm_map.find(load_module)->second;}
+    void setFuncName(uint32_t inName){func_name = inName;}
+    string getFuncName(map <uint32_t, string> func_map){ return func_map.find(load_module)->second;}
+
+
+    void setExtraFrameLds(uint16_t _lds){extra_frame_lds = _lds;}
+//OZGURCLEANUP    void setDSOName(string inName){dso_name = inName;}
+//OZGURCLEANUP    string getDSOName(){ return dso_name;}
+//OZGURCLEANUP    void setFuncName(string inName){funcName = inName;}
+//OZGURCLEANUP    string getFuncName(){ return dso_name;}
+    uint16_t getExtraFrameLds(){ return extra_frame_lds;}
     void setIp(unsigned long _ip){ ip = _ip;}
-    void setType(unsigned long _type){ type = _type;}
-    void setAll(unsigned long _ip, CPU *_cpu, AccessTime *_time, Address *_addr, int _type){
+    unsigned long getIp(){ return ip;}
+    void setType(enum Metrics _type){ type = _type;}
+    enum Metrics setType(){ return type;}
+//OZGURCLEANUP
+/*    void setAll(unsigned long _ip, CPU *_cpu, AccessTime *_time, Address *_addr, int _type){
       cpu = _cpu;
       time = _time;
       ip = _ip;
       addr = _addr;
       type = _type;
     }
+*/
     bool operator < (const Instruction& input) const
     {
       return (ip < input.ip);

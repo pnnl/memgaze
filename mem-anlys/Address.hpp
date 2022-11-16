@@ -34,10 +34,10 @@
 #include <sstream>
 #include <algorithm>
 //***************************************************************************
-class Address;
-class Instruction;
-class CPU;
-class AccessTime;
+//OZGURCLEANUP class Address;
+//OZGURCLEANUP class Instruction;
+//OZGURCLEANUP class CPU;
+//OZGURCLEANUP class AccessTime;
 //***************************************************************************
 using namespace std;
 
@@ -50,15 +50,18 @@ using namespace std;
 class Address {
   public:
     unsigned long addr;
-    string fName;
-    CPU *cpu;
-    AccessTime *time;
-    Instruction *ip;
-    int rDist;
+//OZGURCLEANUP    string fName; TODO  needs to move to Instruction as  a map
+//OZGURCLEANUP    CPU *cpu;
+//OZGURCLEANUP    AccessTime *time;
+//OZGURCLEANUP    Instruction *ip;
+//OZGURCLEANUP    int rDist
 
-    Address(unsigned long _addr, 
+    Address(unsigned long _addr){ addr = _addr;} 
+
+//OZGURCLEANUP
+/*    Address(unsigned long _addr, 
         int _rDist = -1, CPU *_cpu = NULL, AccessTime *_time = NULL, Instruction *_ip = NULL ){
-      rDist = _rDist;
+//      rDist = _rDist;//REMOVING_XTRA
       cpu = _cpu;
       time = _time;
       ip = _ip;
@@ -67,15 +70,17 @@ class Address {
     }
     void setFuncName(string _name){fName= _name; }
     string getFuncName(){return fName;}
-    void setReuseDistance(int _rDist) {rDist = _rDist;}
+//    void setReuseDistance(int _rDist) {rDist = _rDist;} //REMOVING_XTRA
+*/
     void setAddr(unsigned long _addr){ addr = _addr;}
-    void setAll(unsigned long _addr,  CPU *_cpu , AccessTime *_time , Instruction *_ip, int _rDist = -1){
-      rDist =  _rDist;
+/*    void setAll(unsigned long _addr,  CPU *_cpu , AccessTime *_time , Instruction *_ip, int _rDist = -1){
+//      rDist =  _rDist;//REMOVING_XTRA
       cpu = _cpu;
       time = _time;
       ip = _ip;
       addr = _addr;
     }
+*/
     bool operator < (const Address& input) const
     { 
       cout << "Comparing this: " << hex << this->addr << " with " <<input.addr<<endl; 

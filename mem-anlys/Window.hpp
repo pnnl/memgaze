@@ -34,12 +34,15 @@
 #include <sstream>
 #include <algorithm>
 //***************************************************************************
-class Address;
-class Instruction;
-class CPU;
-class AccessTime;
+//OZGURCLEANUP class Address;
+//OZGURCLEANUP class Instruction;
+//OZGURCLEANUP class CPU;
+//OZGURCLEANUP class AccessTime;
+//class Trace;
+//class Access;
 
-#include "AccessTime.hpp"
+#include "Trace.hpp"
+//#include "AccessTime.hpp"
 
 //***************************************************************************
 using namespace std;
@@ -50,54 +53,53 @@ class Window {
   public:
     Window * left, *right, *parent;
     bool sampleHead;
-    float ws, zs;
     float multiplier;
-    float multiplierAvg;
     unsigned long constant_lds;
-    int number_of_samples;
+    bool in_sample;
     unsigned long stime;
     unsigned long mtime;
     unsigned long etime;
-    std::string funcName;
-    Address* maxFP_addr;
-    vector <Address *> addresses;
-    pair<unsigned long, int> windowID;
-    map <unsigned long, map <int,int>> fpMap; //<address < type, count> 
-    //unsigned long total_lds;
-//    map <int, map <string, map <int,int>>> fpFunctionMap; //<fp, <function name , <type,fp>>> //TODO NOTE:: fix after collecting data
+    //OZGURCLEANUP std::string funcName; //this change to uint32_t
+//OZGURCLEANUP DEPRICATE ??    uint32_t funcName;
+
+//OZGURCLEANUP    Address* maxFP_addr; //TODO Why we need this??
+    //OZGURCLEANUP vector <Address *> addresses; // I need trace here
+    Trace *trace;
+    pair<unsigned long, uint32_t> windowID;
+    map <unsigned long, map <enum Metrics, uint32_t>> fpMap; //<address < type, count> 
+    
     Window ();
     ~Window ();
-    void setFuncName( std::string _name );
-    void setFuncName();
+//OZGURCLEANUP DEPRICATE ??    void setFuncName( std::string _name );
+//OZGURCLEANUP DEPRICATE ??    void setFuncName();
     //TODO void getFunctionFP( std::string _name map<int,float>)
-    std::string getFuncName( );
+//OZGURCLEANUP DEPRICATE ??    std::string getFuncName( );
     int getSize();
     unsigned long getConstantLds(){ return constant_lds;}
     unsigned long calcConstantLds();
-    //unsigned long getTotalLds(){ return total_lds;}
     void setConstantLds(unsigned long _lds){ constant_lds =  _lds;}
-    //void setTotalLds(unsigned long _lds){ total_lds =  _lds;}
-    int getNumberOfSamples() {return number_of_samples;}
-    void setNumberOfSamples( int _nSample){ number_of_samples= _nSample;}
     void setStime( unsigned long _stime );
     void setEtime( unsigned long _etime );
     void setMtime( unsigned long _etime );
     void calcTime();
-    void setID ( pair<unsigned long, int> _windowID ); 
-    void addAddress(Address *add);
+    void setID ( pair<unsigned long, uint32_t> _windowID ); 
+//OZGURCLEANUP    void addAddress(Address *add);
+    void addAccess(Access *access);
     void addWindow(Window * w);
-    pair<unsigned long, int> getWindowID ();
+    pair<unsigned long, uint32_t> getWindowID ();
     int getFP();
     void setParent ( Window *w);
+    void removeTrace ();
+    void fillTrace();
+    void fillTraceWalkDown(Window *w);
+    void fillTraceWalkUp(Window *w);
     void addRightChild (Window *w);
     void addLeftChild (Window *w);
-    void getdiagMap (map <int,int> *typeMap, map <int, double> *fpDiagMap);  
-    void  getFPDiag(map <int, double> *diagMap);
+    void getdiagMap (map <enum Metrics,uint32_t> *typeMap, map <enum Metrics, double> *fpDiagMap);  
+    void  getFPDiag(map <enum Metrics, double> *diagMap);
     float calcMultiplier(unsigned long period, bool is_load = false);
     float getMultiplier();
-    map<int, double> getMetrics(map<int, double> diagMap);
-    //float getMultiplierAvg();
-    //void setMultiplierAvg(float _multiplierAvg){multiplierAvg = _multiplierAvg;}
+    map<enum Metrics, double> getMetrics(map<enum Metrics, double> diagMap);
 };
 
 #endif

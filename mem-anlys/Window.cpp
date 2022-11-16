@@ -40,7 +40,7 @@
 using namespace std;
     
     Window::~Window() {
-      
+      delete trace;
     }
     
     Window::Window () {
@@ -50,14 +50,17 @@ using namespace std;
       
       stime = 0;
       etime = 0;
-      funcName = "";
+//OZGURCLEANUP     funcName = "";
       sampleHead = false;
       multiplier =  1;
-      multiplierAvg = 1;
+      //multiplierAvg = 1;//REMOVING_XTRA
       constant_lds = 0;
+      trace = new Trace();
     }
     
-    void Window::setFuncName( std::string _name ) { funcName = _name;}
+//OZGURCLEANUP DEPRICATE ??    void Window::setFuncName( std::string _name ) { funcName = _name;}
+//OZGURCLEANUP DEPRICATE ??
+/*
     void Window::setFuncName( ) { 
       map <Address*, map <unsigned long, int>> localFuncFPMap;
       for (auto ait=this->addresses.begin(); ait != this->addresses.end(); ait++){
@@ -85,24 +88,59 @@ using namespace std;
       }
     }
     std::string Window::getFuncName( ) { return funcName;}
+  */
     void Window::setStime( unsigned long _stime ) { stime = _stime;}
     void Window::setEtime( unsigned long _etime ) { etime = _etime;}
     void Window::setMtime( unsigned long _mtime ) { mtime = _mtime;}
     void Window::calcTime(){
-    	int size = addresses.size();
+    	int size = trace->trace.size();
 	int mid = size/2;
-	this->setStime(addresses[0]->time->time);
-	this->setMtime(addresses[mid]->time->time);
-	this->setEtime(addresses[size-1]->time->time);
+	this->setStime(trace->trace[0]->time->time);
+	this->setMtime(trace->trace[mid]->time->time);
+	this->setEtime(trace->trace[size-1]->time->time);
     }
-    void Window::setID ( pair<unsigned long, int> _windowID ) { windowID = _windowID; } 
+    
+    void Window::setID ( pair<unsigned long, uint32_t> _windowID ) { windowID = _windowID; } 
+    
     unsigned long Window::calcConstantLds(){
       //unsigned long constant_lds = 0;
-      for (auto it = addresses.begin(); it != addresses.end();  it++){
+      for (auto it = trace->trace.begin(); it != trace->trace.end();  it++){
         this->constant_lds += (*it)->ip->getExtraFrameLds();
       }
       return this->constant_lds;
     }
+     
+    void Window::addAccess(Access *add){
+      trace->addAccess(add);
+      map <unsigned long, map <enum Metrics, uint32_t>>::iterator it = fpMap.find(add->addr->addr);
+      if (it == fpMap.end()){
+        map <enum Metrics, uint32_t> addthis;
+        addthis.insert({add->ip->type, 1});
+        if (add->ip->getExtraFrameLds() >0){
+          addthis.insert({CONSTANT,add->ip->getExtraFrameLds()});
+        }
+        fpMap.insert({add->addr->addr , addthis});
+      } else {
+        map <enum Metrics, uint32_t>::iterator tit = it->second.find(add->ip->type);
+        if (tit != it->second.end()){
+          tit->second++;
+        } else {
+          it->second.insert({add->ip->type, 1});
+        }
+        if (add->ip->getExtraFrameLds() >0){
+          tit = it->second.find(CONSTANT);
+          if (tit != it->second.end()){
+            tit->second+=add->ip->getExtraFrameLds();
+          } else {
+            it->second.insert({CONSTANT,add->ip->getExtraFrameLds()});
+          }
+        }
+
+      }
+    }
+    
+//OZGURCLEANUP DEPRICATE ??
+/*
     void Window::addAddress(Address *add){
       addresses.push_back(add);
       map <unsigned long, map <int, int>>::iterator it = fpMap.find(add->addr);
@@ -131,17 +169,17 @@ using namespace std;
 
       }
     }
-    
+*/    
     void Window::addWindow(Window * w){
       if (this->fpMap.empty()){
-        for (auto ait=this->addresses.begin(); ait != this->addresses.end(); ait++){
-          map <unsigned long, map <int, int>>::iterator it = this->fpMap.find((*ait)->addr);
+        for (auto ait=this->trace->trace.begin(); ait != this->trace->trace.end(); ait++){
+          map <unsigned long, map <enum Metrics, uint32_t>>::iterator it = this->fpMap.find((*ait)->addr->addr);
           if (it == fpMap.end()){
-            map <int, int> addthis;
+            map <enum Metrics, uint32_t> addthis;
             addthis.insert({(*ait)->ip->type, 1});
-            fpMap.insert({(*ait)->addr , addthis});
+            fpMap.insert({(*ait)->addr->addr , addthis});
           } else {
-            map <int, int>::iterator tit = it->second.find((*ait)->ip->type);
+            map <enum Metrics, uint32_t>::iterator tit = it->second.find((*ait)->ip->type);
             if (tit != it->second.end()){
               tit->second++;
             } else {
@@ -150,14 +188,14 @@ using namespace std;
 
           }
         }
-        for (auto ait=w->addresses.begin(); ait != w->addresses.end(); ait++){
-          map <unsigned long, map <int, int>>::iterator it = this->fpMap.find((*ait)->addr);
+        for (auto ait=w->trace->trace.begin(); ait != w->trace->trace.end(); ait++){
+          map <unsigned long, map <enum Metrics, uint32_t>>::iterator it = this->fpMap.find((*ait)->addr->addr);
           if (it == fpMap.end()){
-            map <int, int> addthis;
+            map <enum Metrics, uint32_t> addthis;
             addthis.insert({(*ait)->ip->type, 1});
-            fpMap.insert({(*ait)->addr , addthis});
+            fpMap.insert({(*ait)->addr->addr , addthis});
           } else {
-            map <int, int>::iterator tit = it->second.find((*ait)->ip->type);
+            map <enum Metrics, uint32_t>::iterator tit = it->second.find((*ait)->ip->type);
             if (tit != it->second.end()){
               tit->second++;
             } else {
@@ -167,15 +205,15 @@ using namespace std;
           }
         }
       } else {
-        map <unsigned long, map <int, int>>::iterator it = w->fpMap.begin();
+        map <unsigned long, map <enum Metrics, uint32_t>>::iterator it = w->fpMap.begin();
         for ( ; it != w->fpMap.end(); it++){
-          map <unsigned long, map <int,int>>::iterator curr_it = this->fpMap.find(it->first);
+          map <unsigned long, map <enum Metrics, uint32_t>>::iterator curr_it = this->fpMap.find(it->first);
           if (curr_it == this->fpMap.end()){
             fpMap.insert({it->first, it->second});
           } else {
-            map <int, int>::iterator tit = it->second.begin();
+            map <enum Metrics, uint32_t>::iterator tit = it->second.begin();
             for (; tit != it->second.end(); tit++){
-              map <int, int>::iterator curr_tit = curr_it->second.find(tit->first);
+              map <enum Metrics, uint32_t>::iterator curr_tit = curr_it->second.find(tit->first);
               if (curr_tit != curr_it->second.end()){
                 curr_tit->second+=tit->second;
               } else {
@@ -187,13 +225,13 @@ using namespace std;
       } 
     }
     
-    pair<unsigned long, int> Window::getWindowID () { return windowID; }
+    pair<unsigned long, uint32_t> Window::getWindowID () { return windowID; }
     int Window::getFP(){return fpMap.size();}
 
 
-    void Window::getdiagMap (map <int,int> *typeMap, map <int, double> *fpDiagMap) {
-      map <int, int>::iterator tit = typeMap->begin();
-      map <int, double>::iterator did;
+    void Window::getdiagMap (map <enum Metrics,uint32_t> *typeMap, map <enum Metrics, double> *fpDiagMap) {
+      map <enum Metrics, uint32_t>::iterator tit = typeMap->begin();
+      map <enum Metrics, double>::iterator did;
       double total = 0;
       double freq = 1.0; 
       for (;  tit != typeMap->end(); tit++){
@@ -210,11 +248,11 @@ using namespace std;
       }
     }
     
-    void  Window::getFPDiag(map <int, double> *diagMap){ // this map holds fp per type
-      map <unsigned long, map <int,int>>::iterator fp_it = this->fpMap.begin();
+    void  Window::getFPDiag(map <enum Metrics, double> *diagMap){ // this map holds fp per type
+      map <unsigned long, map <enum Metrics,uint32_t>>::iterator fp_it = this->fpMap.begin();
       for (; fp_it != this->fpMap.end() ;  fp_it++){
         if (fp_it->second.size() ==1){
-          map <int, double >::iterator dmit =  diagMap->find(fp_it->second.begin()->first);
+          map <enum Metrics, double >::iterator dmit =  diagMap->find(fp_it->second.begin()->first);
           if (dmit != diagMap->end()){
             dmit->second++;
           } else {
@@ -230,27 +268,67 @@ using namespace std;
       parent = w;
     }
     
+    void Window::removeTrace (){
+      trace->emptyTrace();
+    }
+
+    void Window::fillTrace(){
+      if(this->in_sample){
+        //in sample go up
+        return;
+      } else if (this->sampleHead){
+        // notting to fill it should already be here
+        return;
+      } else {
+        fillTraceWalkDown(this);
+      }
+    }
+
+    void Window::fillTraceWalkDown(Window *w){
+      if (this->sampleHead){
+        for (auto ait =  trace->trace.begin() ; ait != trace->trace.end(); ait++){
+          w->trace->addAccess(*ait);  
+        }
+      } else {
+        this->left->fillTraceWalkDown(w);
+        this->right->fillTraceWalkDown(w);
+      }
+    }
+
+    void Window::fillTraceWalkUp(Window *w){
+      if (this->sampleHead){
+        // FIXME fill this for later use
+        cout<<"Needs to be fixed"<<endl;
+      }
+    }
+
     void Window::addRightChild (Window *w){
       right = w;
       addWindow(w);
-      for (auto ait =  w->addresses.begin() ; ait != w->addresses.end(); ait++){
-        addresses.push_back((*ait));  
+      for (auto ait =  w->trace->trace.begin() ; ait != w->trace->trace.end(); ait++){
+        trace->addAccess(*ait);  
       }
+//      if (!w->sampleHead){
+//        w->removeTrace();
+//      }
     }
 
     void Window::addLeftChild (Window *w){
       left = w;
       addWindow(w);
-      for (auto ait =  w->addresses.begin() ; ait != w->addresses.end(); ait++){
-        addresses.push_back((*ait));   
+      for (auto ait =  w->trace->trace.begin() ; ait != w->trace->trace.end(); ait++){
+        trace->addAccess(*ait);  
       }
+//      if (!w->sampleHead){
+//        w->removeTrace();
+//      }
     }
 
     int Window::getSize(){
       if (this->getConstantLds() == 0 ){
         this->calcConstantLds();
       }
-      return addresses.size() + this->getConstantLds();      
+      return trace->getSize() + this->getConstantLds();      
     }
 
    float Window::getMultiplier(){ return this->multiplier; }
@@ -275,12 +353,11 @@ using namespace std;
       vector <unsigned long> wTime;
       vector <float> wMultipliers;
       bool new_sample =  false;
-      int prev_sampleID = 0;
+      uint32_t prev_sampleID = 0;
       int total_loads_in_trace = 0;
       int total_loads_in_window = 0;
 
-
-      for(auto it = addresses.begin(); it != addresses.end(); it++) {
+      for(auto it = trace->trace.begin(); it != trace->trace.end(); it++) {
         total_loads_in_window = total_loads_in_window + 1 + (*it)->ip->getExtraFrameLds();
         total_loads_in_trace = total_loads_in_trace + 1 + (*it)->ip->getExtraFrameLds();
         current_ws++;
@@ -379,8 +456,8 @@ using namespace std;
       }
     }
 
-    map<int, double> Window::getMetrics(map<int, double> diagMap) {
-      map<int, double> metrics;
+    map<enum Metrics, double> Window::getMetrics(map<enum Metrics, double> diagMap) {
+      map<enum Metrics, double> metrics;
       float multiplier = this->getMultiplier();
       if (diagMap.empty()) {
         this->getFPDiag(&diagMap);

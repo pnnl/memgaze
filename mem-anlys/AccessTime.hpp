@@ -34,10 +34,10 @@
 #include <sstream>
 #include <algorithm>
 //***************************************************************************
-class Address;
-class Instruction;
-class CPU;
-class AccessTime;
+//OZGURCLEANUP class Address;
+//OZGURCLEANUP class Instruction;
+//OZGURCLEANUP class CPU;
+//OZGURCLEANUP class AccessTime;
 //***************************************************************************
 using namespace std;
 
@@ -48,13 +48,23 @@ using namespace std;
 class AccessTime {
   public:
     unsigned long time;
-    int sampleID;
+    uint32_t sampleID;
     //v1
-    Address *addr;
-    CPU *cpu;
-    Instruction *ip;
+//OZGURCLEANUP    Address *addr;
+//OZGURCLEANUP    CPU *cpu;
+//OZGURCLEANUP    Instruction *ip;
+  AccessTime(unsigned long _time, uint32_t _sampleID){
+    time = _time;
+    sampleID = _sampleID;
+  }
+  AccessTime(unsigned long _time){
+    time = _time;
+  }
+  AccessTime (){
+    time = 0;
+  }
 
-    AccessTime(unsigned long _time, Address *_addr = NULL, Instruction *_ip = NULL, CPU *_cpu = NULL ){
+/*    AccessTime(unsigned long _time, Address *_addr = NULL, Instruction *_ip = NULL, CPU *_cpu = NULL ){
       cpu = _cpu;
       time = _time;
       ip = _ip;
@@ -69,14 +79,16 @@ class AccessTime {
       addr= _addr;
       sampleID = _sampleID;
     }
+*/
     void setTime(unsigned long _time){ time = _time;}
-    void setAll(unsigned long _time, int _sampleID,  CPU *_cpu , Address *_addr , Instruction *_ip){
+/*    void setAll(unsigned long _time, int _sampleID,  CPU *_cpu , Address *_addr , Instruction *_ip){
       cpu = _cpu;
       time = _time;
       ip = _ip;
       addr = _addr;
       sampleID =  _sampleID;
     }
+*/
     bool operator < (const AccessTime& input) const
     {
       return (time < input.time);
@@ -86,8 +98,8 @@ class AccessTime {
     {
       return (time > input.time);
     }
-    void setSampleID(int _sampleID){ sampleID = _sampleID;}
-    int getSampleID(){return sampleID;}
+    void setSampleID(uint32_t _sampleID){ sampleID = _sampleID;}
+    uint32_t getSampleID(){return sampleID;}
 };
 
 #endif

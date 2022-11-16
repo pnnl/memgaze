@@ -44,6 +44,7 @@
 #include "Address.hpp"
 #include "Function.hpp"
 #include "metrics.hpp"
+#include "Trace.hpp"
 
 #ifdef DEVELOP
 #include "MemgazeSource.hpp"
@@ -51,6 +52,7 @@
 //***************************************************************************
 std::ostream ofs(NULL);
 using namespace std;
+#define UINT16MAX 65535
 
 //Command Parser class
 class CmdOptionParser{
@@ -76,6 +78,45 @@ class CmdOptionParser{
         std::vector <std::string> tokens;
 };
 
+
+//Parce type
+enum Metrics getTYPE(int type){
+  switch (type){
+    case -2:    
+      return NUMBER_OF_NODES;
+    case -1:
+      return UNKNOWN;            
+    case 0:
+      return CONSTANT;           
+    case 1:
+      return STRIDED;          
+    case 2:
+      return INDIRECT;           
+    case 3:
+      return FP;                 
+    case -3:
+      return IN_SAMPLE;          
+    case -4:
+      return WINDOW_SIZE;        
+    case 5:
+      return MULTIPLIER;         
+    case -5:
+      return TOTAL_LOADS;        
+    case 6:
+      return CONSTANT2LOAD_RATIO;
+    case -6:
+      return NPF_RATE;           
+    case 7:
+      return NPF_GROWTH_RATE;    
+    case -7:
+      return GROWTH_RATE;        
+    case 90:
+      return STORE;
+    default:
+      return UNKNOWN;
+  }
+}
+
 //Set this one for debuging and 0 for normal run
 bool debugging_enabled = 0;
 
@@ -98,31 +139,20 @@ void split(const std::string& str, Container& cont, char delim = ' ')
 
 // Following what will be in treeFPavgMap we can add new types and 
 //map <int, <int, double>> *treeFPavgMap 
-//map <level , <type , FP> 
-//type 0 = constant, 1 = strided,  2 = insdirect,  -1 = unknown
-//type 3 =  totalFP, 4 = growth rate, -2 number of nodes
-//#define NUMBER_OF_NODES -2
-//#define UNKNOWN -1
-//#define CONSTANT 0
-//#define STRIDED 1
-//#define INDIRECT 2
-//#define FP 3
-//#define IN_SAMPLE -3
-//#define WINDOW_SIZE -4
-
+//map <level , <type , FP> For the types check enum Metrics "metrics.hpp" 
 int getKey(int size){
   return (int)log2((double)size);
 }
 
-
 //Print Binary Tree with setting TreeWindowMap
-void printTree (Window * root,  int period ,int lvl, map <int, map<int, double>> *treeFPavgMap, bool in_sample = false , bool is_load=false){
-  map <int, double> diagMap; 
+void printTree (Window * root,  uint32_t period ,uint32_t lvl, map <int, map<enum Metrics, double>> *treeFPavgMap, bool in_sample = false , bool is_load=false){
+  map <enum Metrics, double> diagMap; 
   float modifier = 1;
   if (root==NULL){
     return;
   } else {
-    string dso = root->addresses[0]->ip->getDSOName();
+//OZGURCLEANUP    string dso = root->addresses[0]->ip->getDSOName();
+//    string load_module = root->trace->getTrace[0]->ip->getLoadModule(lmMap);
 //    cout << "Window: "<<root->windowID.first<<":"<<root->windowID.second<<" DSO: "<<dso<<endl;
     modifier =  root->calcMultiplier(period, is_load);
     float org_modifier = modifier;
@@ -192,8 +222,8 @@ void printTree (Window * root,  int period ,int lvl, map <int, map<int, double>>
 
 //building the sample tree
 Window * buildTree( vector <Window *> * windows){ 
-  map <int, double> diagMap;
-  map <int, double> diagMapTemp;
+  map <enum Metrics, double> diagMap;
+  map <enum Metrics, double> diagMapTemp;
 
   if (windows->size() == 1){
     auto it = windows->begin();
@@ -205,8 +235,8 @@ Window * buildTree( vector <Window *> * windows){
   }
   vector <Window *> n_windows;
   Window * newWindow;
-  pair<unsigned long, int> windowID;
-  int lvl;
+  pair<unsigned long, uint32_t> windowID;
+  uint32_t lvl;
   
   if (windows->size() == 2){ 
     vector <Window *>::iterator  it = windows->begin();
@@ -228,7 +258,7 @@ Window * buildTree( vector <Window *> * windows){
     newWindow->setID(windowID);
     (*it)->setParent (newWindow);
     (*sit)->setParent (newWindow);
-    newWindow->setFuncName();
+//OZGURCLEANUP DEPRICATE ??  newWindow->setFuncName();
     if (newWindow == NULL){                       // based on max FP or trace
       cout << "Returning a NULL window\n";
     }  
@@ -249,7 +279,7 @@ Window * buildTree( vector <Window *> * windows){
       windowID = (*it)->getWindowID();
       windowID.second = lvl+1;
       newWindow->setID(windowID);
-      newWindow->setFuncName();
+//OZGURCLEANUP DEPRECETE ??      newWindow->setFuncName();
 
       (*it)->setParent (newWindow);
       (*sit)->setParent (newWindow);
@@ -264,7 +294,7 @@ Window * buildTree( vector <Window *> * windows){
       lvl = (*it)->getWindowID().second;
       windowID.second = lvl+1;
       newWindow->setID(windowID);
-      newWindow->setFuncName();
+//OZGURCLEANUP DEPRICATE ??      newWindow->setFuncName();
 
       n_windows.push_back(newWindow);
     }
@@ -287,20 +317,27 @@ int main(int argc, char* argv[], const char* envp[]) {
   }
 
   //declaring required data structures
-  Address *addr;
-  CPU *cpu;
-  Instruction *ip;
-  AccessTime *time;
+  //OZGURCLEANUP Address *addr;
+  //OZGURCLEANUP CPU *cpu;
+  //OZGURCLEANUP Instruction *ip;
+  //OZGURCLEANUP AccessTime *time;
+  
+  Access* access;
+  Trace*  trace =  new Trace();;
+
   Window * sampleWindow;
-  int type = -1;
+  enum Metrics type = UNKNOWN;
   std::string maskStr(opps.getCmdOption("-b"));
   unsigned long mask = strtoll(opps.getCmdOption("-b").c_str(), NULL, 16);
   if (!opps.cmdOptionExists("-b")){
     mask = 0; //shift bits
   }
+  
   bool do_reuse =  false;
   bool do_focus =  false;
+  
   unsigned long period = 3000000000;
+  
   vector <unsigned long> Zs;
   vector <unsigned long> Zt;
   vector <unsigned long> wSize;
@@ -308,18 +345,22 @@ int main(int argc, char* argv[], const char* envp[]) {
   vector <double> wMultipliers;
 
   //V1:createing the vectors/Maps
-  vector<AccessTime *> timeVec;
-  vector<Window *> sampleVec;
-  vector<Window *> funcSampleVec;
-  vector<AccessTime *> funcVec;//Will hold important function's trace
+  //OZGURCLEANUP vector<AccessTime *> timeVec;
+   vector<Window *> sampleVec;
+   vector<Window *> funcSampleVec;
+  //OZGURCLEANUP vector<AccessTime *> funcVec;//Will hold important function's trace
+  Trace * funcTrace = new Trace();
   //map<string, vector<AccessTime *> funcVec;//Will hold all important functions' trace
-  map<unsigned long ,  int> ipTypeMap;
-  map <int,  map <int, double>> treeFPavgMap;
-  map <int,  map <int, double>> treeFPavgMap2;
+
+
+  map<unsigned long ,  enum Metrics> ipTypeMap;
+  //TODO NEEDED?? map <int,  map <int, double>> treeFPavgMap;
+  map <int,  map <enum Metrics, double>> treeFPavgMap2;
   
-  int sampleID = 0,  in_sampleID = 0, prev_sampleID = 0;
-  int in_dso_id = -1;
-  string dso_name = "";
+  uint32_t sampleID = 0,  in_sampleID = 0, prev_sampleID = 0;
+  uint16_t load_module_id = UINT16MAX;
+  string load_module = "";
+
 //New Mode to read input comands  
   string  inputFile = opps.getCmdOption("-t");
   string  callGraphFileName = opps.getCmdOption("-c");
@@ -480,7 +521,9 @@ int main(int argc, char* argv[], const char* envp[]) {
   unsigned long in_ip, in_addr, in_time;
   unsigned long in_cpu;
   map <unsigned long , memgaze::Function *> funcMAP; //This will hold start IP to function map
-                                            //This map is only to know the bounds 
+                                                      //This map is only to know the bounds 
+  map <string, uint32_t> reverseFuncMap;                                                      
+  uint32_t  funcIndex = 0;
   unsigned long func_start = 0, func_end = 0;
   string func_name;
   memgaze::Function *func;
@@ -514,8 +557,10 @@ int main(int argc, char* argv[], const char* envp[]) {
               zz --;
               zz->second->endIP = func_start - 1;
             }
-            func = new memgaze::Function(name_token ,  func_start, 24);
-            funcMAP.insert({func_start, func});
+            func = new memgaze::Function(name_token ,  func_start,0, 24);
+            funcMAP.insert({func_start, func}); //FIXME modify this to allpw multi LoadModule
+            reverseFuncMap.insert({name_token, funcIndex});
+            funcIndex++;
           }
         }
       }
@@ -539,7 +584,9 @@ int main(int argc, char* argv[], const char* envp[]) {
         std::istringstream ss_cip(celements[0]);
         ss_cip >> std::hex >> in_ip;
         std::istringstream ss_type(celements[1]);
-        ss_type >> std::hex >> type;
+        int inttype;
+        ss_type >> std::hex >> inttype;
+        type = getTYPE(inttype);
         ipTypeMap.insert({in_ip , type});
         std::istringstream ss_frame_lds(celements[4]);
         ss_frame_lds >> std::hex >> number_of_lds;
@@ -549,9 +596,10 @@ int main(int argc, char* argv[], const char* envp[]) {
   } 
   line="";
  
-  map<unsigned long , pair <unsigned long, unsigned long>> reuseMap;
-  map<unsigned long , pair <unsigned long, unsigned long>>::iterator reuseMapIter;
-  unsigned long prevTime = 0 , index = 0, reuse = -1, prevIndex = 0;
+ //OZGURCLEANUP DEPRICATE ??  map<unsigned long , pair <unsigned long, unsigned long>> reuseMap;
+ //OZGURCLEANUP DEPRICATE ??  map<unsigned long , pair <unsigned long, unsigned long>>::iterator reuseMapIter;
+  unsigned long prevTime = 0 , index = 0,  prevIndex = 0;
+  //OZGURCLEANUP unsigned long reuse =-1;
   int func_last_index = 0, func_index=0;
   bool is_in_func = false;
   int totalWindow = 0, importantWindows=0;
@@ -561,43 +609,45 @@ int main(int argc, char* argv[], const char* envp[]) {
   int loads_from_removed_samples = 0;
   Instruction * ip_to_add = NULL;
   int control = 0;
-  map <int, string> dsoMap;
-  bool isDSO = false, anyDSO = false;
+  map <uint16_t, string> lmMap;
+  map <string, uint16_t> reverselmMap;
+  bool isLM = false, anyLM = false;
   bool isTrace = false;
 
   if(inFile.is_open()){
     while(getline(inFile, line)){
       if (line.find("DSO:") != std::string::npos){
-        isDSO = true;
+        isLM = true;
         isTrace = false;
         continue;
       } else if (line.find("TRACE:") != std::string::npos){
-        isDSO = false;
+        isLM = false;
         isTrace = true;
         continue;
       }
-      if (isDSO){
+      if (isLM){
         std::vector<std::string> dso_elems;
         split(line, dso_elems);
-        int dsoID1 = stoi(dso_elems[1]);
+        uint16_t dsoID1 = (uint16_t)stoi(dso_elems[1]);
         string dsoName1 = dso_elems[0];
-        dsoMap.insert({dsoID1, dsoName1});
-        anyDSO = true;
+        lmMap.insert({dsoID1, dsoName1});
+        reverselmMap.insert({dsoName1, dsoID1});
+        anyLM = true;
       }
 
-      if ((isTrace && !isDSO)|| (!isDSO && !isTrace && !anyDSO) ){ 
+      if ((isTrace && !isLM)|| (!isLM && !isTrace && !anyLM) ){ 
         trace_size++;
-        reuse = -1;
+//OZGURCLEANUP        reuse = -1;
         std::vector<std::string> elements;
         split(line, elements);
         std::istringstream ss_ip(elements[0]);
         ss_ip >> std::hex >> in_ip;
-        map<unsigned long ,  int>::iterator tit = ipTypeMap.find(in_ip);
+        map<unsigned long ,  enum Metrics>::iterator tit = ipTypeMap.find(in_ip);
         if(tit != ipTypeMap.end()){
-          type = tit->second;
+          type = getTYPE(tit->second);
         } else {
   //FIXME OPEN THIS ERROR        cout << ">>>>>>>> IP for unknown load type is "<< hex<<in_ip<<dec << endl;
-          type = -1;
+          type = getTYPE(-1);
         }
         std::istringstream ss_addr(elements[1]);
         ss_addr >> hex >> in_addr;
@@ -615,11 +665,12 @@ int main(int argc, char* argv[], const char* envp[]) {
           } else {
             in_sampleID =  0 ;
           }
-          if(anyDSO){
-            in_dso_id = stoi(elements[5]);
-            dso_name = dsoMap[in_dso_id];
+          if(anyLM){
+            load_module_id = stoi(elements[5]);
+            load_module = lmMap[load_module_id];
           } else {
-            dso_name = "UNKNOWN";
+            load_module = "UNKNOWN";
+            load_module_id = UINT16MAX; 
           }
 
   //TODO exclude the frame loads and move their frm load exxtras to the next entry
@@ -667,25 +718,29 @@ int main(int argc, char* argv[], const char* envp[]) {
 
 
             //Creating class elements and adding them to the timeMap
-            addr = new Address(in_addr);
-            cpu = new CPU(in_cpu);
-            time = new AccessTime(in_time, sampleID);
-            ip = new Instruction(in_ip);
-            ip_to_add = ip;
+//OZGURCLEANUP            addr = new Address(in_addr);
+//OZGURCLEANUP            cpu = new CPU(in_cpu);
+//OZGURCLEANUP            time = new AccessTime(in_time, sampleID);
+//OZGURCLEANUP            ip = new Instruction(in_ip);
+            access =  new Access (in_ip, in_cpu, in_addr, in_time);
+
+            ip_to_add = access->ip;
          
             //setting class pointers for each class
-            addr->setAll(in_addr, cpu, time, ip, reuse);
-            cpu->setAll(in_cpu, addr, time, ip);
-            time->setAll(in_time, sampleID, cpu, addr, ip);
-            ip->setAll(in_ip, cpu, time, addr, type);
-
-            ip->setExtraFrameLds(xtr_lds +  missing_frame_loads);
-            ip->setDSOName(dso_name);
+//OZGURCLEANUP            addr->setAll(in_addr, cpu, time, ip, reuse);
+//OZGURCLEANUP            cpu->setAll(in_cpu, addr, time, ip);
+//OZGURCLEANUP            time->setAll(in_time, sampleID, cpu, addr, ip);
+//OZGURCLEANUP            ip->setAll(in_ip, cpu, time, addr, type);
+            access->time->setSampleID(sampleID);
+            access->ip->setExtraFrameLds(xtr_lds +  missing_frame_loads);
+//OZGURCLEANUP            access->ip->setDSOName(load_module);
+            access->ip->setLoadModule(load_module_id);
             missing_frame_loads = 0;
             xtr_lds = 0;
 
             //Add the appropriate pointer to appropriate vector
-            timeVec.push_back(time);
+//OZGURCLEANUP            timeVec.push_back(time);
+            trace->addAccess(access);
             prevTime = in_time;
           
             //Adding check if do_focus
@@ -708,7 +763,7 @@ int main(int argc, char* argv[], const char* envp[]) {
                 }
               }
               if (is_in_func){
-                funcVec.push_back(time); 
+                funcTrace->addAccess(access); 
                 func_index++;
               }
             }
@@ -718,20 +773,23 @@ int main(int argc, char* argv[], const char* envp[]) {
     }
   }
   
-  cout <<"Total Loads:"<<timeVec.size()<<" Trace Size:"<<trace_size<<endl;
-  cout <<" before Total Loads in Function:"<<funcVec.size()<<" Func found:"<<func_found<<" Func not Found: "<<func_not_found<<endl;
-  int fsize = funcVec.size();
-  funcVec.erase(funcVec.begin()+func_last_index+1, funcVec.end());
-  cout <<"after Total Loads in Function:"<<funcVec.size()<< " last index: "<<func_last_index << " index"<<func_index<<endl;
+//OZGURCLEANUP  cout <<"Total Loads:"<<timeVec.size()<<" Trace Size:"<<trace_size<<endl;
+  cout <<"Total Loads:"<<trace->getSize()<<" Trace Size:"<<trace_size<<endl;
+  cout <<" before Total Loads in Function:"<<funcTrace->getSize()<<" Func found:"<<func_found<<" Func not Found: "<<func_not_found<<endl;
+  int fsize = funcTrace->getSize();
+  funcTrace->removeAfter(func_last_index);
+//OZGURCLEANUP  funcVec.erase(funcVec.begin()+func_last_index+1, funcVec.end());
+  cout <<"after Total Loads in Function:"<<funcTrace->getSize()<< " last index: "<<func_last_index << " index"<<func_index<<endl;
   cout << "TOTAL Windows: "<< totalWindow <<" Important: "<<importantWindows << " Problem: " <<totalWindow-importantWindows <<endl;
 
 //Adding do_focus check
  if(do_focus){
-  timeVec.clear();
-  copy(funcVec.begin(), funcVec.end(), back_inserter(timeVec));
-//  timeVec =  funcVec;
+//OZGURCLEANUP  timeVec.clear();
+  trace->emptyTrace();
+//OZGURCLEANUP  copy(funcVec.begin(), funcVec.end(), back_inserter(timeVec));
+  trace->addTrace(funcTrace);
  }
-  cout <<"Total Loads:"<<timeVec.size()<<endl;
+  cout <<"Total Loads:"<<trace->getSize()<<endl;
 
 
 // Trace window based FP Analysis. 
@@ -768,17 +826,19 @@ int main(int argc, char* argv[], const char* envp[]) {
   unsigned long currIP =  0;
   bool isWindowAdded = false; 
   int lostInstructions= 0; //TODO NOTE:: I am keeping this but not using in anywhere
-  window_first_time = (*timeVec.begin())->time;
-  int prevSampleID = (*timeVec.begin())->getSampleID();
+  Access * firstAcces =  *(trace->trace.begin());
+  window_first_time = firstAcces->time->time;
+//OZGURCLEANUP  window_first_time = (*timeVec.begin())->time;
+  uint32_t prevSampleID = firstAcces->time->getSampleID();
   int min_window_size = 7;
   int in_sample_w_size = 0;
   int total_loads_in_trace = 0;
   int total_loads_in_window = 0;
   int ws_wo_frames= 0;
 //  bool skip_frame_lds = false;
-  cout << "OZGURDBGFRAMELDS total loads before frame loads is "<<timeVec.size()<<endl;
+  cout << "OZGURDBGFRAMELDS total loads before frame loads is "<<trace->getSize()<<endl;
 //  cout << "DEBUG:: Line: " << __LINE__ << endl;
-  for(auto it = timeVec.begin(); it != timeVec.end(); it++) {
+  for(auto it = trace->trace.begin(); it != trace->trace.end(); it++) {
 //    skip_frame_lds = false;
     total_loads_in_trace = total_loads_in_trace + 1 + (*it)->ip->getExtraFrameLds();
     total_loads_in_window = total_loads_in_window + 1 + (*it)->ip->getExtraFrameLds();
@@ -810,13 +870,16 @@ int main(int argc, char* argv[], const char* envp[]) {
       tempFunc = funcIter->second;
       currFuncName = tempFunc->name;
 //      cout << currFuncName << " size:"<<funcIter->second->timeVec.size() << " adding 0x"<<hex<<(*it)->addr->addr<<dec;
-      funcIter->second->timeVec.push_back(*it);
-      (*it)->addr->setFuncName(currFuncName);
+ //OZGURCLEANUP      funcIter->second->timeVec.push_back(*it);
+      funcIter->second->trace->addAccess(*it);
+ //OZGURCLEANUP      (*it)->addr->setFuncName(currFuncName);
+      uint32_t currFuncID = reverseFuncMap.find(currFuncName)->second;
+      (*it)->ip->setFuncName(currFuncID);
     }
 
 //Check sample bound
     bool isNewSample =  false;
-      if(prevSampleID != (*it)->getSampleID()){
+      if(prevSampleID != (*it)->time->getSampleID()){
         isNewSample =  true;
       } else {
         isNewSample =  false;
@@ -829,7 +892,7 @@ int main(int argc, char* argv[], const char* envp[]) {
       window_size+=current_ws;
       ws_wo_frames+=curr_ws_wo_frames;
 //      cout << "Current w:"<<current_ws << " Tot w:"<<window_size << " #w:"<< number_of_windows;
-      current_ztime = ((*it)->time-prevTime);
+      current_ztime = ((*it)->time->time-prevTime);
       skip_time+=current_ztime;
 //      cout << " Prev T:"<<prevTime<<" firstT:"<<window_first_time<< " wT:"<<(prevTime - window_first_time);
       wTime.push_back(prevTime - window_first_time);
@@ -840,7 +903,7 @@ int main(int argc, char* argv[], const char* envp[]) {
         z_curr = 0;
       }
       window_time += prevTime - window_first_time;
-      window_first_time =  (*it)->time;
+      window_first_time =  (*it)->time->time;
 //      cout <<" Current Z:"<<z_curr<<" Zt:"<<current_ztime<< " zt:"<<skip_time<<endl;
       Zs.push_back(z_curr);
       Zt.push_back(current_ztime);
@@ -869,7 +932,7 @@ int main(int argc, char* argv[], const char* envp[]) {
 //add this window to windows
       if (window != NULL && !isWindowAdded){
         window->setEtime(prevTime);
-        window->setFuncName();
+//OZGURCLEANUP DEPRICATE ??        window->setFuncName();
         windows.push_back(window);
       }
 
@@ -881,7 +944,7 @@ int main(int argc, char* argv[], const char* envp[]) {
         cout << "OZGUR::ERROR NOde IS NULL\n";
 
       node->sampleHead = true;
-      node->ws = current_ws;
+      //node->ws = current_ws;//OZGURCLEANUP
       forest.push_back(node);
       in_sample_w_size = 0;
 
@@ -889,9 +952,9 @@ int main(int argc, char* argv[], const char* envp[]) {
       windows.clear();
       window = nullptr;
       window =  new Window();
-      window->setStime((*it)->time);
-      window->setFuncName(currFuncName);
-      window->addAddress((*it)->addr);
+      window->setStime((*it)->time->time);
+//OZGURCLEANUP DEPRICATE ??      window->setFuncName(currFuncName);
+      window->addAccess((*it));
       windowID = {l_time, lvl};
       window->setID(windowID);
 
@@ -900,9 +963,9 @@ int main(int argc, char* argv[], const char* envp[]) {
       if (window == NULL){
         //This is the first window
         window  = new Window();
-        window->setStime((*it)->time);
-        window->setFuncName(currFuncName);
-        window->addAddress((*it)->addr); 
+        window->setStime((*it)->time->time);
+//OZGURCLEANUP DEPRICATE ??        window->setFuncName(currFuncName);
+        window->addAccess((*it)); 
         windowID = {l_time, lvl};
         window->setID(windowID);
       } else {
@@ -911,15 +974,15 @@ int main(int argc, char* argv[], const char* envp[]) {
           windows.push_back(window);
           window = nullptr;
           window  = new Window();
-          window->setStime((*it)->time);
-          window->addAddress((*it)->addr);
-          window->setFuncName(currFuncName);
+          window->setStime((*it)->time->time);
+          window->addAccess((*it));
+//OZGURCLEANUP DEPRICATE ??          window->setFuncName(currFuncName);
           windowID = {l_time, lvl};
           window->setID(windowID);
           in_sample_w_size = 0;
         } else { 
-          window->setEtime((*it)->time);
-          window->addAddress((*it)->addr);
+          window->setEtime((*it)->time->time);
+          window->addAccess((*it));
           in_sample_w_size++;
         }
 
@@ -943,13 +1006,14 @@ int main(int argc, char* argv[], const char* envp[]) {
       }
     }
     l_time++;
-    prevTime = (*it)->time;
+    prevTime = (*it)->time->time;
     prevFuncName =  currFuncName ;
-    prevSampleID = (*it)->getSampleID();
+    prevSampleID = (*it)->time->getSampleID();
 //    cout << "PrevTime: " << prevTime << " CurrTime: "<<(*it)->time << " Period: " << period << endl;
 //  }
   }
-  cout << "OZGURDBGFRAMELDS after timeVec  size  "<<timeVec.size()<<endl;
+  cout << "OZGURDBGFRAMELDS after timeVec  size  "<<trace->getSize()<<endl;
+
 
   cout << "OZGURDBGFRAMELDS total loads after frame loads is "<<total_loads_in_trace<<endl;
 //ADD last window crated
@@ -969,7 +1033,7 @@ int main(int argc, char* argv[], const char* envp[]) {
     }
 
     if (window != NULL && !isWindowAdded){
-      window->setFuncName();
+//OZGURCLEANUP DEPRICATE ??      window->setFuncName();
       windows.push_back(window);
     }
     Window * node;
@@ -978,7 +1042,7 @@ int main(int argc, char* argv[], const char* envp[]) {
     if (node == NULL)
       cout << "OZGUR::ERROR NOde IS NULL\n";
     node->sampleHead = true;
-    node->ws = current_ws;
+    //node->ws = current_ws; //OZGURCLEANUP
     forest.push_back(node);
     windows.clear();
     window = nullptr;
@@ -1007,25 +1071,25 @@ int main(int argc, char* argv[], const char* envp[]) {
   float skip_size2 =0, skip_size1=0;
 
   //calculating LoadBased Multiplier versions:
-  double multiplier_ld_median =0;
-  double multiplier_ld_mean =0;
+//OZGURCLEANUP  double multiplier_ld_median =0;
+//OZGURCLEANUP  double multiplier_ld_mean =0;
   double multiplier_ld_from_totals =0;
   if (number_of_windows > 0){
     std::sort(wMultipliers.begin(),wMultipliers.end());
     int size_wMultiplier  = wMultipliers.size();
-    if (size_wMultiplier){
-      if (size_wMultiplier%2){
-        multiplier_ld_median = wMultipliers[size_wMultiplier/2];
-      } else {
-        multiplier_ld_median = (wMultipliers[size_wMultiplier/2] + wMultipliers[size_wMultiplier/2 -1])/2;
-      }
-    }
+//OZGURCLEANUP    if (size_wMultiplier){
+//OZGURCLEANUP      if (size_wMultiplier%2){
+//OZGURCLEANUP        multiplier_ld_median = wMultipliers[size_wMultiplier/2];
+//OZGURCLEANUP      } else {
+//OZGURCLEANUP        multiplier_ld_median = (wMultipliers[size_wMultiplier/2] + wMultipliers[size_wMultiplier/2 -1])/2;
+//OZGURCLEANUP      }
+//OZGURCLEANUP    }
     double total_of_multipliers = 0;
     for (int index=0; index< size_wMultiplier; index++){
 //      cout << " Sample Index="<< index<<" multipler="<<wMultipliers[index]<<endl;
       total_of_multipliers+=wMultipliers[index];
     }
-    multiplier_ld_mean = total_of_multipliers/number_of_windows;
+//OZGURCLEANUP    multiplier_ld_mean = total_of_multipliers/number_of_windows;
     multiplier_ld_from_totals = ((double)number_of_windows*(double)period) / (double)total_loads_in_trace;
   }
 
@@ -1112,9 +1176,9 @@ int main(int argc, char* argv[], const char* envp[]) {
   cout << "General MULTIPLIER="<<multiplier<<endl; //TODO NOTE:: maybe get rid of general completely
   cout << "#windows: "<<number_of_windows<<" Period:"<<period<<" Total Lds:"<< total_loads_in_trace<<endl;
   double multiplier2 = (((double)number_of_windows*(double)period) - (double)total_loads_in_trace) / (double)total_loads_in_trace;
-  double imp_to_all_ratio = (double)total_loads_in_trace / (double)timeVec.size();
+  double imp_to_all_ratio = (double)total_loads_in_trace / (double)trace->getSize();
   cout << "General MULTIPLIER with frame loads="<<multiplier2<<endl; //TODO NOTE:: maybe get rid of general completely
-  cout << "Recorded: "<<timeVec.size()<<" supposed to reccord(w/ frame)"<<total_loads_in_trace<<" ratio:"<<imp_to_all_ratio<<endl; //TODO NOTE:: maybe get rid of general completely
+  cout << "Recorded: "<<trace->getSize()<<" supposed to reccord(w/ frame)"<<total_loads_in_trace<<" ratio:"<<imp_to_all_ratio<<endl; //TODO NOTE:: maybe get rid of general completely
   printTree(fullT , period, 0 , &treeFPavgMap2 , false , is_load); 
 //TODO open  printTree(fullT , period,  fullT->windowID.second, false , is_load); 
   //printTree(fullT , &treeFPavgMap, period,  fullT->windowID.second, false , is_load); 
@@ -1137,21 +1201,21 @@ int main(int argc, char* argv[], const char* envp[]) {
   if (is_LDLAT || !do_reuse){
     multiplier = 1; 
   }
-  
+ 
   cout << "Function based Flat FP with mutiplier:"<<multiplier<<endl;
   float local_multiplier= 0;
   for (auto it= funcMAP.begin();it !=funcMAP.end();it++){//TODO actually here first buila a tree for
                                                          //each function then print tree
-    if (it->second->timeVec.size() > 0){
+    if (it->second->trace->getSize() > 0){
       (*it).second->calcFP();
   //    cout << "getting Local Multiplier for function "<<(*it).second->name<<endl;
       local_multiplier =  (*it).second->getMultiplier(period, is_load);
-      map <int, double> diagMap;
+      map <enum Metrics, double> diagMap;
       (*it).second->getFPDiag(&diagMap);
 
       (*it).second->calcCPUFP();
       int ncpus = (*it).second->ncpus;
-      map <int, double> cpuDiagMap[ncpus];
+      map <enum Metrics, double> cpuDiagMap[ncpus];
       for (int i=0; i<ncpus; i++)
         (*it).second->getCPUFPDiag(&(cpuDiagMap[i]), i);
 
@@ -1176,20 +1240,20 @@ int main(int argc, char* argv[], const char* envp[]) {
 //      cout << " Local multiplier = "<<local_multiplier<<endl;
      //local_multiplier = multiplier_ld_from_totals;
      local_multiplier = multiplier2;
-      cout << (*it).second->name << " tot StartIP: "<<hex<<(*it).second->startIP<<" EndIP: "<< (*it).second->endIP<<dec <<" Size: "<< it->second->timeVec.size() << " FP: "<<(*it).second->fp*local_multiplier << " lds: "<<(*it).second->timeVec.size()*imp_to_all_ratio*local_multiplier<<" collected/total: "<<imp_to_all_ratio;
-      cout<<" Strided: "<<diagMap[1]*local_multiplier <<" Indirect: "<<diagMap[2]*local_multiplier<<" Constant: "<<diagMap[0]*local_multiplier <<" Unknown: "<<diagMap[-1]*local_multiplier;
-      cout << " Multiplier = "<<local_multiplier<<" Growth Rate: "<<((*it).second->fp*local_multiplier)/((*it).second->timeVec.size()*imp_to_all_ratio*local_multiplier)<<endl;
+      cout << (*it).second->name << " tot StartIP: "<<hex<<(*it).second->startIP<<" EndIP: "<< (*it).second->endIP<<dec <<" Size: "<< it->second->trace->getSize() << " FP: "<<(*it).second->fp*local_multiplier << " lds: "<<(*it).second->trace->getSize()*imp_to_all_ratio*local_multiplier<<" collected/total: "<<imp_to_all_ratio;
+      cout<<" Strided: "<<diagMap[STRIDED]*local_multiplier <<" Indirect: "<<diagMap[INDIRECT]*local_multiplier<<" Constant: "<<diagMap[CONSTANT]*local_multiplier <<" Unknown: "<<diagMap[UNKNOWN]*local_multiplier;
+      cout << " Multiplier = "<<local_multiplier<<" Growth Rate: "<<((*it).second->fp*local_multiplier)/((*it).second->trace->getSize()*imp_to_all_ratio*local_multiplier)<<endl;
     
     cout << "_____________________________________________________________" << endl;
     cout << "Function Name: " << (*it).second->name << endl; 
     cout << "tot StartIP: "<<hex<<(*it).second->startIP<< endl
          << "EndIP: "<< (*it).second->endIP<<dec << endl
-         << "Timevec Size: "<< it->second->timeVec.size() << endl
+         << "Timevec Size: "<< it->second->trace->getSize() << endl
          << "Percore Stats:" << endl
          << "\tCPUID, FP Size, FP, lds, collected/total, Strided, Indirect, Constant, Unknown, Multiplier, Growth Rate" << endl;
     for (int cpuid=0; cpuid<ncpus; cpuid++) {
-        cout << "\t"<< cpuid  <<", " << (*it).second->cpuFP[cpuid] << ", "<<(*it).second->cpuFP[cpuid]*local_multiplier << ", "<<(*it).second->timeVec.size()*imp_to_all_ratio*local_multiplier<<", "<<imp_to_all_ratio<<", "<<cpuDiagMap[cpuid][1]*local_multiplier <<", "<<cpuDiagMap[cpuid][2]*local_multiplier<<", "<<cpuDiagMap[cpuid][0]*local_multiplier <<", "<<cpuDiagMap[cpuid][-1]*local_multiplier;
-      cout << ", "<<local_multiplier<<", "<<((*it).second->cpuFP[cpuid]*local_multiplier)/((*it).second->timeVec.size()*imp_to_all_ratio*local_multiplier)<<endl;
+        cout << "\t"<< cpuid  <<", " << (*it).second->cpuFP[cpuid] << ", "<<(*it).second->cpuFP[cpuid]*local_multiplier << ", "<<(*it).second->trace->getSize()*imp_to_all_ratio*local_multiplier<<", "<<imp_to_all_ratio<<", "<<cpuDiagMap[cpuid][STRIDED]*local_multiplier <<", "<<cpuDiagMap[cpuid][INDIRECT]*local_multiplier<<", "<<cpuDiagMap[cpuid][CONSTANT]*local_multiplier <<", "<<cpuDiagMap[cpuid][UNKNOWN]*local_multiplier;
+      cout << ", "<<local_multiplier<<", "<<((*it).second->cpuFP[cpuid]*local_multiplier)/((*it).second->trace->getSize()*imp_to_all_ratio*local_multiplier)<<endl;
     }
     cout << "--------------------------------------------------------------" << endl;
     }
@@ -1211,7 +1275,7 @@ int main(int argc, char* argv[], const char* envp[]) {
   } else if (multiplier2 < 1 ){
     multiplier2 =1;
   } 
-  long int lds = timeVec.size()*total_ld_multiplier;
+  long int lds = trace->getSize()*total_ld_multiplier;
   if (do_output){
     outFile << left <<setw(cellsize) << setfill(filler)<<"LVL"
             << left <<setw(cellsize) << setfill(filler)<<"Number_of_Nodes"
@@ -1328,25 +1392,25 @@ int main(int argc, char* argv[], const char* envp[]) {
 //           << " Unknown: " << ( treeFPavgMap2[treeLVL][UNKNOWN] / n_nodes)  << endl;
 //    }
   }
-    
-    cout <<"Total Trace size: "<<timeVec.size()<<" Important trace size: "<<funcVec.size()<<" Multiplier "<< total_ld_multiplier<<endl;
-    cout <<"Total loads: "<<timeVec.size()*total_ld_multiplier<<" Important loads: "<<funcVec.size()*total_ld_multiplier<<endl;
+   
+    cout <<"Total Trace size: "<<trace->getSize()<<" Important trace size: "<<funcTrace->getSize()<<" Multiplier "<< total_ld_multiplier<<endl;
+    cout <<"Total loads: "<<trace->getSize()*total_ld_multiplier<<" Important loads: "<<funcTrace->getSize()*total_ld_multiplier<<endl;
 
   cout << "Tree root multiplier: "<<endl;
   fullT->calcMultiplier(period, is_load);
   if(do_focus){
     //PRINT IMPORTANT FUNCTION
-    memgaze::Function *imp_func = new memgaze::Function(functionName , 0, 24);
+    memgaze::Function *imp_func = new memgaze::Function(functionName ,0,0, 24);
     cout<<endl << "Printing important function: "<<functionName<<endl;
     unsigned long sTime = 0 , eTime=0;
-    for (auto  it =funcVec.begin(); it != funcVec.end(); it++){
-      imp_func->timeVec.push_back(*it);
+    for (auto  it =funcTrace->trace.begin(); it != funcTrace->trace.end(); it++){
+      imp_func->trace->addAccess(*it);
       if (sTime == 0 ){
-        sTime = (*it)->time;
+        sTime = (*it)->time->time;
       }
-      eTime= (*it)->time;
+      eTime= (*it)->time->time;
     }
-    map <int, double> diagMap;
+    map <enum Metrics, double> diagMap;
     imp_func->calcFP();
     imp_func->calcCPUFP();
     cout << " Start time: "<< sTime <<" End time: "<<eTime<<endl;
@@ -1360,9 +1424,9 @@ int main(int argc, char* argv[], const char* envp[]) {
 
     cout << "MEM FP analysis on focus function:" <<  imp_func->name << endl;
 
-    cout << imp_func->name << " StartIP: "<<hex<<imp_func->startIP<<dec <<" Size: "<<imp_func->timeVec.size() << " FP: "<<imp_func->fp*local_multiplier << " lds: "<<imp_func->totalLoads ;
+    cout << imp_func->name << " StartIP: "<<hex<<imp_func->startIP<<dec <<" Size: "<<imp_func->trace->getSize() << " FP: "<<imp_func->fp*local_multiplier << " lds: "<<imp_func->totalLoads ;
 
-    cout<<" Strided: "<<diagMap[1]*local_multiplier <<" Indirect: "<<diagMap[2]*local_multiplier<<" Constant: "<<diagMap[0]*local_multiplier <<" Unknown: "<<diagMap[-1]*local_multiplier;
+    cout<<" Strided: "<<diagMap[STRIDED]*local_multiplier <<" Indirect: "<<diagMap[INDIRECT]*local_multiplier<<" Constant: "<<diagMap[CONSTANT]*local_multiplier <<" Unknown: "<<diagMap[UNKNOWN]*local_multiplier;
     cout << " Local multiplier = "<<local_multiplier<<" time(s):"<<(eTime-sTime)/1000000000.0<<endl;
 
     int ncpus = imp_func->ncpus;
@@ -1372,10 +1436,10 @@ int main(int argc, char* argv[], const char* envp[]) {
     cout << "[New] CPU+MEM FP analysis on focus function:" <<  imp_func->name << endl;
     cout <<"CPUID, StartIP, Size, FP, lds, Strided, Indirect, Constant, Unknown, Local multiplier,time(s)"<<endl;
     for (int cpuid=0; cpuid<ncpus; cpuid++) {
-        map <int, double> cpuDiagMap;
+        map <enum Metrics, double> cpuDiagMap;
         imp_func->getCPUFPDiag(&cpuDiagMap, cpuid);
 
-        cout << cpuid << ", " <<hex<<imp_func->startIP<<dec <<", "<<imp_func->cpuFP[cpuid] << ", "<<imp_func->cpuFP[cpuid]*local_multiplier << ", "<<imp_func->totalLoads << "," <<cpuDiagMap[1]*local_multiplier <<", "<<cpuDiagMap[2]*local_multiplier<<", "<<cpuDiagMap[0]*local_multiplier <<", "<<cpuDiagMap[-1]*local_multiplier;
+        cout << cpuid << ", " <<hex<<imp_func->startIP<<dec <<", "<<imp_func->cpuFP[cpuid] << ", "<<imp_func->cpuFP[cpuid]*local_multiplier << ", "<<imp_func->totalLoads << "," <<cpuDiagMap[STRIDED]*local_multiplier <<", "<<cpuDiagMap[INDIRECT]*local_multiplier<<", "<<cpuDiagMap[CONSTANT]*local_multiplier <<", "<<cpuDiagMap[UNKNOWN]*local_multiplier;
         cout << ", "<<local_multiplier<<", "<<(eTime-sTime)/1000000000.0<<endl;
     }
   }
@@ -1413,15 +1477,11 @@ int main(int argc, char* argv[], const char* envp[]) {
 
 
   //Here we free anyhing we created
-  for (auto i = timeVec.begin(); i != timeVec.end(); ++i) {
-    delete *i;
-  }
-  timeVec.clear();
-  funcVec.clear();
+  delete trace;
+  delete funcTrace;
  
   outFile.close();
   inFile.close(); 
-
   std::cout << "finished with Footprint Analysis" << std::endl;
   return 0;
 }
