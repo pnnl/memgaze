@@ -79,7 +79,6 @@ def readFile(inFile, outFile,appName):
                   objFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet_O3-capture_ABC/obj_darknet_O3'
                   objFile_C = ''
                   varVersion = 'sd_rd: '
-                # doesnt work - selective instrumentation mapping has errors
                 if (appName == 'sd_darknet_al_gemm'): 
                   logFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet-gemm/darknet-memgaze.binanlys'
                   objFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet-gemm/obj_darknet'
@@ -90,6 +89,21 @@ def readFile(inFile, outFile,appName):
                   objFile = '/home/suri836/Projects/run_memgaze/darknet/mg-darknet-gemm/obj_darknet'
                   objFile_C = ''
                   varVersion = 'sd_rs: '
+                if (appName == 'lulesh'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/LULESH/mg-lulesh/lulesh2.0-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/LULESH/mg-lulesh/obj_lulesh'
+                  objFile_C = ''
+                  varVersion = 'll: '
+                if (appName == 'spmm-mat'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-spmm-mat/spmm_mat-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-spmm-mat/obj_spmm'
+                  objFile_C = ''
+                  varVersion = 'sp: '
+                if (appName == 'spmm-hicoo'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-spmm-hicoo/spmm_hicoo_mat-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-spmm-hicoo/obj_spmm_hicoo'
+                  objFile_C = ''
+                  varVersion = 'hic: '
                 if (appName == 'vec_store_lm'): 
                   logFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/vec_gpp_st_no_frame_gh/vec_gpp_exe-memgaze.binanlys'
                   objFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/vec_gpp_st_no_frame_gh/obj_vec_gpp'
