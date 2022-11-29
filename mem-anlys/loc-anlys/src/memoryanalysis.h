@@ -190,7 +190,7 @@ int getAccessCount(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int core
 	uint32_t * sampleRefdistance = new uint32_t [memarea.blockCount]; // ref distance
   int curSampleId, prevSampleId; 
 	uint64_t previousAddr =0;  //used for offset check
-  uint32_t i, j;
+  uint32_t i;
   uint64_t totalinst = 0;
   uint64_t time = 0;
   prevSampleId = -1;
@@ -244,6 +244,7 @@ int getAccessCount(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int core
     sampleLastAccess[pageID] = time; //update the page access time
 
   }
+  return 0;
 }
 
 /* 

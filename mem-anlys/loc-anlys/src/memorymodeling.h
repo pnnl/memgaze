@@ -1354,9 +1354,9 @@ int memoryModeling(string filename, MemArea memarea, int coreNumber){
 				bool drain = 0; //if drain this time
 				int first = cq[q].Qkey[0];
 				  //queue drain on cq[QID]
-				if ((time > (cq[q].Qhead+cq[q].processinglength))&&(cq[q].length != 0)){	
+				if ((((int)time) > (cq[q].Qhead+cq[q].processinglength))&&(cq[q].length != 0)){	
 					for (int i = 0; i < cq[q].length; i++){   // search the first in the queue
-						if ((first >= cq[q].Qkey[i])&&(cq[q].Qtail[i]+cq[q].processinglength <= time) ){
+						if ((first >= cq[q].Qkey[i])&&(cq[q].Qtail[i]+cq[q].processinglength <= ((int)time)) ){
 							first = cq[q].Qkey[i];
 							target = i;
 							drain = 1;
@@ -1394,9 +1394,9 @@ int memoryModeling(string filename, MemArea memarea, int coreNumber){
 				bool drain = 0;
 				int last = cq[q].Qkey[0];
 			  //queue drain on cq[QID]
-				if ((time > (cq[q].Qhead+cq[q].processinglength))&&(cq[q].length != 0)){	
+				if ((((int)time) > (cq[q].Qhead+cq[q].processinglength))&&(cq[q].length != 0)){	
 					for (int i = 0; i < cq[q].length; i++){   // search the last in the queue
-						if ((last <= cq[q].Qkey[i])&&(cq[q].Qtail[i]+cq[q].processinglength <= time)){
+						if ((last <= cq[q].Qkey[i])&&(cq[q].Qtail[i]+cq[q].processinglength <= ((int)time))){
 							last = cq[q].Qkey[i];
 							target = i;
 							drain = 1;
@@ -1429,9 +1429,9 @@ int memoryModeling(string filename, MemArea memarea, int coreNumber){
 				int hash = cq[q].Qkey[0];
 				bool drain = 0;
 			  //queue drain on cq[QID]
-				if ((time > (cq[q].Qhead+cq[q].processinglength))&&(cq[q].length != 0)){
+				if ((((int)time) > (cq[q].Qhead+cq[q].processinglength))&&(cq[q].length != 0)){
 					for (int i = 0; i < cq[q].length; i++){   // search the last in the queue
-						if ((hash <= cq[q].Qkey[i])&&(cq[q].Qtail[i]+cq[q].processinglength <= time)){
+						if ((hash <= cq[q].Qkey[i])&&(cq[q].Qtail[i]+cq[q].processinglength <= ((int)time))){
 							hash = cq[q].Qkey[i];
 							target = i;
 							drain = 1;
@@ -1509,7 +1509,7 @@ int memoryModeling(string filename, MemArea memarea, int coreNumber){
 					*/
 					
 					pageID = floor((instAddr-memarea.min)/(memarea.blockSize));
-                    if(pageID == memarea.blockCount) pageID--;
+                    if(pageID == ((int)memarea.blockCount)) pageID--;
 					cacheline = floor((instAddr-(memarea.min+pageID*memarea.blockSize))/(memarea.blockSize/(l1CacheOffset)));
 					LLCline = floor((instAddr-(memarea.min+pageID*memarea.blockSize))/(memarea.blockSize/(LLCacheOffset)));
 					//printf("PageID %d, value 0x%016llx cacheline %d LLCline %d\n",pageID, (instAddr - (memarea.min+pageID*memarea.blockSize)), cacheline, LLCline);
