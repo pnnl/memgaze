@@ -265,6 +265,10 @@ elif [[ ${opt_method} = 'ldlat' ]] ; then
 fi
 
 
+#-----------------------------------------------------------
+# 
+#-----------------------------------------------------------
+
 sleep 1
 correct_app_pid="$(ps --no-headers -o pid= --ppid $app_pid)"
 while [[ $correct_app_pid == ' '* ]]; do
@@ -282,6 +286,7 @@ heap_addr="${heap_map_line%%-*}"
 
 wait $app_pid 
 sleep 1
+
 
 #-----------------------------------------------------------
 # output directory
