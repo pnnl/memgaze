@@ -154,7 +154,7 @@ void printTree (Window * root,  uint32_t period ,uint32_t lvl, map <int, map<enu
 //OZGURCLEANUP    string dso = root->addresses[0]->ip->getDSOName();
 //    string load_module = root->trace->getTrace[0]->ip->getLoadModule(lmMap);
 //    cout << "Window: "<<root->windowID.first<<":"<<root->windowID.second<<" DSO: "<<dso<<endl;
-    modifier =  root->calcMultiplier(period, is_load);
+    modifier =  root->calcMultiplier();
     float org_modifier = modifier;
     root->getFPDiag(&diagMap);
     unsigned long constant_lds = root->calcConstantLds();
@@ -952,6 +952,7 @@ int main(int argc, char* argv[], const char* envp[]) {
       windows.clear();
       window = nullptr;
       window =  new Window();
+      window->setPeriod(period);
       window->setStime((*it)->time->time);
 //OZGURCLEANUP DEPRICATE ??      window->setFuncName(currFuncName);
       window->addAccess((*it));
@@ -963,6 +964,7 @@ int main(int argc, char* argv[], const char* envp[]) {
       if (window == NULL){
         //This is the first window
         window  = new Window();
+        window->setPeriod(period);
         window->setStime((*it)->time->time);
 //OZGURCLEANUP DEPRICATE ??        window->setFuncName(currFuncName);
         window->addAccess((*it)); 
@@ -974,6 +976,7 @@ int main(int argc, char* argv[], const char* envp[]) {
           windows.push_back(window);
           window = nullptr;
           window  = new Window();
+          window->setPeriod(period);
           window->setStime((*it)->time->time);
           window->addAccess((*it));
 //OZGURCLEANUP DEPRICATE ??          window->setFuncName(currFuncName);
@@ -1397,7 +1400,7 @@ int main(int argc, char* argv[], const char* envp[]) {
     cout <<"Total loads: "<<trace->getSize()*total_ld_multiplier<<" Important loads: "<<funcTrace->getSize()*total_ld_multiplier<<endl;
 
   cout << "Tree root multiplier: "<<endl;
-  fullT->calcMultiplier(period, is_load);
+  fullT->calcMultiplier();
   if(do_focus){
     //PRINT IMPORTANT FUNCTION
     memgaze::Function *imp_func = new memgaze::Function(functionName ,0,0, 24);

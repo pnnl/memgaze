@@ -58,37 +58,6 @@ using namespace std;
       trace = new Trace();
     }
     
-//OZGURCLEANUP DEPRICATE ??    void Window::setFuncName( std::string _name ) { funcName = _name;}
-//OZGURCLEANUP DEPRICATE ??
-/*
-    void Window::setFuncName( ) { 
-      map <Address*, map <unsigned long, int>> localFuncFPMap;
-      for (auto ait=this->addresses.begin(); ait != this->addresses.end(); ait++){
-        map <Address* , map <unsigned long, int>>::iterator funcIter = localFuncFPMap.find((*ait));
-        if (funcIter != localFuncFPMap.end()){
-          map <unsigned long, int>::iterator fpIter = funcIter->second.find((*ait)->addr);
-          if (fpIter != funcIter->second.end()){
-            fpIter->second++;
-          } else {
-            funcIter->second.insert({(*ait)->addr,1});
-          }
-        } else {
-          map <unsigned long, int> localFPMap;
-          localFPMap.insert({(*ait)->addr,1});
-          localFuncFPMap.insert({(*ait), localFPMap});
-        }
-      }
-      unsigned int maxFP = 0;
-      for(auto it=localFuncFPMap.begin() ;  it != localFuncFPMap.end(); it++){
-        if (maxFP < (*it).second.size()){
-          this->funcName = (*it).first->getFuncName();
-          this->maxFP_addr = (*it).first;
-          maxFP = (*it).second.size();
-        }
-      }
-    }
-    std::string Window::getFuncName( ) { return funcName;}
-  */
     void Window::setStime( unsigned long _stime ) { stime = _stime;}
     void Window::setEtime( unsigned long _etime ) { etime = _etime;}
     void Window::setMtime( unsigned long _mtime ) { mtime = _mtime;}
@@ -139,38 +108,9 @@ using namespace std;
       }
     }
     
-//OZGURCLEANUP DEPRICATE ??
-/*
-    void Window::addAddress(Address *add){
-      addresses.push_back(add);
-      map <unsigned long, map <int, int>>::iterator it = fpMap.find(add->addr);
-      if (it == fpMap.end()){
-        map <int, int> addthis;
-        addthis.insert({add->ip->type, 1});
-        if (add->ip->getExtraFrameLds() >0){
-          addthis.insert({0,add->ip->getExtraFrameLds()});
-        }
-        fpMap.insert({add->addr , addthis});
-      } else {
-        map <int, int>::iterator tit = it->second.find(add->ip->type);
-        if (tit != it->second.end()){
-          tit->second++;
-        } else {
-          it->second.insert({add->ip->type, 1});
-        }
-        if (add->ip->getExtraFrameLds() >0){
-          tit = it->second.find(0);
-          if (tit != it->second.end()){
-            tit->second+=add->ip->getExtraFrameLds();
-          } else {
-            it->second.insert({0,add->ip->getExtraFrameLds()});
-          }
-        }
-
-      }
-    }
-*/    
+    
     void Window::addWindow(Window * w){
+      this->period = w->period;
       if (this->fpMap.empty()){
         for (auto ait=this->trace->trace.begin(); ait != this->trace->trace.end(); ait++){
           map <unsigned long, map <enum Metrics, uint32_t>>::iterator it = this->fpMap.find((*ait)->addr->addr);
@@ -226,10 +166,10 @@ using namespace std;
     }
     
     pair<unsigned long, uint32_t> Window::getWindowID () { return windowID; }
-    int Window::getFP(){return fpMap.size();}
+    int Window::getFP(){return fpMetrics[FP];}
 
 
-    void Window::getdiagMap (map <enum Metrics,uint32_t> *typeMap, map <enum Metrics, double> *fpDiagMap) {
+    void Window::getdiagMap (map <enum Metrics,uint32_t> *typeMap) {
       map <enum Metrics, uint32_t>::iterator tit = typeMap->begin();
       map <enum Metrics, double>::iterator did;
       double total = 0;
@@ -239,27 +179,34 @@ using namespace std;
       }
       for (tit = typeMap->begin();  tit != typeMap->end(); tit++){
         freq =  ( (double)tit->second / (double)total);
-        did =  fpDiagMap->find(tit->first);
-        if (did !=  fpDiagMap->end()){
+        did =  fpMetrics.find(tit->first);
+        if (did !=  fpMetrics.end()){
           did->second += freq;
         } else { 
-          fpDiagMap->insert({tit->first, freq});
+          fpMetrics.insert({tit->first, freq});
         }
       }
     }
-    
-    void  Window::getFPDiag(map <enum Metrics, double> *diagMap){ // this map holds fp per type
+    void  Window::getFPDiag(map <enum Metrics, double> *diagMap){
+      if (fpMetrics.empty()){
+        this->calcFPMetrics();
+      }
+      diagMap = &fpMetrics;
+    }
+    void  Window::calcFPMetrics(){
       map <unsigned long, map <enum Metrics,uint32_t>>::iterator fp_it = this->fpMap.begin();
+      fpMetrics[FP]= fpMap.size();
+      fpMetrics[WINDOW_SIZE] = this->getSize();
       for (; fp_it != this->fpMap.end() ;  fp_it++){
         if (fp_it->second.size() ==1){
-          map <enum Metrics, double >::iterator dmit =  diagMap->find(fp_it->second.begin()->first);
-          if (dmit != diagMap->end()){
+          map <enum Metrics, double >::iterator dmit =  fpMetrics.find(fp_it->second.begin()->first);
+          if (dmit != fpMetrics.end()){
             dmit->second++;
           } else {
-            diagMap->insert({fp_it->second.begin()->first, 1.0});
+            fpMetrics.insert({fp_it->second.begin()->first, 1.0});
           }
         } else { 
-          getdiagMap(&(fp_it->second), diagMap);    
+          getdiagMap(&(fp_it->second));    
         }
       } 
     }
@@ -308,9 +255,12 @@ using namespace std;
       for (auto ait =  w->trace->trace.begin() ; ait != w->trace->trace.end(); ait++){
         trace->addAccess(*ait);  
       }
-//      if (!w->sampleHead){
-//        w->removeTrace();
-//      }
+      if (!w->sampleHead){
+        w->calcMultiplier();
+        w->calcFPMetrics();
+        w->removeTrace();
+        w->removeFPMap();
+      }
     }
 
     void Window::addLeftChild (Window *w){
@@ -319,9 +269,12 @@ using namespace std;
       for (auto ait =  w->trace->trace.begin() ; ait != w->trace->trace.end(); ait++){
         trace->addAccess(*ait);  
       }
-//      if (!w->sampleHead){
-//        w->removeTrace();
-//      }
+      if (!w->sampleHead){
+        w->calcMultiplier();
+        w->calcFPMetrics();
+        w->removeTrace();
+        w->removeFPMap();
+      }
     }
 
     int Window::getSize(){
@@ -336,7 +289,7 @@ using namespace std;
 //TODO NOTE:: change this calculate multiplier and add multiplier as a float and add get multiplier
 //TODO try to get multiplier as we were doing in the beginin but per window. This can be used locally so we may have a better estimate when we are doing window view. 
 //TODO Probably we can do per funtion too
-    float Window::calcMultiplier(unsigned long  period, bool is_load){
+    float Window::calcMultiplier(){
       unsigned long prevTime = 0;
       unsigned long window_first_time = 0;
       int number_of_windows = 0;
@@ -456,36 +409,45 @@ using namespace std;
       }
     }
 
-    map<enum Metrics, double> Window::getMetrics(map<enum Metrics, double> diagMap) {
+
+    map<enum Metrics, double> Window::getMetrics() {
       map<enum Metrics, double> metrics;
       float multiplier = this->getMultiplier();
-      if (diagMap.empty()) {
-        this->getFPDiag(&diagMap);
+      if (fpMetrics.empty()) {
+        this->calcFPMetrics();
       }
 
-      diagMap[FP] = this->getFP();
-      diagMap[WINDOW_SIZE] = this->getSize();
-      metrics[WINDOW_SIZE] = diagMap[WINDOW_SIZE];
+      metrics[WINDOW_SIZE] = fpMetrics[WINDOW_SIZE];
 
-      if (diagMap[IN_SAMPLE] == 0) {
-        metrics[FP] = diagMap[FP] * multiplier;
-        metrics[STRIDED] = diagMap[STRIDED] * multiplier;
-        metrics[INDIRECT] = diagMap[INDIRECT] * multiplier;
-        metrics[CONSTANT] = diagMap[CONSTANT] * multiplier;
-        //metrics[UNKNOWN] = diagMap[UNKNOWN] * multiplier;
-        metrics[TOTAL_LOADS] = diagMap[WINDOW_SIZE] * multiplier; 
+      if (fpMetrics[IN_SAMPLE] == 0) {
+        metrics[FP] = fpMetrics[FP] * multiplier;
+        metrics[STRIDED] = fpMetrics[STRIDED] * multiplier;
+        metrics[INDIRECT] = fpMetrics[INDIRECT] * multiplier;
+        metrics[CONSTANT] = fpMetrics[CONSTANT] * multiplier;
+        //metrics[UNKNOWN] = fpMetrics[UNKNOWN] * multiplier;
+        metrics[TOTAL_LOADS] = fpMetrics[WINDOW_SIZE] * multiplier; 
       }
       else {
-        metrics[FP] = diagMap[FP];
-        metrics[STRIDED] = diagMap[STRIDED];
-        metrics[INDIRECT] = diagMap[INDIRECT];
-        metrics[CONSTANT] = diagMap[CONSTANT];
-        //metrics[UNKNOWN] = diagMap[UNKNOWN];
-        metrics[TOTAL_LOADS] = diagMap[WINDOW_SIZE];
+        metrics[FP] = fpMetrics[FP];
+        metrics[STRIDED] = fpMetrics[STRIDED];
+        metrics[INDIRECT] = fpMetrics[INDIRECT];
+        metrics[CONSTANT] = fpMetrics[CONSTANT];
+        //metrics[UNKNOWN] = fpMetrics[UNKNOWN];
+        metrics[TOTAL_LOADS] = fpMetrics[WINDOW_SIZE];
       }
-      metrics[CONSTANT2LOAD_RATIO] = (diagMap[CONSTANT] * multiplier) / ((diagMap[WINDOW_SIZE] + diagMap[CONSTANT]) * multiplier);
-      metrics[NPF_RATE] = diagMap[INDIRECT] / diagMap[FP];
-      metrics[NPF_GROWTH_RATE] = (diagMap[INDIRECT] * multiplier) / (diagMap[WINDOW_SIZE] * multiplier);
-      metrics[GROWTH_RATE] = (diagMap[FP] * multiplier) / (diagMap[WINDOW_SIZE] * multiplier);
+      metrics[CONSTANT2LOAD_RATIO] = (fpMetrics[CONSTANT] * multiplier) / ((fpMetrics[WINDOW_SIZE] + fpMetrics[CONSTANT]) * multiplier);
+      metrics[NPF_RATE] = fpMetrics[INDIRECT] / fpMetrics[FP];
+      metrics[NPF_GROWTH_RATE] = (fpMetrics[INDIRECT] * multiplier) / (fpMetrics[WINDOW_SIZE] * multiplier);
+      metrics[GROWTH_RATE] = (fpMetrics[FP] * multiplier) / (fpMetrics[WINDOW_SIZE] * multiplier);
       return metrics;
     }
+
+    void Window::removeFPMap(){
+      map <unsigned long, map <enum Metrics, uint32_t>>::iterator it = fpMap.begin();
+      while(it != fpMap.end()){
+        it->second.clear();
+        it++;
+      }
+      fpMap.clear();
+    }
+

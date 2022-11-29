@@ -59,6 +59,7 @@ class Window {
     unsigned long stime;
     unsigned long mtime;
     unsigned long etime;
+    unsigned long period;
     //OZGURCLEANUP std::string funcName; //this change to uint32_t
 //OZGURCLEANUP DEPRICATE ??    uint32_t funcName;
 
@@ -66,6 +67,7 @@ class Window {
     //OZGURCLEANUP vector <Address *> addresses; // I need trace here
     Trace *trace;
     pair<unsigned long, uint32_t> windowID;
+    map <enum Metrics, double> fpMetrics;
     map <unsigned long, map <enum Metrics, uint32_t>> fpMap; //<address < type, count> 
     
     Window ();
@@ -89,17 +91,24 @@ class Window {
     pair<unsigned long, uint32_t> getWindowID ();
     int getFP();
     void setParent ( Window *w);
+    void setPeriod(unsigned long _period){period =  _period;}
+    void rmFPMap();
+    void createFPMap();
     void removeTrace ();
     void fillTrace();
     void fillTraceWalkDown(Window *w);
     void fillTraceWalkUp(Window *w);
     void addRightChild (Window *w);
     void addLeftChild (Window *w);
-    void getdiagMap (map <enum Metrics,uint32_t> *typeMap, map <enum Metrics, double> *fpDiagMap);  
+    //void getdiagMap (map <enum Metrics,uint32_t> *typeMap, map <enum Metrics, double> *fpDiagMap);  
+    void getdiagMap (map <enum Metrics,uint32_t> *typeMap);  
     void  getFPDiag(map <enum Metrics, double> *diagMap);
-    float calcMultiplier(unsigned long period, bool is_load = false);
+    void  calcFPMetrics();
+    float calcMultiplier();
     float getMultiplier();
-    map<enum Metrics, double> getMetrics(map<enum Metrics, double> diagMap);
+    map<enum Metrics, double> getMetrics();
+    map<enum Metrics, double> calculateMetrics();
+    void removeFPMap();
 };
 
 #endif

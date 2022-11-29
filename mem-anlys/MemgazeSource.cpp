@@ -375,7 +375,8 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
 
   // get metrics from each window.
   map <int, double> diagMap;
-  map<int, double> metrics_values = node->getMetrics(diagMap); 
+//  map<int, double> metrics_values = node->getMetrics(diagMap); 
+  map<int, double> metrics_values = node->getMetrics(); 
   context_metrics.push_back({new_context, metrics_values});
 
   if (node->sampleHead) {
@@ -399,7 +400,8 @@ void MemgazeSource::createCCT(Window* node, Module& lm, Context& parent_context)
 
       // get metrics from each window.
       map <int, double> diagMap;
-      map<int, double> metrics_values = leaves[idx]->getMetrics(diagMap);      
+//      map<int, double> metrics_values = leaves[idx]->getMetrics(diagMap);      
+      map<int, double> metrics_values = leaves[idx]->getMetrics();      
       // aggregate metrics.       
       agg_metrics = accumulate( metrics_values.begin(), metrics_values.end(), agg_metrics,
         []( std::map<int, double> &m, const std::pair<const int, double> &p )
