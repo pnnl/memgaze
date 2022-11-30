@@ -147,12 +147,14 @@ using namespace std;
       vector<pair<double, uint32_t>> vecDensity;
       vecDensity.clear();
       uint32_t vecIndex=0;
+      /*
       // debug START 
       for(vecIndex = 0; vecIndex < vecSpatialResult.size(); vecIndex++) {
         //outFile << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<(vecSpatialResult[vecIndex].second)->smplAvgSpatialMiddle<<" ";  
         cout << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<(vecSpatialResult[vecIndex].second)->smplAvgSpatialMiddle<<" ";  
       }
       // debug END 
+      */
       if ( flagLastLevel == true) {
         vecIndex=0; 
         for(j = 0; j < numBlocksInLevel; j++) {
@@ -230,11 +232,13 @@ void BlockInfo::printBlockSpatialProb(std::ofstream& outFile, uint64_t blockWidt
               <<" Access " << totalAccess << " Block_count " << std::dec<< ((addrMax-addrMin)+1)/blockWidth << " Spatial_Prob " ;
       
       uint32_t vecIndex=0;
+      /*
       // debug START 
       for(vecIndex = 0; vecIndex < vecSpatialResult.size(); vecIndex++) {
         cout << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<(((double)(vecSpatialResult[vecIndex].second)->spatialNext))/(double)totalAccess<<" ";  
       }
       // debug END
+      */
       if ( flagLastLevel == true) {
         vecIndex=0; 
         for(j = 0; j < numBlocksInLevel; j++) {

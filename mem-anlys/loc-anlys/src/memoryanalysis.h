@@ -170,7 +170,7 @@ void getInstInRange(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,Mem
       *outFile << std::dec <<itr->first<<"\t0x"<< std::hex<< itr->second<<endl;
   }
   for (itr=sortInstr.begin(); itr!=sortInstr.end(); itr++)
-    printf("%lx\\\|", itr->second);
+    printf("%lx\\|", itr->second);
   printf("\n");
 }
 

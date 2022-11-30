@@ -29,6 +29,8 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
     levelOneSize = 4194304*8;
     
   vector <uint32_t> sortPageAccess;
+  vector<pair<uint32_t, uint32_t>> vecAccessBlockId;
+  vector<uint32_t> vecBlockId;
   sortPageAccess.clear();
   for(i = 0; i< memarea.blockCount; i++){
     totalAccessParent +=  pageTotalAccess.at(i);
@@ -205,17 +207,25 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
     int cntListAdd=0;
     int numBlocksToZoom = 10;
     childCount=0;
-     for(i = 0; i<memarea.blockCount; i++  ){
-      if(pageTotalAccess.at(i) !=0 )
-      {
-        uint32_t cmpAccess;
-        if(((int)sortPageAccess.size())>=numBlocksToZoom)
-          cmpAccess = sortPageAccess.at(numBlocksToZoom-1);
-        else 
-          cmpAccess = sortPageAccess.at(sortPageAccess.size()-1);
-          
-        if((pageTotalAccess.at(i) >= cmpAccess) && (cntListAdd < numBlocksToZoom) ) 
-        {
+    vector<pair<uint64_t, uint64_t>> vecAccessBlockId;
+    vector<uint64_t> vecBlockId;
+    // SORT - based on access counts
+    for(i = 0; i<memarea.blockCount; i++  )
+       vecAccessBlockId.push_back(make_pair(pageTotalAccess.at(i),i ));
+    std::sort(vecAccessBlockId.begin(), vecAccessBlockId.end(), greater<>());
+    if(((int)vecAccessBlockId.size()) < numBlocksToZoom)
+      numBlocksToZoom = vecAccessBlockId.size();
+    // COPY - highest access blocks
+    for(int iter=0; iter< numBlocksToZoom; iter++) {
+      vecBlockId.push_back(vecAccessBlockId[iter].second);
+      //printf( " sorted vector blockid %ld access %ld \n", vecAccessBlockId[iter].second, vecAccessBlockId[iter].first);
+    }
+    // SORT - based on blockid (cache line number)
+    std::sort(vecBlockId.begin(), vecBlockId.end() );
+
+    for (int iter =0; iter< ((int)vecBlockId.size()); iter++) {
+      i = vecBlockId[iter];
+      if (cntListAdd < numBlocksToZoom)  {
           Memblock hotpage;
           strNodeId = curPage.strID+std::to_string(childCount);
           hotpage.strID = strNodeId; 
@@ -225,16 +235,17 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
   	    	hotpage.blockSize = cacheLineWidth; 
 		      hotpage.strParentID = curPage.strID;
           if(hotpage.max <= heapAddrEnd) {
-            printf("Add to list zoom in  zoomOption = %d, memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld iparent %s , ID %s \n",  zoomOption, memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize, (curPage.strID).c_str(), (hotpage.strID).c_str());
+            printf("Add to list zoom in  zoomOption = %d, memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld iparent %s , ID %s i val - %d \n",  zoomOption, memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize, (curPage.strID).c_str(), (hotpage.strID).c_str(), i);
       		  zoomPageList.push_back(hotpage);
             childCount++;
             cntListAdd++;
-        }
+         }
       }
     }
   }
-  }
   sortPageAccess.clear();
+  vecAccessBlockId.clear();
+  vecBlockId.clear();
 }
 
 int writeZoomFile(const MemArea memarea, const Memblock thisMemblock, const vector<BlockInfo *>& vecBlockInfo, std::ofstream& zoomFile_det, 
@@ -935,8 +946,8 @@ int main(int argc, char ** argv){
         findHotPage(memarea, zoomOption, sampleRud, pageTotalAccess,thresholdTotAccess, &zoomin, thisMemblock, zoomPageList);
         while(!zoomPageList.empty()) {
  	  			  thisMemblock = zoomPageList.front();
-            printf(" STEP 2 after zoom spatial list %d thisMemblock.min %08lx thisMemblock.max %08lx ID %s \n", thisMemblock.level, thisMemblock.min, 
-                        thisMemblock.max, thisMemblock.strID.c_str());
+            //printf(" STEP 2 after zoom spatial list %d thisMemblock.min %08lx thisMemblock.max %08lx ID %s \n", thisMemblock.level, thisMemblock.min, 
+            //            thisMemblock.max, thisMemblock.strID.c_str());
         		spatialOSPageList.push_back(thisMemblock);
    				  zoomPageList.pop_front();
         }
@@ -952,8 +963,7 @@ int main(int argc, char ** argv){
       mapMinAddrToID[memarea.min] = thisMemblock.strID;
       memarea.blockSize = cacheLineWidth; 
      	memarea.blockCount =  ceil((memarea.max - memarea.min)/(double)memarea.blockSize);
-      printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx \n", thisMemblock.level, memarea.blockSize, 
-                              memarea.blockCount, memarea.min, memarea.max);
+      //printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx \n", thisMemblock.level, memarea.blockSize, memarea.blockCount, memarea.min, memarea.max);
       for (itr_blk = vecBlockInfo.begin(); itr_blk != vecBlockInfo.end(); ++itr_blk) {
         delete (*itr_blk);
       }
