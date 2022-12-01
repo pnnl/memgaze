@@ -99,6 +99,11 @@ def readFile(inFile, outFile,appName):
                   objFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-spmm-mat/obj_spmm'
                   objFile_C = ''
                   varVersion = 'sp: '
+                if (appName == 'spmm-csr'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-csr/spmm_csr_mat-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-csr/obj_spmm_csr_mat'
+                  objFile_C = ''
+                  varVersion = 'csr: '
                 if (appName == 'spmm-hicoo'): 
                   logFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-spmm-hicoo/spmm_hicoo_mat-memgaze.binanlys'
                   objFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-spmm-hicoo/obj_spmm_hicoo'
