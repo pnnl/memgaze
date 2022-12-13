@@ -216,9 +216,7 @@ int getAccessCount(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int core
       if ((((itr!=0) && (curSampleId != prevSampleId))) ) {
         for(i = 0; i < memarea.blockCount; i++){
           if(sampleLifetime[i]!=0) {
-              sampleLifetime[i]++; // Lifetime = total distance between first and last access +1
-
-
+              sampleLifetime[i]++; // WHY - Lifetime = total distance between first and last access +1 
           }
         }
       }
@@ -297,6 +295,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
 	uint64_t * lastAddr = new uint64_t [memarea.blockCount]; //Record the previous access address
   uint32_t * totalCAccess = new uint32_t [coreNumber];
   bool blNewSample=1;
+  bool blProcessTrace=1;
 	
 	for(int i = 0; i < coreNumber; i++) totalCAccess[i] = 0;
 
@@ -315,7 +314,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
 	  maxDistance[i] = -1;
 	  totalDistance[i] = 0;
 	  totalAccess[i] = 0;
-	  lastAccess[i] = 0;	
+	  lastAccess[i] = 1;	
 	  sampleLastAccess[i] = 0;	
 		tempAccess[i] = 0;
 		temptotalRUD[i] = 0;
@@ -341,19 +340,47 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
     ptrTraceLine=vecInstAddr.at(itr);
     //ptrTraceLine->printTraceLine();    
     previousAddr = ptrTraceLine->getLoadAddr();
+    /* // HICOO-CSR
+    uint64_t GAP_pr_low_ip = stoull("7fe6f353b842", 0, 16);  uint64_t GAP_pr_high_ip= stoull("7fe6f353b881", 0, 16);
+    uint64_t GAP_pr_low_ip_1 = stoull("7fe6f353b882", 0, 16);  uint64_t GAP_pr_high_ip_1= stoull("7fe6f353b8c1", 0, 16);
+    if ((((previousAddr>= GAP_pr_low_ip) && (previousAddr <= GAP_pr_high_ip)) ) && spatialResult ==1)
+      printDebug=1;
+    else if ((((previousAddr>= GAP_pr_low_ip_1) && (previousAddr <= GAP_pr_high_ip_1)) ) && spatialResult ==1)
+      printDebug=1;
+    else if (previousAddr == (stoull("7fe6f353b8a0", 0, 16)) ) {
+      printDebug = 1;
+      ptrTraceLine->printTraceLine();    
+      printf("previous Addr %08lx less than %d greater than %d \n", previousAddr, (previousAddr<=memarea.max), (previousAddr>=memarea.min));
+    }
+    else
+      printDebug = 0;
+    */
     //if(printDebug) printf("previous Addr %08lx less than %d greater than %d \n", previousAddr, (previousAddr<=memarea.max), (previousAddr>=memarea.min));
-    if(( (previousAddr>=memarea.min)&&(previousAddr<=memarea.max) ) ){
-//        || ((flagSetRegion==1) && (previousAddr>=setRegionAddr[0].first)&&(previousAddr<=setRegionAddr[(setRegionAddr.size()-1)].second)))
+    if(( (previousAddr>=memarea.min)&&(previousAddr<=memarea.max)) 
+      || ((flagSetRegion==1) && (previousAddr>=setRegionAddr[0].first)&&(previousAddr<=setRegionAddr[(setRegionAddr.size()-1)].second))){
+      // START - FILTER trace for load addresses in region correlation analysis - eclude stack and holes
+      if(flagSetRegion ==1) {
+          blProcessTrace=0;
+          for (uint32_t k=0; k<setRegionAddr.size(); k++)  {
+           if((previousAddr>=setRegionAddr[k].first)&&(previousAddr<=setRegionAddr[k].second)) {
+              blProcessTrace=1;
+            }
+          }
+        } else {
+          blProcessTrace=1;
+        }
+      if (blProcessTrace ==1) {  
       totalinst++; 
     	//totalCAccess[ptrTraceLine->getCoreNum()]++;
     	curSampleId = ptrTraceLine->getSampleId();
+      if ((printDebug)) printf(" %08lx totalinst %ld \n", previousAddr,totalinst);
       if ((((itr!=0) && (curSampleId != prevSampleId))) ) 
       {
-         if(printDebug) printf(" prevSampleID %d curSampleId %d\n", prevSampleId, curSampleId);
+         if(printDebug) printf(" %08lx prevSampleID %d curSampleId %d\n", previousAddr, prevSampleId, curSampleId);
           for(i = 0; i < memarea.blockCount; i++){
             if(sampleLifetime[i]!=0)
             {
-              sampleLifetime[i]++; // Lifetime = total distance between first and last access +1
+              sampleLifetime[i]++; // WHY - Lifetime = total distance between first and last access +1 
               inSampleLifetimeCnt[i]++;
             }
           }
@@ -361,12 +388,12 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
             curSpatialRUD = itrSpRUD->second;
             uint32_t curPageID = floor(itrSpRUD->first/memarea.blockCount);
             uint32_t corrPageID = floor(itrSpRUD->first%memarea.blockCount);
+        
             if(sampleLifetime[curPageID]!=0)
             {
-              curSpatialRUD->smplAvgSpatialMiddle= (( curSpatialRUD->smplAvgSpatialMiddle * (inSampleLifetimeCnt[curPageID]-1))+((double)(curSpatialRUD->smplMiddle)/((double)sampleLifetime[curPageID])))/ (double) inSampleLifetimeCnt[curPageID];
+              curSpatialRUD->smplAvgSpatialMiddle= (( curSpatialRUD->smplAvgSpatialMiddle * (inSampleLifetimeCnt[curPageID]-1))+((double)((curSpatialRUD->smplMiddle))/((double)sampleLifetime[curPageID])))/ (double) inSampleLifetimeCnt[curPageID];
+              if(printDebug && (curSpatialRUD->smplMiddle !=0)) printf(" after curSampleId %d curPageID %d corrPageID %d inSampleLifetimeCnt[%d] %d sampleLifetime %d smplMiddle %d smplAvgSpatialMiddle %f \n", curSampleId, curPageID, corrPageID, curPageID, inSampleLifetimeCnt[curPageID], sampleLifetime[curPageID], curSpatialRUD->smplMiddle, curSpatialRUD->smplAvgSpatialMiddle);
             }
-            if(printDebug) printf(" curSampleId %d curPageID %d corrPageID %d inSampleLifetimeCnt[%d] %d sampleLifetime %d smplMiddle %d smplAvgSpatialMiddle %f \n", curSampleId, curPageID, corrPageID, curPageID, inSampleLifetimeCnt[curPageID], sampleLifetime[curPageID], curSpatialRUD->smplMiddle, curSpatialRUD->smplAvgSpatialMiddle);
-              
             curSpatialRUD->spatialAccessMid=0;
             curSpatialRUD->smplMiddle =0;
           }
@@ -443,7 +470,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
     					stack[j]=stack[j+1];
   				}
   				stack[stacklength-1]= pageID;
-  				//printf("time %d pageID %d, last access %d stacklength %d pos %d distance %d\n", time, pageID, lastAccess[pageID], stacklength, pos, distance[pageID]  );
+  				if(printDebug)printf("time %d pageID %d, last access %d stacklength %d pos %d distance %d\n", time, pageID, lastAccess[pageID], stacklength, pos, distance[pageID]  );
   				totalDistance[pageID] = totalDistance[pageID]+distance[pageID];
   				if ((distance[pageID]>maxDistance[pageID])||(maxDistance[pageID]==-1)) maxDistance[pageID] = distance[pageID];
   				if ((distance[pageID]<minDistance[pageID])||(minDistance[pageID]==-1)) minDistance[pageID] = distance[pageID];
@@ -469,7 +496,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
     			}
     			sampleStack[sampleStackLength-1]= pageID;
           inSampleTotalRUD[pageID] = inSampleTotalRUD[pageID] + sampleDistance[pageID];  
-          //if(printDebug) printf(" pageID %d, sampleRef[%d] %d samplelasAccess[%d] %d ", pageID, pageID, sampleRefdistance[pageID], pageID, sampleLastAccess[pageID]);
+          if(printDebug) printf(" pageID %d, sampleRef[%d] %d samplelasAccess[%d] %d \n", pageID, pageID, sampleRefdistance[pageID], pageID, sampleLastAccess[pageID]);
     			sampleRefdistance[pageID] = time - sampleLastAccess[pageID];
         }
         //SpatialDistance
@@ -542,7 +569,9 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
                      curSpatialRUD->spatialMinDistance = curSpatialRUD->spatialDistance;
       						curSpatialRUD->spatialAccess++;
                 }
+              if(printDebug) printf(" time %d, pageID %d, i %d, curSpatialRUD->spatialAccessMid %d curSpatialRUD->spatialMid %d \n", time, pageID, i,  curSpatialRUD->spatialAccessMid, curSpatialRUD->smplMiddle );
     					  curSpatialRUD->spatialAccessMid++;
+              if(printDebug) printf(" time %d, pageID %d, i %d, curSpatialRUD->spatialAccessMid %di curSpatialRUD->spatialAccessMid %d\n", time, pageID, i,  curSpatialRUD->spatialAccessMid, curSpatialRUD->smplMiddle );
               }
               /*printf("time %d, pageID %d, i %d, lastAcs[%d] %d, spatDist[%d][%d] %d spatTotDist[%d][%d] %d spatAcs[%d][%d] %d spatAcsMid[%d][%d] %d "
                    ,time, pageID, i, i, sampleLastAccess[i], i, pageID, spatialDistance[i][pageID], i, pageID, spatialTotalDistance[i][pageID], 
@@ -561,6 +590,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
         //if(printDebug) printf(" lifetime[%d] %d\n", pageID, lifetime[pageID]);
     		lastAccess[pageID] = time; //update the page access time
     		sampleLastAccess[pageID] = time; //update the page access time
+      }
 			} 
       /* FOR DEBUG purpose 
       else {
@@ -588,7 +618,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
       for(i = 0; i < memarea.blockCount; i++){
         if(sampleLifetime[i]!=0)
         {
-          sampleLifetime[i]++; // Lifetime = total distance between first and last access +1
+          sampleLifetime[i]++; // WHY - Lifetime = total distance between first and last access +1 
           inSampleLifetimeCnt[i]++;
         }
       }
@@ -599,7 +629,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
       if(printDebug) printf(" curSampleId %d curPageID %d corrPageID %d sampleLifetime %d smplMiddle %d smplAvgSpatialMiddle %f \n", curSampleId, curPageID, corrPageID, sampleLifetime[curPageID], curSpatialRUD->smplMiddle, curSpatialRUD->smplAvgSpatialMiddle);
       if(sampleLifetime[curPageID]!=0)
       {
-        curSpatialRUD->smplAvgSpatialMiddle= (( curSpatialRUD->smplAvgSpatialMiddle * (inSampleLifetimeCnt[curPageID]-1))+((double)(curSpatialRUD->smplMiddle)/((double)sampleLifetime[curPageID])))/ (double) inSampleLifetimeCnt[curPageID];
+        curSpatialRUD->smplAvgSpatialMiddle= (( curSpatialRUD->smplAvgSpatialMiddle * (inSampleLifetimeCnt[curPageID]-1))+((double)((curSpatialRUD->smplMiddle))/((double)sampleLifetime[curPageID])))/ (double) inSampleLifetimeCnt[curPageID];
       }
       if(printDebug) printf(" curSampleId %d curPageID %d corrPageID %d inSampleLifetimeCnt[%d] %d sampleLifetime %d smplMiddle %d smplAvgSpatialMiddle %f \n", curSampleId, curPageID, corrPageID, curPageID, inSampleLifetimeCnt[curPageID], sampleLifetime[curPageID], curSpatialRUD->smplMiddle, curSpatialRUD->smplAvgSpatialMiddle);
       curSpatialRUD->spatialAccessMid=0;

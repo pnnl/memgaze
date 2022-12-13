@@ -622,6 +622,12 @@ int main(int argc, char ** argv){
     } else {
       zoomInFile_det.open("zoomIn.txt", std::ofstream::out | std::ofstream::trunc);
     }
+    if (zoomInFile_det.is_open() ) {
+			printf("Zoom output redirected to %s \n", outputFileZoom);
+    } else {
+			printf("Zoom output file open failed in %s \n", outputFileZoom);
+      return -1;
+    }
   }
   ofstream spatialOutFile;
   ofstream spatialOutInsnFile;
@@ -633,6 +639,14 @@ int main(int argc, char ** argv){
       spatialOutInsnFile.open(outputFileSpatialInsn, std::ofstream::out | std::ofstream::trunc);
     } else
       spatialOutFile.open("spatialRUD.txt", std::ofstream::out | std::ofstream::trunc);
+    if (spatialOutFile.is_open() && spatialOutInsnFile.is_open()) {
+			printf("Spatial output redirected to %s \n", outputFileSpatial);
+			printf("Spatial instruction output redirected to %s \n", outputFileSpatialInsn);
+    }
+    else {
+			printf("Spatial output file open failed in %s and %s \n", outputFileSpatial, outputFileSpatialInsn);
+      return -1;
+    }
   }
   uint32_t i=0;
   Memblock thisMemblock;
