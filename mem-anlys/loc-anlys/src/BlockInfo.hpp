@@ -87,6 +87,8 @@ class BlockInfo {
   void printBlockInfo();
   void printBlockSpatialDensity(std::ofstream& outFile, uint64_t blockWidth, bool flagLastLevel);
   void printBlockSpatialProb(std::ofstream& outFile, uint64_t blockWidth, bool flagLastLevel);
+  void printBlockSpatialProximity(std::ofstream& outFile, uint64_t blockWidth, bool flagLastLevel);
+  void printBlockSpatialNext(std::ofstream& outFile, uint64_t blockWidth, bool flagLastLevel);
   void printBlockRUD();
 
 };

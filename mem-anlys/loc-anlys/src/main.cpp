@@ -908,6 +908,11 @@ int main(int argc, char ** argv){
          BlockInfo *curBlock = vecBlockInfo.at(i);
          curBlock->printBlockSpatialProb(spatialOutFile,zoomLastLvlPageWidth, false);
     }
+    spatialOutFile << endl;
+     for(i = 0; i< memarea.blockCount; i++){
+         BlockInfo *curBlock = vecBlockInfo.at(i);
+         curBlock->printBlockSpatialProximity(spatialOutFile,zoomLastLvlPageWidth, false);
+    }
     // END - STEP 1 
     // STEP 2 -  Intra-region spatial correlation - correlation at cache-line level
     // STEP 2 -  Zoom into objects to find OS page sized hot blocks
@@ -1015,6 +1020,11 @@ int main(int argc, char ** argv){
       for(i = 0; i< memarea.blockCount; i++){
          BlockInfo *curBlock = vecBlockInfo.at(i);
          curBlock->printBlockSpatialProb(spatialOutFile,cacheLineWidth, true);
+      }
+      spatialOutFile << endl;
+      for(i = 0; i< memarea.blockCount; i++){
+         BlockInfo *curBlock = vecBlockInfo.at(i);
+         curBlock->printBlockSpatialProximity(spatialOutFile,cacheLineWidth, true);
       }
     }
     // END - STEP 3

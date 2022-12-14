@@ -341,8 +341,11 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
     //ptrTraceLine->printTraceLine();    
     previousAddr = ptrTraceLine->getLoadAddr();
     /* // HICOO-CSR
-    uint64_t GAP_pr_low_ip = stoull("7fe6f353b842", 0, 16);  uint64_t GAP_pr_high_ip= stoull("7fe6f353b881", 0, 16);
-    uint64_t GAP_pr_low_ip_1 = stoull("7fe6f353b882", 0, 16);  uint64_t GAP_pr_high_ip_1= stoull("7fe6f353b8c1", 0, 16);
+    // 7fe6f3537842-7fe6f356b841
+    // 7fe72dee7842-7fe72df1b841
+    uint64_t GAP_pr_low_ip = stoull("7fe6f3537842", 0, 16);  uint64_t GAP_pr_high_ip= stoull("7fe6f356b841", 0, 16);
+    uint64_t GAP_pr_low_ip_1 = stoull("7fe72dee7842", 0, 16);  uint64_t GAP_pr_high_ip_1 = stoull("7fe72df1b841", 0, 16);
+    //uint64_t GAP_pr_low_ip_1 = stoull("7fe6f353b882", 0, 16);  uint64_t GAP_pr_high_ip_1= stoull("7fe6f353b8c1", 0, 16);
     if ((((previousAddr>= GAP_pr_low_ip) && (previousAddr <= GAP_pr_high_ip)) ) && spatialResult ==1)
       printDebug=1;
     else if ((((previousAddr>= GAP_pr_low_ip_1) && (previousAddr <= GAP_pr_high_ip_1)) ) && spatialResult ==1)
@@ -376,7 +379,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
       if ((printDebug)) printf(" %08lx totalinst %ld \n", previousAddr,totalinst);
       if ((((itr!=0) && (curSampleId != prevSampleId))) ) 
       {
-         if(printDebug) printf(" %08lx prevSampleID %d curSampleId %d\n", previousAddr, prevSampleId, curSampleId);
+         if(printDebug) printf(" ----- NEW SAMPLE %08lx prevSampleID %d curSampleId %d\n", previousAddr, prevSampleId, curSampleId);
           for(i = 0; i < memarea.blockCount; i++){
             if(sampleLifetime[i]!=0)
             {
@@ -405,7 +408,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
               inSampleRUDAvgCnt[i]++;
               // RUD Average in a sample added to total - averaged over the count of samples with valid RUD values
               inSampleAvgRUD[i] = ((inSampleAvgRUD[i]*(inSampleRUDAvgCnt[i]-1)) + (double)inSampleTotalRUD[i]/(double)(inSampleAccess[i] -1)) / inSampleRUDAvgCnt[i];
-              if(printDebug) printf(" curSampleId %d inSmplAcs[%d] %d inSmplTotalRUD[%d] %d inSmplAvgRUD[%d] %f totalAccess[%d] %d totalDistance[%d] %d \n", curSampleId, i, inSampleAccess[i], i, inSampleTotalRUD[i], i, inSampleAvgRUD[i], i, totalAccess[i], i, totalDistance[i] );
+              //if(printDebug) printf(" curSampleId %d inSmplAcs[%d] %d inSmplTotalRUD[%d] %d inSmplAvgRUD[%d] %f totalAccess[%d] %d totalDistance[%d] %d \n", curSampleId, i, inSampleAccess[i], i, inSampleTotalRUD[i], i, inSampleAvgRUD[i], i, totalAccess[i], i, totalDistance[i] );
             }
             inSampleTotalRUD[i] =0;
             inSampleAccess[i] = 0;
@@ -419,28 +422,22 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
         }
     		uint64_t instAddr =  previousAddr;
     		uint32_t pageID = 0 ;
-        bool addrInRange = false;
         if(flagSetRegion==0) { 
       		pageID = floor((instAddr-memarea.min)/memarea.blockSize);
+          // Number of blocks does not evenly divide address space - so the last one includes spill-over address range
+    		  if(pageID == memarea.blockCount) {
+            //printf(" instAddr %ld memarea.min %ld blockSize %ld  pageID %d memarea.blockCount %d pageID %d\n", instAddr, memarea.min, memarea.blockSize, pageID , memarea.blockCount, pageID);
+            pageID--;
+          }
         } else {
-          for (uint32_t k=0; k<setRegionAddr.size(); k++) 
-          {
-           if((instAddr>=setRegionAddr[k].first)&&(instAddr<=setRegionAddr[k].second))
-            {
+          for (uint32_t k=0; k<setRegionAddr.size(); k++) {
+           if((instAddr>=setRegionAddr[k].first)&&(instAddr<=setRegionAddr[k].second)) {
               pageID = k;
-              addrInRange = true;
-              continue;
+              break;
             } 
           }
-          if(addrInRange == false)
-            continue;
         }
         
-        // Number of blocks does not evenly divide address space - so the last one includes spill-over address range
-    		if(pageID == memarea.blockCount) {
-        //printf(" instAddr %ld memarea.min %ld blockSize %ld  pageID %d memarea.blockCount %d pageID %d\n", instAddr, memarea.min, memarea.blockSize, pageID , memarea.blockCount, pageID);
-          pageID--;
-        }
         //printf(" time %d curSampleId %d pageID %d\n", time , curSampleId, pageID);
   			//printf("%d: page ID %d, %08lx", totalinst, pageID , memarea.blockSize);
   			//printf("for instruction %s, area %x, total access is %d\n", ip2, (memarea.min+pageID*memarea.blockSize), totalinst);
@@ -470,7 +467,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
     					stack[j]=stack[j+1];
   				}
   				stack[stacklength-1]= pageID;
-  				if(printDebug)printf("time %d pageID %d, last access %d stacklength %d pos %d distance %d\n", time, pageID, lastAccess[pageID], stacklength, pos, distance[pageID]  );
+  				//if(printDebug)printf("time %d pageID %d, last access %d stacklength %d pos %d distance %d\n", time, pageID, lastAccess[pageID], stacklength, pos, distance[pageID]  );
   				totalDistance[pageID] = totalDistance[pageID]+distance[pageID];
   				if ((distance[pageID]>maxDistance[pageID])||(maxDistance[pageID]==-1)) maxDistance[pageID] = distance[pageID];
   				if ((distance[pageID]<minDistance[pageID])||(minDistance[pageID]==-1)) minDistance[pageID] = distance[pageID];
@@ -569,9 +566,9 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
                      curSpatialRUD->spatialMinDistance = curSpatialRUD->spatialDistance;
       						curSpatialRUD->spatialAccess++;
                 }
-              if(printDebug) printf(" time %d, pageID %d, i %d, curSpatialRUD->spatialAccessMid %d curSpatialRUD->spatialMid %d \n", time, pageID, i,  curSpatialRUD->spatialAccessMid, curSpatialRUD->smplMiddle );
     					  curSpatialRUD->spatialAccessMid++;
-              if(printDebug) printf(" time %d, pageID %d, i %d, curSpatialRUD->spatialAccessMid %di curSpatialRUD->spatialAccessMid %d\n", time, pageID, i,  curSpatialRUD->spatialAccessMid, curSpatialRUD->smplMiddle );
+              //if(printDebug) printf(" time %d, pageID %d, i %d, curSpatialRUD->spatialAccessMid %d curSpatialRUD->spatialAccessMid %d\n", time, pageID, i,  curSpatialRUD->spatialAccessMid, curSpatialRUD->smplMiddle );
+              if(printDebug && (totalAccess[i]%100 == 0)) printf(" totalAccess[%d] %d time %d, pageID %d, i %d, curSpatialRUD->spatialAccess %d curSpatialRUD->spatialTotalDistance %d\n", i, totalAccess[i], time, pageID, i,  curSpatialRUD->spatialAccess, curSpatialRUD->spatialTotalDistance );
               }
               /*printf("time %d, pageID %d, i %d, lastAcs[%d] %d, spatDist[%d][%d] %d spatTotDist[%d][%d] %d spatAcs[%d][%d] %d spatAcsMid[%d][%d] %d "
                    ,time, pageID, i, i, sampleLastAccess[i], i, pageID, spatialDistance[i][pageID], i, pageID, spatialTotalDistance[i][pageID], 
