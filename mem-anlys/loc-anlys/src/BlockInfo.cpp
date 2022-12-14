@@ -250,8 +250,8 @@ using namespace std;
             } 
           }
         }
+        outFile << endl;
       }
-      outFile << endl;
  }
 
   void BlockInfo::printBlockSpatialProximity(std::ofstream& outFile, uint64_t blockWidth, bool flagLastLevel) {
@@ -281,8 +281,8 @@ using namespace std;
             } 
           }
         }
+        outFile << endl;
       }
-      outFile << endl;
   }
  
   void BlockInfo::printBlockSpatialNext(std::ofstream& outFile, uint64_t blockWidth, bool flagLastLevel){
