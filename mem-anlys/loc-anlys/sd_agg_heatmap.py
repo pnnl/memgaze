@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+import re
 
 sns.color_palette("light:#5A9", as_cmap=True)
 sns.set()
@@ -78,24 +80,24 @@ def readFile(filename, strApp):
     arAccessBlk = np.divide(arAccessPercent,arBlk)
     arAccessBlk = arAccessBlk.astype('float64')
     fig, ax =plt.subplots(1,3, figsize=(15, 10),gridspec_kw={'width_ratios': [9, 1,1]})
-    sns.heatmap(arSpHeatMap,cmap='BuGn',cbar=False, annot=True, annot_kws = {'size':8}, ax=ax[0])
-    ax[0].invert_yaxis()
-    ax[0].set_yticklabels(vecLabel_Y,rotation='horizontal', wrap=True)
-    ax[0].set_xticklabels(vecLabel_X,rotation='vertical')
-    ax[0].set_title('Spatial density heatmap')
+    sns.heatmap(arSpHeatMap,cmap='BuGn',cbar=False, annot=True, annot_kws = {'size':8}, ax=ax_0)
+    ax_0.invert_yaxis()
+    ax_0.set_yticklabels(vecLabel_Y,rotation='horizontal', wrap=True)
+    ax_0.set_xticklabels(vecLabel_X,rotation='vertical')
+    ax_0.set_title('Spatial density heatmap')
 
-    sns.heatmap(arAccessPercent, cmap='BuGn', cbar=False,annot=True, fmt='.3f', annot_kws = {'size':12},  ax=ax[1])
-    ax[1].invert_yaxis()
-    ax[1].set_xticks([0])
-    ax[1].set_yticks([0])
-    ax[1].set_title(' % Access')
+    sns.heatmap(arAccessPercent, cmap='BuGn', cbar=False,annot=True, fmt='.3f', annot_kws = {'size':12},  ax=ax_1)
+    ax_1.invert_yaxis()
+    ax_1.set_xticks([0])
+    ax_1.set_yticks([0])
+    ax_1.set_title(' % Access')
 
-    sns.heatmap(arBlk, cmap='BuGn', cbar=False,annot=True, fmt='d', annot_kws = {'size':12},  ax=ax[2])
-    ax[2].invert_yaxis()
-    ax[2].set_xticks([0])
-    ax[2].set_yticklabels(vecLabel_Y,rotation='horizontal', wrap=True)
-    ax[2].yaxis.set_ticks_position('right')
-    ax[2].set_title(' # Blocks')
+    sns.heatmap(arBlk, cmap='BuGn', cbar=False,annot=True, fmt='d', annot_kws = {'size':12},  ax=ax_2)
+    ax_2.invert_yaxis()
+    ax_2.set_xticks([0])
+    ax_2.set_yticklabels(vecLabel_Y,rotation='horizontal', wrap=True)
+    ax_2.yaxis.set_ticks_position('right')
+    ax_2.set_title(' # Blocks')
     plt.suptitle(strApp+'\n \n Total Access '+str(accessTotal), fontsize=14)
 
     imageFileName=filename[0:filename.rindex('/')]+'/'+strApp.replace(' ','-')+'.pdf'
@@ -158,11 +160,14 @@ def intraObjectPlot(strApp, strFileName,numRegion):
     print(plotFilename,colSelect,appName,sampleSize)
     #spatialPlot(plotFilename, colSelect, appName,sampleSize)
 
-    df_inter=pd.read_table(strInterRegionFile, sep=" ", skipinitialspace=True, usecols=range(2,14),
-                     names=['RegionId_Name','Page', 'RegionId_Num','colon', 'ar', 'Address Range', 'lf', 'Lifetime', 'ac', 'Access count', 'bc', 'Block count'])
+    df_inter=pd.read_table(strInterRegionFile, sep=" ", skipinitialspace=True, usecols=range(2,15),
+                     names=['RegionId_Name','Page', 'RegionId_Num','colon', 'ar', 'Address Range', 'lf', 'Lifetime', 'ac', 'Access count', 'bc', 'Block count','Type'])
+    df_inter = df_inter[df_inter['Type'] == 'Spatial_Density']
+    print(df_inter)
     df_inter_data=df_inter[['RegionId_Name', 'RegionId_Num', 'Address Range', 'Lifetime', 'Access count', 'Block count']]
     df_inter_data['Reg_Num-Name']=df_inter_data.apply(lambda x:'%s-%s' % (x['RegionId_Num'],x['RegionId_Name']),axis=1)
-    df_inter_data_sample=df_inter_data.nlargest(n=numRegion,  columns=['Access count', 'Block count'])
+    print(df_inter_data)
+    df_inter_data_sample=df_inter_data.nlargest(n=numRegion,  columns=['Access count'])
     arRegionId = df_inter_data_sample['Reg_Num-Name'].values.flatten().tolist()
     print(arRegionId)
     for j in range(0, len(arRegionId)):
@@ -204,7 +209,6 @@ def intraObjectPlot(strApp, strFileName,numRegion):
         for arRegionBlockId in range(0, len(arRegionBlocks)):
             #print(arRegionBlockId, df_intra_obj[df_intra_obj['blockid']==str(arRegionBlockId)]['Access'].sum())
             arBlockIdAccess[int(arRegionBlockId)] = df_intra_obj[df_intra_obj['blockid']==str(arRegionBlockId)]['Access'].sum()
-        print (arBlockIdAccess)
 
         # Sample 50 blk-cacheid lines from all blocks
         num_sample=50
@@ -229,14 +233,31 @@ def intraObjectPlot(strApp, strFileName,numRegion):
         accessBlockCacheLine = (df_intra_obj_sample[['Access']]).to_numpy()
         df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
         self_bef_drop=df_intra_obj_sample_hm['self'].to_list()
+        print('before dropna shape = ' , df_intra_obj_sample_hm.shape)
 
         df_intra_obj_drop=df_intra_obj_sample_hm.dropna(axis=1,how='all')
         get_col_list=df_intra_obj_drop.columns.to_list()
+        flAddSelfBelow=1
+        flAddSelfAbove=1
+        pattern = re.compile('self-.*')
+        if any((match := pattern.match(x)) for x in get_col_list):
+            flAddSelfBelow=0
+        pattern = re.compile('self\+.*')
+        if any((match := pattern.match(x)) for x in get_col_list):
+            print(match.group(0))
+            flAddSelfAbove=0
+        if(flAddSelfBelow == 1):
+            for i in range (1,10):
+                get_col_list.insert(0,'self-'+str(i))
+        if(flAddSelfAbove == 1):
+            for i in range (1,10):
+                get_col_list.append('self+'+str(i))
+        print(get_col_list)
         df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
         print('after drop na shape = ' , df_intra_obj_sample_hm.shape)
         self_aft_drop=df_intra_obj_sample_hm['self'].to_list()
         if(self_bef_drop == self_aft_drop):
-            print(" equal ")
+            print(" After drop equal ")
         else:
             print("Error - not equal")
             print ("before drop", self_bef_drop)
@@ -249,47 +270,63 @@ def intraObjectPlot(strApp, strFileName,numRegion):
         df_hm=df_hm.astype('float64')
         df_hm=df_hm.transpose()
 
-        fig, ax =plt.subplots(1,3, figsize=(15, 10),gridspec_kw={'width_ratios': [9, 1,1]})
-        ax[0] = sns.heatmap(df_hm,cmap='BuGn',cbar=True, annot=False,ax=ax[0])
-        ax[0].invert_yaxis()
-        list_y_ticks=ax[0].get_yticklabels()
+        #fig, ax =plt.subplots(1,3, figsize=(15, 10),gridspec_kw={'width_ratios': [11, 1.5, 1.5]})
+        fig = plt.figure(constrained_layout=True, figsize=(15, 10))
+        gs = gridspec.GridSpec(1, 2, figure=fig,width_ratios=[11,4])
+        gs0 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec = gs[0] )
+        gs1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec = gs[1] ,wspace=0.07)
+        ax_0 = fig.add_subplot(gs0[0, :])
+        ax_1 = fig.add_subplot(gs1[0, 0])
+        ax_2 = fig.add_subplot(gs1[0, 1])
+
+        #subfigs = fig.subfigures(1, 2, wspace=0.07, width_ratios=[11,4])
+        #ax_0 = subfigs[0].subplots(1,1)
+        #ax_1 = (subfigs[1].subplots(1, 2))[0]
+        #ax_2 = (subfigs[1].subplots(1, 2))[1]
+
+        ax_0 = sns.heatmap(df_hm,cmap='mako_r',cbar=True, annot=False,ax=ax_0,vmin=0.0,vmax=1.0)
+        ax_0.invert_yaxis()
+        list_y_ticks=ax_0.get_yticklabels()
         fig_ylabel=[]
         for y_label in list_y_ticks:
             fig_ylabel.append(get_col_list[int(y_label.get_text())])
-        list_x_ticks=ax[0].get_xticklabels()
+        list_x_ticks=ax_0.get_xticklabels()
         fig_xlabel=[]
         for x_label in list_x_ticks:
             fig_xlabel.append(list_xlabel[int(x_label.get_text())])
-        ax[0].set_yticklabels(fig_ylabel,rotation='horizontal', wrap=True)
-        ax[0].set_xticklabels(fig_xlabel,rotation='vertical')
+        ax_0.set_yticklabels(fig_ylabel,rotation='horizontal', wrap=True)
+        ax_0.set_xticklabels(fig_xlabel,rotation='vertical')
+        ax_0.set(xlabel="Page Id - Cache-line Block Id", ylabel="Correlation to contiguous cache-line sized blocks")
+        #ax_0.set_ylabel("")
 
-        sns.heatmap(accessBlockCacheLine, cmap='BuGn', cbar=False,annot=True, fmt='g', annot_kws = {'size':12},  ax=ax[1])
-        ax[1].invert_yaxis()
-        ax[1].set_xticks([0])
+
+        sns.heatmap(accessBlockCacheLine, cmap="PuBu", cbar=False,annot=True, fmt='g', annot_kws = {'size':12},  ax=ax_1)
+        ax_1.invert_yaxis()
+        ax_1.set_xticks([0])
         length_xlabel= len(list_xlabel)
         list_blkcache_label=[]
         for i in range (0, length_xlabel):
             list_blkcache_label.append(list_xlabel[i])
         ax1_ylabel=[]
-        list_y_ticks=ax[1].get_yticklabels()
+        list_y_ticks=ax_1.get_yticklabels()
         for y_label in list_y_ticks:
             ax1_ylabel.append(list_blkcache_label[int(y_label.get_text())])
-        ax[1].set_yticks(range(0,len(list_blkcache_label)),list_blkcache_label, rotation='horizontal', wrap=True )
-        ax[1].yaxis.set_ticks_position('right')
+        ax_1.set_yticks(range(0,len(list_blkcache_label)),list_blkcache_label, rotation='horizontal', wrap=True )
+        ax_1.yaxis.set_ticks_position('right')
 
-        sns.heatmap(arBlockIdAccess, cmap='BuGn', cbar=False,annot=True, fmt='g', annot_kws = {'size':12},  ax=ax[2])
-        ax[2].invert_yaxis()
-        ax[2].set_xticks([0])
+        sns.heatmap(arBlockIdAccess, cmap='Blues', cbar=False,annot=True, fmt='g', annot_kws = {'size':12},  ax=ax_2)
+        ax_2.invert_yaxis()
+        ax_2.set_xticks([0])
         list_blk_label=arRegionBlocks.tolist()
-        list_blk_label.reverse()
-        ax[2].set_yticklabels(list_blk_label, rotation='horizontal', wrap=True )
-        ax[2].yaxis.set_ticks_position('right')
+        ax_2.set_yticklabels(list_blk_label, rotation='horizontal', wrap=True )
+        ax_2.yaxis.set_ticks_position('right')
 
-        plt.suptitle('Spatial density and Access count Heatmap for '+strApp +' region - '+regionIdNumName)
-        strTitle = 'Spatial Density \n Region\'s total Access  - ' + str(arRegionAccess) + ', Total accesses for blocks shown - ' + str(accessSumBlocks) +' ('+ ("{0:.4f}".format((accessSumBlocks/arRegionAccess)*100))+' %)\n Total number of blocks in region - '+ str(numRegionBlocks)
+        plt.suptitle('Spatial density and Access count heatmap for '+strApp +' region - '+regionIdNumName)
+        strTitle = 'Spatial Density \n Region\'s total access  - ' + str(arRegionAccess) + ', Total accesses for pages shown - ' + str(accessSumBlocks) +' ('+ ("{0:.4f}".format((accessSumBlocks/arRegionAccess)*100))+' %)\n Total number of pages in region - '+ str(numRegionBlocks)
         print(strTitle)
-        ax[0].set_title(strTitle)
-        ax[1].set_title('Access count for blocks \n \n')
+        ax_0.set_title(strTitle)
+        ax_1.set_title('Access count for selected cache-line blocks and \n          hottest pages in the region\n ',loc='left')
+
         #plt.show()
         imageFileName=strPath+'/'+strApp+'-'+regionIdNumName+'.pdf'
         plt.savefig(imageFileName, bbox_inches='tight')
@@ -301,10 +338,22 @@ def intraObjectPlot(strApp, strFileName,numRegion):
 #intraObjectPlot('Resnet-Gemm', '/Users/suri836/Projects/spatial_rud/agg_sample_data/resnet-1img-trace-b16384-p500000-5p/spatial.txt',5)
 #intraObjectPlot('Hicoo-U-1', '/Users/suri836/Projects/spatial_rud/HiParTi/spmm_hicoo-U-1-trace-b16384-p2000000/spatial.txt',3)
 #intraObjectPlot('Hicoo','/Users/suri836/Projects/spatial_rud/HiParTi/spmm_hicoo-trace-b16384-p2000000/spatial.txt',3)
-#intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_10_blocks/v1_spatial_det.txt',2)
-#intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_10_blocks/v2_spatial_det.txt',3)
-#intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_10_blocks/v3_spatial_det.txt',3)
-intraObjectPlot('AlexNet','/Users/suri836/Projects/spatial_rud/darknet_cluster/alexnet_single/spatial_10_blocks/spatial.txt',3)
+#intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v1_spatial_det.txt',2)
+#intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v2_spatial_det.txt',3)
+#intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v3_spatial_det.txt',3)
+#intraObjectPlot('AlexNet','/Users/suri836/Projects/spatial_rud/darknet_cluster/alexnet_single/spatial_10_blocks/spatial.txt',3)
+#intraObjectPlot('ResNet', '/Users/suri836/Projects/spatial_rud/darknet_cluster/resnet152_single/spatial_10_blocks/spatial.txt',3)
+#intraObjectPlot('HiParTI-COO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-spmm-mat/spmm_mat-trace-b16384-p4000000/spatial.txt',5)
+#intraObjectPlot('HiParTI-COO-U-0', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-spmm-mat/spmm_mat-U-0-trace-b16384-p4000000/spatial.txt',2)
+#intraObjectPlot('HiParTI-CSR', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-csr/spmm_csr_mat-trace-b16384-p4000000/spatial.txt',4)
+#intraObjectPlot('HiParTI-HiCOO-Reduce', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-spmm-hicoo/spmm_hicoo-U-1-trace-b16384-p4000000/spatial.txt',2)
+#intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-spmm-hicoo/spmm_hicoo-trace-b16384-p4000000/spatial.txt',2)
+intraObjectPlot('HiParTi - CSR','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_csr_mat-trace-b8192-p4000000/spatial.txt',5)
+intraObjectPlot('HiParTi - COO','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_mat-U-0-trace-b8192-p4000000/spatial.txt',5)
+intraObjectPlot('HiParTi - COO-Reduce','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_mat-U-1-trace-b8192-p4000000/spatial.txt',5)
+intraObjectPlot('HiParTi - HiCOO','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_hicoo-U-0-trace-b8192-p4000000/spatial.txt',5)
+intraObjectPlot('HiParTi - HiCOO-Schedule ','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_hicoo-U-1-trace-b8192-p4000000/spatial.txt',5)
+
 
 
 
