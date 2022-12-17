@@ -166,7 +166,7 @@ def intraObjectPlot(strApp, strFileName,numRegion):
     print(df_inter)
     df_inter_data=df_inter[['RegionId_Name', 'RegionId_Num', 'Address Range', 'Lifetime', 'Access count', 'Block count']]
     df_inter_data['Reg_Num-Name']=df_inter_data.apply(lambda x:'%s-%s' % (x['RegionId_Num'],x['RegionId_Name']),axis=1)
-    print(df_inter_data)
+    #print(df_inter_data)
     df_inter_data_sample=df_inter_data.nlargest(n=numRegion,  columns=['Access count'])
     arRegionId = df_inter_data_sample['Reg_Num-Name'].values.flatten().tolist()
     print(arRegionId)
@@ -177,7 +177,7 @@ def intraObjectPlot(strApp, strFileName,numRegion):
         numRegionBlocks = df_inter_data_sample[ df_inter_data_sample['Reg_Num-Name']==regionIdNumName]['Block count'].values.flatten()[0]
         data_list_intra_obj=[]
         regionIdName =regionIdNumName[regionIdNumName.index('-')+1:]
-        print(regionIdName)
+        #print(regionIdName)
         with open(strFileName) as f:
             for fileLine in f:
                 data=fileLine.strip().split(' ')
@@ -252,10 +252,14 @@ def intraObjectPlot(strApp, strFileName,numRegion):
         if(flAddSelfAbove == 1):
             for i in range (1,10):
                 get_col_list.append('self+'+str(i))
-        print(get_col_list)
+        #print(get_col_list)
         df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
         print('after drop na shape = ' , df_intra_obj_sample_hm.shape)
+        average_sd= pd.to_numeric(df_intra_obj_sample_hm["self"]).mean()
+        print(average_sd)
+        print(strApp+'-'+regionIdNumName+' '+str(average_sd))
         self_aft_drop=df_intra_obj_sample_hm['self'].to_list()
+        #print(self_aft_drop)
         if(self_bef_drop == self_aft_drop):
             print(" After drop equal ")
         else:
@@ -341,18 +345,13 @@ def intraObjectPlot(strApp, strFileName,numRegion):
 #intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v1_spatial_det.txt',2)
 #intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v2_spatial_det.txt',3)
 #intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v3_spatial_det.txt',3)
-#intraObjectPlot('AlexNet','/Users/suri836/Projects/spatial_rud/darknet_cluster/alexnet_single/spatial_10_blocks/spatial.txt',3)
-#intraObjectPlot('ResNet', '/Users/suri836/Projects/spatial_rud/darknet_cluster/resnet152_single/spatial_10_blocks/spatial.txt',3)
-#intraObjectPlot('HiParTI-COO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-spmm-mat/spmm_mat-trace-b16384-p4000000/spatial.txt',5)
-#intraObjectPlot('HiParTI-COO-U-0', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-spmm-mat/spmm_mat-U-0-trace-b16384-p4000000/spatial.txt',2)
-#intraObjectPlot('HiParTI-CSR', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-csr/spmm_csr_mat-trace-b16384-p4000000/spatial.txt',4)
-#intraObjectPlot('HiParTI-HiCOO-Reduce', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-spmm-hicoo/spmm_hicoo-U-1-trace-b16384-p4000000/spatial.txt',2)
-#intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-spmm-hicoo/spmm_hicoo-trace-b16384-p4000000/spatial.txt',2)
-intraObjectPlot('HiParTi - CSR','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_csr_mat-trace-b8192-p4000000/spatial.txt',5)
-intraObjectPlot('HiParTi - COO','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_mat-U-0-trace-b8192-p4000000/spatial.txt',5)
-intraObjectPlot('HiParTi - COO-Reduce','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_mat-U-1-trace-b8192-p4000000/spatial.txt',5)
-intraObjectPlot('HiParTi - HiCOO','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_hicoo-U-0-trace-b8192-p4000000/spatial.txt',5)
-intraObjectPlot('HiParTi - HiCOO-Schedule ','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_hicoo-U-1-trace-b8192-p4000000/spatial.txt',5)
+#intraObjectPlot('AlexNet','/Users/suri836/Projects/spatial_rud/darknet_cluster/alexnet_single/spatial_clean/spatial.txt',3)
+#intraObjectPlot('ResNet', '/Users/suri836/Projects/spatial_rud/darknet_cluster/resnet152_single/spatial_clean/spatial.txt',3)
+intraObjectPlot('HiParTi - CSR','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_csr_mat-trace-b8192-p4000000/spatial.txt',2)
+intraObjectPlot('HiParTi - COO','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_mat-U-0-trace-b8192-p4000000/spatial.txt',2)
+intraObjectPlot('HiParTi - COO-Reduce','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_mat-U-1-trace-b8192-p4000000/spatial.txt',3)
+intraObjectPlot('HiParTi - HiCOO','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_hicoo-U-0-trace-b8192-p4000000/spatial.txt',2)
+intraObjectPlot('HiParTi - HiCOO-Schedule ','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_hicoo-U-1-trace-b8192-p4000000/spatial.txt',2)
 
 
 
