@@ -318,7 +318,9 @@ def intraObjectPlot(strApp, strFileName,numRegion):
         ax_1.set_yticks(range(0,len(list_blkcache_label)),list_blkcache_label, rotation='horizontal', wrap=True )
         ax_1.yaxis.set_ticks_position('right')
 
-        sns.heatmap(arBlockIdAccess, cmap='Blues', cbar=False,annot=True, fmt='g', annot_kws = {'size':12},  ax=ax_2)
+        rndAccess = np.round((arBlockIdAccess/1000).astype(float),2)
+        annot = np.char.add(rndAccess.astype(str), 'K')
+        sns.heatmap(rndAccess, cmap='Blues', cbar=False,annot=annot, fmt='', annot_kws = {'size':12},  ax=ax_2)
         ax_2.invert_yaxis()
         ax_2.set_xticks([0])
         list_blk_label=arRegionBlocks.tolist()
@@ -326,13 +328,15 @@ def intraObjectPlot(strApp, strFileName,numRegion):
         ax_2.yaxis.set_ticks_position('right')
 
         plt.suptitle('Spatial density and Access count heatmap for '+strApp +' region - '+regionIdNumName)
-        strTitle = 'Spatial Density \n Region\'s total access  - ' + str(arRegionAccess) + ', Total accesses for pages shown - ' + str(accessSumBlocks) +' ('+ ("{0:.4f}".format((accessSumBlocks/arRegionAccess)*100))+' %)\n Total number of pages in region - '+ str(numRegionBlocks)
+        strArRegionAccess = str(np.round((arRegionAccess/1000).astype(float),2))+'K'
+        strAccessSumBlocks= str(np.round((accessSumBlocks/1000).astype(float),2))+'K'
+        strTitle = 'Spatial Density \n Region\'s total access  - ' + strArRegionAccess + ', Total accesses for pages shown - ' + strAccessSumBlocks +' ('+ ("{0:.4f}".format((accessSumBlocks/arRegionAccess)*100))+' %)\n Total number of pages in region - '+ str(numRegionBlocks)
         print(strTitle)
         ax_0.set_title(strTitle)
         ax_1.set_title('Access count for selected cache-line blocks and \n          hottest pages in the region\n ',loc='left')
 
         #plt.show()
-        imageFileName=strPath+'/'+strApp+'-'+regionIdNumName+'.pdf'
+        imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName+'.pdf'
         plt.savefig(imageFileName, bbox_inches='tight')
         plt.close()
 
