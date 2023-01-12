@@ -137,7 +137,7 @@ def get_intra_obj (data_intra_obj, region_blk, fileline,blockid):
 
 # Read spatial.txt and write inter-region file, intra-region files for callPlot
 # Works for spatial denity now - ***
-def intraObjectPlot(strApp, strFileName,numRegion):
+def intraObjectPlot(strApp, strFileName,numRegion,f_avg=None):
     strPath=strFileName[0:strFileName.rindex('/')]
     #print(strPath)
     # Write inter-object_sd.txt
@@ -158,18 +158,20 @@ def intraObjectPlot(strApp, strFileName,numRegion):
     colSelect=0
     sampleSize=0
     print(plotFilename,colSelect,appName,sampleSize)
+    if(f_avg != None):
+        f_avg.write('filename ' + plotFilename + ' col select '+ str(colSelect)+ ' app '+appName+ ' sample '+str(sampleSize)+'\n')
     #spatialPlot(plotFilename, colSelect, appName,sampleSize)
 
     df_inter=pd.read_table(strInterRegionFile, sep=" ", skipinitialspace=True, usecols=range(2,15),
                      names=['RegionId_Name','Page', 'RegionId_Num','colon', 'ar', 'Address Range', 'lf', 'Lifetime', 'ac', 'Access count', 'bc', 'Block count','Type'])
     df_inter = df_inter[df_inter['Type'] == 'Spatial_Density']
-    print(df_inter)
+    #print(df_inter)
     df_inter_data=df_inter[['RegionId_Name', 'RegionId_Num', 'Address Range', 'Lifetime', 'Access count', 'Block count']]
     df_inter_data['Reg_Num-Name']=df_inter_data.apply(lambda x:'%s-%s' % (x['RegionId_Num'],x['RegionId_Name']),axis=1)
     #print(df_inter_data)
     df_inter_data_sample=df_inter_data.nlargest(n=numRegion,  columns=['Access count'])
     arRegionId = df_inter_data_sample['Reg_Num-Name'].values.flatten().tolist()
-    print(arRegionId)
+    #print(arRegionId)
     for j in range(0, len(arRegionId)):
     #for j in range(0, 1):
         regionIdNumName=arRegionId[j]
@@ -233,7 +235,7 @@ def intraObjectPlot(strApp, strFileName,numRegion):
         accessBlockCacheLine = (df_intra_obj_sample[['Access']]).to_numpy()
         df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
         self_bef_drop=df_intra_obj_sample_hm['self'].to_list()
-        print('before dropna shape = ' , df_intra_obj_sample_hm.shape)
+        #print('before dropna shape = ' , df_intra_obj_sample_hm.shape)
 
         df_intra_obj_drop=df_intra_obj_sample_hm.dropna(axis=1,how='all')
         get_col_list=df_intra_obj_drop.columns.to_list()
@@ -244,7 +246,7 @@ def intraObjectPlot(strApp, strFileName,numRegion):
             flAddSelfBelow=0
         pattern = re.compile('self\+.*')
         if any((match := pattern.match(x)) for x in get_col_list):
-            print(match.group(0))
+            #print(match.group(0))
             flAddSelfAbove=0
         if(flAddSelfBelow == 1):
             for i in range (1,10):
@@ -254,10 +256,12 @@ def intraObjectPlot(strApp, strFileName,numRegion):
                 get_col_list.append('self+'+str(i))
         #print(get_col_list)
         df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
-        print('after drop na shape = ' , df_intra_obj_sample_hm.shape)
+        #print('after drop na shape = ' , df_intra_obj_sample_hm.shape)
         average_sd= pd.to_numeric(df_intra_obj_sample_hm["self"]).mean()
-        print(average_sd)
-        print(strApp+'-'+regionIdNumName+' '+str(average_sd))
+        #print(average_sd)
+        print('*** Average SD for '+strApp+', Region '+regionIdNumName+' '+str(average_sd))
+        if (f_avg != None):
+            f_avg.write ( '*** Average SD for '+strApp+', Region '+regionIdNumName+' '+str(average_sd)+'\n')
         self_aft_drop=df_intra_obj_sample_hm['self'].to_list()
         #print(self_aft_drop)
         if(self_bef_drop == self_aft_drop):
@@ -331,7 +335,7 @@ def intraObjectPlot(strApp, strFileName,numRegion):
         strArRegionAccess = str(np.round((arRegionAccess/1000).astype(float),2))+'K'
         strAccessSumBlocks= str(np.round((accessSumBlocks/1000).astype(float),2))+'K'
         strTitle = 'Spatial Density \n Region\'s total access  - ' + strArRegionAccess + ', Total accesses for pages shown - ' + strAccessSumBlocks +' ('+ ("{0:.4f}".format((accessSumBlocks/arRegionAccess)*100))+' %)\n Total number of pages in region - '+ str(numRegionBlocks)
-        print(strTitle)
+        #print(strTitle)
         ax_0.set_title(strTitle)
         ax_1.set_title('Access count for selected cache-line blocks and \n          hottest pages in the region\n ',loc='left')
 
@@ -340,25 +344,19 @@ def intraObjectPlot(strApp, strFileName,numRegion):
         plt.savefig(imageFileName, bbox_inches='tight')
         plt.close()
 
-#intraObjectPlot('AMG', '/Users/suri836/Projects/spatial_rud/mg-amg_O3/amg-trace-b8192-p4000000/spatial.txt',6)
-#intraObjectPlot('AlexNet', '/Users/suri836/Projects/spatial_rud/darknet_cluster/alexnet_single/spatial.txt',5)
-#intraObjectPlot('ResNet', '/Users/suri836/Projects/spatial_rud/darknet_cluster/resnet152_single/spatial.txt',3)
-#intraObjectPlot('Resnet-Gemm', '/Users/suri836/Projects/spatial_rud/agg_sample_data/resnet-1img-trace-b16384-p500000-5p/spatial.txt',5)
-#intraObjectPlot('Hicoo-U-1', '/Users/suri836/Projects/spatial_rud/HiParTi/spmm_hicoo-U-1-trace-b16384-p2000000/spatial.txt',3)
-#intraObjectPlot('Hicoo','/Users/suri836/Projects/spatial_rud/HiParTi/spmm_hicoo-trace-b16384-p2000000/spatial.txt',3)
 #intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v1_spatial_det.txt',2)
 #intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v2_spatial_det.txt',3)
 #intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v3_spatial_det.txt',3)
-#intraObjectPlot('AlexNet','/Users/suri836/Projects/spatial_rud/darknet_cluster/alexnet_single/spatial_clean/spatial.txt',3)
-#intraObjectPlot('ResNet', '/Users/suri836/Projects/spatial_rud/darknet_cluster/resnet152_single/spatial_clean/spatial.txt',3)
-intraObjectPlot('HiParTi - CSR','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_csr_mat-trace-b8192-p4000000/spatial.txt',2)
-intraObjectPlot('HiParTi - COO','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_mat-U-0-trace-b8192-p4000000/spatial.txt',2)
-intraObjectPlot('HiParTi - COO-Reduce','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_mat-U-1-trace-b8192-p4000000/spatial.txt',3)
-intraObjectPlot('HiParTi - HiCOO','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_hicoo-U-0-trace-b8192-p4000000/spatial.txt',2)
-intraObjectPlot('HiParTi - HiCOO-Schedule ','/Users/suri836/Projects/spatial_rud/HiParTi/4096-cols-clean/spmm_hicoo-U-1-trace-b8192-p4000000/spatial.txt',2)
+intraObjectPlot('AlexNet','/Users/suri836/Projects/spatial_rud/darknet_cluster/alexnet_single/spatial_clean/spatial.txt',3)
+intraObjectPlot('ResNet', '/Users/suri836/Projects/spatial_rud/darknet_cluster/resnet152_single/spatial_clean/spatial.txt',3)
 
-
-
+#f_avg=open('/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/sd_agg_log','w')
+#intraObjectPlot('HiParTi - CSR','/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/mg-csr/spmm_csr_mat-trace-b8192-p4000000/spatial.txt',2,f_avg)
+#intraObjectPlot('HiParTi - COO','/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-0-trace-b8192-p4000000/spatial.txt',3,f_avg)
+#intraObjectPlot('HiParTi - COO-Reduce','/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-1-trace-b8192-p4000000/spatial.txt',5,f_avg)
+#intraObjectPlot('HiParTi - HiCOO','/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-0-trace-b8192-p4000000/spatial.txt',2,f_avg)
+#intraObjectPlot('HiParTi - HiCOO-Schedule','/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-1-trace-b8192-p4000000/spatial.txt',3,f_avg)
+#f_avg.close()
 
 # For debug
 #/Users/suri836/Projects/spatial_rud/mg-amg_O3/amg-trace-b8192-p4000000/C2000000_1.txt 1 AMG C2000000_1 40

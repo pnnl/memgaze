@@ -95,18 +95,18 @@ def readFile(inFile, outFile,appName):
                   objFile_C = ''
                   varVersion = 'll: '
                 if (appName == 'spmm-mat'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-spmm-mat/spmm_mat-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-spmm-mat/obj_spmm'
+                  logFile = '/home/suri836/Projects/run_memgaze/HiParTI/4096-same-iter/mg-spmm-mat/spmm_mat-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/HiParTI/4096-same-iter/mg-spmm-mat/obj_spmm'
                   objFile_C = ''
                   varVersion = 'sp: '
                 if (appName == 'spmm-csr'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-csr/spmm_csr_mat-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-csr/obj_spmm_csr_mat'
+                  logFile = '/home/suri836/Projects/run_memgaze/HiParTI/4096-same-iter/mg-csr/spmm_csr_mat-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/HiParTI/4096-same-iter/mg-csr/obj_spmm_csr_mat'
                   objFile_C = ''
                   varVersion = 'csr: '
                 if (appName == 'spmm-hicoo'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-spmm-hicoo/spmm_hicoo_mat-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-spmm-hicoo/obj_spmm_hicoo'
+                  logFile = '/home/suri836/Projects/run_memgaze/HiParTI/4096-same-iter/mg-spmm-hicoo/spmm_hicoo_mat-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/HiParTI/4096-same-iter/mg-spmm-hicoo/obj_spmm_hicoo'
                   objFile_C = ''
                   varVersion = 'hic: '
                 if (appName == 'vec_store_lm'): 
