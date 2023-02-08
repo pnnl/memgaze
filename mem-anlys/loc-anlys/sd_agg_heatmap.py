@@ -347,8 +347,31 @@ def intraObjectPlot(strApp, strFileName,numRegion,f_avg=None):
 #intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v1_spatial_det.txt',2)
 #intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v2_spatial_det.txt',3)
 #intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v3_spatial_det.txt',3)
-intraObjectPlot('AlexNet','/Users/suri836/Projects/spatial_rud/darknet_cluster/alexnet_single/spatial_clean/spatial.txt',3)
-intraObjectPlot('ResNet', '/Users/suri836/Projects/spatial_rud/darknet_cluster/resnet152_single/spatial_clean/spatial.txt',3)
+#intraObjectPlot('AlexNet','/Users/suri836/Projects/spatial_rud/darknet_cluster/alexnet_single/spatial_clean/spatial.txt',3)
+#intraObjectPlot('ResNet', '/Users/suri836/Projects/spatial_rud/darknet_cluster/resnet152_single/spatial_clean/spatial.txt',3)
+
+#intraObjectPlot('ParTI-COO - m-0', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor/mttkrp-m-0-sel-trace-b8192-p5000000/spatial.txt', 6)
+#intraObjectPlot('ParTI-COO - m-1', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor/mttkrp-m-1-sel-trace-b8192-p5000000/spatial.txt', 6)
+#intraObjectPlot('ParTI-COO - m-2', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor/mttkrp-m-2-sel-trace-b8192-p5000000/spatial.txt', 6)
+
+#intraObjectPlot('ParTI-HiCOO - m-0', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor/mttkrp_hicoo-m-0-sel-trace-b8192-p5000000/spatial.txt', 2)
+#intraObjectPlot('ParTI-HiCOO - m-1', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor/mttkrp_hicoo-m-1-sel-trace-b8192-p5000000/spatial.txt', 3)
+#intraObjectPlot('ParTI-HiCOO - m-2', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor/mttkrp_hicoo-m-2-sel-trace-b8192-p5000000/spatial.txt', 2)
+
+intraObjectPlot('HiParTI-HiCOO ', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/spatial.txt', 1)
+intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/spatial.txt', 1)
+intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/spatial.txt', 1)
+intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/spatial.txt', 1)
+
+#intraObjectPlot('HiParTI-HiCOO ', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-0-b16384-p4000000-U-1/spatial.txt', 2)
+#intraObjectPlot('HiParTI-HiCOO Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-1-b16384-p4000000-U-1/spatial.txt', 4)
+#intraObjectPlot('HiParTI-HiCOO BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-2-b16384-p4000000-U-1/spatial.txt', 3)
+#intraObjectPlot('HiParTI-HiCOO Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-3-b16384-p4000000-U-1/spatial.txt', 4)
+
+#intraObjectPlot('HiParTI-HiCOO ', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/fb-U-0/mttsel-fb-re-0-b16384-p4000000-U-0/spatial.txt', 3)
+#intraObjectPlot('HiParTI-HiCOO Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/fb-U-0/mttsel-fb-re-1-b16384-p4000000-U-0/spatial.txt', 2)
+#intraObjectPlot('HiParTI-HiCOO BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/fb-U-0/mttsel-fb-re-2-b16384-p4000000-U-0/spatial.txt', 4)
+#intraObjectPlot('HiParTI-HiCOO Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/fb-U-0/mttsel-fb-re-3-b16384-p4000000-U-0/spatial.txt', 3)
 
 #f_avg=open('/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/sd_agg_log','w')
 #intraObjectPlot('HiParTi - CSR','/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/mg-csr/spmm_csr_mat-trace-b8192-p4000000/spatial.txt',2,f_avg)
