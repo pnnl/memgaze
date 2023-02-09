@@ -109,6 +109,46 @@ def readFile(inFile, outFile,appName):
                   objFile = '/home/suri836/Projects/run_memgaze/HiParTI/4096-same-iter/mg-spmm-hicoo/obj_spmm_hicoo'
                   objFile_C = ''
                   varVersion = 'hic: '
+                if (appName == 'p-mttkrp-hicoo'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/ParTI/mg-tensor/mttkrp_hicoo-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/ParTI/mg-tensor/obj_mttkrp_hicoo'
+                  objFile_C = ''
+                  varVersion = 'mtt-hic: '
+                if (appName == 'p-mttkrp'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/ParTI/mg-tensor/mttkrp-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/ParTI/mg-tensor/obj_mttkrp'
+                  objFile_C = ''
+                  varVersion = 'mtt: '
+                if (appName == 'p-mttkrp-sel'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/ParTI/mg-tensor/mttkrp-sel-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/ParTI/mg-tensor/obj_mttkrp'
+                  objFile_C = ''
+                  varVersion = 'mtt-sel: '
+                if (appName == 'p-mttkrp-hicoo-sel'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/ParTI/mg-tensor/mttkrp_hicoo-sel-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/ParTI/mg-tensor/obj_mttkrp_hicoo'
+                  objFile_C = ''
+                  varVersion = 'mtt-hic: '
+                if (appName == 'mttkrp-hicoo'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-tensor/mttkrp_hicoo-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-tensor/obj_mttkrp_hicoo'
+                  objFile_C = ''
+                  varVersion = 'mtt-hic: '
+                if (appName == 'mttkrp-sel'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-tensor/mttkrp-sel-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-tensor/obj_mttkrp'
+                  objFile_C = ''
+                  varVersion = 'mtt-sel: '
+                if (appName == 'mttkrp'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-tensor/mttkrp-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-tensor/obj_mttkrp'
+                  objFile_C = ''
+                  varVersion = 'mtt: '
+                if (appName == 'mttkrp-reorder-sel'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-tensor-reorder/mttkrp-sel-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-tensor-reorder/obj_mttkrp_hicoo_reorder_matrixtiling'
+                  objFile_C = ''
+                  varVersion = 'mt-re-sel: '
                 if (appName == 'vec_store_lm'): 
                   logFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/vec_gpp_st_no_frame_gh/vec_gpp_exe-memgaze.binanlys'
                   objFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/vec_gpp_st_no_frame_gh/obj_vec_gpp'
