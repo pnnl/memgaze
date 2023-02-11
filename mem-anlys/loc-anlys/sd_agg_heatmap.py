@@ -4,6 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import re
+import csv
 
 sns.color_palette("light:#5A9", as_cmap=True)
 sns.set()
@@ -118,38 +119,57 @@ def get_intra_obj (data_intra_obj, region_blk, fileline,blockid):
     add_row[3]=data[9] # lifetime
     add_row[4]=data[7] # Address range
     linecache = int(data[4])
+    # Added value for 'self' so that it doesnt get dropped in dropna
+    add_row[260]=0.0
     for i in range(15,len(data)):
         cor_data=data[i].split(',')
-        # Added value for 'self' so that it doesnt get dropped in dropna
-        add_row[5+255]=0
-        if(int(cor_data[0])<linecache):
+        if(int(cor_data[0])<=linecache):
             add_row_index=5+255-(linecache-int(cor_data[0]))
             #print("if ", linecache, cor_data[0], 5+255-(linecache-int(cor_data[0])))
         else:
             add_row_index=5+255+(int(cor_data[0])-linecache)
             #print("else", linecache, cor_data[0], 5+255+(int(cor_data[0])-linecache))
         add_row[add_row_index]=cor_data[1]
-    #if(linecache<5 or linecache>250):
-    #    print(add_row)
+        #if(add_row_index == 260 ):
+            #print('address', add_row[4], 'index', add_row_index, ' value ', add_row[add_row_index])
     data_intra_obj.append(add_row)
 
 
 
 # Read spatial.txt and write inter-region file, intra-region files for callPlot
 # Works for spatial denity now - ***
-def intraObjectPlot(strApp, strFileName,numRegion,f_avg=None):
+def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None):
     strPath=strFileName[0:strFileName.rindex('/')]
+    if (strMetric == 'SD' or strMetric == None):
+        strMetric='SD'
+        fileName='/inter_object_sd.txt'
+        lineStart='***'
+        lineEnd='==='
+        strMetricIdentifier='Spatial_Density'
+        strMetricTitle='Spatial Density'
+    elif(strMetric == 'SP'):
+        fileName='/inter_object_sp.txt'
+        lineStart='==='
+        lineEnd='---'
+        strMetricIdentifier='Spatial_Prob'
+        strMetricTitle='Spatial Probability'
+    elif(strMetric == 'SR'):
+        fileName='/inter_object_sr.txt'
+        lineStart='---'
+        lineEnd='<----'
+        strMetricIdentifier='Spatial_Proximity'
+        strMetricTitle='Spatial Proximity'
     #print(strPath)
     # Write inter-object_sd.txt
-    strInterRegionFile=strPath+'/inter_object_sd.txt'
+    strInterRegionFile=strPath+fileName
     f_out=open(strInterRegionFile,'w')
     with open(strFileName) as f:
         for fileLine in f:
             data=fileLine.strip().split(' ')
-            if (data[0] == '***'):
+            if (data[0] == lineStart):
                 #print (fileLine)
                 f_out.write(fileLine)
-            if (data[0] == '==='):
+            if (data[0] == lineEnd):
                 f_out.close()
                 break
     f.close()
@@ -164,7 +184,7 @@ def intraObjectPlot(strApp, strFileName,numRegion,f_avg=None):
 
     df_inter=pd.read_table(strInterRegionFile, sep=" ", skipinitialspace=True, usecols=range(2,15),
                      names=['RegionId_Name','Page', 'RegionId_Num','colon', 'ar', 'Address Range', 'lf', 'Lifetime', 'ac', 'Access count', 'bc', 'Block count','Type'])
-    df_inter = df_inter[df_inter['Type'] == 'Spatial_Density']
+    df_inter = df_inter[df_inter['Type'] == strMetricIdentifier]
     #print(df_inter)
     df_inter_data=df_inter[['RegionId_Name', 'RegionId_Num', 'Address Range', 'Lifetime', 'Access count', 'Block count']]
     df_inter_data['Reg_Num-Name']=df_inter_data.apply(lambda x:'%s-%s' % (x['RegionId_Num'],x['RegionId_Name']),axis=1)
@@ -183,7 +203,7 @@ def intraObjectPlot(strApp, strFileName,numRegion,f_avg=None):
         with open(strFileName) as f:
             for fileLine in f:
                 data=fileLine.strip().split(' ')
-                if (data[0] == '***' and (data[2][0:len(data[2])-1]) == regionIdName):
+                if (data[0] == lineStart and (data[2][0:len(data[2])-1]) == regionIdName):
                     blockId=data[2][-1]
                     #print('region line' , regionIdNumName, blockId, data[2])
                     get_intra_obj(data_list_intra_obj,data[2],fileLine,blockId)
@@ -195,14 +215,23 @@ def intraObjectPlot(strApp, strFileName,numRegion,f_avg=None):
         list_col_names[2]='Access'
         list_col_names[3]='Lifetime'
         list_col_names[4]='Address'
-        for i in range ( 0,256):
+        for i in range ( 0,255):
             list_col_names[5+i]='self'+'-'+str(255-i)
         list_col_names[260]='self'
         for i in range ( 1,256):
             list_col_names[260+i]='self'+'+'+str(i)
+        #print((list_col_names))
+
         #print(list_col_names)
-        #print(data_list_intra_obj)
+        #print(row[1] for row in data_list_intra_obj)
+        #with open('/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/temp-list.csv', 'w', newline='') as myfile:
+            #writer = csv.writer(myfile)
+            #writer.writerows(data_list_intra_obj)
+
         df_intra_obj=pd.DataFrame(data_list_intra_obj,columns=list_col_names)
+        #print(df_intra_obj[['Address', 'blk-cache','self-2','self-1','self','self+1','self+2']])
+        #df_intra_obj.to_csv('/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/temp.csv')
+
         df_intra_obj = df_intra_obj.astype({"Access": int, "Lifetime": int})
         accessSumBlocks= df_intra_obj['Access'].sum()
         arRegionBlocks=df_intra_obj['blockid'].unique()
@@ -259,9 +288,9 @@ def intraObjectPlot(strApp, strFileName,numRegion,f_avg=None):
         #print('after drop na shape = ' , df_intra_obj_sample_hm.shape)
         average_sd= pd.to_numeric(df_intra_obj_sample_hm["self"]).mean()
         #print(average_sd)
-        print('*** Average SD for '+strApp+', Region '+regionIdNumName+' '+str(average_sd))
+        print('*** Average '+strMetric+' for '+strApp+', Region '+regionIdNumName+' '+str(average_sd))
         if (f_avg != None):
-            f_avg.write ( '*** Average SD for '+strApp+', Region '+regionIdNumName+' '+str(average_sd)+'\n')
+            f_avg.write ( '*** Average '+strMetric+' for '+strApp+', Region '+regionIdNumName+' '+str(average_sd)+'\n')
         self_aft_drop=df_intra_obj_sample_hm['self'].to_list()
         #print(self_aft_drop)
         if(self_bef_drop == self_aft_drop):
@@ -291,8 +320,14 @@ def intraObjectPlot(strApp, strFileName,numRegion,f_avg=None):
         #ax_0 = subfigs[0].subplots(1,1)
         #ax_1 = (subfigs[1].subplots(1, 2))[0]
         #ax_2 = (subfigs[1].subplots(1, 2))[1]
+        if(strMetric == 'SR'):
+            vmin_val=1.0
+            vmax_val=8.0
+        else:
+            vmin_val=0.0
+            vmax_val=1.0
 
-        ax_0 = sns.heatmap(df_hm,cmap='mako_r',cbar=True, annot=False,ax=ax_0,vmin=0.0,vmax=1.0)
+        ax_0 = sns.heatmap(df_hm,cmap='mako_r',cbar=True, annot=False,ax=ax_0,vmin=vmin_val,vmax=vmax_val)
         ax_0.invert_yaxis()
         list_y_ticks=ax_0.get_yticklabels()
         fig_ylabel=[]
@@ -331,16 +366,16 @@ def intraObjectPlot(strApp, strFileName,numRegion,f_avg=None):
         ax_2.set_yticklabels(list_blk_label, rotation='horizontal', wrap=True )
         ax_2.yaxis.set_ticks_position('right')
 
-        plt.suptitle('Spatial density and Access count heatmap for '+strApp +' region - '+regionIdNumName)
+        plt.suptitle(strMetricTitle +' and Access count heatmap for '+strApp +' region - '+regionIdNumName)
         strArRegionAccess = str(np.round((arRegionAccess/1000).astype(float),2))+'K'
         strAccessSumBlocks= str(np.round((accessSumBlocks/1000).astype(float),2))+'K'
-        strTitle = 'Spatial Density \n Region\'s total access  - ' + strArRegionAccess + ', Total accesses for pages shown - ' + strAccessSumBlocks +' ('+ ("{0:.4f}".format((accessSumBlocks/arRegionAccess)*100))+' %)\n Total number of pages in region - '+ str(numRegionBlocks)
+        strTitle = strMetricTitle+' \n Region\'s total access  - ' + strArRegionAccess + ', Total accesses for pages shown - ' + strAccessSumBlocks +' ('+ ("{0:.4f}".format((accessSumBlocks/arRegionAccess)*100))+' %)\n Total number of pages in region - '+ str(numRegionBlocks)
         #print(strTitle)
         ax_0.set_title(strTitle)
         ax_1.set_title('Access count for selected cache-line blocks and \n          hottest pages in the region\n ',loc='left')
 
         #plt.show()
-        imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName+'.pdf'
+        imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName+'-'+strMetric+'.pdf'
         plt.savefig(imageFileName, bbox_inches='tight')
         plt.close()
 
@@ -357,11 +392,22 @@ def intraObjectPlot(strApp, strFileName,numRegion,f_avg=None):
 #intraObjectPlot('ParTI-HiCOO - m-0', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor/mttkrp_hicoo-m-0-sel-trace-b8192-p5000000/spatial.txt', 2)
 #intraObjectPlot('ParTI-HiCOO - m-1', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor/mttkrp_hicoo-m-1-sel-trace-b8192-p5000000/spatial.txt', 3)
 #intraObjectPlot('ParTI-HiCOO - m-2', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor/mttkrp_hicoo-m-2-sel-trace-b8192-p5000000/spatial.txt', 2)
+if ( 1 == 1):
+    intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/spatial.txt', 1)
+    intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/spatial.txt', 1)
+    intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/spatial.txt', 1)
+    intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/spatial.txt', 1)
 
-intraObjectPlot('HiParTI-HiCOO ', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/spatial.txt', 1)
-intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/spatial.txt', 1)
-intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/spatial.txt', 1)
-intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/spatial.txt', 1)
+    intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/spatial.txt', 1, 'SP')
+    intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/spatial.txt', 1, 'SP')
+    intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/spatial.txt', 1, 'SP')
+    intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/spatial.txt', 1, 'SP')
+
+if ( 1 == 1):
+    intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/spatial.txt', 1, 'SR')
+    intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/spatial.txt', 1, 'SR')
+    intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/spatial.txt', 1, 'SR')
+    intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/spatial.txt', 1, 'SR')
 
 #intraObjectPlot('HiParTI-HiCOO ', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-0-b16384-p4000000-U-1/spatial.txt', 2)
 #intraObjectPlot('HiParTI-HiCOO Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-1-b16384-p4000000-U-1/spatial.txt', 4)
