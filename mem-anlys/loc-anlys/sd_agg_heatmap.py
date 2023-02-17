@@ -254,9 +254,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None):
         for i in range (0,len(get_col_list)):
             df_intra_obj[get_col_list[i]]=pd.to_numeric(df_intra_obj[get_col_list[i]])
 
+        # START Lexi-BFS - experiment #1
         # Line-Plot useless for multiple columns from self-16 to self+16
         # Trying to collect count and average across rows of the heatmap to differentiate between variants
-
         # Plot average values over the columns - not so useful
         if( (1 == 0) and (strMetric =='SP' or strMetric =='SD' or strMetric == 'SR')):
             f_variant_metric=open('/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/average.csv','a')
@@ -274,27 +274,65 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None):
             my_string = ','.join(map(str, avg_correlation_value))
             f_variant_metric.write(strApp.replace(' ','')+'-'+strMetric+','+strMetric+',value,'+my_string+'\n')
             f_variant_metric.close()
+        # END Lexi-BFS - experiment #1
 
-        if(strMetric == 'SP' or strMetric == 'SR'):
+        # START Lexi-BFS - experiment #2 - plotting SP is helpful
+        # Write Spatial probability data for self-3 to self+3 range to plot using plot_variants_avg.py
+        if((1 ==0 ) and (strMetric == 'SP' or strMetric == 'SR')):
             f_variant_SP=open('/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/SP-SR.csv','a')
             get_SP_col=['self-3','self-2','self-1','self','self+1','self+2','self+3']
             for i in range(0, len(get_SP_col)):
                 col_values=df_intra_obj[get_SP_col[i]]
                 my_string = ','.join(map(str, col_values))
                 f_variant_SP.write(strApp.replace(' ','')+'-'+strMetric+','+strMetric+','+get_SP_col[i]+','+my_string+'\n')
+        # END Lexi-BFS - experiment #2 - plotting SP is helpful
+
+        # START Lexi-BFS - experiment #3 - SD range & gap analysis
+        df_row=pd.Series([np.NaN,1,3,np.NaN,5,np.NaN,7.0],index=list('abcdefg'))
+        #print('first ', df_row.first_valid_index())
+        #print('last', df_row.last_valid_index())
+
+        print('dataframe length', len(df_intra_obj))
+        list_blk_range_gap=[]
+        for df_id in range (0, len(df_intra_obj)):
+            blk_id=df_intra_obj.iloc[df_id,1]
+            df_row=pd.to_numeric(df_intra_obj.iloc[df_id,5:516]).squeeze()
+            #print(df_row.type())
+            #for ind, val in df_row.iteritems():
+                #print ( ind, val)
+            #print('first ', df_row.first_valid_index())
+            #print('last', df_row.last_valid_index())
+            #print('count', df_row.count())
+            first_index=df_row.first_valid_index()
+            last_index=df_row.last_valid_index()
+            if ( first_index == 'self'):
+                first_value=0
+            else:
+                first_value=int(''.join(filter(str.isdigit, first_index)))
+            if ( last_index == 'self'):
+                last_value=0
+            else:
+                last_value=int(''.join(filter(str.isdigit, last_index)))
+            valid_range=first_value+last_value+1
+            list_blk_range_gap.append([blk_id,first_value,last_value,valid_range, df_row.count() ])
+        print(list_blk_range_gap)
+        df_range_gap=pd.DataFrame(list_blk_range_gap,columns=['blk-cache','first','last','range','count'])
+        df_range_gap = df_range_gap.astype({"range": int, "count": int})
+        print(strApp,' ', strMetric, ' ', 'Range mean', pd.to_numeric(df_range_gap["range"]).mean())
+        print(strApp,' ', strMetric, ' ', 'Range std ', pd.to_numeric(df_range_gap["range"]).std())
+        print(strApp,' ', strMetric, ' ', 'Count mean', pd.to_numeric(df_range_gap["count"]).mean())
+        print(strApp,' ', strMetric, ' ', 'Count std', pd.to_numeric(df_range_gap["count"]).std())
+        # END Lexi-BFS - experiment #3 - SD range & gap analysis
 
         # Sample 50 blk-cacheid lines from all blocks based on Access counts
         num_sample=50
         df_intra_obj_rows=df_intra_obj.shape[0]
         if ( df_intra_obj_rows < num_sample):
             num_sample = df_intra_obj_rows
-
         df_intra_obj_sample=df_intra_obj.sample(n=num_sample, random_state=1, weights='Access')
         df_intra_obj_sample.set_index('blk-cache')
         df_intra_obj_sample.sort_index(inplace=True)
         list_xlabel=df_intra_obj_sample['blk-cache'].to_list()
-        #print('col list to get')
-        #print(get_col_list)
 
         accessBlockCacheLine = (df_intra_obj_sample[['Access']]).to_numpy()
         df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
@@ -320,13 +358,16 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None):
             for i in range (1,10):
                 get_col_list.append('self+'+str(i))
 
+        df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
+
         # Another experiment to show useful 'SP' data - original code in if loop
-        if(strMetric == 'SD' or strMetric == 'SR'):
-            df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
-        elif (strMetric == 'SP'):
-            df_intra_obj_sample_hm=df_intra_obj_sample[df_intra_obj_sample[get_col_list] >=0.1]
-            df_intra_obj_sample_hm=df_intra_obj_sample_hm.dropna(axis=1,how='all')
-            get_col_list=df_intra_obj_sample_hm.columns
+        #if(strMetric == 'SD' or strMetric == 'SR'):
+            #df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
+        #elif (strMetric == 'SP'):
+            #df_intra_obj_sample_hm=df_intra_obj_sample[df_intra_obj_sample[get_col_list] >=0.1]
+            #df_intra_obj_sample_hm=df_intra_obj_sample_hm.dropna(axis=1,how='all')
+            #get_col_list=df_intra_obj_sample_hm.columns
+
 
         average_sd= pd.to_numeric(df_intra_obj_sample_hm["self"]).mean()
         print('*** After sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName+' '+str(average_sd))
@@ -468,7 +509,10 @@ if ( 1 == 0):
     intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/spatial.txt', 1, 'SR')
     intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/spatial.txt', 1, 'SR')
 
+intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/spatial.txt', 1)
 intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/spatial.txt', 1)
+intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/spatial.txt', 1)
+intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/spatial.txt', 1)
 
 # HiParTi - Tensor variants - Use buffer
 #intraObjectPlot('HiParTI-HiCOO ', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-0-b16384-p4000000-U-1/spatial.txt', 2)
