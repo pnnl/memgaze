@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import re
 import csv
-
+import os
 sns.color_palette("light:#5A9", as_cmap=True)
 sns.set()
 
@@ -241,9 +241,50 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None):
             #print(arRegionBlockId, df_intra_obj[df_intra_obj['blockid']==str(arRegionBlockId)]['Access'].sum())
             arBlockIdAccess[int(arRegionBlockId)] = df_intra_obj[df_intra_obj['blockid']==str(arRegionBlockId)]['Access'].sum()
 
-        # Sample 50 blk-cacheid lines from all blocks
-        num_sample=50
+        average_sd= pd.to_numeric(df_intra_obj["self"]).mean()
+        print('*** Before sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName+' '+str(average_sd))
+        get_col_list=[None]*511
+        for i in range ( 0,255):
+            get_col_list[i]='self'+'-'+str(255-i)
+        get_col_list[255]='self'
+        for i in range ( 1,256):
+            get_col_list[255+i]='self'+'+'+str(i)
 
+        # Change data to numeric
+        for i in range (0,len(get_col_list)):
+            df_intra_obj[get_col_list[i]]=pd.to_numeric(df_intra_obj[get_col_list[i]])
+
+        # Line-Plot useless for multiple columns from self-16 to self+16
+        # Trying to collect count and average across rows of the heatmap to differentiate between variants
+
+        # Plot average values over the columns - not so useful
+        if( (1 == 0) and (strMetric =='SP' or strMetric =='SD' or strMetric == 'SR')):
+            f_variant_metric=open('/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/average.csv','a')
+            if (os.stat('/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/average.csv').st_size == 0):
+                my_string = ','.join(map(str, get_col_list))
+                f_variant_metric.write('App-Metric,Metric,type,'+my_string+'\n')
+            avg_correlation_value=[None]*511
+            avg_correlation_cnt=[None]*511
+            for j in range (0,len(get_col_list)):
+                avg_correlation_value[j] = pd.to_numeric(df_intra_obj[get_col_list[j]]>=0.25).mean()
+                avg_correlation_cnt[j] = pd.to_numeric(df_intra_obj[get_col_list[j]]>=0.25).count()
+                #print( "average for ", get_col_list[j], avg_correlation_value[j], avg_correlation_cnt[j])
+            my_string = ','.join(map(str, avg_correlation_cnt))
+            f_variant_metric.write(strApp.replace(' ','')+'-'+strMetric+','+strMetric+',count,'+my_string+'\n')
+            my_string = ','.join(map(str, avg_correlation_value))
+            f_variant_metric.write(strApp.replace(' ','')+'-'+strMetric+','+strMetric+',value,'+my_string+'\n')
+            f_variant_metric.close()
+
+        if(strMetric == 'SP' or strMetric == 'SR'):
+            f_variant_SP=open('/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/SP-SR.csv','a')
+            get_SP_col=['self-3','self-2','self-1','self','self+1','self+2','self+3']
+            for i in range(0, len(get_SP_col)):
+                col_values=df_intra_obj[get_SP_col[i]]
+                my_string = ','.join(map(str, col_values))
+                f_variant_SP.write(strApp.replace(' ','')+'-'+strMetric+','+strMetric+','+get_SP_col[i]+','+my_string+'\n')
+
+        # Sample 50 blk-cacheid lines from all blocks based on Access counts
+        num_sample=50
         df_intra_obj_rows=df_intra_obj.shape[0]
         if ( df_intra_obj_rows < num_sample):
             num_sample = df_intra_obj_rows
@@ -252,12 +293,6 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None):
         df_intra_obj_sample.set_index('blk-cache')
         df_intra_obj_sample.sort_index(inplace=True)
         list_xlabel=df_intra_obj_sample['blk-cache'].to_list()
-        get_col_list=[None]*511
-        for i in range ( 0,255):
-            get_col_list[i]='self'+'-'+str(255-i)
-        get_col_list[255]='self'
-        for i in range ( 1,256):
-            get_col_list[255+i]='self'+'+'+str(i)
         #print('col list to get')
         #print(get_col_list)
 
@@ -266,6 +301,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None):
         self_bef_drop=df_intra_obj_sample_hm['self'].to_list()
         #print('before dropna shape = ' , df_intra_obj_sample_hm.shape)
 
+        # DROP - columns with no values
         df_intra_obj_drop=df_intra_obj_sample_hm.dropna(axis=1,how='all')
         get_col_list=df_intra_obj_drop.columns.to_list()
         flAddSelfBelow=1
@@ -283,12 +319,17 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None):
         if(flAddSelfAbove == 1):
             for i in range (1,10):
                 get_col_list.append('self+'+str(i))
-        #print(get_col_list)
-        df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
-        #print('after drop na shape = ' , df_intra_obj_sample_hm.shape)
+
+        # Another experiment to show useful 'SP' data - original code in if loop
+        if(strMetric == 'SD' or strMetric == 'SR'):
+            df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
+        elif (strMetric == 'SP'):
+            df_intra_obj_sample_hm=df_intra_obj_sample[df_intra_obj_sample[get_col_list] >=0.1]
+            df_intra_obj_sample_hm=df_intra_obj_sample_hm.dropna(axis=1,how='all')
+            get_col_list=df_intra_obj_sample_hm.columns
+
         average_sd= pd.to_numeric(df_intra_obj_sample_hm["self"]).mean()
-        #print(average_sd)
-        print('*** Average '+strMetric+' for '+strApp+', Region '+regionIdNumName+' '+str(average_sd))
+        print('*** After sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName+' '+str(average_sd))
         if (f_avg != None):
             f_avg.write ( '*** Average '+strMetric+' for '+strApp+', Region '+regionIdNumName+' '+str(average_sd)+'\n')
         self_aft_drop=df_intra_obj_sample_hm['self'].to_list()
@@ -410,22 +451,24 @@ if ( 1 == 0):
 #intraObjectPlot('ParTI-HiCOO - m-2', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor/mttkrp_hicoo-m-2-sel-trace-b8192-p5000000/spatial.txt', 2)
 
 # HiParTi - Tensor variants
-if ( 1 == 1):
+if ( 1 == 0):
     intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/spatial.txt', 1)
     intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/spatial.txt', 1)
     intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/spatial.txt', 1)
     intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/spatial.txt', 1)
 
     intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/spatial.txt', 1, 'SP')
-    intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/spatial.txt', 1, 'SP')
     intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/spatial.txt', 1, 'SP')
     intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/spatial.txt', 1, 'SP')
+    intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/spatial.txt', 1, 'SP')
 
 if ( 1 == 0):
     intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/spatial.txt', 1, 'SR')
     intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/spatial.txt', 1, 'SR')
     intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/spatial.txt', 1, 'SR')
     intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/spatial.txt', 1, 'SR')
+
+intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/spatial.txt', 1)
 
 # HiParTi - Tensor variants - Use buffer
 #intraObjectPlot('HiParTI-HiCOO ', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-0-b16384-p4000000-U-1/spatial.txt', 2)

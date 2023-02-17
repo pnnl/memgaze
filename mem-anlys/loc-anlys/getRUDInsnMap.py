@@ -149,6 +149,21 @@ def readFile(inFile, outFile,appName):
                   objFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-tensor-reorder/obj_mttkrp_hicoo_reorder_matrixtiling'
                   objFile_C = ''
                   varVersion = 'mt-re-sel: '
+                if (appName == 'mini-v1'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/v1_memgaze_ld_2M/miniVite-v1-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/v1_memgaze_ld_2M/obj_v1'
+                  objFile_C = ''
+                  varVersion = 'm-v1: '
+                if (appName == 'mini-v2'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/v2_memgaze_ld_2M/miniVite-v2-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/v2_memgaze_ld_2M/obj_v2'
+                  objFile_C = ''
+                  varVersion = 'm-v2: '
+                if (appName == 'mini-v3'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/v3_memgaze_ld_2M/miniVite-v3-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/v3_memgaze_ld_2M/obj_v3'
+                  objFile_C = ''
+                  varVersion = 'm-v3: '
                 if (appName == 'vec_store_lm'): 
                   logFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/vec_gpp_st_no_frame_gh/vec_gpp_exe-memgaze.binanlys'
                   objFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/vec_gpp_st_no_frame_gh/obj_vec_gpp'
