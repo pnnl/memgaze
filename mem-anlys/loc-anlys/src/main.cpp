@@ -896,7 +896,7 @@ int main(int argc, char ** argv){
          BlockInfo *curBlock = vecBlockInfo.at(i);
          regionTotalAccess += curBlock->getTotalAccess();
      }
-    spatialOutFile<< "----- New region starts " << " MemoryArea " << hex<< memarea.min << "-" << memarea.max 
+    spatialOutFile<< ">---- New inter-region starts " << " MemoryArea " << hex<< memarea.min << "-" << memarea.max 
                   << " Total-access "<<std::dec << regionTotalAccess 
                   << " Block size " <<std::dec << zoomLastLvlPageWidth <<" Region count " << std::dec << memarea.blockCount << " -----" << endl; 
     for(i = 0; i< memarea.blockCount; i++){
@@ -1009,7 +1009,7 @@ int main(int argc, char ** argv){
          BlockInfo *curBlock = vecBlockInfo.at(i);
          regionTotalAccess += curBlock->getTotalAccess();
       }
-      spatialOutFile << "----- New region starts " << " MemoryArea " << hex<< memarea.min << "-" << memarea.max
+      spatialOutFile << "<---- New intra-region starts " << " MemoryArea " << hex<< memarea.min << "-" << memarea.max
                   << " Total-access "<<std::dec << regionTotalAccess 
                    << " Block size " <<std::dec <<  memarea.blockSize << " Block count " << memarea.blockCount <<" -----" << endl; 
       for(i = 0; i< memarea.blockCount; i++){

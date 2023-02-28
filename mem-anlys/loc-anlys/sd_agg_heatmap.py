@@ -315,7 +315,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None):
                 last_value=int(''.join(filter(str.isdigit, last_index)))
             valid_range=first_value+last_value+1
             list_blk_range_gap.append([blk_id,first_value,last_value,valid_range, df_row.count() ])
-        print(list_blk_range_gap)
+        #print(list_blk_range_gap)
         df_range_gap=pd.DataFrame(list_blk_range_gap,columns=['blk-cache','first','last','range','count'])
         df_range_gap = df_range_gap.astype({"range": int, "count": int})
         print(strApp,' ', strMetric, ' ', 'Range mean', pd.to_numeric(df_range_gap["range"]).mean())
@@ -461,6 +461,12 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None):
         plt.savefig(imageFileName, bbox_inches='tight')
         plt.close()
 
+# Minivite - plots to check for darker band
+if ( 1==1):
+    intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/mini-memgaze-ld-nuke/miniVite-v1-memgaze-trace-b16384-p2000000/spatial.txt',3)
+    intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/mini-memgaze-ld-nuke/miniVite-v2-memgaze-trace-b16384-p2000000/spatial.txt',3)
+    intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/mini-memgaze-ld-nuke/miniVite-v3-memgaze-trace-b16384-p2000000/spatial.txt',3)
+
 #Minivite - paper plots
 if ( 1==0):
     intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v1_spatial_det.txt',2)
@@ -509,10 +515,6 @@ if ( 1 == 0):
     intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/spatial.txt', 1, 'SR')
     intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/spatial.txt', 1, 'SR')
 
-intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/spatial.txt', 1)
-intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/spatial.txt', 1)
-intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/spatial.txt', 1)
-intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/spatial.txt', 1)
 
 # HiParTi - Tensor variants - Use buffer
 #intraObjectPlot('HiParTI-HiCOO ', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-0-b16384-p4000000-U-1/spatial.txt', 2)
