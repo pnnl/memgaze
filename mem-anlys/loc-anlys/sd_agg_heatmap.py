@@ -6,6 +6,7 @@ import matplotlib.gridspec as gridspec
 import re
 import csv
 import os
+import copy
 sns.color_palette("light:#5A9", as_cmap=True)
 sns.set()
 
@@ -108,11 +109,11 @@ def readFile(filename, strApp):
 
 # df=pd.read_table(filename, sep=" ", skipinitialspace=True, usecols=range(4,14),
 # names=['RegionId','colon', 'ar', 'Address Range', 'lf', 'Lifetime', 'ac', 'Access count', 'bc', 'Block count'])
-def get_intra_obj (data_intra_obj, region_blk, fileline,blockid):
+def get_intra_obj (data_intra_obj, fileline,blockid,regionIdNum):
     add_row=[None]*516
     data = fileline.strip().split(' ')
     #print("in fill_data_frame", data[2], data[4], data[15:])
-    str_index=data[2][-1]+'-'+data[4] #regionid-cacheline
+    str_index=regionIdNum+'-'+data[2][-1]+'-'+data[4] #regionid-pageid-cacheline
     add_row[0]=blockid
     add_row[1]=str_index
     add_row[2] = data[11] # access count
@@ -138,7 +139,7 @@ def get_intra_obj (data_intra_obj, region_blk, fileline,blockid):
 
 # Read spatial.txt and write inter-region file, intra-region files for callPlot
 # Works for spatial denity now - ***
-def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None):
+def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None):
     strPath=strFileName[0:strFileName.rindex('/')]
     if (strMetric == 'SD' or strMetric == None):
         strMetric='SD'
@@ -191,27 +192,58 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None):
     #print(df_inter_data)
     df_inter_data_sample=df_inter_data.nlargest(n=numRegion,  columns=['Access count'])
     arRegionId = df_inter_data_sample['Reg_Num-Name'].values.flatten().tolist()
-    #print(arRegionId)
+    if (listCombineReg != None):
+        arRegionId.extend(x for x in listCombineReg if x not in arRegionId)
+    arRegionId.sort()
+    print(arRegionId)
+
+    data_list_combine_Reg =[]
+    flagProcessCombine=0
     for j in range(0, len(arRegionId)):
-    #for j in range(0, 1):
         regionIdNumName=arRegionId[j]
-        arRegionAccess = df_inter_data_sample[ df_inter_data_sample['Reg_Num-Name']==regionIdNumName]['Access count'].values.flatten()[0]
-        numRegionBlocks = df_inter_data_sample[ df_inter_data_sample['Reg_Num-Name']==regionIdNumName]['Block count'].values.flatten()[0]
-        data_list_intra_obj=[]
+        regionIdNumName_copy=arRegionId[j]
         regionIdName =regionIdNumName[regionIdNumName.index('-')+1:]
-        #print(regionIdName)
+        regionIdNum= regionIdNumName[:regionIdNumName.index('-')]
+        print('regionIdName ', regionIdName, 'regionIdNumName ', regionIdNumName, regionIdNum)
+        data_list_intra_obj=[]
+        if(listCombineReg != None and regionIdNumName in listCombineReg):
+            print('Not None', regionIdNumName)
+            if(flagProcessCombine == 0):
+                flagProcessCombine=1
+                combRegionIdNumName=arRegionId[j]
+                arCombRegionAccess = df_inter_data[ df_inter_data['Reg_Num-Name']==regionIdNumName]['Access count'].values.flatten()[0]
+                numCombRegionBlocks = df_inter_data[ df_inter_data['Reg_Num-Name']==regionIdNumName]['Block count'].values.flatten()[0]
+            else:
+                arCombRegionAccess += df_inter_data[ df_inter_data['Reg_Num-Name']==regionIdNumName]['Access count'].values.flatten()[0]
+                numCombRegionBlocks += df_inter_data[ df_inter_data['Reg_Num-Name']==regionIdNumName]['Block count'].values.flatten()[0]
+                combRegionIdNumName = combRegionIdNumName+' & '+arRegionId[j]
+            regionIdNumName = combRegionIdNumName
+            arRegionAccess = arCombRegionAccess
+            numRegionBlocks = numCombRegionBlocks
+        else:
+            arRegionAccess = df_inter_data[ df_inter_data['Reg_Num-Name']==regionIdNumName]['Access count'].values.flatten()[0]
+            numRegionBlocks = df_inter_data[ df_inter_data['Reg_Num-Name']==regionIdNumName]['Block count'].values.flatten()[0]
+
+
         with open(strFileName) as f:
             for fileLine in f:
                 data=fileLine.strip().split(' ')
                 if (data[0] == lineStart and (data[2][0:len(data[2])-1]) == regionIdName):
                     blockId=data[2][-1]
                     #print('region line' , regionIdNumName, blockId, data[2])
-                    get_intra_obj(data_list_intra_obj,data[2],fileLine,blockId)
+                    get_intra_obj(data_list_intra_obj,fileLine,regionIdNum+'-'+blockId,regionIdNum)
         f.close()
+        print('**** before regionIdNumName ', regionIdNumName, 'list length', len(data_list_intra_obj))
+        if(listCombineReg != None and regionIdNumName_copy in listCombineReg):
+            data_list_combine_Reg.extend(data_list_intra_obj)
+            data_list_intra_obj=copy.deepcopy(data_list_combine_Reg)
+            print('***** after regionIdNumName ', regionIdNumName, 'list data_list_intra_obj length', len(data_list_intra_obj), 'list data_list_combine_Reg', len(data_list_combine_Reg))
+
+
         #print(data_list_intra_obj)
         list_col_names=[None]*516
         list_col_names[0]='blockid'
-        list_col_names[1]='blk-cache'
+        list_col_names[1]='reg-page-blk'
         list_col_names[2]='Access'
         list_col_names[3]='Lifetime'
         list_col_names[4]='Address'
@@ -222,25 +254,19 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None):
             list_col_names[260+i]='self'+'+'+str(i)
         #print((list_col_names))
 
-        #print(list_col_names)
-        #print(row[1] for row in data_list_intra_obj)
-        #with open('/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/temp-list.csv', 'w', newline='') as myfile:
-            #writer = csv.writer(myfile)
-            #writer.writerows(data_list_intra_obj)
-
         df_intra_obj=pd.DataFrame(data_list_intra_obj,columns=list_col_names)
-        #print(df_intra_obj[['Address', 'blk-cache','self-2','self-1','self','self+1','self+2']])
+        #print(df_intra_obj[['Address', 'reg-page-blk','self-2','self-1','self','self+1','self+2']])
         #df_intra_obj.to_csv('/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/temp.csv')
 
         df_intra_obj = df_intra_obj.astype({"Access": int, "Lifetime": int})
         accessSumBlocks= df_intra_obj['Access'].sum()
         arRegionBlocks=df_intra_obj['blockid'].unique()
-        #print (arRegionBlocks)
+        print (arRegionBlocks)
         arBlockIdAccess = np.empty([len(arRegionBlocks),1])
         for arRegionBlockId in range(0, len(arRegionBlocks)):
-            #print(arRegionBlockId, df_intra_obj[df_intra_obj['blockid']==str(arRegionBlockId)]['Access'].sum())
-            arBlockIdAccess[int(arRegionBlockId)] = df_intra_obj[df_intra_obj['blockid']==str(arRegionBlockId)]['Access'].sum()
-
+            print(arRegionBlockId, df_intra_obj[df_intra_obj['blockid']==arRegionBlocks[arRegionBlockId]]['Access'].sum())
+            arBlockIdAccess[int(arRegionBlockId)] = df_intra_obj[df_intra_obj['blockid']==arRegionBlocks[arRegionBlockId]]['Access'].sum()
+        #print (arBlockIdAccess)
         average_sd= pd.to_numeric(df_intra_obj["self"]).mean()
         print('*** Before sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName+' '+str(average_sd))
         get_col_list=[None]*511
@@ -288,7 +314,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None):
         # END Lexi-BFS - experiment #2 - plotting SP is helpful
 
         # START Lexi-BFS - experiment #3 - SD range & gap analysis
-        df_row=pd.Series([np.NaN,1,3,np.NaN,5,np.NaN,7.0],index=list('abcdefg'))
+        #df_row=pd.Series([np.NaN,1,3,np.NaN,5,np.NaN,7.0],index=list('abcdefg'))
         #print('first ', df_row.first_valid_index())
         #print('last', df_row.last_valid_index())
 
@@ -316,7 +342,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None):
             valid_range=first_value+last_value+1
             list_blk_range_gap.append([blk_id,first_value,last_value,valid_range, df_row.count() ])
         #print(list_blk_range_gap)
-        df_range_gap=pd.DataFrame(list_blk_range_gap,columns=['blk-cache','first','last','range','count'])
+        df_range_gap=pd.DataFrame(list_blk_range_gap,columns=['reg-page-blk','first','last','range','count'])
         df_range_gap = df_range_gap.astype({"range": int, "count": int})
         print(strApp,' ', strMetric, ' ', 'Range mean', pd.to_numeric(df_range_gap["range"]).mean())
         print(strApp,' ', strMetric, ' ', 'Range std ', pd.to_numeric(df_range_gap["range"]).std())
@@ -324,15 +350,15 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None):
         print(strApp,' ', strMetric, ' ', 'Count std', pd.to_numeric(df_range_gap["count"]).std())
         # END Lexi-BFS - experiment #3 - SD range & gap analysis
 
-        # Sample 50 blk-cacheid lines from all blocks based on Access counts
+        # Sample 50 reg-page-blkid lines from all blocks based on Access counts
         num_sample=50
         df_intra_obj_rows=df_intra_obj.shape[0]
         if ( df_intra_obj_rows < num_sample):
             num_sample = df_intra_obj_rows
         df_intra_obj_sample=df_intra_obj.sample(n=num_sample, random_state=1, weights='Access')
-        df_intra_obj_sample.set_index('blk-cache')
+        df_intra_obj_sample.set_index('reg-page-blk')
         df_intra_obj_sample.sort_index(inplace=True)
-        list_xlabel=df_intra_obj_sample['blk-cache'].to_list()
+        list_xlabel=df_intra_obj_sample['reg-page-blk'].to_list()
 
         accessBlockCacheLine = (df_intra_obj_sample[['Access']]).to_numpy()
         df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
@@ -461,11 +487,17 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None):
         plt.savefig(imageFileName, bbox_inches='tight')
         plt.close()
 
+
+intraObjectPlot('HiParTi - COO-Reduce','/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-1-trace-b8192-p4000000/spatial.txt', \
+                2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'])
+intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v2_spatial_det.txt',3,listCombineReg=['1-A0000010','4-A0002000'] )
+intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v3_spatial_det.txt',3,listCombineReg=['1-A0000001','5-A0001200'] )
+
 # Minivite - plots to check for darker band
-if ( 1==1):
-    intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/mini-memgaze-ld-nuke/miniVite-v1-memgaze-trace-b16384-p2000000/spatial.txt',3)
-    intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/mini-memgaze-ld-nuke/miniVite-v2-memgaze-trace-b16384-p2000000/spatial.txt',3)
-    intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/mini-memgaze-ld-nuke/miniVite-v3-memgaze-trace-b16384-p2000000/spatial.txt',3)
+if ( 1==0):
+    intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/mini-memgaze-ld/miniVite-v1-memgaze-trace-b16384-p2000000/spatial.txt',3)
+    intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/mini-memgaze-ld/miniVite-v2-memgaze-trace-b16384-p2000000/spatial.txt',3)
+    intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/mini-memgaze-ld/miniVite-v3-memgaze-trace-b16384-p2000000/spatial.txt',3)
 
 #Minivite - paper plots
 if ( 1==0):
