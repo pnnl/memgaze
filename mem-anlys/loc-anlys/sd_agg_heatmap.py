@@ -1,3 +1,5 @@
+# Create heatmaps for Spatial affinity metrics
+
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -17,13 +19,11 @@ def readFile(filename, strApp):
     npRegionId = df['RegionId'].values.flatten()
     arRegionId = npRegionId.tolist()
     #print(arRegionId)
-
     listNumRegion = []
     for i in range(0, len(arRegionId)):
         listNumRegion.append('sp_'+str(arRegionId[i]))
         df1['sp_'+str(arRegionId[i])] =0
     #print (listNumRegion)
-
     with open(filename) as f:
         indexCnt =0
         for fileLine in f:
@@ -35,8 +35,6 @@ def readFile(filename, strApp):
                 strSplit = data[i]
                 commaIndex = strSplit.find(',')
                 arSplit = strSplit.split(',')
-                #print('arRegion', arRegionId)
-                #print('arSplit', arSplit)
                 try:
                     insertIndex = arRegionId.index(int(arSplit[0]))
                     listSpatialDensity[insertIndex] = arSplit[1]
@@ -49,7 +47,6 @@ def readFile(filename, strApp):
                 df1.loc[indexCnt,df_col_index] = listSpatialDensity[j]
             indexCnt = indexCnt +1
     #print('after loop')
-
     # READ Dataframe done - Sampling here
     if(sampleSize==0):
         df_sample=df1
@@ -57,7 +54,6 @@ def readFile(filename, strApp):
         df_sample=df1.sample(n=sampleSize, random_state=1, weights='Access count')
     df_sample.sort_index(inplace=True)
     vecLabel_Y=df_sample['RegionId'].tolist()
-
     if (colSelect == 1):
         vecLabel_X=df_sample['RegionId'].to_list()
         colSelList=[]
@@ -135,11 +131,9 @@ def get_intra_obj (data_intra_obj, fileline,blockid,regionIdNum):
             #print('address', add_row[4], 'index', add_row_index, ' value ', add_row[add_row_index])
     data_intra_obj.append(add_row)
 
-
-
-# Read spatial.txt and write inter-region file, intra-region files for callPlot
-# Works for spatial denity now - ***
+# Works for spatial denity, Spatial Probability and Proximity
 def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None):
+    # STEP 1 - Read spatial.txt and write inter-region file
     strPath=strFileName[0:strFileName.rindex('/')]
     if (strMetric == 'SD' or strMetric == None):
         strMetric='SD'
@@ -183,6 +177,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         f_avg.write('filename ' + plotFilename + ' col select '+ str(colSelect)+ ' app '+appName+ ' sample '+str(sampleSize)+'\n')
     #spatialPlot(plotFilename, colSelect, appName,sampleSize)
 
+    # STEP 2 - Get region ID's from inter-region file
     df_inter=pd.read_table(strInterRegionFile, sep=" ", skipinitialspace=True, usecols=range(2,15),
                      names=['RegionId_Name','Page', 'RegionId_Num','colon', 'ar', 'Address Range', 'lf', 'Lifetime', 'ac', 'Access count', 'bc', 'Block count','Type'])
     df_inter = df_inter[df_inter['Type'] == strMetricIdentifier]
@@ -192,6 +187,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
     #print(df_inter_data)
     df_inter_data_sample=df_inter_data.nlargest(n=numRegion,  columns=['Access count'])
     arRegionId = df_inter_data_sample['Reg_Num-Name'].values.flatten().tolist()
+
+    # STEP 2a - Add combine regions to the list
     if (listCombineReg != None):
         arRegionId.extend(x for x in listCombineReg if x not in arRegionId)
     arRegionId.sort()
@@ -199,6 +196,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
     data_list_combine_Reg =[]
     flagProcessCombine=0
+
+    # STEP 3 - Loop through regions in the list and plot heatmaps
     for j in range(0, len(arRegionId)):
         regionIdNumName=arRegionId[j]
         regionIdNumName_copy=arRegionId[j]
@@ -206,6 +205,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         regionIdNum= regionIdNumName[:regionIdNumName.index('-')]
         print('regionIdName ', regionIdName, 'regionIdNumName ', regionIdNumName, regionIdNum)
         data_list_intra_obj=[]
+
+        # STEP 3a - Combine regions if there are any - incremental heatmaps are written out as of March 2, 2023
         if(listCombineReg != None and regionIdNumName in listCombineReg):
             print('Not None', regionIdNumName)
             if(flagProcessCombine == 0):
@@ -224,7 +225,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             arRegionAccess = df_inter_data[ df_inter_data['Reg_Num-Name']==regionIdNumName]['Access count'].values.flatten()[0]
             numRegionBlocks = df_inter_data[ df_inter_data['Reg_Num-Name']==regionIdNumName]['Block count'].values.flatten()[0]
 
-
+        # STEP 3b - Read original spatial data input file to gather the pages-blocks in the region to a list
         with open(strFileName) as f:
             for fileLine in f:
                 data=fileLine.strip().split(' ')
@@ -239,7 +240,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             data_list_intra_obj=copy.deepcopy(data_list_combine_Reg)
             print('***** after regionIdNumName ', regionIdNumName, 'list data_list_intra_obj length', len(data_list_intra_obj), 'list data_list_combine_Reg', len(data_list_combine_Reg))
 
-
+        # STEP 3b - Convert list to data frame
         #print(data_list_intra_obj)
         list_col_names=[None]*516
         list_col_names[0]='blockid'
@@ -253,11 +254,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         for i in range ( 1,256):
             list_col_names[260+i]='self'+'+'+str(i)
         #print((list_col_names))
-
         df_intra_obj=pd.DataFrame(data_list_intra_obj,columns=list_col_names)
         #print(df_intra_obj[['Address', 'reg-page-blk','self-2','self-1','self','self+1','self+2']])
         #df_intra_obj.to_csv('/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/temp.csv')
 
+        # STEP 3c - Process data frame to get access, lifetime totals
         df_intra_obj = df_intra_obj.astype({"Access": int, "Lifetime": int})
         accessSumBlocks= df_intra_obj['Access'].sum()
         arRegionBlocks=df_intra_obj['blockid'].unique()
@@ -267,6 +268,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             print(arRegionBlockId, df_intra_obj[df_intra_obj['blockid']==arRegionBlocks[arRegionBlockId]]['Access'].sum())
             arBlockIdAccess[int(arRegionBlockId)] = df_intra_obj[df_intra_obj['blockid']==arRegionBlocks[arRegionBlockId]]['Access'].sum()
         #print (arBlockIdAccess)
+
+        # STEP 3d - Get average of self before sampling for highest access blocks
         average_sd= pd.to_numeric(df_intra_obj["self"]).mean()
         print('*** Before sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName+' '+str(average_sd))
         get_col_list=[None]*511
@@ -275,32 +278,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         get_col_list[255]='self'
         for i in range ( 1,256):
             get_col_list[255+i]='self'+'+'+str(i)
-
         # Change data to numeric
         for i in range (0,len(get_col_list)):
             df_intra_obj[get_col_list[i]]=pd.to_numeric(df_intra_obj[get_col_list[i]])
-
-        # START Lexi-BFS - experiment #1
-        # Line-Plot useless for multiple columns from self-16 to self+16
-        # Trying to collect count and average across rows of the heatmap to differentiate between variants
-        # Plot average values over the columns - not so useful
-        if( (1 == 0) and (strMetric =='SP' or strMetric =='SD' or strMetric == 'SR')):
-            f_variant_metric=open('/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/average.csv','a')
-            if (os.stat('/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/average.csv').st_size == 0):
-                my_string = ','.join(map(str, get_col_list))
-                f_variant_metric.write('App-Metric,Metric,type,'+my_string+'\n')
-            avg_correlation_value=[None]*511
-            avg_correlation_cnt=[None]*511
-            for j in range (0,len(get_col_list)):
-                avg_correlation_value[j] = pd.to_numeric(df_intra_obj[get_col_list[j]]>=0.25).mean()
-                avg_correlation_cnt[j] = pd.to_numeric(df_intra_obj[get_col_list[j]]>=0.25).count()
-                #print( "average for ", get_col_list[j], avg_correlation_value[j], avg_correlation_cnt[j])
-            my_string = ','.join(map(str, avg_correlation_cnt))
-            f_variant_metric.write(strApp.replace(' ','')+'-'+strMetric+','+strMetric+',count,'+my_string+'\n')
-            my_string = ','.join(map(str, avg_correlation_value))
-            f_variant_metric.write(strApp.replace(' ','')+'-'+strMetric+','+strMetric+',value,'+my_string+'\n')
-            f_variant_metric.close()
-        # END Lexi-BFS - experiment #1
 
         # START Lexi-BFS - experiment #2 - plotting SP is helpful
         # Write Spatial probability data for self-3 to self+3 range to plot using plot_variants_avg.py
@@ -313,22 +293,14 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 f_variant_SP.write(strApp.replace(' ','')+'-'+strMetric+','+strMetric+','+get_SP_col[i]+','+my_string+'\n')
         # END Lexi-BFS - experiment #2 - plotting SP is helpful
 
+        # STEP 3e - Range and Count mean, standard deviation to understand the original spread of heatmap
+        # STEP 3e - Range and Count mean, calculate before sampling
         # START Lexi-BFS - experiment #3 - SD range & gap analysis
-        #df_row=pd.Series([np.NaN,1,3,np.NaN,5,np.NaN,7.0],index=list('abcdefg'))
-        #print('first ', df_row.first_valid_index())
-        #print('last', df_row.last_valid_index())
-
         print('dataframe length', len(df_intra_obj))
         list_blk_range_gap=[]
         for df_id in range (0, len(df_intra_obj)):
             blk_id=df_intra_obj.iloc[df_id,1]
             df_row=pd.to_numeric(df_intra_obj.iloc[df_id,5:516]).squeeze()
-            #print(df_row.type())
-            #for ind, val in df_row.iteritems():
-                #print ( ind, val)
-            #print('first ', df_row.first_valid_index())
-            #print('last', df_row.last_valid_index())
-            #print('count', df_row.count())
             first_index=df_row.first_valid_index()
             last_index=df_row.last_valid_index()
             if ( first_index == 'self'):
@@ -350,6 +322,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         print(strApp,' ', strMetric, ' ', 'Count std', pd.to_numeric(df_range_gap["count"]).std())
         # END Lexi-BFS - experiment #3 - SD range & gap analysis
 
+        # STEP 3f - Sample dataframe for 50 rows based on access count as the weight
         # Sample 50 reg-page-blkid lines from all blocks based on Access counts
         num_sample=50
         df_intra_obj_rows=df_intra_obj.shape[0]
@@ -359,15 +332,16 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         df_intra_obj_sample.set_index('reg-page-blk')
         df_intra_obj_sample.sort_index(inplace=True)
         list_xlabel=df_intra_obj_sample['reg-page-blk'].to_list()
-
         accessBlockCacheLine = (df_intra_obj_sample[['Access']]).to_numpy()
         df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
         self_bef_drop=df_intra_obj_sample_hm['self'].to_list()
         #print('before dropna shape = ' , df_intra_obj_sample_hm.shape)
 
+        # STEP 3g - drop columns with "all" NaN values
         # DROP - columns with no values
         df_intra_obj_drop=df_intra_obj_sample_hm.dropna(axis=1,how='all')
         get_col_list=df_intra_obj_drop.columns.to_list()
+        # STEP 3g - add some columns above & below self line to visualize better
         flAddSelfBelow=1
         flAddSelfAbove=1
         pattern = re.compile('self-.*')
@@ -384,17 +358,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             for i in range (1,10):
                 get_col_list.append('self+'+str(i))
 
+        # STEP 3h - get columns that are useful
         df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
-
-        # Another experiment to show useful 'SP' data - original code in if loop
-        #if(strMetric == 'SD' or strMetric == 'SR'):
-            #df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
-        #elif (strMetric == 'SP'):
-            #df_intra_obj_sample_hm=df_intra_obj_sample[df_intra_obj_sample[get_col_list] >=0.1]
-            #df_intra_obj_sample_hm=df_intra_obj_sample_hm.dropna(axis=1,how='all')
-            #get_col_list=df_intra_obj_sample_hm.columns
-
-
         average_sd= pd.to_numeric(df_intra_obj_sample_hm["self"]).mean()
         print('*** After sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName+' '+str(average_sd))
         if (f_avg != None):
@@ -409,6 +374,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             print ("after drop", self_aft_drop)
             break
 
+        # STEP 3i - Start Heatmap Visualization
         df_intra_obj_sample_hm.apply(pd.to_numeric)
         df_hm=np.empty([num_sample,len(get_col_list)])
         df_hm=df_intra_obj_sample_hm.to_numpy()
@@ -424,10 +390,6 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         ax_1 = fig.add_subplot(gs1[0, 0])
         ax_2 = fig.add_subplot(gs1[0, 1])
 
-        #subfigs = fig.subfigures(1, 2, wspace=0.07, width_ratios=[11,4])
-        #ax_0 = subfigs[0].subplots(1,1)
-        #ax_1 = (subfigs[1].subplots(1, 2))[0]
-        #ax_2 = (subfigs[1].subplots(1, 2))[1]
         if(strMetric == 'SR'):
             vmin_val=1.0
             vmax_val=8.0
@@ -449,7 +411,6 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         ax_0.set_xticklabels(fig_xlabel,rotation='vertical')
         ax_0.set(xlabel="Page Id - Cache-line Block Id", ylabel="Correlation to contiguous cache-line sized blocks")
         #ax_0.set_ylabel("")
-
 
         sns.heatmap(accessBlockCacheLine, cmap="PuBu", cbar=False,annot=True, fmt='g', annot_kws = {'size':12},  ax=ax_1)
         ax_1.invert_yaxis()
