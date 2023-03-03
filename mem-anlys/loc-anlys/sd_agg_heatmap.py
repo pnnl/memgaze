@@ -1,4 +1,20 @@
-# Create heatmaps for Spatial affinity metrics
+# Create intra-region heatmaps for Spatial affinity metrics
+    # STEP 1 - Read spatial.txt and write inter-region file
+    # STEP 2 - Get region ID's from inter-region file
+    # STEP 2a - Add combine regions to the list
+    # STEP 3 - Loop through regions in the list and plot heatmaps
+        # STEP 3a - Combine regions if there are any - incremental heatmaps are written out as of March 2, 2023
+        # STEP 3b - Read original spatial data input file to gather the pages-blocks in the region to a list
+        # STEP 3b - Convert list to data frame
+        # STEP 3c - Process data frame to get access, lifetime totals
+        # STEP 3d - Get average of self before sampling for highest access blocks
+        # STEP 3e - Range and Count mean, standard deviation to understand the original spread of heatmap
+        # STEP 3e - Range and Count mean, calculate before sampling
+        # STEP 3f - Sample dataframe for 50 rows based on access count as the weight
+        # STEP 3g - drop columns with "all" NaN values
+        # STEP 3g - add some columns above & below self line to visualize better
+        # STEP 3h - get columns that are useful
+        # STEP 3i - Start Heatmap Visualization
 
 import pandas as pd
 import numpy as np
@@ -12,6 +28,7 @@ import copy
 sns.color_palette("light:#5A9", as_cmap=True)
 sns.set()
 
+#STEP 0 - Heatmap for inter-region Or trial for intra-region - function not used
 def readFile(filename, strApp):
     df=pd.read_table(filename, sep=" ", skipinitialspace=True, usecols=range(4,14),
         names=['RegionId','colon', 'ar', 'Address Range', 'lf', 'Lifetime', 'ac', 'Access count', 'bc', 'Block count'])
