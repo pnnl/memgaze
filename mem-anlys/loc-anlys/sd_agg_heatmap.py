@@ -28,7 +28,7 @@ import copy
 sns.color_palette("light:#5A9", as_cmap=True)
 sns.set()
 
-#STEP 0 - Heatmap for inter-region Or trial for intra-region - function not used
+#STEP 0 - Heatmap for inter-region - function not used
 def readFile(filename, strApp):
     df=pd.read_table(filename, sep=" ", skipinitialspace=True, usecols=range(4,14),
         names=['RegionId','colon', 'ar', 'Address Range', 'lf', 'Lifetime', 'ac', 'Access count', 'bc', 'Block count'])
@@ -209,7 +209,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
     if (listCombineReg != None):
         arRegionId.extend(x for x in listCombineReg if x not in arRegionId)
     arRegionId.sort()
-    print(arRegionId)
+    #print(arRegionId)
 
     data_list_combine_Reg =[]
     flagProcessCombine=0
@@ -279,10 +279,10 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         df_intra_obj = df_intra_obj.astype({"Access": int, "Lifetime": int})
         accessSumBlocks= df_intra_obj['Access'].sum()
         arRegionBlocks=df_intra_obj['blockid'].unique()
-        print (arRegionBlocks)
+        #print (arRegionBlocks)
         arBlockIdAccess = np.empty([len(arRegionBlocks),1])
         for arRegionBlockId in range(0, len(arRegionBlocks)):
-            print(arRegionBlockId, df_intra_obj[df_intra_obj['blockid']==arRegionBlocks[arRegionBlockId]]['Access'].sum())
+            #print(arRegionBlockId, df_intra_obj[df_intra_obj['blockid']==arRegionBlocks[arRegionBlockId]]['Access'].sum())
             arBlockIdAccess[int(arRegionBlockId)] = df_intra_obj[df_intra_obj['blockid']==arRegionBlocks[arRegionBlockId]]['Access'].sum()
         #print (arBlockIdAccess)
 
@@ -333,11 +333,17 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print(list_blk_range_gap)
         df_range_gap=pd.DataFrame(list_blk_range_gap,columns=['reg-page-blk','first','last','range','count'])
         df_range_gap = df_range_gap.astype({"range": int, "count": int})
-        print(strApp,' ', strMetric, ' ', 'Range mean', pd.to_numeric(df_range_gap["range"]).mean())
-        print(strApp,' ', strMetric, ' ', 'Range std ', pd.to_numeric(df_range_gap["range"]).std())
-        print(strApp,' ', strMetric, ' ', 'Count mean', pd.to_numeric(df_range_gap["count"]).mean())
-        print(strApp,' ', strMetric, ' ', 'Count std', pd.to_numeric(df_range_gap["count"]).std())
+        print(strApp,' ', strMetric, ', Region ', regionIdNumName, ' Range mean ', pd.to_numeric(df_range_gap["range"]).mean())
+        print(strApp,' ', strMetric, ', Region ', regionIdNumName, ' Range std ', pd.to_numeric(df_range_gap["range"]).std())
+        print(strApp,' ', strMetric, ', Region ', regionIdNumName, ' Count mean ', pd.to_numeric(df_range_gap["count"]).mean())
+        print(strApp,' ', strMetric, ', Region ', regionIdNumName, ' Count std ', pd.to_numeric(df_range_gap["count"]).std())
         # END Lexi-BFS - experiment #3 - SD range & gap analysis
+
+        if(f_avg != None):
+            f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName+ 'Range mean '+ str(pd.to_numeric(df_range_gap["range"]).mean())+'\n')
+            f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName+ 'Range std '+ str(pd.to_numeric(df_range_gap["range"]).std())+'\n')
+            f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName+ 'Count mean '+ str(pd.to_numeric(df_range_gap["count"]).mean())+'\n')
+            f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName+ 'Count std '+ str(pd.to_numeric(df_range_gap["count"]).std())+'\n')
 
         # STEP 3f - Sample dataframe for 50 rows based on access count as the weight
         # Sample 50 reg-page-blkid lines from all blocks based on Access counts
@@ -466,10 +472,14 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         plt.close()
 
 
-intraObjectPlot('HiParTi - COO-Reduce','/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-1-trace-b8192-p4000000/spatial.txt', \
-                2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'])
-intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v2_spatial_det.txt',3,listCombineReg=['1-A0000010','4-A0002000'] )
-intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v3_spatial_det.txt',3,listCombineReg=['1-A0000001','5-A0001200'] )
+#intraObjectPlot('HiParTi - COO-Reduce','/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-1-trace-b8192-p4000000/spatial.txt', \
+#                2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'])
+
+f_avg1=open('/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/sd_avg_log','w')
+intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v1_spatial_det.txt',3, f_avg=f_avg1)
+intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v2_spatial_det.txt',3,listCombineReg=['1-A0000010','4-A0002000'] , f_avg=f_avg1)
+intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v3_spatial_det.txt',3,listCombineReg=['1-A0000001','5-A0001200'] , f_avg=f_avg1)
+f_avg1.close()
 
 # Minivite - plots to check for darker band
 if ( 1==0):
