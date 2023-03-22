@@ -47,6 +47,7 @@ def readFile(filename, strApp):
             listSpatialDensity=np.empty(len(arRegionId))
             listSpatialDensity.fill(0)
             data = fileLine.strip().split(' ')
+            print (data)
             dfIndex=int(data[4])
             for i in range(15,len(data)):
                 strSplit = data[i]
