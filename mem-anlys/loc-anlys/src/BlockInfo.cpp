@@ -274,7 +274,7 @@ using namespace std;
         for(j = 0; j < numBlocksInLevel; j++) {
           if(vecIndex<vecSpatialResult.size()) {
             if(vecSpatialResult[vecIndex].first == j ) {
-              if ((((double)(vecSpatialResult[vecIndex].second)->spatialTotalDistance)/((vecSpatialResult[vecIndex].second)->spatialAccess)) <= 8.0) {
+              if ((((double)(vecSpatialResult[vecIndex].second)->spatialTotalDistance)/((vecSpatialResult[vecIndex].second)->spatialAccess)) >= 0.0) {
                 outFile << std::fixed << std::setprecision(2)  << vecSpatialResult[vecIndex].first <<","<<(((vecSpatialResult[vecIndex].second)->spatialTotalDistance)/((vecSpatialResult[vecIndex].second)->spatialAccess))<<" ";
               }
               vecIndex++;
