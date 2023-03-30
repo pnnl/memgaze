@@ -283,6 +283,11 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
     ptrTraceLine=vecInstAddr.at(itr);
     //ptrTraceLine->printTraceLine();    
     loadAddr = ptrTraceLine->getLoadAddr();
+    // minivite v3
+    // 55c45da0c170-55c45da1416f
+    //uint64_t low_addr = stoull("55c45da0c170", 0, 16); uint64_t high_addr = stoull("55c45da1416f", 0, 16);
+    //if ((((loadAddr>= low_addr) && (loadAddr <= high_addr)) ) && (spatialResult ==1))
+    //  printDebug=1;
     /* // HICOO-CSR
     // 7fe6f3537842-7fe6f356b841
     // 7fe72dee7842-7fe72df1b841
