@@ -497,7 +497,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
                     curSpatialRUD = new SpatialRUD((i*memarea.blockCount)+pageID);
                     spatialRUD[(i*memarea.blockCount)+pageID] = curSpatialRUD;
                   }
-          				curSpatialRUD->spatialDistance= time - sampleLastAccess[i];
+          				curSpatialRUD->spatialDistance= time - sampleLastAccess[i]-1; // Calculate interval distance - access counts between the two
         	  			if(curSpatialRUD->spatialAccessMid==0){
       	  	  			curSpatialRUD->spatialTotalDistance += curSpatialRUD->spatialDistance;
       				  		if((curSpatialRUD->spatialMaxDistance==-1) || (((curSpatialRUD->spatialMaxDistance >= 0) && (curSpatialRUD->spatialDistance > (uint32_t) curSpatialRUD->spatialMaxDistance)))) 

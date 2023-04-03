@@ -48,7 +48,7 @@ def spatialPlot(filename, strApp,strMetricType, colSelect=None, sampleSize=None)
     if(strMetricType=='SD'):
         strTitle = 'Spatial Density'
     elif(strMetricType=='SP'):
-        strTitle = 'Spatial Probability and Spatial Proximity'
+        strTitle = 'Spatial Proximity and Spatial Interval'
     elif (strMetricType=='SR'):
         strTitle = 'Spatial Proximity'
     line_identifier=['***','===','---']
