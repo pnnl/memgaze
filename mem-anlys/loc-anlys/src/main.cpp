@@ -911,7 +911,7 @@ int main(int argc, char ** argv){
     spatialOutFile << endl;
      for(i = 0; i< memarea.blockCount; i++){
          BlockInfo *curBlock = vecBlockInfo.at(i);
-         curBlock->printBlockSpatialProximity(spatialOutFile,zoomLastLvlPageWidth, false);
+         curBlock->printBlockSpatialInterval(spatialOutFile,zoomLastLvlPageWidth, false);
     }
     // END - STEP 1 
     // STEP 2 -  Intra-region spatial correlation - correlation at cache-line level
@@ -1024,7 +1024,7 @@ int main(int argc, char ** argv){
       spatialOutFile << endl;
       for(i = 0; i< memarea.blockCount; i++){
          BlockInfo *curBlock = vecBlockInfo.at(i);
-         curBlock->printBlockSpatialProximity(spatialOutFile,cacheLineWidth, true);
+         curBlock->printBlockSpatialInterval(spatialOutFile,cacheLineWidth, true);
       }
     }
     // END - STEP 3

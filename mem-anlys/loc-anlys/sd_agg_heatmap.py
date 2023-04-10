@@ -415,8 +415,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         ax_2 = fig.add_subplot(gs1[0, 1])
 
         if(strMetric == 'SR'):
-            vmin_val=1.0
-            vmax_val=8.0
+            vmin_val=0.0
+            vmax_val=200.0
+        elif(strMetric == 'SP'):
+            vmin_val=0.25
+            vmax_val=1.0
         else:
             vmin_val=0.0
             vmax_val=1.0
@@ -476,23 +479,21 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 #intraObjectPlot('HiParTi - COO-Reduce','/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-1-trace-b8192-p4000000/spatial.txt', \
 #                2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'])
 
-f_avg1=open('/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/sd_avg_log','w')
-intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v1_spatial_det.txt',3, f_avg=f_avg1)
-intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v2_spatial_det.txt',3,listCombineReg=['1-A0000010','4-A0002000'] , f_avg=f_avg1)
-intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v3_spatial_det.txt',3,listCombineReg=['1-A0000001','5-A0001200'] , f_avg=f_avg1)
-f_avg1.close()
+intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SR', \
+                listCombineReg=['1-A0000001','5-A0001200'] )
 
-# Minivite - plots to check for darker band
-if ( 1==0):
-    intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/mini-memgaze-ld/miniVite-v1-memgaze-trace-b16384-p2000000/spatial.txt',3)
-    intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/mini-memgaze-ld/miniVite-v2-memgaze-trace-b16384-p2000000/spatial.txt',3)
-    intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/mini-memgaze-ld/miniVite-v3-memgaze-trace-b16384-p2000000/spatial.txt',3)
+intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SP', \
+                listCombineReg=['1-A0000001','5-A0001200'] )
 
-#Minivite - paper plots
+intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SP')
+
+#Minivite - paper plots - Combine regions
 if ( 1==0):
-    intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v1_spatial_det.txt',2)
-    intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v2_spatial_det.txt',3)
-    intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v3_spatial_det.txt',3)
+    f_avg1=open('/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/sd_avg_log','w')
+    intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v1_spatial_det.txt',3, f_avg=f_avg1)
+    intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v2_spatial_det.txt',3,listCombineReg=['1-A0000010','4-A0002000'] , f_avg=f_avg1)
+    intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v3_spatial_det.txt',3,listCombineReg=['1-A0000001','5-A0001200'] , f_avg=f_avg1)
+    f_avg1.close()
 
 #Darknet - paper plots
 if ( 1 == 0):
