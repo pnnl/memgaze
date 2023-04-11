@@ -170,8 +170,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         fileName='/inter_object_sr.txt'
         lineStart='---'
         lineEnd='<----'
-        strMetricIdentifier='Spatial_Proximity'
-        strMetricTitle='Spatial Proximity'
+        strMetricIdentifier='Spatial_Interval'
+        strMetricTitle='Spatial Interval'
     #print(strPath)
     # Write inter-object_sd.txt
     strInterRegionFile=strPath+fileName
@@ -416,9 +416,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
         if(strMetric == 'SR'):
             vmin_val=0.0
-            vmax_val=200.0
+            vmax_val=100.0
         elif(strMetric == 'SP'):
-            vmin_val=0.25
+            vmin_val=0.0
             vmax_val=1.0
         else:
             vmin_val=0.0
@@ -478,14 +478,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
 #intraObjectPlot('HiParTi - COO-Reduce','/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-1-trace-b8192-p4000000/spatial.txt', \
 #                2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'])
-
-intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SR', \
-                listCombineReg=['1-A0000001','5-A0001200'] )
-
-intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SP', \
-                listCombineReg=['1-A0000001','5-A0001200'] )
-
-intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SP')
+#    intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SR', \
+#                listCombineReg=['1-A0000001','5-A0001200'] )
+#    intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SP', \
+#                listCombineReg=['1-A0000001','5-A0001200'] )
+#    intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SP')
 
 #Minivite - paper plots - Combine regions
 if ( 1==0):
@@ -537,6 +534,14 @@ if ( 1 == 0):
     intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/spatial.txt', 1, 'SR')
     intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/spatial.txt', 1, 'SR')
 
+intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SP')
+intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SR')
+intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SP')
+intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SR')
+intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SP')
+intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SR')
+intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SP')
+intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SR')
 
 # HiParTi - Tensor variants - Use buffer
 #intraObjectPlot('HiParTI-HiCOO ', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-0-b16384-p4000000-U-1/spatial.txt', 2)
