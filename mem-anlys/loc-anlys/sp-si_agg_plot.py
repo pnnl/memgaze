@@ -324,8 +324,12 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             ax2 = ax.twinx()  # instantiate a second axes that shares the same x-axis
             color = 'tab:blue'
             ax2.set_ylabel('Interval', color=color)
-            ax2.set_ylim(0,60)
-            ax2.set_yticks([0,15,30,45,60])
+            if('minivite' in strApp.lower()):
+                ax2.set_ylim(0,200)
+                ax2.set_yticks([0,50,100,150,200])
+            else:
+                ax2.set_ylim(0,60)
+                ax2.set_yticks([0,15,30,45,60])
             ax2.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SI-'+plot_SP_col[i]], color=color)
             ax2.tick_params(axis='y', labelcolor=color)
 
@@ -339,14 +343,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         plt.close()
         #plt.show()
 
-# Before Spatial Interval name change
-# Change line 71 for these spatial metric files
-# Before Spatial Interval name change
 #intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SP-SI')
 #intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SP-SI', \
 #                listCombineReg=['1-A0000010','4-A0002000'] )
-#intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SP-SI', \
-#                listCombineReg=['1-A0000001','5-A0001200'] )
+intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SP-SI', \
+                listCombineReg=['1-A0000001','5-A0001200'] )
 
 intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
 intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
