@@ -377,7 +377,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         strArRegionAccess = str(np.round((arRegionAccess/1000).astype(float),2))+'K'
         strAccessSumBlocks= str(np.round((accessSumBlocks/1000).astype(float),2))+'K'
         strTitle = 'Region\'s access - ' + strArRegionAccess + ', Access count for selected pages - ' + strAccessSumBlocks +' ('+ ("{0:.1f}".format((accessSumBlocks/arRegionAccess)*100)) \
-                   +' %), Number of pages in region - '+ str(numRegionBlocks) + '\n Spatial Proximity'
+                   +'%), Number of pages in region - '+ str(numRegionBlocks) + '\n Spatial Proximity'
         #print(strTitle)
         ax_0.set_title(strTitle)
         ax_1.set_title('Spatial Interval')

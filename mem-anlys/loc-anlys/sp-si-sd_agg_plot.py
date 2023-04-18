@@ -57,7 +57,7 @@ def get_intra_obj (data_intra_obj, fileline,blockid,regionIdNum):
     data_intra_obj.append(add_row)
 
 # Works for spatial denity, Spatial Probability and Proximity
-def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None):
+def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeighted=None):
     # STEP 1 - Read spatial.txt and write inter-region file
     strPath=strFileName[0:strFileName.rindex('/')]
     if('SP-SI' in strMetric):
@@ -192,7 +192,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print (arBlockIdAccess)
 
         #plot_SP_col=['self-3','self-2','self-1','self','self+1','self+2','self+3']
-        plot_SP_col=['self-1','self','self+1','self+2','self+3','self+4', 'self+5']
+        plot_SP_col=['self','self+1','self+2','self+3','self+4', 'self+5']
         plot_SP_col.reverse()
         for colname in plot_SP_col:
             average_sd= pd.to_numeric(df_intra_obj[(df_intra_obj['Type'] == 'SD')][colname]).mean()
@@ -243,6 +243,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
         #print('after drop columns ', df_intra_obj_drop.columns)
         list_xlabel=df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SP')]['reg-page-blk'].to_list()
+        maxAccess=df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SP')]['Access'].to_numpy().max()
         #print(list_xlabel)
         df_intra_obj_SP=df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SP')]
         df_intra_obj_SI=df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SI')]
@@ -251,11 +252,19 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print('SI cols ', df_intra_obj_SI.columns)
         print('after drop SP - ', df_intra_obj_SP.shape)
         print('after drop SI - ', df_intra_obj_SI.shape)
+        print('blk ',list_xlabel[0], ' access ', df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == list_xlabel[0])]['Access'], ' accessSumBlocks ', accessSumBlocks, ' maxAccess ', maxAccess)
+
         list_SP_SI_SD=[[None]*(3*len(plot_SP_col)+1) for i in range(len(list_xlabel))]
         #[[0]*5 for i in range(5)]
         for blkCnt in range(0,len(list_xlabel)):
             blkid= list_xlabel[blkCnt]
             list_SP_SI_SD[blkCnt][0]=blkid
+            if (flWeighted == True):
+                #print('blk ', blkid, ' access ', df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'], ' accessSumBlocks ', accessSumBlocks, ' maxAccess ', maxAccess)
+                weight_multiplier = ( df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'] *100 )/ (accessSumBlocks)
+                #weight_multiplier = ( df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'] *100 )/ (maxAccess)
+            else:
+                weight_multiplier = 1.0
             for plotCnt in range(0,len(plot_SP_col)):
                 plotCol= plot_SP_col[plotCnt]
                 if(plotCol in df_intra_obj_SP.columns):
@@ -267,9 +276,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                         condSD = (df_intra_obj_SD['reg-page-blk'] == blkid)
                         resultSD = df_intra_obj_SD[condSD][plotCol]
                         #print(blkid, plotCol, resultSP.values[0], resultSI.values[0])
-                        list_SP_SI_SD[blkCnt][plotCnt*3+1]=resultSP.values[0]
+                        list_SP_SI_SD[blkCnt][plotCnt*3+1]=resultSP.values[0] * weight_multiplier
                         list_SP_SI_SD[blkCnt][plotCnt*3+2]=resultSI.values[0]
-                        list_SP_SI_SD[blkCnt][plotCnt*3+3]=resultSD.values[0]
+                        list_SP_SI_SD[blkCnt][plotCnt*3+3]=resultSD.values[0] * weight_multiplier
         #print(list_SP_SI)
         list_col_names=['reg-page-blk']
         for plotCol in plot_SP_col:
@@ -279,34 +288,30 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         df_SP_SI_SD=pd.DataFrame(list_SP_SI_SD,columns=list_col_names)
         #print(df_SP_SI_SD)
 
-        fig, ax_plots = plt.subplots(nrows=len(plot_SP_col), ncols=1,constrained_layout=True, figsize=(15, 10))
+        fig, ax_plots = plt.subplots(nrows=len(plot_SP_col)+1, ncols=1,constrained_layout=True, figsize=(15, 10))
         SP_color='tab:orange'
         SD_color='green'
         SI_color='tab:blue'
-        for i, ax in enumerate(ax_plots.reshape(-1)):
+        for i, ax in enumerate(ax_plots.reshape(-1)[:len(plot_SP_col)]):
             ax.set_title('Spatial affinity for '+ plot_SP_col[i])
             ax.set_xlabel('Blocks')
             ax.set_xticks([])
             ax.set_yticks([0.0, 0.25,0.5, 0.75, 1.0])
             ax.set_ylim(-0.25, 1.0)
             ax.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SP-'+plot_SP_col[i]], color=SP_color,label='SP')
-            if (strMetric == 'SP-SI'):
+            if ('SP-SI' in strMetric and (not('SD' in strMetric)) ):
                 ax.tick_params(axis='y', labelcolor=SP_color)
                 ax.set_ylabel('Proximity', color=SP_color)
-
-            if(strMetric == 'SP-SI-SD'):
+            if('SP-SI-SD' in strMetric):
                 ax.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SD-'+plot_SP_col[i]], color=SD_color,label='SD')
                 ax.tick_params(axis='y', labelcolor='black')
                 label_y = -0.05
                 ax.text(label_y, 0.3, r"SP ", color=SP_color, rotation='vertical', transform=ax.transAxes)
                 ax.text(label_y, 0.6, r"& ", color='black', rotation='vertical', transform=ax.transAxes)
                 ax.text(label_y, 0.75, r"SD", color=SD_color, rotation='vertical', transform=ax.transAxes)
-
-
-            # To draw a horizantal threshold line
-            #xmin, xmax = ax.get_xlim()
-            #ax.hlines(y=0.25, xmin=xmin, xmax=xmax, linewidth=1, color='black')
-
+                # To draw a horizantal threshold line
+                #xmin, xmax = ax.get_xlim()
+                #ax.hlines(y=0.25, xmin=xmin, xmax=xmax, linewidth=1, color='black')
             # Instantiate a second axes that shares the same x-axis
             ax2 = ax.twinx()
             ax2.set_ylabel('Interval', color=SI_color)
@@ -319,10 +324,18 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             ax2.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SI-'+plot_SP_col[i]], color=SI_color,label='SI')
             ax2.tick_params(axis='y', labelcolor=SI_color)
 
+        ax=ax_plots.reshape(-1)[len(plot_SP_col)]
+        ax.plot(df_SP_SI_SD['reg-page-blk'], df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SP')]['Access'], color='black',label='Access')
+        ax.set_yscale('log')
+        ax.set_ylabel('Access')
+        ax.set_xticks([])
+        ax.set_title('Access counts for blocks')
+        ax.set_xlabel('Blocks')
+
         strAccessSumBlocks= str(np.round((accessSumBlocks/1000).astype(float),2))+'K'
         strArRegionAccess = str(np.round((arRegionAccess/1000).astype(float),2))+'K'
         strTitle = strApp +' region '+regionIdNumName+' \n Region\'s access  - ' + strArRegionAccess + ', Access count for selected pages - ' \
-                   + strAccessSumBlocks +' ('+ ("{0:.1f}".format((accessSumBlocks/arRegionAccess)*100))+' %), Number of pages in region - '+ str(numRegionBlocks)
+                   + strAccessSumBlocks +' ('+ ("{0:.1f}".format((accessSumBlocks/arRegionAccess)*100))+'%), Number of pages in region - '+ str(numRegionBlocks)
         plt.suptitle(strTitle)
         imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName+'-'+strMetric+'_plot.pdf'
         plt.savefig(imageFileName, bbox_inches='tight')
@@ -335,8 +348,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 #intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SP-SI', \
 #                listCombineReg=['1-A0000001','5-A0001200'] )
 
-intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI-SD')
-intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
+#intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI-SD')
+#intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
 #intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
 #intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
 #intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
+
+#intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
+intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI-W', flWeighted=True)
