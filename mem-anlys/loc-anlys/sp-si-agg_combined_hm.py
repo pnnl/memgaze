@@ -1,4 +1,5 @@
-# Create intra-region SD, SP and SI weighted heatmap for selected blocks
+# Create intra-region SP and SI combined heatmap for selected blocks
+# Only self, self+1 and ... self-* non-significant for SP & SI
     # STEP 1 - Read spatial.txt and write inter-region file
     # STEP 2 - Get region ID's from inter-region file
     # STEP 2a - Add combine regions to the list
@@ -6,15 +7,11 @@
         # STEP 3a - Combine regions if there are any - incremental heatmaps are written out as of March 2, 2023
         # STEP 3b - Read original spatial data input file to gather the pages-blocks in the region to a list
         # STEP 3b - Convert list to data frame
-        # STEP 3c - Process data frame to get access, lifetime totals
-        # STEP 3d - Get average of self before sampling for highest access blocks
-        # STEP 3e - Range and Count mean, standard deviation to understand the original spread of heatmap
-        # STEP 3e - Range and Count mean, calculate before sampling
-        # STEP 3f - Sample dataframe for 50 rows based on access count as the weight
-        # STEP 3g - drop columns with "all" NaN values
-        # STEP 3g - add some columns above & below self line to visualize better
-        # STEP 3h - get columns that are useful
-        # STEP 3i - Start Heatmap Visualization
+        # STEP 3c-0 - Process data frame to get access, lifetime totals
+        # STEP 3c-1 - Dataframe has all three metrics, so divide by 3 for access count reporting
+        # STEP 3d - drop columns with "all" NaN values
+        # STEP 3e - Sample dataframe for 150 rows based on access count as the weight
+
 
 import pandas as pd
 import numpy as np
@@ -215,7 +212,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         df_intra_obj.set_index('reg-page-blk')
         df_intra_obj.sort_index(inplace=True)
         self_bef_drop=df_intra_obj['self'].to_list()
-        # STEP 3g - drop columns with "all" NaN values
+        # STEP 3d - drop columns with "all" NaN values
         # DROP - columns with no values
         print('before replace drop - ', df_intra_obj.shape)
         df_intra_obj_drop=df_intra_obj.dropna(axis=1,how='all')
@@ -230,7 +227,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             break
 
 
-        # STEP 3f - Sample dataframe for 150 rows based on access count as the weight
+        # STEP 3e - Sample dataframe for 150 rows based on access count as the weight
         # Combined heatmap for SP and SI
         # Sample 150 reg-page-blkid lines from all blocks based on Access counts
         print('before sample - ', df_intra_obj.shape)

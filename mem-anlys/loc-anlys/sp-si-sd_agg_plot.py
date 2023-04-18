@@ -1,4 +1,7 @@
 # Create intra-region SD, SP and SI plots for all blocks
+# Combination of plots is SP-SI or SP-SI-SD
+# Contiguous locations of interest in line 193
+# plot_SP_col=['self-1','self','self+1','self+2','self+3','self+4', 'self+5']
     # STEP 1 - Read spatial.txt and write inter-region file
     # STEP 2 - Get region ID's from inter-region file
     # STEP 2a - Add combine regions to the list
@@ -6,20 +9,12 @@
         # STEP 3a - Combine regions if there are any - incremental heatmaps are written out as of March 2, 2023
         # STEP 3b - Read original spatial data input file to gather the pages-blocks in the region to a list
         # STEP 3b - Convert list to data frame
-        # STEP 3c - Process data frame to get access, lifetime totals
-        # STEP 3d - Get average of self before sampling for highest access blocks
-        # STEP 3e - Range and Count mean, standard deviation to understand the original spread of heatmap
-        # STEP 3e - Range and Count mean, calculate before sampling
-        # STEP 3f - Sample dataframe for 50 rows based on access count as the weight
-        # STEP 3g - drop columns with "all" NaN values
-        # STEP 3g - add some columns above & below self line to visualize better
-        # STEP 3h - get columns that are useful
-        # STEP 3i - Start Heatmap Visualization
-
+        # STEP 3c-0 - Process data frame to get access, lifetime totals
+        # STEP 3c-1 - Dataframe has all three metrics, so divide by 3 for access count reporting
+        # STEP 3d - drop columns with "all" NaN values
 import pandas as pd
 import numpy as np
 import seaborn as sns
-
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import re
@@ -28,8 +23,6 @@ import os
 import copy
 sns.color_palette("light:#5A9", as_cmap=True)
 sns.set()
-
-
 
 def get_intra_obj (data_intra_obj, fileline,blockid,regionIdNum):
     add_row=[None]*517
@@ -201,7 +194,6 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #plot_SP_col=['self-3','self-2','self-1','self','self+1','self+2','self+3']
         plot_SP_col=['self-1','self','self+1','self+2','self+3','self+4', 'self+5']
         plot_SP_col.reverse()
-        # STEP 3d - Get average of self before sampling for highest access blocks
         for colname in plot_SP_col:
             average_sd= pd.to_numeric(df_intra_obj[(df_intra_obj['Type'] == 'SD')][colname]).mean()
             print('*** Before sampling Average SD for '+strApp+', Region '+regionIdNumName+' for '+colname+ ' '+str(average_sd))
@@ -227,11 +219,6 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         for i in range (0,len(get_col_list)-1):
             df_intra_obj[get_col_list[i]]=pd.to_numeric(df_intra_obj[get_col_list[i]])
 
-        # STEP 3f - Sample dataframe for 150 rows based on access count as the weight
-        # Combined heatmap for SP and SI
-        # Sample 150 reg-page-blkid lines from all blocks based on Access counts
-        #df_intra_obj_sample=df_intra_obj.sample(n=150, random_state=1, weights='Access')
-
         df_intra_obj.set_index('reg-page-blk')
         df_intra_obj.sort_index(inplace=True)
         list_xlabel=df_intra_obj[(df_intra_obj['Type'] == 'SP')]['reg-page-blk'].to_list()
@@ -240,7 +227,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print(accessBlockCacheLine)
 
         self_bef_drop=df_intra_obj['self'].to_list()
-        # STEP 3g - drop columns with "all" NaN values
+        # STEP 3d - drop columns with "all" NaN values
         # DROP - columns with no values
         print('before replace drop - ', df_intra_obj.shape)
         df_intra_obj_drop=df_intra_obj.dropna(axis=1,how='all')
