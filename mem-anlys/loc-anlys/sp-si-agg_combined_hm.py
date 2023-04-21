@@ -232,6 +232,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # Sample 150 reg-page-blkid lines from all blocks based on Access counts
         print('before sample - ', df_intra_obj.shape)
         num_sample=50
+        print ('SP shape ', df_intra_obj[(df_intra_obj['Type'] == 'SP')].shape)
+        if (df_intra_obj[(df_intra_obj['Type'] == 'SP')].shape[0] < num_sample):
+            num_sample = df_intra_obj[(df_intra_obj['Type'] == 'SP')].shape[0]
         df_intra_obj_sample_SP=df_intra_obj[(df_intra_obj['Type'] == 'SP')].sample(n=num_sample, random_state=1, weights='Access')
         df_intra_obj_sample_SP.set_index('reg-page-blk')
         df_intra_obj_sample_SP.sort_index(inplace=True)
@@ -383,18 +386,18 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         ax_1.set_title('Spatial Interval')
         ax_2.set_title('Access count for selected blocks and \n         hottest pages in the region',loc='left')
 
-        imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName+'-'+strMetric+'_hm.pdf'
-        plt.savefig(imageFileName, bbox_inches='tight')
-        plt.close()
-        #plt.show()
+        #imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumNamereplace(' ','').replace('&','-')+'-'+strMetric+'_hm.pdf'
+        #plt.savefig(imageFileName, bbox_inches='tight')
+        #plt.close()
+        plt.show()
 
-#intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SP-SI')
-#intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SP-SI', \
-#                listCombineReg=['1-A0000010','4-A0002000'] )
-#intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SP-SI', \
-#                listCombineReg=['1-A0000001','5-A0001200'] )
+intraObjectPlot('miniVite-v1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SP-SI')
+intraObjectPlot('miniVite-v2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SP-SI', \
+                listCombineReg=['1-A0000010','4-A0002000'] )
+intraObjectPlot('miniVite-v3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SP-SI', \
+                listCombineReg=['1-A0000001','5-A0001200'] )
 
-#intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
-#intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
+intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
+intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
 intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
-#intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
+intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')

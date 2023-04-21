@@ -195,18 +195,19 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         plot_SP_col=['self','self+1','self+2','self+3','self+4', 'self+5']
         plot_SP_col.reverse()
         for colname in plot_SP_col:
-            average_sd= pd.to_numeric(df_intra_obj[(df_intra_obj['Type'] == 'SD')][colname]).mean()
-            print('*** Before sampling Average SD for '+strApp+', Region '+regionIdNumName+' for '+colname+ ' '+str(average_sd))
-            average_sp= pd.to_numeric(df_intra_obj[(df_intra_obj['Type'] == 'SP')][colname]).mean()
-            print('*** Before sampling Average SP for '+strApp+', Region '+regionIdNumName+' for '+colname+ ' '+str(average_sp))
-            average_si= pd.to_numeric(df_intra_obj[(df_intra_obj['Type'] == 'SI')][colname]).mean()
-            print('*** Before sampling Average SI for '+strApp+', Region '+regionIdNumName+' for '+colname+ ' '+str(average_si))
-            average_sd= pd.to_numeric(df_intra_obj[(df_intra_obj['Type'] == 'SD')][colname]).median()
-            print('*** Before sampling median SD for '+strApp+', Region '+regionIdNumName+' for '+colname+ ' '+str(average_sd))
-            average_sp= pd.to_numeric(df_intra_obj[(df_intra_obj['Type'] == 'SP')][colname]).median()
-            print('*** Before sampling median SP for '+strApp+', Region '+regionIdNumName+' for '+colname+ ' '+str(average_sp))
-            average_si= pd.to_numeric(df_intra_obj[(df_intra_obj['Type'] == 'SI')][colname]).median()
-            print('*** Before sampling median SI for '+strApp+', Region '+regionIdNumName+' for '+colname+ ' '+str(average_si))
+            if( 1==0):
+                average_sd= pd.to_numeric(df_intra_obj[(df_intra_obj['Type'] == 'SD')][colname]).mean()
+                print('*** Before sampling Average SD for '+strApp+', Region '+regionIdNumName+' for '+colname+ ' '+str(average_sd))
+                average_sp= pd.to_numeric(df_intra_obj[(df_intra_obj['Type'] == 'SP')][colname]).mean()
+                print('*** Before sampling Average SP for '+strApp+', Region '+regionIdNumName+' for '+colname+ ' '+str(average_sp))
+                average_si= pd.to_numeric(df_intra_obj[(df_intra_obj['Type'] == 'SI')][colname]).mean()
+                print('*** Before sampling Average SI for '+strApp+', Region '+regionIdNumName+' for '+colname+ ' '+str(average_si))
+                average_sd= pd.to_numeric(df_intra_obj[(df_intra_obj['Type'] == 'SD')][colname]).median()
+                print('*** Before sampling median SD for '+strApp+', Region '+regionIdNumName+' for '+colname+ ' '+str(average_sd))
+                average_sp= pd.to_numeric(df_intra_obj[(df_intra_obj['Type'] == 'SP')][colname]).median()
+                print('*** Before sampling median SP for '+strApp+', Region '+regionIdNumName+' for '+colname+ ' '+str(average_sp))
+                average_si= pd.to_numeric(df_intra_obj[(df_intra_obj['Type'] == 'SI')][colname]).median()
+                print('*** Before sampling median SI for '+strApp+', Region '+regionIdNumName+' for '+colname+ ' '+str(average_si))
 
         get_col_list=[None]*512
         for i in range ( 0,255):
@@ -293,8 +294,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         SD_color='green'
         SI_color='tab:blue'
         for i, ax in enumerate(ax_plots.reshape(-1)[:len(plot_SP_col)]):
-            ax.set_title('Spatial affinity for '+ plot_SP_col[i])
-            ax.set_xlabel('Blocks')
+            #ax.set_title('Spatial affinity for '+ plot_SP_col[i])
             ax.set_xticks([])
             ax.set_yticks([0.0, 0.25,0.5, 0.75, 1.0])
             ax.set_ylim(-0.25, 1.0)
@@ -305,10 +305,10 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             if('SP-SI-SD' in strMetric):
                 ax.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SD-'+plot_SP_col[i]], color=SD_color,label='SD')
                 ax.tick_params(axis='y', labelcolor='black')
-                label_y = -0.05
-                ax.text(label_y, 0.3, r"SP ", color=SP_color, rotation='vertical', transform=ax.transAxes)
-                ax.text(label_y, 0.6, r"& ", color='black', rotation='vertical', transform=ax.transAxes)
-                ax.text(label_y, 0.75, r"SD", color=SD_color, rotation='vertical', transform=ax.transAxes)
+                label_y = -0.045
+                ax.text(label_y, 0.3, r"SA ", color=SP_color, rotation='vertical', transform=ax.transAxes)
+                ax.text(label_y, 0.55, r"& ", color='black', rotation='vertical', transform=ax.transAxes)
+                ax.text(label_y, 0.70, r"SD", color=SD_color, rotation='vertical', transform=ax.transAxes)
                 # To draw a horizantal threshold line
                 #xmin, xmax = ax.get_xlim()
                 #ax.hlines(y=0.25, xmin=xmin, xmax=xmax, linewidth=1, color='black')
@@ -323,36 +323,45 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 ax2.set_yticks([0,10,20,30,40,50])
             ax2.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SI-'+plot_SP_col[i]], color=SI_color,label='SI')
             ax2.tick_params(axis='y', labelcolor=SI_color)
+            ax2.text(0.01, 0.80, plot_SP_col[i], color='black', size='14', rotation = 'horizontal', transform=ax.transAxes)
 
         ax=ax_plots.reshape(-1)[len(plot_SP_col)]
-        ax.plot(df_SP_SI_SD['reg-page-blk'], df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SP')]['Access'], color='black',label='Access')
+        ax.plot(df_SP_SI_SD['reg-page-blk'], df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SP')]['Access'], color='tab:gray',label='Access')
         ax.set_yscale('log')
-        ax.set_ylabel('Access')
+        ax.set_ylim(0,100000)
+        #ax.set_ylabel('Access')
         ax.set_xticks([])
-        ax.set_title('Access counts for blocks')
+        #ax.set_title('Access counts for blocks')
         ax.set_xlabel('Blocks')
+        label_y = -0.045
+        ax.text(label_y, 0.3, r"Access", color='tab:gray', rotation='vertical', transform=ax.transAxes)
+        ax.text(0.01, 0.80, 'Access frequency', color='black', size='14', rotation = 'horizontal', transform=ax.transAxes)
+
 
         strAccessSumBlocks= str(np.round((accessSumBlocks/1000).astype(float),2))+'K'
         strArRegionAccess = str(np.round((arRegionAccess/1000).astype(float),2))+'K'
         strTitle = strApp +' region '+regionIdNumName+' \n Region\'s access  - ' + strArRegionAccess + ', Access count for selected pages - ' \
                    + strAccessSumBlocks +' ('+ ("{0:.1f}".format((accessSumBlocks/arRegionAccess)*100))+'%), Number of pages in region - '+ str(numRegionBlocks)
         plt.suptitle(strTitle)
-        imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName+'-'+strMetric+'_plot.pdf'
+        imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+'_plot.pdf'
+        print(imageFileName)
         plt.savefig(imageFileName, bbox_inches='tight')
         plt.close()
         #plt.show()
 
-#intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SP-SI')
-#intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SP-SI', \
+# Not very useful plots for Minivite, heatmap shows interesting information
+#intraObjectPlot('Minivite-V1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SP-SI-SD')
+#intraObjectPlot('Minivite-V2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SP-SI-SD', \
 #                listCombineReg=['1-A0000010','4-A0002000'] )
-#intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SP-SI', \
+#intraObjectPlot('Minivite-V3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SP-SI-SD', \
 #                listCombineReg=['1-A0000001','5-A0001200'] )
 
 #intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI-SD')
-#intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
-#intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
-#intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
-#intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
+#intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI-SD')
+#intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI-SD')
+#intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI-SD')
 
-#intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
-intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI-W', flWeighted=True)
+#intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI-SD-W', flWeighted=True)
+intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI-SD-W', flWeighted=True)
+intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI-SD-W', flWeighted=True)
+#intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI-SD-W', flWeighted=True)
