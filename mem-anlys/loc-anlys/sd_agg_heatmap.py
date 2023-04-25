@@ -354,7 +354,14 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         df_intra_obj_rows=df_intra_obj.shape[0]
         if ( df_intra_obj_rows < num_sample):
             num_sample = df_intra_obj_rows
-        df_intra_obj_sample=df_intra_obj.sample(n=num_sample, random_state=1, weights='Access')
+        print(num_sample)
+        #print('before sample \n', df_intra_obj[['reg-page-blk','Access']])
+        #df_intra_obj.to_csv(strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'before_sample.csv')
+
+        df_intra_obj_sample=df_intra_obj.nlargest(num_sample, 'Access')
+        #print('after sample\n' , df_intra_obj_sample[['reg-page-blk','Access']])
+        #df_intra_obj_sample.to_csv(strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'after_sample.csv')
+
         df_intra_obj_sample.set_index('reg-page-blk')
         df_intra_obj_sample.sort_index(inplace=True)
         list_xlabel=df_intra_obj_sample['reg-page-blk'].to_list()
@@ -506,9 +513,10 @@ if ( 1==0):
     f_avg1.close()
 
 #Darknet - paper plots
-if ( 1 == 0):
-    intraObjectPlot('AlexNet','/Users/suri836/Projects/spatial_rud/darknet_cluster/alexnet_single/spatial_clean/spatial.txt',3)
-    intraObjectPlot('ResNet', '/Users/suri836/Projects/spatial_rud/darknet_cluster/resnet152_single/spatial_clean/spatial.txt',1)
+if ( 1 == 1):
+    #intraObjectPlot('ResNet', '/Users/suri836/Projects/spatial_rud/darknet_cluster/resnet152_single/spatial_clean/spatial.txt',1)
+    #intraObjectPlot('AlexNet','/Users/suri836/Projects/spatial_rud/darknet_cluster/alexnet_single/spatial_clean/spatial.txt',5)
+    intraObjectPlot('AlexNet','/Users/suri836/Projects/spatial_rud/darknet_cluster/alexnet_single/spatial_clean/spatial.txt',2,listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'])
 
 #HiParTi - HiCOO - Matrix - paper plots
 if ( 1 == 0):
@@ -522,7 +530,7 @@ if ( 1 == 0):
     f_avg1.close()
 
 # HiParTI - HiCOO - Reorder heatmaps
-if (1 ==1):
+if (1 ==0):
     intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1)
     intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1)
     intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1)

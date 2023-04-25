@@ -235,7 +235,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         print ('SP shape ', df_intra_obj[(df_intra_obj['Type'] == 'SP')].shape)
         if (df_intra_obj[(df_intra_obj['Type'] == 'SP')].shape[0] < num_sample):
             num_sample = df_intra_obj[(df_intra_obj['Type'] == 'SP')].shape[0]
-        df_intra_obj_sample_SP=df_intra_obj[(df_intra_obj['Type'] == 'SP')].sample(n=num_sample, random_state=1, weights='Access')
+        df_intra_obj_sample_SP=df_intra_obj[(df_intra_obj['Type'] == 'SP')].nlargest(num_sample, weights='Access')
         df_intra_obj_sample_SP.set_index('reg-page-blk')
         df_intra_obj_sample_SP.sort_index(inplace=True)
         print('after sample - ', df_intra_obj_sample_SP.shape)
