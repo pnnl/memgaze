@@ -64,14 +64,14 @@ def get_intra_obj (data_intra_obj, fileline,blockid,regionIdNum):
 def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None):
     # STEP 1 - Read spatial.txt and write inter-region file
     strPath=strFileName[0:strFileName.rindex('/')]
-    if(strMetric == 'SP-SI'):
+    if('SP-SI' in strMetric  ):
         fileName='/inter_object_sp-si.txt'
         lineStart='---'
         lineEnd='<----'
         # For Minivite use
         #strMetricIdentifier='Spatial_Proximity'
         strMetricIdentifier='Spatial_Interval'
-        strMetricTitle='Spatial Proximity and Interval'
+        strMetricTitle='Spatial Anticipation and Interval'
 
     #print(strPath)
     # Write inter-object_sd.txt
@@ -282,120 +282,211 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             list_col_names.append('SI-'+plotCol)
             list_col_names.append('SD-'+plotCol)
 
+
         df_SP_SI_SD=pd.DataFrame(list_SP_SI_SD,columns=list_col_names)
         df_SP_SI_SD=df_SP_SI_SD.dropna(axis=1, how='all')
-        #print(df_SP_SI_SD['reg-page-blk'])
+        # Get rows above self - self+1, self+2...
+        if (1 ==0):
+            #print(df_SP_SI_SD['reg-page-blk'])
+            #print('columns',  df_SP_SI_SD.columns.to_list())
+            cols_df_SP_SI_SD = df_SP_SI_SD.columns.to_list()
+            cols_df_SP=['SP-self']
+            cols_df_SI=['SI-self']
+            pattern = re.compile('SP-self\+.*')
+            newlist = list(filter(pattern.match, cols_df_SP_SI_SD))
+            cols_df_SP.extend(newlist)
+            pattern = re.compile('SI-self\+.*')
+            newlist = list(filter(pattern.match, cols_df_SP_SI_SD))
+            cols_df_SI.extend(newlist)
+            #print(cols_df_SP)
+            #(cols_df_SI)
+
+        # To show all three in tandem
+        # Get rows with more SA entries - non zero SA will result in  SI and maybe SD
+        print(df_SP_SI_SD['reg-page-blk'])
         #print('columns',  df_SP_SI_SD.columns.to_list())
         cols_df_SP_SI_SD = df_SP_SI_SD.columns.to_list()
-        cols_df_SP=['SP-self']
-        cols_df_SI=['SI-self']
-        pattern = re.compile('SP-self\+.*')
-        newlist = list(filter(pattern.match, cols_df_SP_SI_SD))
-        cols_df_SP.extend(newlist)
-        pattern = re.compile('SI-self\+.*')
-        newlist = list(filter(pattern.match, cols_df_SP_SI_SD))
-        cols_df_SI.extend(newlist)
-        #print(cols_df_SP)
-        #(cols_df_SI)
+        cols_df_SI=[]
+        cols_df_SP=[]
+        cols_df_SD=[]
+        # Filter SP, SI and SD to show in heatmap
+        pattern = re.compile('SD-self')
+        cols_df_orig = list(filter(pattern.match, cols_df_SP_SI_SD))
+        for col_orig_name in cols_df_orig:
+            str_col_orig_name = str(col_orig_name)
+            if (np.sum(df_SP_SI_SD[col_orig_name]>=0.01) > 3):
+                #print(col_orig_name)
+                col_SP_name='SP-'+str_col_orig_name[3:]
+                col_SI_name='SI-'+str_col_orig_name[3:]
+                col_SD_name='SD-'+str_col_orig_name[3:]
+                #print( 'col_SI_name ', col_SI_name, ' col_SD_name ', col_SD_name)
+                cols_df_SP.append(col_SP_name)
+                cols_df_SI.append(col_SI_name)
+                cols_df_SD.append(col_SD_name)
 
-        df_intra_obj_sample_hm_SP=df_SP_SI_SD[cols_df_SP]
-        df_intra_obj_sample_hm_SI=df_SP_SI_SD[cols_df_SI]
-        df_intra_obj_sample_hm_SP.apply(pd.to_numeric)
-        df_hm_SP=np.empty([num_sample,len(cols_df_SP)])
-        df_hm_SP=df_intra_obj_sample_hm_SP.to_numpy()
-        df_hm_SP=df_hm_SP.astype('float64')
-        df_hm_SP=df_hm_SP.transpose()
-        print('df_hm_SP shape', df_hm_SP.shape)
-        df_intra_obj_sample_hm_SI.apply(pd.to_numeric)
-        df_hm_SI=np.empty([num_sample,len(cols_df_SI)])
-        df_hm_SI=df_intra_obj_sample_hm_SI.to_numpy()
-        df_hm_SI=df_hm_SI.astype('float64')
-        df_hm_SI=df_hm_SI.transpose()
-        print('df_hm_SI shape', df_hm_SI.shape)
 
-        fig = plt.figure(constrained_layout=True, figsize=(15, 10))
-        gs = gridspec.GridSpec(1, 2, figure=fig,width_ratios=[11,4])
-        gs0 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec = gs[0] ,hspace=0.10)
-        gs1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec = gs[1] ,wspace=0.07)
-        ax_0 = fig.add_subplot(gs0[0, 0])
-        ax_1 = fig.add_subplot(gs0[1, 0])
-        ax_2 = fig.add_subplot(gs1[0, 0])
-        ax_3 = fig.add_subplot(gs1[0, 1])
+        if (len(cols_df_SP) < 15):
+            cols_df_SI=[]
+            cols_df_SP=[]
+            cols_df_SD=[]
+            # Filter SP, SI and SD to show in heatmap
+            pattern = re.compile('SD-self')
+            cols_df_orig = list(filter(pattern.match, cols_df_SP_SI_SD))
+            for col_orig_name in cols_df_orig:
+                str_col_orig_name = str(col_orig_name)
+                if (np.sum(df_SP_SI_SD[col_orig_name]>=0.01) > 1):
+                    #print(col_orig_name)
+                    col_SP_name='SP-'+str_col_orig_name[3:]
+                    col_SI_name='SI-'+str_col_orig_name[3:]
+                    col_SD_name='SD-'+str_col_orig_name[3:]
+                    #print( 'col_SI_name ', col_SI_name, ' col_SD_name ', col_SD_name)
+                    cols_df_SP.append(col_SP_name)
+                    cols_df_SI.append(col_SI_name)
+                    cols_df_SD.append(col_SD_name)
 
-        ax_0 = sns.heatmap(df_hm_SP, cmap='mako_r',cbar=True, annot=False,ax=ax_0,vmin=0.0,vmax=1.0)
-        ax_1 = sns.heatmap(df_hm_SI, cmap='mako',cbar=True, annot=False,ax=ax_1,vmin=0.0, vmax=10.0)
-        ax_0.invert_yaxis()
-        list_y_ticks=ax_0.get_yticklabels()
-        fig_ylabel=[]
-        for y_label in list_y_ticks:
-            fig_ylabel.append(cols_df_SP[int(y_label.get_text())][3:])
-        list_x_ticks=ax_0.get_xticklabels()
-        fig_xlabel=[]
-        for x_label in list_x_ticks:
-            fig_xlabel.append(df_SP_SI_SD['reg-page-blk'][int(x_label.get_text())])
-        ax_0.set_yticklabels(fig_ylabel,rotation='horizontal')
-        ax_0.set_xticklabels(fig_xlabel,rotation='vertical')
+        print(cols_df_SP)
+        print(cols_df_SI)
 
-        ax_1.invert_yaxis()
-        list_y_ticks=ax_1.get_yticklabels()
-        fig_ylabel=[]
-        for y_label in list_y_ticks:
-            fig_ylabel.append(cols_df_SI[int(y_label.get_text())][3:])
-        list_x_ticks=ax_1.get_xticklabels()
-        fig_xlabel=[]
-        for x_label in list_x_ticks:
-            fig_xlabel.append(df_SP_SI_SD['reg-page-blk'][int(x_label.get_text())])
-        ax_1.set_yticklabels(fig_ylabel,rotation='horizontal')
-        ax_1.set_xticklabels(fig_xlabel,rotation='vertical')
-        ax_0.set(xlabel="Region-Page-Block", ylabel="Affinity to contiguous blocks")
-        ax_1.set(xlabel="Region-Page-Block", ylabel="Affinity to contiguous blocks")
+        if (len(cols_df_SP) > 3 and len(cols_df_SI) >3 and len(cols_df_SD)>3):
+            df_intra_obj_sample_hm_SP=df_SP_SI_SD[cols_df_SP]
+            df_intra_obj_sample_hm_SI=df_SP_SI_SD[cols_df_SI]
+            df_intra_obj_sample_hm_SD=df_SP_SI_SD[cols_df_SD]
 
-        list_xlabel=df_SP_SI_SD['reg-page-blk']
-        sns.heatmap(accessBlockCacheLine, cmap="PuBu", cbar=False,annot=True, fmt='g', annot_kws = {'size':12},  ax=ax_2)
-        ax_2.invert_yaxis()
-        ax_2.set_xticks([0])
-        length_xlabel= len(list_xlabel)
-        list_blkcache_label=[]
-        for i in range (0, length_xlabel):
-            list_blkcache_label.append(list_xlabel[i])
-        ax2_ylabel=[]
-        list_y_ticks=ax_2.get_yticklabels()
-        for y_label in list_y_ticks:
-            ax2_ylabel.append(list_blkcache_label[int(y_label.get_text())])
-        ax_2.set_yticks(range(0,len(list_blkcache_label)),list_blkcache_label, rotation='horizontal', wrap=True )
-        ax_2.yaxis.set_ticks_position('right')
+            df_intra_obj_sample_hm_SP.apply(pd.to_numeric)
+            df_hm_SP=np.empty([num_sample,len(cols_df_SP)])
+            df_hm_SP=df_intra_obj_sample_hm_SP.to_numpy()
+            df_hm_SP=df_hm_SP.astype('float64')
+            df_hm_SP=df_hm_SP.transpose()
+            print('df_hm_SP shape', df_hm_SP.shape)
 
-        # All three metrics are in here, access includes all three, so divide by 3000 instead of 1000
-        rndAccess = np.round((arBlockIdAccess/3000).astype(float),2)
-        annot = np.char.add(rndAccess.astype(str), 'K')
-        sns.heatmap(rndAccess, cmap='Blues', cbar=False,annot=annot, fmt='', annot_kws = {'size':12},  ax=ax_3)
-        ax_3.invert_yaxis()
-        ax_3.set_xticks([0])
-        list_blk_label=arRegionBlocks.tolist()
-        ax_3.set_yticklabels(list_blk_label, rotation='horizontal', wrap=True )
-        ax_3.yaxis.set_ticks_position('right')
+            df_intra_obj_sample_hm_SI.apply(pd.to_numeric)
+            df_hm_SI=np.empty([num_sample,len(cols_df_SI)])
+            df_hm_SI=df_intra_obj_sample_hm_SI.to_numpy()
+            df_hm_SI=df_hm_SI.astype('float64')
+            df_hm_SI=df_hm_SI.transpose()
+            print('df_hm_SI shape', df_hm_SI.shape)
 
-        strMetricTitle = 'Spatial Proximity, Interval'
-        plt.suptitle(strMetricTitle +' and Access heatmap for '+strApp +' region - '+regionIdNumName)
-        strArRegionAccess = str(np.round((arRegionAccess/1000).astype(float),2))+'K'
-        strAccessSumBlocks= str(np.round((accessSumBlocks/1000).astype(float),2))+'K'
-        strTitle = 'Region\'s access - ' + strArRegionAccess + ', Access count for selected pages - ' + strAccessSumBlocks +' ('+ ("{0:.1f}".format((accessSumBlocks/arRegionAccess)*100)) \
-                   +'%), Number of pages in region - '+ str(numRegionBlocks) + '\n Spatial Proximity'
-        #print(strTitle)
-        ax_0.set_title(strTitle)
-        ax_1.set_title('Spatial Interval')
-        ax_2.set_title('Access count for selected blocks and \n         hottest pages in the region',loc='left')
+            df_intra_obj_sample_hm_SD.apply(pd.to_numeric)
+            df_hm_SD=np.empty([num_sample,len(cols_df_SD)])
+            df_hm_SD=df_intra_obj_sample_hm_SD.to_numpy()
+            df_hm_SD=df_hm_SD.astype('float64')
+            df_hm_SD=df_hm_SD.transpose()
+            print('df_hm_SP shape', df_hm_SP.shape)
 
-        #imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+'_hm.pdf'
-        #plt.savefig(imageFileName, bbox_inches='tight')
-        #plt.close()
-        plt.show()
+            fig = plt.figure(constrained_layout=True, figsize=(15, 10))
+            gs = gridspec.GridSpec(1, 2, figure=fig,width_ratios=[12,3])
+            gs0 = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec = gs[0] ,hspace=0.10)
+            gs1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec = gs[1] ,wspace=0.07)
+            gs0_ax_0 = fig.add_subplot(gs0[0, 0])
+            gs0_ax_1 = fig.add_subplot(gs0[1, 0])
+            gs0_ax_2 = fig.add_subplot(gs0[2, 0])
+            ax_2 = fig.add_subplot(gs1[0, 0])
+            ax_3 = fig.add_subplot(gs1[0, 1])
 
-intraObjectPlot('miniVite-v1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SP-SI')
-#intraObjectPlot('miniVite-v2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SP-SI', \
-#                listCombineReg=['1-A0000010','4-A0002000'] )
-#intraObjectPlot('miniVite-v3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SP-SI', \
-#                listCombineReg=['1-A0000001','5-A0001200'] )
+            gs0_ax_0 = sns.heatmap(df_hm_SD, cmap='mako_r',cbar=True, annot=False,ax=gs0_ax_0,vmin=0.0,vmax=1.0)
+            gs0_ax_1 = sns.heatmap(df_hm_SP, cmap='mako_r',cbar=True, annot=False,ax=gs0_ax_1,vmin=0.0, vmax=1.0)
+            if ('minivite' in strApp.lower()):
+                vmin = 0
+                vmax= 20
+            else:
+                vmin=0
+                vmax=10
+            gs0_ax_2 = sns.heatmap(df_hm_SI, cmap='mako',cbar=True, annot=False,ax=gs0_ax_2,vmin=vmin, vmax=vmax)
+            gs0_ax_0.set(ylabel="Spatial Density")
+            gs0_ax_1.set(ylabel="Spatial Anticipation")
+            gs0_ax_2.set(xlabel="Region-Page-Block", ylabel="Spatial Interval")
+
+            gs0_ax_0.invert_yaxis()
+            list_y_ticks=gs0_ax_0.get_yticklabels()
+            fig_ylabel=[]
+            for y_label in list_y_ticks:
+                fig_ylabel.append(cols_df_SD[int(y_label.get_text())][3:])
+            list_x_ticks=gs0_ax_0.get_xticklabels()
+            fig_xlabel=[]
+            for x_label in list_x_ticks:
+                fig_xlabel.append(df_SP_SI_SD['reg-page-blk'][int(x_label.get_text())])
+            gs0_ax_0.set_yticklabels(fig_ylabel,rotation='horizontal')
+            #gs0_ax_0.set_xticklabels(fig_xlabel,rotation='vertical')
+            gs0_ax_0.set_xticklabels([])
+
+            gs0_ax_1.invert_yaxis()
+            list_y_ticks=gs0_ax_1.get_yticklabels()
+            fig_ylabel=[]
+            for y_label in list_y_ticks:
+                fig_ylabel.append(cols_df_SP[int(y_label.get_text())][3:])
+            list_x_ticks=gs0_ax_1.get_xticklabels()
+            fig_xlabel=[]
+            for x_label in list_x_ticks:
+                fig_xlabel.append(df_SP_SI_SD['reg-page-blk'][int(x_label.get_text())])
+            gs0_ax_1.set_yticklabels(fig_ylabel,rotation='horizontal')
+            #gs0_ax_1.set_xticklabels(fig_xlabel,rotation='vertical')
+            gs0_ax_1.set_xticklabels([])
+
+            gs0_ax_2.invert_yaxis()
+            list_y_ticks=gs0_ax_2.get_yticklabels()
+            fig_ylabel=[]
+            for y_label in list_y_ticks:
+                fig_ylabel.append(cols_df_SI[int(y_label.get_text())][3:])
+            list_x_ticks=gs0_ax_2.get_xticklabels()
+            fig_xlabel=[]
+            for x_label in list_x_ticks:
+                fig_xlabel.append(df_SP_SI_SD['reg-page-blk'][int(x_label.get_text())])
+            gs0_ax_2.set_yticklabels(fig_ylabel,rotation='horizontal')
+            gs0_ax_2.set_xticklabels(fig_xlabel,rotation='vertical')
+
+            list_xlabel=df_SP_SI_SD['reg-page-blk']
+            sns.heatmap(accessBlockCacheLine, cmap="PuBu", cbar=False,annot=True, fmt='g', annot_kws = {'size':12},  ax=ax_2)
+            ax_2.invert_yaxis()
+            ax_2.set_xticks([0])
+            length_xlabel= len(list_xlabel)
+            list_blkcache_label=[]
+            for i in range (0, length_xlabel):
+                list_blkcache_label.append(list_xlabel[i])
+            ax2_ylabel=[]
+            list_y_ticks=ax_2.get_yticklabels()
+            for y_label in list_y_ticks:
+                ax2_ylabel.append(list_blkcache_label[int(y_label.get_text())])
+            ax_2.set_yticks(range(0,len(list_blkcache_label)),list_blkcache_label, rotation='horizontal', wrap=True )
+            ax_2.yaxis.set_ticks_position('right')
+
+            # All three metrics are in here, access includes all three, so divide by 3000 instead of 1000
+            rndAccess = np.round((arBlockIdAccess/3000).astype(float),2)
+            annot = np.char.add(rndAccess.astype(str), 'K')
+            sns.heatmap(rndAccess, cmap='Blues', cbar=False,annot=annot, fmt='', annot_kws = {'size':12},  ax=ax_3)
+            ax_3.invert_yaxis()
+            ax_3.set_xticks([0])
+            list_blk_label=arRegionBlocks.tolist()
+            ax_3.set_yticklabels(list_blk_label, rotation='horizontal', wrap=True )
+            ax_3.yaxis.set_ticks_position('right')
+
+            strMetricTitle = 'Spatial Density, Anticipation, Interval'
+            plt.suptitle(strMetricTitle +' and Access heatmap for '+strApp +' region - '+regionIdNumName)
+            strArRegionAccess = str(np.round((arRegionAccess/1000).astype(float),2))+'K'
+            strAccessSumBlocks= str(np.round((accessSumBlocks/1000).astype(float),2))+'K'
+            strTitle = 'Region\'s access - ' + strArRegionAccess + ', Access count for selected pages - ' + strAccessSumBlocks +' ('+ ("{0:.1f}".format((accessSumBlocks/arRegionAccess)*100)) \
+                       +'%), Number of pages in region - '+ str(numRegionBlocks) + '\n Spatial Density'
+            #print(strTitle)
+            gs0_ax_0.set_title(strTitle)
+            gs0_ax_1.set_title('Spatial Anticipation')
+            gs0_ax_2.set_title('Spatial Interval')
+            ax_2.set_title('Access count for selected blocks and \n         hottest pages in the region',loc='left')
+
+            imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+'_hm.pdf'
+            plt.savefig(imageFileName, bbox_inches='tight')
+            plt.close()
+            #plt.show()
+
+if(1 == 0):
+    intraObjectPlot('miniVite-v1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD-SP-SI')
+    intraObjectPlot('miniVite-v2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SD-SP-SI', \
+                listCombineReg=['1-A0000010','4-A0002000'] )
+    intraObjectPlot('miniVite-v3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
+                listCombineReg=['1-A0000001','5-A0001200'] )
+
+intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SD-SP-SI')
+intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SD-SP-SI')
+intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SD-SP-SI')
+intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SD-SP-SI')
 
 #intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
 #intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
