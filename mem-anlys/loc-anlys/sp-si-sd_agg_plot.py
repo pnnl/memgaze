@@ -262,7 +262,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             list_SP_SI_SD[blkCnt][0]=blkid
             if (flWeighted == True):
                 #print('blk ', blkid, ' access ', df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'], ' accessSumBlocks ', accessSumBlocks, ' maxAccess ', maxAccess)
-                weight_multiplier = ( df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'] *100 )/ (accessSumBlocks)
+                weight_multiplier = ( df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'].item() *100 )/ (accessSumBlocks)
                 #weight_multiplier = ( df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'] *100 )/ (maxAccess)
             else:
                 weight_multiplier = 1.0
@@ -271,14 +271,16 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 if(plotCol in df_intra_obj_SP.columns):
                     condSP = (df_intra_obj_SP['reg-page-blk'] == blkid) & (df_intra_obj_SP[plotCol] >= 0.0)
                     resultSP = df_intra_obj_SP[condSP][plotCol]
+                    condSI = (df_intra_obj_SI['reg-page-blk'] == blkid)
+                    resultSI = df_intra_obj_SI[condSI][plotCol]
+                    condSD = (df_intra_obj_SD['reg-page-blk'] == blkid)
+                    resultSD = df_intra_obj_SD[condSD][plotCol]
                     if resultSP.size > 0:
-                        condSI = (df_intra_obj_SI['reg-page-blk'] == blkid)
-                        resultSI = df_intra_obj_SI[condSI][plotCol]
-                        condSD = (df_intra_obj_SD['reg-page-blk'] == blkid)
-                        resultSD = df_intra_obj_SD[condSD][plotCol]
                         #print(blkid, plotCol, resultSP.values[0], resultSI.values[0])
                         list_SP_SI_SD[blkCnt][plotCnt*3+1]=resultSP.values[0] * weight_multiplier
+                    if resultSI.size >0:
                         list_SP_SI_SD[blkCnt][plotCnt*3+2]=resultSI.values[0]
+                    if resultSD.size >0:
                         list_SP_SI_SD[blkCnt][plotCnt*3+3]=resultSD.values[0] * weight_multiplier
         #print(list_SP_SI)
         list_col_names=['reg-page-blk']

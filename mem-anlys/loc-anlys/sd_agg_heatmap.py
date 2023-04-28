@@ -20,13 +20,17 @@
 import pandas as pd
 import numpy as np
 import seaborn as sns
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import re
 import csv
 import os
 import copy
-sns.color_palette("light:#5A9", as_cmap=True)
+from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+
+
+sns.set_palette(sns.light_palette("seagreen"),100)
 sns.set()
 
 #STEP 0 - Heatmap for inter-region - function not used
@@ -280,13 +284,29 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # STEP 3c - Process data frame to get access, lifetime totals
         df_intra_obj = df_intra_obj.astype({"Access": int, "Lifetime": int})
         accessSumBlocks= df_intra_obj['Access'].sum()
-        arRegionBlocks=df_intra_obj['blockid'].unique()
+        arRegPages=df_intra_obj['blockid'].unique()
         #print (arRegionBlocks)
-        arBlockIdAccess = np.empty([len(arRegionBlocks),1])
-        for arRegionBlockId in range(0, len(arRegionBlocks)):
+        
+        arRegPageAccess = np.empty([len(arRegPages),1])
+        for arRegPageId in range(0, len(arRegPages)):
             #print(arRegionBlockId, df_intra_obj[df_intra_obj['blockid']==arRegionBlocks[arRegionBlockId]]['Access'].sum())
-            arBlockIdAccess[int(arRegionBlockId)] = df_intra_obj[df_intra_obj['blockid']==arRegionBlocks[arRegionBlockId]]['Access'].sum()
+            arRegPageAccess[int(arRegPageId)] = df_intra_obj[df_intra_obj['blockid']==arRegPages[arRegPageId]]['Access'].sum()
         #print (arBlockIdAccess)
+
+        print(arRegPageAccess.shape)
+        listCombine = zip(arRegPages, arRegPageAccess.tolist())
+        df_reg_pages = pd.DataFrame(listCombine, columns=('reg-page', 'Access'))
+
+        #df_reg_pages = df_reg_pages.astype({"Access": int})
+        df_reg_pages.set_index('reg-page')
+        df_reg_pages.sort_index(inplace=True)
+        df_reg_pages["Access"] = df_reg_pages["Access"].apply(pd.to_numeric)
+        df_reg_pages = df_reg_pages.astype({"Access": int})
+        df_reg_pages.sort_values(by=['Access'],ascending=False,inplace=True)
+
+
+        arRegPageAccess=(df_reg_pages[['Access']]).to_numpy()
+        arRegPages=df_reg_pages['reg-page'].to_list()
 
         # STEP 3d - Get average of self before sampling for highest access blocks
         average_sd= pd.to_numeric(df_intra_obj["self"]).mean()
@@ -364,6 +384,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
         df_intra_obj_sample.set_index('reg-page-blk')
         df_intra_obj_sample.sort_index(inplace=True)
+        df_intra_obj_sample.sort_values(by=['Access'],ascending=False,inplace=True)
         list_xlabel=df_intra_obj_sample['reg-page-blk'].to_list()
         accessBlockCacheLine = (df_intra_obj_sample[['Access']]).to_numpy()
         df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
@@ -440,6 +461,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             ax_0 = sns.heatmap(df_hm, mask=df_mask, cmap='mako',cbar=True, annot=False,ax=ax_0,vmin=0,vmax=20)
         else:
             ax_0 = sns.heatmap(df_hm,cmap='mako_r',cbar=True, annot=False,ax=ax_0,vmin=vmin_val,vmax=vmax_val)
+
+        # Colors for Access heatmap, and labels for affinity matrix
+        custom_blue = sns.light_palette("#79C")
+        background_color = mpl.colormaps["Blues"]
+
         ax_0.invert_yaxis()
         list_y_ticks=ax_0.get_yticklabels()
         fig_ylabel=[]
@@ -447,33 +473,46 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             fig_ylabel.append(get_col_list[int(y_label.get_text())])
         list_x_ticks=ax_0.get_xticklabels()
         fig_xlabel=[]
+        color_xlabel=[]
+        #newcmp = ListedColormap(viridis(np.linspace(0.5, 1.0, 128)))
+        my_colors=[]
         for x_label in list_x_ticks:
             fig_xlabel.append(list_xlabel[int(x_label.get_text())])
+            color_xlabel.append(accessBlockCacheLine[int(x_label.get_text())].item()/accessBlockCacheLine.max())
+            my_colors.append(background_color(accessBlockCacheLine[int(x_label.get_text())].item()/accessBlockCacheLine.max()))
         ax_0.set_yticklabels(fig_ylabel,rotation='horizontal', wrap=True)
         ax_0.set_xticklabels(fig_xlabel,rotation='vertical')
         ax_0.set(xlabel="Region-Page-Block", ylabel="Affinity to contiguous blocks")
+        print(color_xlabel)
+        i=0
+        for ticklabel, tickcolor in zip(ax_0.get_xticklabels(), my_colors):
+            if(color_xlabel[i]>0.5):
+                ticklabel.set_color('white')
+            ticklabel.set_backgroundcolor(tickcolor)
+            ticklabel.set_fontsize(10)
+            i = i+1
+
+
         #ax_0.set_ylabel("")
-        sns.color_palette("light:b", as_cmap=True)
-        sns.heatmap(accessBlockCacheLine, cmap="PuBu", cbar=False,annot=True, fmt='g', annot_kws = {'size':12},  ax=ax_1)
-        ax_1.invert_yaxis()
+
+        sns.heatmap(accessBlockCacheLine, cmap="Blues", cbar=False,annot=True, fmt='g', annot_kws = {'size':12},  ax=ax_1)
+        #ax_1.invert_yaxis()
         ax_1.set_xticks([0])
         length_xlabel= len(list_xlabel)
         list_blkcache_label=[]
         for i in range (0, length_xlabel):
             list_blkcache_label.append(list_xlabel[i])
-        ax1_ylabel=[]
-        list_y_ticks=ax_1.get_yticklabels()
-        for y_label in list_y_ticks:
-            ax1_ylabel.append(list_blkcache_label[int(y_label.get_text())])
-        ax_1.set_yticks(range(0,len(list_blkcache_label)),list_blkcache_label, rotation='horizontal', wrap=True )
+        print(range(0,len(list_blkcache_label)))
+        #ax_1.set_yticks(range(0,len(list_blkcache_label)),list_blkcache_label, rotation='horizontal',  wrap=True )
+        ax_1.set_yticklabels(list_blkcache_label, rotation='horizontal', wrap=True )
         ax_1.yaxis.set_ticks_position('right')
 
-        rndAccess = np.round((arBlockIdAccess/1000).astype(float),2)
+        rndAccess = np.round((arRegPageAccess/1000).astype(float),2)
         annot = np.char.add(rndAccess.astype(str), 'K')
-        sns.heatmap(rndAccess, cmap='Blues', cbar=False,annot=annot, fmt='', annot_kws = {'size':12},  ax=ax_2)
-        ax_2.invert_yaxis()
+        sns.heatmap(rndAccess, cmap=custom_blue, cbar=False,annot=annot, fmt='', annot_kws = {'size':12},  ax=ax_2)
+        #ax_2.invert_yaxis()
         ax_2.set_xticks([0])
-        list_blk_label=arRegionBlocks.tolist()
+        list_blk_label=arRegPages
         ax_2.set_yticklabels(list_blk_label, rotation='horizontal', wrap=True )
         ax_2.yaxis.set_ticks_position('right')
 
@@ -487,22 +526,31 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         ax_1.set_title('Access count for selected blocks and \n          hottest pages in the region\n ',loc='left')
 
         #plt.show()
-        imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+'_hm.pdf'
+        imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+'_hm_order.pdf'
         print(imageFileName)
         plt.savefig(imageFileName, bbox_inches='tight')
         plt.close()
 
 
-intraObjectPlot('miniVite-v1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SP')
-intraObjectPlot('miniVite-v2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SP', \
+#intraObjectPlot('miniVite-v1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD')
+#intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1)
+
+intraObjectPlot('miniVite-v1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD')
+intraObjectPlot('miniVite-v2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SD', \
                 listCombineReg=['1-A0000010','4-A0002000'] )
-intraObjectPlot('miniVite-v3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SP', \
+intraObjectPlot('miniVite-v3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SD', \
                 listCombineReg=['1-A0000001','5-A0001200'] )
 
-intraObjectPlot('miniVite-v1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SI')
-intraObjectPlot('miniVite-v2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SI', \
+if (1 ==0):
+    intraObjectPlot('miniVite-v2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SP', \
                 listCombineReg=['1-A0000010','4-A0002000'] )
-intraObjectPlot('miniVite-v3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SI', \
+    intraObjectPlot('miniVite-v3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SP', \
+                listCombineReg=['1-A0000001','5-A0001200'] )
+
+    intraObjectPlot('miniVite-v1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SI')
+    intraObjectPlot('miniVite-v2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SI', \
+                listCombineReg=['1-A0000010','4-A0002000'] )
+    intraObjectPlot('miniVite-v3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SI', \
                 listCombineReg=['1-A0000001','5-A0001200'] )
 
 
@@ -532,19 +580,12 @@ if ( 1 == 0):
     f_avg1.close()
 
 # HiParTI - HiCOO - Reorder heatmaps
-if (1 ==0):
+if (1 ==1):
     intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1)
     intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1)
     intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1)
     intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1)
 
-
-# HiParTi - Tensor variants
-if ( 1 == 0):
-    intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/spatial.txt', 1)
-    intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/spatial.txt', 1)
-    intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/spatial.txt', 1)
-    intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/spatial.txt', 1)
 
 if ( 1 == 0):
     intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SP')
