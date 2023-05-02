@@ -33,107 +33,17 @@ from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 sns.set_palette(sns.light_palette("seagreen"),100)
 sns.set()
 
-#STEP 0 - Heatmap for inter-region - function not used
-def readFile(filename, strApp):
-    df=pd.read_table(filename, sep=" ", skipinitialspace=True, usecols=range(4,14),
-        names=['RegionId','colon', 'ar', 'Address Range', 'lf', 'Lifetime', 'ac', 'Access count', 'bc', 'Block count'])
-    df1=df[['RegionId', 'Address Range', 'Lifetime', 'Access count', 'Block count']]
-    npRegionId = df['RegionId'].values.flatten()
-    arRegionId = npRegionId.tolist()
-    #print(arRegionId)
-    listNumRegion = []
-    for i in range(0, len(arRegionId)):
-        listNumRegion.append('sp_'+str(arRegionId[i]))
-        df1['sp_'+str(arRegionId[i])] =0
-    #print (listNumRegion)
-    with open(filename) as f:
-        indexCnt =0
-        for fileLine in f:
-            listSpatialDensity=np.empty(len(arRegionId))
-            listSpatialDensity.fill(0)
-            data = fileLine.strip().split(' ')
-            print (data)
-            dfIndex=int(data[4])
-            for i in range(15,len(data)):
-                strSplit = data[i]
-                commaIndex = strSplit.find(',')
-                arSplit = strSplit.split(',')
-                try:
-                    insertIndex = arRegionId.index(int(arSplit[0]))
-                    listSpatialDensity[insertIndex] = arSplit[1]
-                except ValueError:
-                    continue
-            for j in range(0,len(arRegionId)):
-                strColName="sp_"+str(arRegionId[j])
-                df_col_index=df1.columns.get_loc(strColName)
-                df1.loc[indexCnt,'sp_'+str(arRegionId[j])] = listSpatialDensity[j]
-                df1.loc[indexCnt,df_col_index] = listSpatialDensity[j]
-            indexCnt = indexCnt +1
-    #print('after loop')
-    # READ Dataframe done - Sampling here
-    if(sampleSize==0):
-        df_sample=df1
-    else:
-        df_sample=df1.sample(n=sampleSize, random_state=1, weights='Access count')
-    df_sample.sort_index(inplace=True)
-    vecLabel_Y=df_sample['RegionId'].tolist()
-    if (colSelect == 1):
-        vecLabel_X=df_sample['RegionId'].to_list()
-        colSelList=[]
-        for i in range(0,len(vecLabel_Y)):
-            colSelList.append('sp_'+str(vecLabel_Y[i]))
-        #print(colSelList)
-        #print(df_sample.columns)
-        dfHeatMap=df_sample[colSelList]
-    else:
-        vecLabel_X=df1['RegionId'].to_list()
-        dfHeatMap=df_sample[listNumRegion]
+def weightMultiply(inValue, multValue):
+    return (inValue * multValue)
+vectorWeightMultiply = np.vectorize(weightMultiply)
+vectorWeightMultiply.excluded.add(1)
 
-    dfHeatMap.apply(pd.to_numeric)
-    arSpHeatMap=np.empty([len(arRegionId),len(arRegionId)])
-    arSpHeatMap= dfHeatMap.to_numpy()
-    arSpHeatMap= arSpHeatMap.astype('float64')
-    accessTotal =df_sample['Access count'].sum()
-    arAccessPercent=(df_sample[['Access count']].div(accessTotal)).to_numpy()
-    arBlk = df_sample[['Block count']].to_numpy()
-    arBlk = arBlk.astype('int')
-
-    arAccessBlk = np.divide(arAccessPercent,arBlk)
-    arAccessBlk = arAccessBlk.astype('float64')
-    fig, ax =plt.subplots(1,3, figsize=(15, 10),gridspec_kw={'width_ratios': [9, 1,1]})
-    sns.heatmap(arSpHeatMap,cmap='BuGn',cbar=False, annot=True, annot_kws = {'size':8}, ax=ax_0)
-    ax_0.invert_yaxis()
-    ax_0.set_yticklabels(vecLabel_Y,rotation='horizontal', wrap=True)
-    ax_0.set_xticklabels(vecLabel_X,rotation='vertical')
-    ax_0.set_title('Spatial density heatmap')
-
-    sns.heatmap(arAccessPercent, cmap='BuGn', cbar=False,annot=True, fmt='.3f', annot_kws = {'size':12},  ax=ax_1)
-    ax_1.invert_yaxis()
-    ax_1.set_xticks([0])
-    ax_1.set_yticks([0])
-    ax_1.set_title(' % Access')
-
-    sns.heatmap(arBlk, cmap='BuGn', cbar=False,annot=True, fmt='d', annot_kws = {'size':12},  ax=ax_2)
-    ax_2.invert_yaxis()
-    ax_2.set_xticks([0])
-    ax_2.set_yticklabels(vecLabel_Y,rotation='horizontal', wrap=True)
-    ax_2.yaxis.set_ticks_position('right')
-    ax_2.set_title(' # Blocks')
-    plt.suptitle(strApp+'\n \n Total Access '+str(accessTotal), fontsize=14)
-
-    imageFileName=filename[0:filename.rindex('/')]+'/'+strApp.replace(' ','-')+'.pdf'
-    print(imageFileName)
-    #plt.show()
-    plt.savefig(imageFileName, bbox_inches='tight')
-
-# df=pd.read_table(filename, sep=" ", skipinitialspace=True, usecols=range(4,14),
-# names=['RegionId','colon', 'ar', 'Address Range', 'lf', 'Lifetime', 'ac', 'Access count', 'bc', 'Block count'])
-def get_intra_obj (data_intra_obj, fileline,blockid,regionIdNum):
+def get_intra_obj (data_intra_obj, fileline,reg_page_id,regionIdNum):
     add_row=[None]*516
     data = fileline.strip().split(' ')
     #print("in fill_data_frame", data[2], data[4], data[15:])
     str_index=regionIdNum+'-'+data[2][-1]+'-'+data[4] #regionid-pageid-cacheline
-    add_row[0]=blockid
+    add_row[0]=reg_page_id
     add_row[1]=str_index
     add_row[2] = data[11] # access count
     add_row[3]=data[9] # lifetime
@@ -219,7 +129,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
     data_list_combine_Reg =[]
     flagProcessCombine=0
-
+    combineCount=0
     # STEP 3 - Loop through regions in the list and plot heatmaps
     for j in range(0, len(arRegionId)):
         regionIdNumName=arRegionId[j]
@@ -253,20 +163,28 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             for fileLine in f:
                 data=fileLine.strip().split(' ')
                 if (data[0] == lineStart and (data[2][0:len(data[2])-1]) == regionIdName):
-                    blockId=data[2][-1]
+                    pageId=data[2][-1]
                     #print('region line' , regionIdNumName, blockId, data[2])
-                    get_intra_obj(data_list_intra_obj,fileLine,regionIdNum+'-'+blockId,regionIdNum)
+                    get_intra_obj(data_list_intra_obj,fileLine,regionIdNum+'-'+pageId,regionIdNum)
         f.close()
         print('**** before regionIdNumName ', regionIdNumName, 'list length', len(data_list_intra_obj))
+
         if(listCombineReg != None and regionIdNumName_copy in listCombineReg):
+            combineCount= combineCount+1
             data_list_combine_Reg.extend(data_list_intra_obj)
             data_list_intra_obj=copy.deepcopy(data_list_combine_Reg)
-            print('***** after regionIdNumName ', regionIdNumName, 'list data_list_intra_obj length', len(data_list_intra_obj), 'list data_list_combine_Reg', len(data_list_combine_Reg))
+            print('***** after combineCount ', combineCount, ' regionIdNumName ', regionIdNumName, 'list data_list_intra_obj length', len(data_list_intra_obj), 'list data_list_combine_Reg', len(data_list_combine_Reg))
+
+        if((listCombineReg != None) and (regionIdNumName_copy in listCombineReg) and (combineCount < len(listCombineReg))):
+            print(" should break out of loop")
+            continue
+        else:
+            print("Proceed to plot")
 
         # STEP 3b - Convert list to data frame
         #print(data_list_intra_obj)
         list_col_names=[None]*516
-        list_col_names[0]='blockid'
+        list_col_names[0]='reg_page_id'
         list_col_names[1]='reg-page-blk'
         list_col_names[2]='Access'
         list_col_names[3]='Lifetime'
@@ -284,13 +202,13 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # STEP 3c - Process data frame to get access, lifetime totals
         df_intra_obj = df_intra_obj.astype({"Access": int, "Lifetime": int})
         accessSumBlocks= df_intra_obj['Access'].sum()
-        arRegPages=df_intra_obj['blockid'].unique()
+        arRegPages=df_intra_obj['reg_page_id'].unique()
         #print (arRegionBlocks)
         
         arRegPageAccess = np.empty([len(arRegPages),1])
         for arRegPageId in range(0, len(arRegPages)):
             #print(arRegionBlockId, df_intra_obj[df_intra_obj['blockid']==arRegionBlocks[arRegionBlockId]]['Access'].sum())
-            arRegPageAccess[int(arRegPageId)] = df_intra_obj[df_intra_obj['blockid']==arRegPages[arRegPageId]]['Access'].sum()
+            arRegPageAccess[int(arRegPageId)] = df_intra_obj[df_intra_obj['reg_page_id']==arRegPages[arRegPageId]]['Access'].sum()
         #print (arBlockIdAccess)
 
         print(arRegPageAccess.shape)
@@ -333,6 +251,69 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 f_variant_SP.write(strApp.replace(' ','')+'-'+strMetric+','+strMetric+','+get_SP_col[i]+','+my_string+'\n')
         # END Lexi-BFS - experiment #2 - plotting SP is helpful
 
+        # Adding weighting by page access total here
+        if (flWeight == True):
+            print('before weight \n ' , df_intra_obj[['reg-page-blk', 'Access', 'self', 'self+1', 'self-255']])
+            normSDMax=np.ones(len(arRegPages))
+            flRealSlow = False
+            # Dataframe looping very slow - each visualization takes 15 minutes or so
+            if (flRealSlow == True ):
+                arRegPageIndex = 0
+                for regPageId in arRegPages:
+                    weightAccess = (df_reg_pages[(df_reg_pages['reg-page'] == regPageId)]['Access'].item())
+                    arRegPageBlk = df_intra_obj[(df_intra_obj['reg_page_id'] == regPageId)]['reg-page-blk'].to_list()
+                    print(arRegPageBlk)
+                    print( ' reg-page ' , regPageId, ' - ' , weightAccess)
+                    for regPageBlkId in arRegPageBlk:
+                        percentAccess = df_intra_obj[(df_intra_obj['reg-page-blk'] == regPageBlkId)]['Access'].values[0] * (100 / weightAccess)
+                        #print( ' reg-page ' , regPageId, ' - ' , weightAccess, ' reg-page-blk ', regPageBlkId, ' percentAccess ', percentAccess, ' self ', df_intra_obj[(df_intra_obj['reg-page-blk'] == regPageBlkId)]['self'].values[0])
+                        np_row_SD_values=df_intra_obj[(df_intra_obj['reg-page-blk'] == regPageBlkId)][get_col_list].to_numpy()
+                        #print(np_row_SD_values)
+                        np_change_SD_values= vectorWeightMultiply(np_row_SD_values, percentAccess)
+                        #print(np_row_SD_values[0][255], np_change_SD_values[0][255])
+                        if(1 ==1):
+                            i=0
+                            for colName in get_col_list:
+                                df_intra_obj.loc[df_intra_obj['reg-page-blk'] == regPageBlkId,[colName]] = np_change_SD_values[0][i]
+                                i = i+1
+                        strColList ="  ['"
+                        strColList = strColList+ ("' , '".join(map(str, get_col_list)))+"' ] "
+                        #df_intra_obj.loc[df_intra_obj['reg-page-blk'] == regPageBlkId,strColList]=pd.Series(np_change_SD_values[0].tolist())
+                        # df.loc[:2, ['C','D']] = list(zip(*[[100, 200.2, 300]]*len(['C','D'])))
+                        #print('self after ', df_intra_obj[(df_intra_obj['reg-page-blk'] == regPageBlkId)]['self'].values[0])
+                        # Iterating over multiple columns - same data type
+                        #result = [f(row[0], ..., row[n]) for row in df[['col1', ...,'coln']].to_numpy()]
+                        changeSDValue=np_change_SD_values.max()
+                        if ((normSDMax[arRegPageIndex]) < changeSDValue):
+                            normSDMax[arRegPageIndex] = changeSDValue
+                    arRegPageIndex = arRegPageIndex + 1
+
+            list_DF_Intra_obj = df_intra_obj.values.tolist()
+            newlist = [x for x in list_DF_Intra_obj[2] if pd.isnull(x) == False]
+            print(newlist)
+            for i in range (0, len(list_DF_Intra_obj)):
+                regPageId = list_DF_Intra_obj[i][0]
+                regPageBlkId = list_DF_Intra_obj[i][1]
+                weightAccess = (df_reg_pages[(df_reg_pages['reg-page'] == regPageId)]['Access'].item())
+                percentAccess = df_intra_obj[(df_intra_obj['reg-page-blk'] == regPageBlkId)]['Access'].item() * (100 / weightAccess)
+                arRegPageIndex = arRegPages.index(regPageId)
+                for j in range(5, len(list_DF_Intra_obj[i])):
+                    list_DF_Intra_obj[i][j]=list_DF_Intra_obj[i][j]*percentAccess
+                    if ((normSDMax[arRegPageIndex]) < list_DF_Intra_obj[i][j]):
+                            normSDMax[arRegPageIndex] = list_DF_Intra_obj[i][j]
+
+            newlist = [x for x in list_DF_Intra_obj[2] if pd.isnull(x) == False]
+            print(newlist)
+            df_intra_obj=pd.DataFrame(list_DF_Intra_obj,columns=list_col_names)
+            print('before normalize \n ' , df_intra_obj[['reg-page-blk', 'Access', 'self', 'self+1']])
+            arRegPageIndex = 0
+            for regPageId in arRegPages:
+                for colName in get_col_list:
+                    df_intra_obj.loc[df_intra_obj['reg_page_id'] == regPageId,[colName]] = df_intra_obj.loc[df_intra_obj['reg_page_id'] == regPageId, [colName]].div(normSDMax[arRegPageIndex])
+                arRegPageIndex = arRegPageIndex + 1
+
+            print('afer normalize \n ' , df_intra_obj[['reg-page-blk', 'Access', 'self', 'self+1']])
+
         # STEP 3e - Range and Count mean, standard deviation to understand the original spread of heatmap
         # STEP 3e - Range and Count mean, calculate before sampling
         # START Lexi-BFS - experiment #3 - SD range & gap analysis
@@ -353,6 +334,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 last_value=int(''.join(filter(str.isdigit, last_index)))
             valid_range=first_value+last_value+1
             list_blk_range_gap.append([blk_id,first_value,last_value,valid_range, df_row.count() ])
+
         #print(list_blk_range_gap)
         df_range_gap=pd.DataFrame(list_blk_range_gap,columns=['reg-page-blk','first','last','range','count'])
         df_range_gap = df_range_gap.astype({"range": int, "count": int})
@@ -437,7 +419,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
         #fig, ax =plt.subplots(1,3, figsize=(15, 10),gridspec_kw={'width_ratios': [11, 1.5, 1.5]})
         fig = plt.figure(constrained_layout=True, figsize=(15, 10))
-        gs = gridspec.GridSpec(1, 2, figure=fig,width_ratios=[11,4])
+        gs = gridspec.GridSpec(1, 2, figure=fig,width_ratios=[12,3])
         gs0 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec = gs[0] )
         gs1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec = gs[1] ,wspace=0.07)
         ax_0 = fig.add_subplot(gs0[0, :])
@@ -451,7 +433,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             vmin_val=0.0
             vmax_val=1.0
         else:
-            vmin_val=0.0
+            vmin_val=0.05
             vmax_val=1.0
 
         if ('minivite' in strApp.lower() and strMetric == 'SI'):
@@ -474,13 +456,12 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         list_x_ticks=ax_0.get_xticklabels()
         fig_xlabel=[]
         color_xlabel=[]
-        #newcmp = ListedColormap(viridis(np.linspace(0.5, 1.0, 128)))
         my_colors=[]
         for x_label in list_x_ticks:
             fig_xlabel.append(list_xlabel[int(x_label.get_text())])
             color_xlabel.append(accessBlockCacheLine[int(x_label.get_text())].item()/accessBlockCacheLine.max())
             my_colors.append(background_color(accessBlockCacheLine[int(x_label.get_text())].item()/accessBlockCacheLine.max()))
-        ax_0.set_yticklabels(fig_ylabel,rotation='horizontal', wrap=True)
+        ax_0.set_yticklabels(fig_ylabel,rotation='horizontal')
         ax_0.set_xticklabels(fig_xlabel,rotation='vertical')
         ax_0.set(xlabel="Region-Page-Block", ylabel="Affinity to contiguous blocks")
         print(color_xlabel)
@@ -492,9 +473,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             ticklabel.set_fontsize(10)
             i = i+1
 
-
         #ax_0.set_ylabel("")
-
         sns.heatmap(accessBlockCacheLine, cmap="Blues", cbar=False,annot=True, fmt='g', annot_kws = {'size':12},  ax=ax_1)
         #ax_1.invert_yaxis()
         ax_1.set_xticks([0])
@@ -526,107 +505,96 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         ax_1.set_title('Access count for selected blocks and \n          hottest pages in the region\n ',loc='left')
 
         #plt.show()
-        imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+'_hm_order.pdf'
+        fileNameLastSeg = '_hm_order.pdf'
+        if (flWeight == True):
+            fileNameLastSeg = '_hm_order_Wgt.pdf'
+        imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+fileNameLastSeg
         print(imageFileName)
         plt.savefig(imageFileName, bbox_inches='tight')
         plt.close()
 
 
-#intraObjectPlot('miniVite-v1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD')
-#intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1)
 
-intraObjectPlot('miniVite-v1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD')
-intraObjectPlot('miniVite-v2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SD', \
-                listCombineReg=['1-A0000010','4-A0002000'] )
-intraObjectPlot('miniVite-v3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SD', \
-                listCombineReg=['1-A0000001','5-A0001200'] )
+flWeight = True
+mainPath='/Users/suri836/Projects/spatial_rud/'
+#intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD', flWeight=flWeight)
+#intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SD', \
+#                listCombineReg=['1-A0000010','4-A0002000'] ,flWeight=flWeight)
+intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SD', \
+                listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight)
 
 if (1 ==0):
-    intraObjectPlot('miniVite-v2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SP', \
+    intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SP', \
                 listCombineReg=['1-A0000010','4-A0002000'] )
-    intraObjectPlot('miniVite-v3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SP', \
+    intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SP', \
                 listCombineReg=['1-A0000001','5-A0001200'] )
-
-    intraObjectPlot('miniVite-v1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SI')
-    intraObjectPlot('miniVite-v2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SI', \
+    intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SI')
+    intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SI', \
                 listCombineReg=['1-A0000010','4-A0002000'] )
-    intraObjectPlot('miniVite-v3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SI', \
+    intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SI', \
                 listCombineReg=['1-A0000001','5-A0001200'] )
 
 
 #Minivite - paper plots SD - Combine regions
 if ( 1==0):
-    f_avg1=open('/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/sd_avg_log','w')
-    intraObjectPlot('miniVite-v1','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v1_spatial_det.txt',1, f_avg=f_avg1)
-    intraObjectPlot('miniVite-v2','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v2_spatial_det.txt',3,listCombineReg=['1-A0000010','4-A0002000'] , f_avg=f_avg1)
-    intraObjectPlot('miniVite-v3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,listCombineReg=['1-A0000001','5-A0001200'] , f_avg=f_avg1)
+    f_avg1=open(mainPath+'minivite_detailed_look/spatial_clean/sd_avg_log','w')
+    intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1, f_avg=f_avg1)
+    intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,listCombineReg=['1-A0000010','4-A0002000'] , f_avg=f_avg1)
+    intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,listCombineReg=['1-A0000001','5-A0001200'] , f_avg=f_avg1)
     f_avg1.close()
 
 #Darknet - paper plots
 if ( 1 == 0):
-    intraObjectPlot('ResNet', '/Users/suri836/Projects/spatial_rud/darknet_cluster/resnet152_single/spatial_clean/spatial.txt',1)
-    #intraObjectPlot('AlexNet','/Users/suri836/Projects/spatial_rud/darknet_cluster/alexnet_single/spatial_clean/spatial.txt',5)
-    intraObjectPlot('AlexNet','/Users/suri836/Projects/spatial_rud/darknet_cluster/alexnet_single/spatial_clean/spatial.txt',2,listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'])
+    intraObjectPlot('ResNet', mainPath+'darknet_cluster/resnet152_single/spatial_clean/spatial.txt',1)
+    intraObjectPlot('AlexNet',mainPath+'darknet_cluster/alexnet_single/spatial_clean/spatial.txt',2, \
+                    listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'])
 
 #HiParTi - HiCOO - Matrix - paper plots
 if ( 1 == 0):
-    f_avg1=open('/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/sd_agg_log','w')
-    intraObjectPlot('HiParTi - CSR','/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/mg-csr/spmm_csr_mat-trace-b8192-p4000000/spatial.txt',2,f_avg=f_avg1)
-    intraObjectPlot('HiParTi - COO','/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-0-trace-b8192-p4000000/spatial.txt',3,f_avg=f_avg1)
-    intraObjectPlot('HiParTi - COO-Reduce','/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-1-trace-b8192-p4000000/spatial.txt', \
+    f_avg1=open(mainPath+'HiParTi/4096-same-iter/sd_agg_log','w')
+    intraObjectPlot('HiParTi - CSR',mainPath+'HiParTi/4096-same-iter/mg-csr/spmm_csr_mat-trace-b8192-p4000000/spatial.txt',2,f_avg=f_avg1)
+    intraObjectPlot('HiParTi - COO',mainPath+'HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-0-trace-b8192-p4000000/spatial.txt',3,f_avg=f_avg1)
+    intraObjectPlot('HiParTi - COO-Reduce',mainPath+'HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-1-trace-b8192-p4000000/spatial.txt', \
                     2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'])
-    intraObjectPlot('HiParTi - HiCOO','/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-0-trace-b8192-p4000000/spatial.txt',2,f_avg=f_avg1)
-    intraObjectPlot('HiParTi - HiCOO-Schedule','/Users/suri836/Projects/spatial_rud/HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-1-trace-b8192-p4000000/spatial.txt',3,f_avg=f_avg1)
+    intraObjectPlot('HiParTi - HiCOO',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-0-trace-b8192-p4000000/spatial.txt',2,f_avg=f_avg1)
+    intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-1-trace-b8192-p4000000/spatial.txt',3,f_avg=f_avg1)
     f_avg1.close()
 
 # HiParTI - HiCOO - Reorder heatmaps
-if (1 ==1):
-    intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1)
-    intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1)
-    intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1)
-    intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1)
-
+if (1 ==0):
+    intraObjectPlot('HiParTI-HiCOO', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1, flWeight=flWeight)
+    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight)
+    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight)
+    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight)
 
 if ( 1 == 0):
-    intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SP')
-    intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SI')
-    intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SP')
-    intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SI')
-    intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SP')
-    intraObjectPlot('HiParTI-HiCOO-BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SI')
-    intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SP')
-    intraObjectPlot('HiParTI-HiCOO-Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SI')
+    intraObjectPlot('HiParTI-HiCOO', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SP')
+    intraObjectPlot('HiParTI-HiCOO', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SI')
+    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SP')
+    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SI')
+    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SP')
+    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SI')
+    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SP')
+    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SI')
 
 # HiParTi - Tensor variants - Use buffer
-#intraObjectPlot('HiParTI-HiCOO ', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-0-b16384-p4000000-U-1/spatial.txt', 2)
-#intraObjectPlot('HiParTI-HiCOO Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-1-b16384-p4000000-U-1/spatial.txt', 4)
-#intraObjectPlot('HiParTI-HiCOO BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-2-b16384-p4000000-U-1/spatial.txt', 3)
-#intraObjectPlot('HiParTI-HiCOO Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-3-b16384-p4000000-U-1/spatial.txt', 4)
+#intraObjectPlot('HiParTI-HiCOO ', mainPath+'HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-0-b16384-p4000000-U-1/spatial.txt', 2)
+#intraObjectPlot('HiParTI-HiCOO Lexi', mainPath+'HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-1-b16384-p4000000-U-1/spatial.txt', 4)
+#intraObjectPlot('HiParTI-HiCOO BFS', mainPath+'HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-2-b16384-p4000000-U-1/spatial.txt', 3)
+#intraObjectPlot('HiParTI-HiCOO Random', mainPath+'HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-3-b16384-p4000000-U-1/spatial.txt', 4)
 
 # HiParTi - Tensor variants - Freebase tensor
-#intraObjectPlot('HiParTI-HiCOO ', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/fb-U-0/mttsel-fb-re-0-b16384-p4000000-U-0/spatial.txt', 3)
-#intraObjectPlot('HiParTI-HiCOO Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/fb-U-0/mttsel-fb-re-1-b16384-p4000000-U-0/spatial.txt', 2)
-#intraObjectPlot('HiParTI-HiCOO BFS', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/fb-U-0/mttsel-fb-re-2-b16384-p4000000-U-0/spatial.txt', 4)
-#intraObjectPlot('HiParTI-HiCOO Random', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/fb-U-0/mttsel-fb-re-3-b16384-p4000000-U-0/spatial.txt', 3)
+#intraObjectPlot('HiParTI-HiCOO ', mainPath+'HiParTi/mg-tensor-reorder/fb-U-0/mttsel-fb-re-0-b16384-p4000000-U-0/spatial.txt', 3)
+#intraObjectPlot('HiParTI-HiCOO Lexi', mainPath+'HiParTi/mg-tensor-reorder/fb-U-0/mttsel-fb-re-1-b16384-p4000000-U-0/spatial.txt', 2)
+#intraObjectPlot('HiParTI-HiCOO BFS', mainPath+'HiParTi/mg-tensor-reorder/fb-U-0/mttsel-fb-re-2-b16384-p4000000-U-0/spatial.txt', 4)
+#intraObjectPlot('HiParTI-HiCOO Random', mainPath+'HiParTi/mg-tensor-reorder/fb-U-0/mttsel-fb-re-3-b16384-p4000000-U-0/spatial.txt', 3)
 
 # ParTi - Tensor variants
-#intraObjectPlot('ParTI-COO - m-0', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor/mttkrp-m-0-sel-trace-b8192-p5000000/spatial.txt', 6)
-#intraObjectPlot('ParTI-COO - m-1', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor/mttkrp-m-1-sel-trace-b8192-p5000000/spatial.txt', 6)
-#intraObjectPlot('ParTI-COO - m-2', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor/mttkrp-m-2-sel-trace-b8192-p5000000/spatial.txt', 6)
+#intraObjectPlot('ParTI-COO - m-0', mainPath+'HiParTi/mg-tensor/mttkrp-m-0-sel-trace-b8192-p5000000/spatial.txt', 6)
+#intraObjectPlot('ParTI-COO - m-1', mainPath+'HiParTi/mg-tensor/mttkrp-m-1-sel-trace-b8192-p5000000/spatial.txt', 6)
+#intraObjectPlot('ParTI-COO - m-2', mainPath+'HiParTi/mg-tensor/mttkrp-m-2-sel-trace-b8192-p5000000/spatial.txt', 6)
 
-#intraObjectPlot('ParTI-HiCOO - m-0', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor/mttkrp_hicoo-m-0-sel-trace-b8192-p5000000/spatial.txt', 2)
-#intraObjectPlot('ParTI-HiCOO - m-1', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor/mttkrp_hicoo-m-1-sel-trace-b8192-p5000000/spatial.txt', 3)
-#intraObjectPlot('ParTI-HiCOO - m-2', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor/mttkrp_hicoo-m-2-sel-trace-b8192-p5000000/spatial.txt', 2)
+#intraObjectPlot('ParTI-HiCOO - m-0', mainPath+'HiParTi/mg-tensor/mttkrp_hicoo-m-0-sel-trace-b8192-p5000000/spatial.txt', 2)
+#intraObjectPlot('ParTI-HiCOO - m-1', mainPath+'HiParTi/mg-tensor/mttkrp_hicoo-m-1-sel-trace-b8192-p5000000/spatial.txt', 3)
+#intraObjectPlot('ParTI-HiCOO - m-2', mainPath+'HiParTi/mg-tensor/mttkrp_hicoo-m-2-sel-trace-b8192-p5000000/spatial.txt', 2)
 
-# For debug
-#/Users/suri836/Projects/spatial_rud/mg-amg_O3/amg-trace-b8192-p4000000/C2000000_1.txt 1 AMG C2000000_1 40
-#filename='/Users/suri836/Projects/spatial_rud/mg-amg_O3/amg-trace-b8192-p4000000/C2000000_1.txt'
-#colSelect=1
-#appName='AMG C2000000_1'
-#sampleSize=40
-#/Users/suri836/Projects/spatial_rud/mg-amg_O3/amg-trace-b8192-p4000000/B0000000_0.txt 1 AMG B0000000_0 40
-#filename='/Users/suri836/Projects/spatial_rud/mg-amg_O3/amg-trace-b8192-p4000000/B0000000_0.txt'
-#colSelect=1
-#appName='AMG B0000000_0'
-#sampleSize=40
-#spatialPlot(filename, colSelect, appName,sampleSize)
