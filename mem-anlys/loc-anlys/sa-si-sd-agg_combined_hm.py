@@ -554,25 +554,19 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 #intraObjectPlot('miniVite-v3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SD-SP-SI-W', \
 #                listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=True)
 
-flWeight=True
+flWeight=False
 mainPath='/Users/suri836/Projects/spatial_rud/'
-intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
-                listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight)
+#intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
+#                listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight)
 
-if(1 == 0):
-    intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD-SP-SI')
-    intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SD-SP-SI', \
-                listCombineReg=['1-A0000010','4-A0002000'] )
-    intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
-                listCombineReg=['1-A0000001','5-A0001200'] )
-if( 1 == 0):
+if( 1 == 1):
     intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight)
     intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SD-SP-SI', \
                 listCombineReg=['1-A0000010','4-A0002000'] ,flWeighted=flWeight)
     intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
                 listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight)
 
-if (1 ==0):
+if (1 ==1):
     intraObjectPlot('HiParTI-HiCOO', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight)
     intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight)
     intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight)

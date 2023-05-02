@@ -517,9 +517,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
 flWeight = True
 mainPath='/Users/suri836/Projects/spatial_rud/'
-#intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD', flWeight=flWeight)
-#intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SD', \
-#                listCombineReg=['1-A0000010','4-A0002000'] ,flWeight=flWeight)
+intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD', flWeight=flWeight)
+intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SD', \
+                listCombineReg=['1-A0000010','4-A0002000'] ,flWeight=flWeight)
 intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SD', \
                 listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight)
 
@@ -561,7 +561,7 @@ if ( 1 == 0):
     f_avg1.close()
 
 # HiParTI - HiCOO - Reorder heatmaps
-if (1 ==0):
+if (1 ==1):
     intraObjectPlot('HiParTI-HiCOO', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1, flWeight=flWeight)
     intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight)
     intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight)
