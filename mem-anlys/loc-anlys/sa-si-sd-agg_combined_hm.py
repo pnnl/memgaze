@@ -493,11 +493,13 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             fig_xlabel=[]
             my_colors=[]
             color_xlabel=[]
+            accessLowValue = accessBlockCacheLine.min()
+            accessHighValue = accessBlockCacheLine.max()
+            accessRange= accessHighValue-accessLowValue
             for x_label in list_x_ticks:
                 fig_xlabel.append(df_SP_SI_SD['reg-page-blk'][int(x_label.get_text())])
-                my_colors.append(background_color(accessBlockCacheLine[int(x_label.get_text())].item()/accessBlockCacheLine.max()))
-                color_xlabel.append(accessBlockCacheLine[int(x_label.get_text())].item()/accessBlockCacheLine.max())
-
+                color_xlabel.append((accessBlockCacheLine[int(x_label.get_text())].item()-accessLowValue)/accessRange)
+                my_colors.append(background_color((accessBlockCacheLine[int(x_label.get_text())].item()-accessLowValue)/accessRange))
             gs0_ax_2.set_yticklabels(fig_ylabel,rotation='horizontal')
             gs0_ax_2.set_xticklabels(fig_xlabel,rotation='vertical')
             i=0
@@ -554,7 +556,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 #intraObjectPlot('miniVite-v3','/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SD-SP-SI-W', \
 #                listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=True)
 
-flWeight=False
+flWeight=True
 mainPath='/Users/suri836/Projects/spatial_rud/'
 #intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
 #                listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight)

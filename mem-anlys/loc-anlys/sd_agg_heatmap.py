@@ -87,6 +87,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         lineEnd='<----'
         strMetricIdentifier='Spatial_Interval'
         strMetricTitle='Spatial Interval'
+    strWeight = ''
+    if (flWeight == True):
+       strWeight = ' Weighted '
     #print(strPath)
     # Write inter-object_sd.txt
     strInterRegionFile=strPath+fileName
@@ -107,7 +110,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
     sampleSize=0
     print(plotFilename,colSelect,appName,sampleSize)
     if(f_avg != None):
-        f_avg.write('filename ' + plotFilename + ' col select '+ str(colSelect)+ ' app '+appName+ ' sample '+str(sampleSize)+'\n')
+        f_avg.write('\nfilename ' + plotFilename + ' col select '+ str(colSelect)+ ' app '+appName+strWeight+ ' sample '+str(sampleSize)+'\n')
     #spatialPlot(plotFilename, colSelect, appName,sampleSize)
 
     # STEP 2 - Get region ID's from inter-region file
@@ -228,7 +231,10 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
         # STEP 3d - Get average of self before sampling for highest access blocks
         average_sd= pd.to_numeric(df_intra_obj["self"]).mean()
-        print('*** Before sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName+' '+str(average_sd))
+        print('*** Before sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd))
+        if (f_avg != None):
+            f_avg.write ( '*** Before sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd)+'\n')
+
         get_col_list=[None]*511
         for i in range ( 0,255):
             get_col_list[i]='self'+'-'+str(255-i)
@@ -238,18 +244,6 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # Change data to numeric
         for i in range (0,len(get_col_list)):
             df_intra_obj[get_col_list[i]]=pd.to_numeric(df_intra_obj[get_col_list[i]])
-
-
-        # START Lexi-BFS - experiment #2 - plotting SP is helpful
-        # Write Spatial probability data for self-3 to self+3 range to plot using plot_variants_avg.py
-        if((1 ==0 ) and (strMetric == 'SP' or strMetric == 'SI')):
-            f_variant_SP=open('/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/SP-SI.csv','a')
-            get_SP_col=['self-3','self-2','self-1','self','self+1','self+2','self+3']
-            for i in range(0, len(get_SP_col)):
-                col_values=df_intra_obj[get_SP_col[i]]
-                my_string = ','.join(map(str, col_values))
-                f_variant_SP.write(strApp.replace(' ','')+'-'+strMetric+','+strMetric+','+get_SP_col[i]+','+my_string+'\n')
-        # END Lexi-BFS - experiment #2 - plotting SP is helpful
 
         # Adding weighting by page access total here
         if (flWeight == True):
@@ -262,8 +256,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 for regPageId in arRegPages:
                     weightAccess = (df_reg_pages[(df_reg_pages['reg-page'] == regPageId)]['Access'].item())
                     arRegPageBlk = df_intra_obj[(df_intra_obj['reg_page_id'] == regPageId)]['reg-page-blk'].to_list()
-                    print(arRegPageBlk)
-                    print( ' reg-page ' , regPageId, ' - ' , weightAccess)
+                    #print(arRegPageBlk)
+                    #print( ' reg-page ' , regPageId, ' - ' , weightAccess)
                     for regPageBlkId in arRegPageBlk:
                         percentAccess = df_intra_obj[(df_intra_obj['reg-page-blk'] == regPageBlkId)]['Access'].values[0] * (100 / weightAccess)
                         #print( ' reg-page ' , regPageId, ' - ' , weightAccess, ' reg-page-blk ', regPageBlkId, ' percentAccess ', percentAccess, ' self ', df_intra_obj[(df_intra_obj['reg-page-blk'] == regPageBlkId)]['self'].values[0])
@@ -276,13 +270,6 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                             for colName in get_col_list:
                                 df_intra_obj.loc[df_intra_obj['reg-page-blk'] == regPageBlkId,[colName]] = np_change_SD_values[0][i]
                                 i = i+1
-                        strColList ="  ['"
-                        strColList = strColList+ ("' , '".join(map(str, get_col_list)))+"' ] "
-                        #df_intra_obj.loc[df_intra_obj['reg-page-blk'] == regPageBlkId,strColList]=pd.Series(np_change_SD_values[0].tolist())
-                        # df.loc[:2, ['C','D']] = list(zip(*[[100, 200.2, 300]]*len(['C','D'])))
-                        #print('self after ', df_intra_obj[(df_intra_obj['reg-page-blk'] == regPageBlkId)]['self'].values[0])
-                        # Iterating over multiple columns - same data type
-                        #result = [f(row[0], ..., row[n]) for row in df[['col1', ...,'coln']].to_numpy()]
                         changeSDValue=np_change_SD_values.max()
                         if ((normSDMax[arRegPageIndex]) < changeSDValue):
                             normSDMax[arRegPageIndex] = changeSDValue
@@ -290,7 +277,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
             list_DF_Intra_obj = df_intra_obj.values.tolist()
             newlist = [x for x in list_DF_Intra_obj[2] if pd.isnull(x) == False]
-            print(newlist)
+            #print(newlist)
             for i in range (0, len(list_DF_Intra_obj)):
                 regPageId = list_DF_Intra_obj[i][0]
                 regPageBlkId = list_DF_Intra_obj[i][1]
@@ -303,7 +290,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                             normSDMax[arRegPageIndex] = list_DF_Intra_obj[i][j]
 
             newlist = [x for x in list_DF_Intra_obj[2] if pd.isnull(x) == False]
-            print(newlist)
+            #print(newlist)
             df_intra_obj=pd.DataFrame(list_DF_Intra_obj,columns=list_col_names)
             print('before normalize \n ' , df_intra_obj[['reg-page-blk', 'Access', 'self', 'self+1']])
             arRegPageIndex = 0
@@ -317,7 +304,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # STEP 3e - Range and Count mean, standard deviation to understand the original spread of heatmap
         # STEP 3e - Range and Count mean, calculate before sampling
         # START Lexi-BFS - experiment #3 - SD range & gap analysis
-        print('dataframe length', len(df_intra_obj))
+        #print('dataframe length', len(df_intra_obj))
         list_blk_range_gap=[]
         for df_id in range (0, len(df_intra_obj)):
             blk_id=df_intra_obj.iloc[df_id,1]
@@ -338,17 +325,17 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print(list_blk_range_gap)
         df_range_gap=pd.DataFrame(list_blk_range_gap,columns=['reg-page-blk','first','last','range','count'])
         df_range_gap = df_range_gap.astype({"range": int, "count": int})
-        print(strApp,' ', strMetric, ', Region ', regionIdNumName, ' Range mean ', pd.to_numeric(df_range_gap["range"]).mean())
-        print(strApp,' ', strMetric, ', Region ', regionIdNumName, ' Range std ', pd.to_numeric(df_range_gap["range"]).std())
-        print(strApp,' ', strMetric, ', Region ', regionIdNumName, ' Count mean ', pd.to_numeric(df_range_gap["count"]).mean())
-        print(strApp,' ', strMetric, ', Region ', regionIdNumName, ' Count std ', pd.to_numeric(df_range_gap["count"]).std())
+        print(strApp,' ', strMetric, ', Region ', regionIdNumName.replace(' ','').replace('&','-'), ' Range mean ', pd.to_numeric(df_range_gap["range"]).mean())
+        print(strApp,' ', strMetric, ', Region ', regionIdNumName.replace(' ','').replace('&','-'), ' Range std ', pd.to_numeric(df_range_gap["range"]).std())
+        print(strApp,' ', strMetric, ', Region ', regionIdNumName.replace(' ','').replace('&','-'), ' Count mean ', pd.to_numeric(df_range_gap["count"]).mean())
+        print(strApp,' ', strMetric, ', Region ', regionIdNumName.replace(' ','').replace('&','-'), ' Count std ', pd.to_numeric(df_range_gap["count"]).std())
         # END Lexi-BFS - experiment #3 - SD range & gap analysis
 
         if(f_avg != None):
-            f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName+ 'Range mean '+ str(pd.to_numeric(df_range_gap["range"]).mean())+'\n')
-            f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName+ 'Range std '+ str(pd.to_numeric(df_range_gap["range"]).std())+'\n')
-            f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName+ 'Count mean '+ str(pd.to_numeric(df_range_gap["count"]).mean())+'\n')
-            f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName+ 'Count std '+ str(pd.to_numeric(df_range_gap["count"]).std())+'\n')
+            f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName.replace(' ','').replace('&','-')+strWeight+ ' Range mean '+ str(pd.to_numeric(df_range_gap["range"]).mean())+'\n')
+            f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName.replace(' ','').replace('&','-')+strWeight+ ' Range std '+ str(pd.to_numeric(df_range_gap["range"]).std())+'\n')
+            f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName.replace(' ','').replace('&','-')+strWeight+ ' Count mean '+ str(pd.to_numeric(df_range_gap["count"]).mean())+'\n')
+            f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName.replace(' ','').replace('&','-')+strWeight+ ' Count std '+ str(pd.to_numeric(df_range_gap["count"]).std())+'\n')
 
         # STEP 3f - Sample dataframe for 50 rows based on access count as the weight
         # Sample 50 reg-page-blkid lines from all blocks based on Access counts
@@ -371,10 +358,14 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         accessBlockCacheLine = (df_intra_obj_sample[['Access']]).to_numpy()
         df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
         self_bef_drop=df_intra_obj_sample_hm['self'].to_list()
-        #print('before dropna shape = ' , df_intra_obj_sample_hm.shape)
 
         # STEP 3g - drop columns with "all" NaN values
         # DROP - columns with no values
+        average_sd= pd.to_numeric(df_intra_obj["self"]).mean()
+        print('*** After weighting sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd))
+        if (f_avg != None):
+            f_avg.write ( '*** After weighting sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd)+'\n')
+
         df_intra_obj_drop=df_intra_obj_sample_hm.dropna(axis=1,how='all')
         get_col_list=df_intra_obj_drop.columns.to_list()
         # STEP 3g - add some columns above & below self line to visualize better
@@ -397,9 +388,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # STEP 3h - get columns that are useful
         df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
         average_sd= pd.to_numeric(df_intra_obj_sample_hm["self"]).mean()
-        print('*** After sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName+' '+str(average_sd))
+        print('*** After sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd))
         if (f_avg != None):
-            f_avg.write ( '*** Average '+strMetric+' for '+strApp+', Region '+regionIdNumName+' '+str(average_sd)+'\n')
+            f_avg.write ( '*** After sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+strWeight+' '+str(average_sd)+'\n')
         self_aft_drop=df_intra_obj_sample_hm['self'].to_list()
         #print(self_aft_drop)
         if(self_bef_drop == self_aft_drop):
@@ -429,20 +420,17 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         if(strMetric == 'SI'):
             vmin_val=0.0
             vmax_val=100.0
-        elif(strMetric == 'SP'):
-            vmin_val=0.0
-            vmax_val=1.0
         else:
-            vmin_val=0.05
+            vmin_val=0.02
             vmax_val=1.0
 
-        if ('minivite' in strApp.lower() and strMetric == 'SI'):
+        if (1 == 0 and 'minivite' in strApp.lower() and strMetric == 'SI'):
             df_mask = df_intra_obj_sample_hm.applymap(lambda x: True if (x >150) else False).transpose().to_numpy().astype(bool)
-            print(df_mask,' \n', df_hm)
+            #print(df_mask,' \n', df_hm)
             print ('mask ', df_mask.shape, ' df_hm ', df_hm.shape)
             ax_0 = sns.heatmap(df_hm, mask=df_mask, cmap='mako',cbar=True, annot=False,ax=ax_0,vmin=0,vmax=20)
-        else:
-            ax_0 = sns.heatmap(df_hm,cmap='mako_r',cbar=True, annot=False,ax=ax_0,vmin=vmin_val,vmax=vmax_val)
+
+        ax_0 = sns.heatmap(df_hm,cmap='mako_r',cbar=True, annot=False,ax=ax_0,vmin=vmin_val,vmax=vmax_val)
 
         # Colors for Access heatmap, and labels for affinity matrix
         custom_blue = sns.light_palette("#79C")
@@ -457,14 +445,17 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         fig_xlabel=[]
         color_xlabel=[]
         my_colors=[]
+        accessLowValue = accessBlockCacheLine.min()
+        accessHighValue = accessBlockCacheLine.max()
+        accessRange= accessHighValue-accessLowValue
         for x_label in list_x_ticks:
             fig_xlabel.append(list_xlabel[int(x_label.get_text())])
-            color_xlabel.append(accessBlockCacheLine[int(x_label.get_text())].item()/accessBlockCacheLine.max())
-            my_colors.append(background_color(accessBlockCacheLine[int(x_label.get_text())].item()/accessBlockCacheLine.max()))
+            color_xlabel.append((accessBlockCacheLine[int(x_label.get_text())].item()-accessLowValue)/accessRange)
+            my_colors.append(background_color((accessBlockCacheLine[int(x_label.get_text())].item()-accessLowValue)/accessRange))
         ax_0.set_yticklabels(fig_ylabel,rotation='horizontal')
         ax_0.set_xticklabels(fig_xlabel,rotation='vertical')
         ax_0.set(xlabel="Region-Page-Block", ylabel="Affinity to contiguous blocks")
-        print(color_xlabel)
+        #print(color_xlabel)
         i=0
         for ticklabel, tickcolor in zip(ax_0.get_xticklabels(), my_colors):
             if(color_xlabel[i]>0.5):
@@ -481,7 +472,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         list_blkcache_label=[]
         for i in range (0, length_xlabel):
             list_blkcache_label.append(list_xlabel[i])
-        print(range(0,len(list_blkcache_label)))
+        #print(range(0,len(list_blkcache_label)))
         #ax_1.set_yticks(range(0,len(list_blkcache_label)),list_blkcache_label, rotation='horizontal',  wrap=True )
         ax_1.set_yticklabels(list_blkcache_label, rotation='horizontal', wrap=True )
         ax_1.yaxis.set_ticks_position('right')
@@ -510,62 +501,50 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             fileNameLastSeg = '_hm_order_Wgt.pdf'
         imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+fileNameLastSeg
         print(imageFileName)
-        plt.savefig(imageFileName, bbox_inches='tight')
+        #plt.savefig(imageFileName, bbox_inches='tight')
         plt.close()
 
 
 
 flWeight = True
 mainPath='/Users/suri836/Projects/spatial_rud/'
-intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD', flWeight=flWeight)
-intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SD', \
-                listCombineReg=['1-A0000010','4-A0002000'] ,flWeight=flWeight)
-intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SD', \
-                listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight)
-
-if (1 ==0):
-    intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SP', \
-                listCombineReg=['1-A0000010','4-A0002000'] )
-    intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SP', \
-                listCombineReg=['1-A0000001','5-A0001200'] )
-    intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SI')
-    intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SI', \
-                listCombineReg=['1-A0000010','4-A0002000'] )
-    intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SI', \
-                listCombineReg=['1-A0000001','5-A0001200'] )
-
 
 #Minivite - paper plots SD - Combine regions
-if ( 1==0):
-    f_avg1=open(mainPath+'minivite_detailed_look/spatial_clean/sd_avg_log','w')
-    intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1, f_avg=f_avg1)
-    intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,listCombineReg=['1-A0000010','4-A0002000'] , f_avg=f_avg1)
-    intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,listCombineReg=['1-A0000001','5-A0001200'] , f_avg=f_avg1)
+if (1 ==0):
+    f_avg1=open(mainPath+'minivite_detailed_look/inter-region/sd_avg_log','w')
+    intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD', flWeight=flWeight,f_avg=f_avg1)
+    intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SD', \
+                listCombineReg=['1-A0000010','4-A0002000'] ,flWeight=flWeight,f_avg=f_avg1)
+    intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SD', \
+                listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight,f_avg=f_avg1)
     f_avg1.close()
 
 #Darknet - paper plots
 if ( 1 == 0):
-    intraObjectPlot('ResNet', mainPath+'darknet_cluster/resnet152_single/spatial_clean/spatial.txt',1)
-    intraObjectPlot('AlexNet',mainPath+'darknet_cluster/alexnet_single/spatial_clean/spatial.txt',2, \
-                    listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'])
+    intraObjectPlot('ResNet', mainPath+'darknet_cluster/resnet152_single/spatial_clean/spatial.txt',1,flWeight=flWeight)
+    intraObjectPlot('AlexNet',mainPath+'darknet_cluster/alexnet_single/spatial_clean/spatial.txt',4, \
+                    listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],flWeight=flWeight)
 
 #HiParTi - HiCOO - Matrix - paper plots
-if ( 1 == 0):
-    f_avg1=open(mainPath+'HiParTi/4096-same-iter/sd_agg_log','w')
-    intraObjectPlot('HiParTi - CSR',mainPath+'HiParTi/4096-same-iter/mg-csr/spmm_csr_mat-trace-b8192-p4000000/spatial.txt',2,f_avg=f_avg1)
-    intraObjectPlot('HiParTi - COO',mainPath+'HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-0-trace-b8192-p4000000/spatial.txt',3,f_avg=f_avg1)
+if ( 1 == 1):
+    f_avg1=open(mainPath+'HiParTi/4096-same-iter/sd_agg_log_Wgt','w')
+    intraObjectPlot('HiParTi - CSR',mainPath+'HiParTi/4096-same-iter/mg-csr/spmm_csr_mat-trace-b8192-p4000000/spatial.txt',2,f_avg=f_avg1,flWeight=flWeight)
+    intraObjectPlot('HiParTi - COO',mainPath+'HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-0-trace-b8192-p4000000/spatial.txt',3,f_avg=f_avg1,\
+                    listCombineReg=['1-A0000010','2-A0000020'], flWeight=flWeight)
     intraObjectPlot('HiParTi - COO-Reduce',mainPath+'HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-1-trace-b8192-p4000000/spatial.txt', \
-                    2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'])
-    intraObjectPlot('HiParTi - HiCOO',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-0-trace-b8192-p4000000/spatial.txt',2,f_avg=f_avg1)
-    intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-1-trace-b8192-p4000000/spatial.txt',3,f_avg=f_avg1)
+                    2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'],f_avg=f_avg1, flWeight=flWeight)
+    intraObjectPlot('HiParTi - HiCOO',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-0-trace-b8192-p4000000/spatial.txt',2,f_avg=f_avg1,flWeight=flWeight)
+    intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-1-trace-b8192-p4000000/spatial.txt',3,f_avg=f_avg1,flWeight=flWeight)
     f_avg1.close()
 
 # HiParTI - HiCOO - Reorder heatmaps
-if (1 ==1):
-    intraObjectPlot('HiParTI-HiCOO', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1, flWeight=flWeight)
-    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight)
-    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight)
-    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight)
+if (1 ==0):
+    f_avg1=open(mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/sd_avg_log_Wgt','w')
+    intraObjectPlot('HiParTI-HiCOO', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1, flWeight=flWeight, f_avg=f_avg1)
+    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight, f_avg=f_avg1)
+    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight, f_avg=f_avg1)
+    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight, f_avg=f_avg1)
+    f_avg1.close()
 
 if ( 1 == 0):
     intraObjectPlot('HiParTI-HiCOO', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SP')
@@ -576,6 +555,13 @@ if ( 1 == 0):
     intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SI')
     intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SP')
     intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1, 'SI')
+
+if (1 ==0):
+    intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SP', listCombineReg=['1-A0000010','4-A0002000'] )
+    intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SP', listCombineReg=['1-A0000001','5-A0001200'] )
+    intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SI')
+    intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SI', listCombineReg=['1-A0000010','4-A0002000'] )
+    intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SI', listCombineReg=['1-A0000001','5-A0001200'] )
 
 # HiParTi - Tensor variants - Use buffer
 #intraObjectPlot('HiParTI-HiCOO ', mainPath+'HiParTi/mg-tensor-reorder/nell-U-1/mttsel-re-0-b16384-p4000000-U-1/spatial.txt', 2)
