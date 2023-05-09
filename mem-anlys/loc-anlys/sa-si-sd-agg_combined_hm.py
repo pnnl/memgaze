@@ -642,13 +642,13 @@ if ( 1 == 0):
 
 if ( 1 == 1):
     f_avg1=None
-    intraObjectPlot('HiParTi - CSR',mainPath+'HiParTi/4096-same-iter/mg-csr/spmm_csr_mat-trace-b8192-p4000000/spatial_affinity/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',flWeighted=flWeight)
-    intraObjectPlot('HiParTi - COO',mainPath+'HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-0-trace-b8192-p4000000/spatial_affinity/spatial.txt',3,f_avg=f_avg1,\
+    intraObjectPlot('HiParTi - CSR',mainPath+'HiParTi/4096-same-iter/mg-csr/spmm_csr_mat-trace-b8192-p4000000/spatial_affinity_time/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',flWeighted=flWeight)
+    intraObjectPlot('HiParTi - COO',mainPath+'HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-0-trace-b8192-p4000000/spatial_affinity_time/spatial.txt',3,f_avg=f_avg1,\
                     listCombineReg=['1-A0000010','2-A0000020'], strMetric='SD-SP-SI', flWeighted=flWeight)
-    intraObjectPlot('HiParTi - COO-Reduce',mainPath+'HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-1-trace-b8192-p4000000/spatial_affinity/spatial.txt', \
+    intraObjectPlot('HiParTi - COO-Reduce',mainPath+'HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-1-trace-b8192-p4000000/spatial_affinity_time/spatial.txt', \
                     2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'],f_avg=f_avg1, strMetric='SD-SP-SI', flWeighted=flWeight)
-    intraObjectPlot('HiParTi - HiCOO',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-0-trace-b8192-p4000000/spatial_affinity/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', flWeighted=flWeight)
-    intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-1-trace-b8192-p4000000/spatial_affinity/spatial.txt',3,f_avg=f_avg1,strMetric='SD-SP-SI', flWeighted=flWeight)
+    intraObjectPlot('HiParTi - HiCOO',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-0-trace-b8192-p4000000/spatial_affinity_time/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', flWeighted=flWeight)
+    intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-1-trace-b8192-p4000000/spatial_affinity_time/spatial.txt',3,f_avg=f_avg1,strMetric='SD-SP-SI', flWeighted=flWeight)
 
 #intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
 #intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')

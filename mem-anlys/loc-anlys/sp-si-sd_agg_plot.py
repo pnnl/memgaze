@@ -200,7 +200,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         arRegPages=df_reg_pages['reg-page'].to_list()
 
         #plot_SP_col=['self-3','self-2','self-1','self','self+1','self+2','self+3']
-        plot_SP_col=['self-1', 'self','self+1','self+2','self+3','self+4', 'self+5']
+        plot_SP_col=['self-1', 'self','self+1','self+2','self+3','self+4']
         plot_SP_col.reverse()
         for colname in plot_SP_col:
             if( 1==0):
@@ -328,34 +328,38 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         for i, ax in enumerate(ax_plots.reshape(-1)[:len(plot_SP_col)]):
             #ax.set_title('Spatial affinity for '+ plot_SP_col[i])
             ax.set_xticks([])
-            ax.set_yticks([0.0, 0.25,0.5, 0.75, 1.0])
+            ax.set_yticks([0, 0.25,0.5, 0.75, 1.0])
+            ax.set_yticklabels([0, 0.25,0.5, 0.75, 1.0], fontsize=12)
+
             ax.set_ylim(-0.25, 1.0)
             ax.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SP-'+plot_SP_col[i]], color=SP_color,label='SP')
             if ('SP-SI' in strMetric and (not('SD' in strMetric)) ):
                 ax.tick_params(axis='y', labelcolor=SP_color)
-                ax.set_ylabel('Proximity', color=SP_color)
+                ax.set_ylabel('SA', color=SP_color)
             if('SP-SI-SD' in strMetric):
                 ax.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SD-'+plot_SP_col[i]], color=SD_color,label='SD')
                 ax.tick_params(axis='y', labelcolor='black')
-                label_y = -0.045
-                ax.text(label_y, 0.3, r"SA ", color=SP_color, rotation='vertical', transform=ax.transAxes)
-                ax.text(label_y, 0.55, r"& ", color='black', rotation='vertical', transform=ax.transAxes)
-                ax.text(label_y, 0.70, r"SD", color=SD_color, rotation='vertical', transform=ax.transAxes)
+                label_y = -0.05
+                ax.text(label_y, 0.3, r"SA ", color=SP_color, style='italic', fontsize='16' , rotation='vertical', transform=ax.transAxes)
+                ax.text(label_y, 0.60, r"& ", color='black', style='italic',fontsize='16' ,rotation='vertical', transform=ax.transAxes)
+                ax.text(label_y, 0.75, r"SD", color=SD_color, style='italic',fontsize='16' ,rotation='vertical', transform=ax.transAxes)
                 # To draw a horizantal threshold line
                 #xmin, xmax = ax.get_xlim()
                 #ax.hlines(y=0.25, xmin=xmin, xmax=xmax, linewidth=1, color='black')
             # Instantiate a second axes that shares the same x-axis
             ax2 = ax.twinx()
-            ax2.set_ylabel('Interval', color=SI_color)
+            ax2.set_ylabel('SI', fontsize='16' ,style='italic',color=SI_color)
             if('minivite' in strApp.lower()):
                 ax2.set_ylim(0,200)
                 ax2.set_yticks([0,50,100,150,200])
             else:
                 ax2.set_ylim(0,50)
                 ax2.set_yticks([0,10,20,30,40,50])
+                ax2.set_yticklabels([0,10,20,30,40,50],fontsize=12)
+
             ax2.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SI-'+plot_SP_col[i]], color=SI_color,label='SI')
             ax2.tick_params(axis='y', labelcolor=SI_color)
-            ax2.text(0.01, 0.80, plot_SP_col[i], color='black', size='14', rotation = 'horizontal', transform=ax.transAxes)
+            ax2.text(0.01, 0.80, plot_SP_col[i][4:], color='black', size='16', rotation = 'horizontal', transform=ax.transAxes)
 
         ax=ax_plots.reshape(-1)[len(plot_SP_col)]
         ax.plot(df_SP_SI_SD['reg-page-blk'], df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SP')]['Access'], color='tab:gray',label='Access')
@@ -364,25 +368,28 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #ax.set_ylabel('Access')
         ax.set_xticks([])
         #ax.set_title('Access counts for blocks')
-        ax.set_xlabel('Blocks')
+        ax.set_xlabel('Blocks',fontsize='16')
         label_y = -0.045
         ax.text(label_y, 0.3, r"Access", color='tab:gray', rotation='vertical', transform=ax.transAxes)
-        ax.text(0.01, 0.80, 'Access frequency', color='black', size='14', rotation = 'horizontal', transform=ax.transAxes)
+        ax.text(0.01, 0.80, 'Access frequency', color='black', size='16', rotation = 'horizontal', transform=ax.transAxes)
 
 
         strAccessSumBlocks= str(np.round((accessSumBlocks/1000).astype(float),2))+'K'
         strArRegionAccess = str(np.round((arRegionAccess/1000).astype(float),2))+'K'
-        strTitle = strApp +' region '+regionIdNumName+' \n Region\'s access  - ' + strArRegionAccess + ', Access count for selected pages - ' \
-                   + strAccessSumBlocks +' ('+ ("{0:.1f}".format((accessSumBlocks/arRegionAccess)*100))+'%), Number of pages in region - '+ str(numRegionBlocks)
+
+        #strTitle = strApp +' region '+regionIdNumName+' \n Region\'s access  - ' + strArRegionAccess + ', Access count for selected pages - ' \
+        #           + strAccessSumBlocks +' ('+ ("{0:.1f}".format((accessSumBlocks/arRegionAccess)*100))+'%), Number of pages in region - '+ str(numRegionBlocks)
+        strTitle = 'Access: Region - ' + strArRegionAccess + ', Pages - '+ strAccessSumBlocks +' ('+ ("{0:.1f}".format((accessSumBlocks/arRegionAccess)*100))+'%)'
+
         plt.suptitle(strTitle)
         fileNameLastSeg = '_plot.pdf'
         if (flWeight == True):
             fileNameLastSeg = '_plot_Wgt.pdf'
         imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+fileNameLastSeg
         print(imageFileName)
+        #plt.show()
         plt.savefig(imageFileName, bbox_inches='tight')
         plt.close()
-        #plt.show()
 
 flWeight=True
 mainPath='/Users/suri836/Projects/spatial_rud/'
