@@ -38,8 +38,8 @@ def weightMultiply(inValue, multValue):
 vectorWeightMultiply = np.vectorize(weightMultiply)
 vectorWeightMultiply.excluded.add(1)
 
-def get_intra_obj (data_intra_obj, fileline,reg_page_id,regionIdNum):
-    add_row=[None]*516
+def get_intra_obj (data_intra_obj, fileline,reg_page_id,regionIdNum,numExtraPages):
+    add_row=[None]*(516+numExtraPages)
     data = fileline.strip().split(' ')
     #print("in fill_data_frame", data[2], data[4], data[15:])
     str_index=regionIdNum+'-'+data[2][-1]+'-'+data[4] #regionid-pageid-cacheline
@@ -59,13 +59,17 @@ def get_intra_obj (data_intra_obj, fileline,reg_page_id,regionIdNum):
         else:
             add_row_index=5+255+(int(cor_data[0])-linecache)
             #print("else", linecache, cor_data[0], 5+255+(int(cor_data[0])-linecache))
+        if(int(cor_data[0])>255):
+            add_row_index = 515+(int(cor_data[0])-255)
+            print('pages line', data[0], 'reg-page-id ', reg_page_id, ' access ', data[11], cor_data[0], cor_data[1],  ' index ', add_row_index)
+
         add_row[add_row_index]=cor_data[1]
         #if(add_row_index == 260 ):
             #print('address', add_row[4], 'index', add_row_index, ' value ', add_row[add_row_index])
     data_intra_obj.append(add_row)
 
 # Works for spatial denity, Spatial Probability and Proximity
-def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeight=None):
+def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeight=None,numExtraPages:int=0):
     # STEP 1 - Read spatial.txt and write inter-region file
     strPath=strFileName[0:strFileName.rindex('/')]
     if (strMetric == 'SD' or strMetric == None):
@@ -168,7 +172,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 if (data[0] == lineStart and (data[2][0:len(data[2])-1]) == regionIdName):
                     pageId=data[2][-1]
                     #print('region line' , regionIdNumName, blockId, data[2])
-                    get_intra_obj(data_list_intra_obj,fileLine,regionIdNum+'-'+pageId,regionIdNum)
+                    get_intra_obj(data_list_intra_obj,fileLine,regionIdNum+'-'+pageId,regionIdNum,numExtraPages)
         f.close()
         print('**** before regionIdNumName ', regionIdNumName, 'list length', len(data_list_intra_obj))
 
@@ -186,7 +190,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
         # STEP 3b - Convert list to data frame
         #print(data_list_intra_obj)
-        list_col_names=[None]*516
+        list_col_names=[None]*(516+numExtraPages)
         list_col_names[0]='reg_page_id'
         list_col_names[1]='reg-page-blk'
         list_col_names[2]='Access'
@@ -197,6 +201,17 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         list_col_names[260]='self'
         for i in range ( 1,256):
             list_col_names[260+i]='self'+'+'+str(i)
+        j=0
+        print(int(numExtraPages/2))
+        for i in range (int(numExtraPages/2),0,-1):
+            print ('i in range', i)
+            list_col_names[516+j] = 'p-'+str(i)
+            j = j+1
+        j=int(numExtraPages/2)
+        for i in range (1,int(numExtraPages/2)+1):
+            print ('i in range', i)
+            list_col_names[516+j] = 'p+'+str(int(i))
+            j = j+1
         #print((list_col_names))
         df_intra_obj=pd.DataFrame(data_list_intra_obj,columns=list_col_names)
         #print(df_intra_obj[['Address', 'reg-page-blk','self-2','self-1','self','self+1','self+2']])
@@ -235,15 +250,41 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         if (f_avg != None):
             f_avg.write ( '*** Before sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd)+'\n')
 
-        get_col_list=[None]*511
+        get_col_list=[None]*(511+numExtraPages)
         for i in range ( 0,255):
             get_col_list[i]='self'+'-'+str(255-i)
         get_col_list[255]='self'
         for i in range ( 1,256):
             get_col_list[255+i]='self'+'+'+str(i)
+        j=0
+        for i in range (int(numExtraPages/2),0,-1):
+            print ('i in range', i)
+            get_col_list[511+j] = 'p-'+str(i)
+            j = j+1
+        j=int(numExtraPages/2)
+        for i in range (1,int(numExtraPages/2)+1):
+            print ('i in range', i)
+            get_col_list[511+j] = 'p+'+str(int(i))
+            j = j+1
         # Change data to numeric
+        print('columns \n', df_intra_obj.columns.to_list())
         for i in range (0,len(get_col_list)):
             df_intra_obj[get_col_list[i]]=pd.to_numeric(df_intra_obj[get_col_list[i]])
+
+        print(df_intra_obj.columns.to_list())
+        if(numExtraPages != 0):
+            colList= df_intra_obj.columns.to_list()
+            pattern = re.compile('p-.*')
+            lowerPagelist=list(filter(pattern.match, colList))
+            pattern = re.compile('p\+.*')
+            upperPagelist=list(filter(pattern.match, colList))
+            selfIndex = colList.index('self-255')
+            print(selfIndex)
+            colRearrangeList=colList[:selfIndex]
+            colRearrangeList.extend(lowerPagelist)
+            colRearrangeList.extend(colList[selfIndex: selfIndex+511])
+            colRearrangeList.extend(upperPagelist)
+            df_intra_obj = df_intra_obj[colRearrangeList]
 
         # Adding weighting by page access total here
         if (flWeight == True):
@@ -366,8 +407,12 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         if (f_avg != None):
             f_avg.write ( '*** After weighting sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd)+'\n')
 
+        get_col_list=df_intra_obj_sample_hm.columns.to_list()
+        print('before drop', get_col_list)
+
         df_intra_obj_drop=df_intra_obj_sample_hm.dropna(axis=1,how='all')
         get_col_list=df_intra_obj_drop.columns.to_list()
+        print('after drop', get_col_list)
         # STEP 3g - add some columns above & below self line to visualize better
         flAddSelfBelow=1
         flAddSelfAbove=1
@@ -387,6 +432,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
         # STEP 3h - get columns that are useful
         df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
+        print(df_intra_obj_sample_hm.columns.to_list())
         average_sd= pd.to_numeric(df_intra_obj_sample_hm["self"]).mean()
         print('*** After sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd))
         if (f_avg != None):
@@ -440,7 +486,10 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         list_y_ticks=ax_0.get_yticklabels()
         fig_ylabel=[]
         for y_label in list_y_ticks:
-            fig_ylabel.append(get_col_list[int(y_label.get_text())])
+            if ('self' in get_col_list[int(y_label.get_text())]):
+                fig_ylabel.append(get_col_list[int(y_label.get_text())][7:])
+            else:
+                fig_ylabel.append(get_col_list[int(y_label.get_text())][3:])
         list_x_ticks=ax_0.get_xticklabels()
         fig_xlabel=[]
         color_xlabel=[]
@@ -501,13 +550,17 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             fileNameLastSeg = '_hm_order_Wgt.pdf'
         imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+fileNameLastSeg
         print(imageFileName)
-        #plt.savefig(imageFileName, bbox_inches='tight')
+        plt.savefig(imageFileName, bbox_inches='tight')
         plt.close()
 
 
 
 flWeight = True
 mainPath='/Users/suri836/Projects/spatial_rud/'
+
+intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight)
+intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_0/spatial.txt', 1,flWeight=flWeight)
+#intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_16/spatial.txt', 1,flWeight=flWeight,numExtraPages=16)
 
 #Minivite - paper plots SD - Combine regions
 if (1 ==0):
@@ -526,7 +579,7 @@ if ( 1 == 0):
                     listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],flWeight=flWeight)
 
 #HiParTi - HiCOO - Matrix - paper plots
-if ( 1 == 1):
+if ( 1 == 0):
     #f_avg1=open(mainPath+'HiParTi/4096-same-iter/sd_agg_log_Wgt','w')
     f_avg1=None
     now = datetime.datetime.now()

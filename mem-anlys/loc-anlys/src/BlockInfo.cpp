@@ -62,6 +62,10 @@ using namespace std;
 
   }
   
+  void BlockInfo::setAccess(uint32_t _totalAccess) 
+  {
+    totalAccess = _totalAccess;
+  }
   void BlockInfo::setAccessRUD(uint32_t _totalAccess, int _totalRUD, int _minRUD, int _maxRUD, uint32_t _lifetime, double _sampleAvgRUD)
   {
     totalAccess = _totalAccess;

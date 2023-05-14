@@ -31,9 +31,9 @@ sns.set()
 
 
 
-def get_intra_obj (data_intra_obj, fileline,reg_page_id,regionIdNum):
+def get_intra_obj (data_intra_obj, fileline,reg_page_id,regionIdNum,numExtraPages):
     #print(reg_page_id)
-    add_row=[None]*517
+    add_row=[None]*(517+numExtraPages)
     data = fileline.strip().split(' ')
     #print("in fill_data_frame", data[2], data[4], data[15:])
     str_index=regionIdNum+'-'+data[2][-1]+'-'+data[4] #regionid-pageid-cacheline
@@ -47,25 +47,30 @@ def get_intra_obj (data_intra_obj, fileline,reg_page_id,regionIdNum):
     add_row[260]=0.0
     for i in range(15,len(data)):
         cor_data=data[i].split(',')
+        #print(cor_data)
+        #if(int(cor_data[0])<256):
         if(int(cor_data[0])<=linecache):
             add_row_index=5+255-(linecache-int(cor_data[0]))
             #print("if ", linecache, cor_data[0], 5+255-(linecache-int(cor_data[0])))
         else:
             add_row_index=5+255+(int(cor_data[0])-linecache)
-            #print("else", linecache, cor_data[0], 5+255+(int(cor_data[0])-linecache))
+        #print("else", linecache, cor_data[0], 5+255+(int(cor_data[0])-linecache))
+        if(int(cor_data[0])>255):
+            add_row_index = 516+(int(cor_data[0])-255)
+            print('pages line', data[0], 'reg-page-id ', reg_page_id, ' access ', data[11], cor_data[0], cor_data[1],  ' index ', add_row_index)
         add_row[add_row_index]=cor_data[1]
         #if(add_row_index == 260 ):
             #print('address', add_row[4], 'index', add_row_index, ' value ', add_row[add_row_index])
     if(data[0] == '==='):
-        add_row[516] = 'SP'
+        add_row[516+numExtraPages] = 'SP'
     elif(data[0] == '---'):
-        add_row[516] = 'SI'
+        add_row[516+numExtraPages] = 'SI'
     elif(data[0] == '***'):
-        add_row[516] = 'SD'
+        add_row[516+numExtraPages] = 'SD'
     data_intra_obj.append(add_row)
 
 # Works for spatial denity, Spatial Probability and Proximity
-def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeighted=None):
+def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeighted=None,numExtraPages:int=None):
     # STEP 1 - Read spatial.txt and write inter-region file
     strPath=strFileName[0:strFileName.rindex('/')]
     if('SP-SI' in strMetric  ):
@@ -158,7 +163,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 if ((data[0] in lineStartList) and (data[2][0:len(data[2])-1]) == regionIdName):
                     pageId=data[2][-1]
                     #print('region line' , regionIdNumName, pageId, data[2])
-                    get_intra_obj(data_list_intra_obj,fileLine,regionIdNum+'-'+pageId,regionIdNum)
+                    get_intra_obj(data_list_intra_obj,fileLine,regionIdNum+'-'+pageId,regionIdNum,numExtraPages)
         f.close()
         print('**** before regionIdNumName ', regionIdNumName, 'list length', len(data_list_intra_obj))
         if(listCombineReg != None and regionIdNumName_copy in listCombineReg):
@@ -174,7 +179,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             print("Proceed to plot")
         # STEP 3b - Convert list to data frame
         #print(data_list_intra_obj)
-        list_col_names=[None]*517
+        list_col_names=[None]*(517+numExtraPages)
         list_col_names[0]='reg_page_id'
         list_col_names[1]='reg-page-blk'
         list_col_names[2]='Access'
@@ -185,12 +190,20 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         list_col_names[260]='self'
         for i in range ( 1,256):
             list_col_names[260+i]='self'+'+'+str(i)
-        list_col_names[516]='Type'
+        j=0
+        for i in range (int(numExtraPages/2),0,-1):
+            list_col_names[516+j] = 'p-'+str(i)
+            j = j+1
+        j=int(numExtraPages/2)
+        for i in range (1,int(numExtraPages/2)+1):
+            list_col_names[516+j] = 'p+'+str(int(i))
+            j = j+1
+        list_col_names[516+numExtraPages]='Type'
         #print((list_col_names))
         df_intra_obj=pd.DataFrame(data_list_intra_obj,columns=list_col_names)
-        #print('columns ', df_intra_obj.columns.to_list())
+        print('columns ', df_intra_obj.columns.to_list())
         #print(df_intra_obj['Type'])
-        #print(df_intra_obj[['Address', 'reg-page-blk','self-2','self-1','self','self+1','self+2']])
+        #print(df_intra_obj[['Address', 'reg-page-blk','p-2','p-1','self','p+1','p+2']])
 
         # STEP 3c-0 - Process data frame to get access, lifetime totals
         # This is only for the blocks in ten pages analysis (not whole region)
@@ -216,30 +229,53 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         arRegPageAccess=(df_reg_pages[['Access']]).to_numpy()
         arRegPages=df_reg_pages['reg-page'].to_list()
 
-        get_col_list=[None]*512
-        plot_SP_col=[None]*511
+        plot_SP_col=[None]*(511+numExtraPages)
         for i in range ( 0,255):
-            get_col_list[i]='self'+'-'+str(255-i)
             plot_SP_col[i]='self'+'-'+str(255-i)
-        get_col_list[255]='self'
         plot_SP_col[255]='self'
         for i in range ( 1,256):
-            get_col_list[255+i]='self'+'+'+str(i)
             plot_SP_col[255+i]='self'+'+'+str(i)
-        get_col_list[511]='Type'
+        j=0
+        for i in range (int(numExtraPages/2),0,-1):
+            plot_SP_col[511+j] = 'p-'+str(i)
+            j = j+1
+        j=int(numExtraPages/2)
+        for i in range (1,int(numExtraPages/2)+1):
+            plot_SP_col[511+j] = 'p+'+str(int(i))
+            j = j+1
+
         # Change data to numeric
-        for i in range (0,len(get_col_list)-1):
-            df_intra_obj[get_col_list[i]]=pd.to_numeric(df_intra_obj[get_col_list[i]])
+        for i in range (0,len(plot_SP_col)):
+            df_intra_obj[plot_SP_col[i]]=pd.to_numeric(df_intra_obj[plot_SP_col[i]])
+
+        print(df_intra_obj.columns.to_list())
+        colList= df_intra_obj.columns.to_list()
+        pattern = re.compile('p-.*')
+        lowerPagelist=list(filter(pattern.match, colList))
+        pattern = re.compile('p\+.*')
+        upperPagelist=list(filter(pattern.match, colList))
+        selfIndex = colList.index('self-255')
+        print(selfIndex)
+        colRearrangeList=colList[:selfIndex]
+        colRearrangeList.extend(lowerPagelist)
+        colRearrangeList.extend(colList[selfIndex: selfIndex+511])
+        colRearrangeList.extend(upperPagelist)
+        colRearrangeList.append(colList[-1])
+
+        df_intra_obj = df_intra_obj[colRearrangeList]
+        print(df_intra_obj.columns.to_list())
 
         df_intra_obj.set_index('reg-page-blk')
         df_intra_obj.sort_index(inplace=True)
         self_bef_drop=df_intra_obj['self'].to_list()
         # STEP 3d - drop columns with "all" NaN values
         # DROP - columns with no values
-        print('before replace drop - ', df_intra_obj.shape)
-        listColPlotRange=['self-1','self+1']
-        #print(df_intra_obj.columns.difference(listColPlotRange))
+        print('before replace drop - ', df_intra_obj.shape, df_intra_obj.columns.to_list())
+        pattern=re.compile('p.*[0-9]')
+        print('line 255', list(filter(pattern.match, df_intra_obj.columns.to_list())))
         df_intra_obj_drop=df_intra_obj.dropna(axis=1,how='all')
+        print('line 260', list(filter(pattern.match, df_intra_obj_drop.columns.to_list())))
+
         self_aft_drop=df_intra_obj_drop['self'].to_list()
 
         if(self_bef_drop == self_aft_drop):
@@ -257,9 +293,13 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print('before sample - ', df_intra_obj.shape)
         num_sample=50
         print ('SP shape ', df_intra_obj[(df_intra_obj['Type'] == 'SP')].shape)
+        pattern=re.compile('p.*[0-9]')
+        print('line 273', list(filter(pattern.match, df_intra_obj.columns.to_list())))
         if (df_intra_obj[(df_intra_obj['Type'] == 'SP')].shape[0] < num_sample):
             num_sample = df_intra_obj[(df_intra_obj['Type'] == 'SP')].shape[0]
         df_intra_obj_sample_SP=df_intra_obj[(df_intra_obj['Type'] == 'SP')].nlargest(num_sample, 'Access')
+        print('line 277', list(filter(pattern.match, df_intra_obj_sample_SP.columns.to_list())))
+
         df_intra_obj_sample_SP.set_index('reg-page-blk')
         df_intra_obj_sample_SP.sort_index(inplace=True)
         df_intra_obj_sample_SP.sort_values(by=['Access'],ascending=False,inplace=True)
@@ -271,8 +311,12 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print('SP blocks', list_xlabel)
 
         df_intra_obj_SP=df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SP')]
+        pattern=re.compile('p.*[0-9]')
+        print('line 296', list(filter(pattern.match, df_intra_obj_SP.columns.to_list())))
         df_intra_obj_SI=df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SI')]
+        print('line 298', list(filter(pattern.match, df_intra_obj_SI.columns.to_list())))
         df_intra_obj_SD=df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SD')]
+        print('line 300', list(filter(pattern.match, df_intra_obj_SD.columns.to_list())))
         #print('SP cols ', df_intra_obj_SP.columns)
         #print('SI cols ', df_intra_obj_SI.columns)
         print('after drop SP - ', df_intra_obj_SP.shape)
@@ -314,11 +358,14 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     resultSP = df_intra_obj_SP[condSP][plotCol]
                     resultSI = df_intra_obj_SI[condSI][plotCol]
                     resultSD = df_intra_obj_SD[condSD][plotCol]
-                    if resultSP.size > 0:
+                    #print(plotCol)
+                    if resultSP.size > 0 :
+                        #print(resultSP.values[0], weight_multiplier, round((resultSP.values[0]* weight_multiplier),2))
                         list_SP_SI_SD[blkCnt][plotCnt*3+2]=round((resultSP.values[0]* weight_multiplier),2)
                     if resultSI.size >0:
                         list_SP_SI_SD[blkCnt][plotCnt*3+3]=resultSI.values[0]
                     if resultSD.size >0:
+                        #print(plotCol,  resultSP.values[0], weight_multiplier, round((resultSP.values[0]* weight_multiplier),2))
                         list_SP_SI_SD[blkCnt][plotCnt*3+4]=round(resultSD.values[0]* weight_multiplier,2)
                     #if (weight_multiplier > 1.0 and resultSP.size > 0 and resultSI.size >0 and resultSD.size >0):
                     #    print( 'SP ', list_SP_SI_SD[blkCnt][plotCnt*3+1], ' SI ', list_SP_SI_SD[blkCnt][plotCnt*3+2], ' SD ', list_SP_SI_SD[blkCnt][plotCnt*3+3])
@@ -332,18 +379,19 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                         flNormalize = True
 
         #print(list_SP_SI)
-
+        print('line 352', plot_SP_col)
         for plotCol in plot_SP_col:
             list_col_names.append('SP-'+plotCol)
             list_col_names.append('SI-'+plotCol)
             list_col_names.append('SD-'+plotCol)
 
-        print(normSPMax, normSDMax)
-        listColPlotRange=['SP-self-1', 'SP-self+1', 'SD-self-1', 'SD-self+1', 'SI-self-1', 'SI-self+1']
+        #print(normSPMax, normSDMax)
+        #print(list_col_names)
+        pattern=re.compile('.*p.*[0-9]')
+        print('line 356', list(filter(pattern.match, list_col_names)))
         df_SP_SI_SD=pd.DataFrame(list_SP_SI_SD,columns=list_col_names)
-
         df_SP_SI_SD=df_SP_SI_SD.dropna(axis=1, how='all')
-
+        print('line 358', list(filter(pattern.match, df_SP_SI_SD.columns.to_list())))
        # To show all three in tandem
         # Get rows with more SA entries - non zero SA will result in  SI and maybe SD
         #print(df_SP_SI_SD['reg-page-blk'])
@@ -370,11 +418,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         cols_df_SP=[]
         cols_df_SD=[]
         # Filter SP, SI and SD to show in heatmap
-        pattern = re.compile('SD-self')
+        pattern = re.compile('SD-')
         cols_df_orig = list(filter(pattern.match, cols_df_SP_SI_SD))
         for col_orig_name in cols_df_orig:
             str_col_orig_name = str(col_orig_name)
-            #print('column name', str_col_orig_name, df_SP_SI_SD[col_orig_name])
+            #print('column name', str_col_orig_name)#, df_SP_SI_SD[col_orig_name])
             #print(df_SP_SI_SD[col_orig_name].isnull().all())
             if ( (not (df_SP_SI_SD[col_orig_name].isnull().all())) and (np.sum(df_SP_SI_SD[col_orig_name]>=0.01) > 2)):
                 #print(' return value ', np.sum(df_SP_SI_SD[col_orig_name]>=0.01))
@@ -393,7 +441,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             cols_df_SP=[]
             cols_df_SD=[]
             # Filter SP, SI and SD to show in heatmap
-            pattern = re.compile('SD-self')
+            pattern = re.compile('SD-')
             cols_df_orig = list(filter(pattern.match, cols_df_SP_SI_SD))
             for col_orig_name in cols_df_orig:
                 str_col_orig_name = str(col_orig_name)
@@ -482,7 +530,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
             fig = plt.figure(constrained_layout=True, figsize=(15, 10))
             gs = gridspec.GridSpec(1, 2, figure=fig,width_ratios=[12,3])
-            gsleft = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec = gs[0] ,hspace=0.02)
+            gsleft = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec = gs[0] ,hspace=0.02)#height_ratios=[3.5,3.25,3.25])
             gsrightwhole=gridspec.GridSpecFromSubplotSpec(2, 1, height_ratios=[0.01,9.99], subplot_spec = gs[1] ,hspace=0.0)
             gsright = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec = gsrightwhole[1] ,wspace=0.02)
             gsrighttop= fig.add_subplot(gsrightwhole[0])
@@ -501,7 +549,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 vmax= 20
             else:
                 vmin=0
-                vmax=20
+                vmax=40
             gsleft_ax_2 = sns.heatmap(df_hm_SI, cmap='mako',cbar=True, cbar_kws={"pad":0.02}, annot=False,ax=gsleft_ax_2,vmin=vmin, vmax=vmax)
             gsleft_ax_0.set_ylabel("SD",fontsize=16,style='italic')
             gsleft_ax_1.set_ylabel("SA",fontsize=16,style='italic')
@@ -512,7 +560,10 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             list_y_ticks=gsleft_ax_0.get_yticklabels()
             fig_ylabel=[]
             for y_label in list_y_ticks:
-                fig_ylabel.append(cols_df_SD[int(y_label.get_text())][7:])
+                if ('self' in cols_df_SD[int(y_label.get_text())]):
+                    fig_ylabel.append(cols_df_SD[int(y_label.get_text())][7:])
+                else:
+                    fig_ylabel.append(cols_df_SD[int(y_label.get_text())][3:])
             list_x_ticks=gsleft_ax_0.get_xticklabels()
             fig_xlabel=[]
             for x_label in list_x_ticks:
@@ -528,7 +579,10 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             list_y_ticks=gsleft_ax_1.get_yticklabels()
             fig_ylabel=[]
             for y_label in list_y_ticks:
-                fig_ylabel.append(cols_df_SP[int(y_label.get_text())][7:])
+                if ('self' in cols_df_SP[int(y_label.get_text())]):
+                    fig_ylabel.append(cols_df_SP[int(y_label.get_text())][7:])
+                else:
+                    fig_ylabel.append(cols_df_SP[int(y_label.get_text())][3:])
             list_x_ticks=gsleft_ax_1.get_xticklabels()
             fig_xlabel=[]
             for x_label in list_x_ticks:
@@ -541,7 +595,10 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             list_y_ticks=gsleft_ax_2.get_yticklabels()
             fig_ylabel=[]
             for y_label in list_y_ticks:
-                fig_ylabel.append(cols_df_SI[int(y_label.get_text())][7:])
+                if ('self' in cols_df_SI[int(y_label.get_text())]):
+                    fig_ylabel.append(cols_df_SI[int(y_label.get_text())][7:])
+                else:
+                    fig_ylabel.append(cols_df_SI[int(y_label.get_text())][3:])
             list_x_ticks=gsleft_ax_2.get_xticklabels()
             fig_xlabel=[]
             my_colors=[]
@@ -629,18 +686,21 @@ if( 1 == 0):
     intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
                 listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight)
 
-if (1 ==0):
-    intraObjectPlot('HiParTI-HiCOO', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight)
-    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight)
-    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight)
-    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight)
+if (1 ==1):
+    #spatial_pages_exp/mttsel-re-3-b16384-p4000000-U-0/spatial_pages
+    #HiParTi/mg-tensor-reorder/nell-U-0
+    numExtraPages=16
+    intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/mttsel-re-0-b16384-p4000000-U-0/spatial_pages_16/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_16/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_16/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/mttsel-re-3-b16384-p4000000-U-0/spatial_pages_16/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
 
 if ( 1 == 0):
     intraObjectPlot('ResNet', mainPath+'darknet_cluster/resnet152_single/spatial_affinity/spatial.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight)
     intraObjectPlot('AlexNet',mainPath+'darknet_cluster/alexnet_single/spatial_affinity/spatial.txt',5, \
                     listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],strMetric='SD-SP-SI',flWeighted=flWeight)
 
-if ( 1 == 1):
+if ( 1 == 0):
     f_avg1=None
     intraObjectPlot('HiParTi - CSR',mainPath+'HiParTi/4096-same-iter/mg-csr/spmm_csr_mat-trace-b8192-p4000000/spatial_affinity_time/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',flWeighted=flWeight)
     intraObjectPlot('HiParTi - COO',mainPath+'HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-0-trace-b8192-p4000000/spatial_affinity_time/spatial.txt',3,f_avg=f_avg1,\

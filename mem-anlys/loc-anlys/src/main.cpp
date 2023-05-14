@@ -11,6 +11,10 @@ uint64_t cacheLineWidth; // Added for ZoomRUD analysis - option to set last leve
 uint64_t zoomLastLvlPageWidth ; // Added for ZoomRUD analysis - option to set last Zoom level's page width
 uint64_t OSPageSize = 16384;
 
+/********************************************************************************
+Zoom only uses Access counts
+Rud - not used, not set when getAccessCount is used, defaults to -1 for all
+**********************************************************************************/
 void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud, 
                   vector<uint32_t>& pageTotalAccess, uint32_t thresholdTotAccess, int *zoomin, Memblock curPage, 
                   std::list<Memblock >& zoomPageList)
@@ -199,7 +203,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
     }
   }
   /* 
-   * Zoom functionality used in spatial correlation STEP 3 - identify hot blocks for inter-region zoom
+   * Zoom functionality used in spatial affinity STEP 3 - identify hot blocks for inter-region zoom
    * Find ten highest access blocks in the region 
    */
   if(zoomOption ==3)
@@ -435,7 +439,6 @@ int main(int argc, char ** argv){
   cacheLineWidth = 64 ; // Added for ZoomRUD analysis - option to set last level's block width
   zoomLastLvlPageWidth = 16384;
 	int spatialResult = 0;
-	int out = 0;
 	int outZoom = 0;
 	int outSpatial = 0;
 	int autoZoom = 0;
@@ -656,6 +659,7 @@ int main(int argc, char ** argv){
   thisMemblock.leftPid=0;
   thisMemblock.rightPid=0;
 	MemArea memarea;
+	MemArea memIncludePages;
 	if(memRange ==0){
 			memarea.max = max;
 			memarea.min = min;
@@ -704,7 +708,7 @@ int main(int argc, char ** argv){
           vecBlockInfo.push_back(newBlock);
         }
         printf("Size of vector BlockInfo %ld\n", vecBlockInfo.size());
-	  	  analysisReturn=spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, out, vecBlockInfo,false, setRegionAddr); //spatialResult =0
+	  	  analysisReturn=spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo,false, setRegionAddr,false, memIncludePages); //spatialResult =0
         if(analysisReturn ==-1)
           return -1;
         for(i = 0; i< memarea.blockCount; i++){
@@ -716,7 +720,7 @@ int main(int argc, char ** argv){
     // END bottom-up - TRIAL 
     /************************************************/
     // START Analysis and top-down zoom functionality 
-    // Spatial Correlational RUD analysis not done in this loop - costs space & time overhead
+    // Spatial Affinity analysis not done in this loop - costs space & time overhead
     while((bottomUp==0) && (done != 1)){ //loop in zoom itr
       //printf(" in while size %ld count %ld \n", memarea.blockSize, memarea.blockCount);
       // Start analysis on root level with user defined page size
@@ -750,12 +754,18 @@ int main(int argc, char ** argv){
         vecBlockInfo.clear();
         for(i = 0; i< memarea.blockCount; i++){
           pair<unsigned int, unsigned int> blockID = make_pair(0, i);
-          // Correlational RUD analysis not done in this loop - costly space & time overhead
           BlockInfo *newBlock = new BlockInfo(blockID, memarea.min+(i*memarea.blockSize), memarea.min+((i+1)*memarea.blockSize-1), 
                                               memarea.blockCount, 0, thisMemblock.strID); // spatialResult=0
           vecBlockInfo.push_back(newBlock);
         }
-		    analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, out, vecBlockInfo,false, setRegionAddr); // spatialResult=0
+        if (memarea.blockSize == cacheLineWidth) { 
+          // Affinity analysis not done in this loop - costly space & time overhead
+          // RUD analyisis only
+  		    analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo,false, setRegionAddr,false,memIncludePages); // spatialResult=0
+        } else {
+          analysisReturn= getAccessCount(vecInstAddr,   memarea,  coreNumber , vecBlockInfo );
+  		    //analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo,false, setRegionAddr,false,memIncludePages); // spatialResult=0
+        }
         if(analysisReturn ==-1) {
           printf("No analysis done\n");
           return -1;
@@ -818,12 +828,12 @@ int main(int argc, char ** argv){
 	} // END WHILE
 	zoomInFile_det.close(); 
 
-  // START - correlational RUD analysis
+  // START - affinity analysis
   // Steps
   // 0. Find instructions to map regions to objects - using getInstInRange
-  // 1. Calculate spatial correlational RUD at data object (region) level
-  // 2. Zoom into objects to find OS page sized hot blocks 
-  // 3. Calculate spatial correlational RUD at OS page level - using 64 B cache line 
+  // 1. Calculate spatial affinity at data object (region) level
+  // 2. Zoom into objects to find OS page sized (default 16K) hot blocks 
+  // 3. Calculate spatial affinity at OS page level - using 64 B cache line 
   if(spatialResult == 1)
   {
     printf("Spatial Analysis START \n");
@@ -850,7 +860,7 @@ int main(int argc, char ** argv){
         getInstInRange(&spatialOutInsnFile, vecInstAddr,insnMemArea);
       }
     }
-    // STEP 1 - Calculate spatial correlational RUD at data object (inter-region) level
+    // STEP 1 - Calculate spatial affinity at data object (inter-region) level
     std::unordered_map<uint64_t, std::string> mapMinAddrToID;
     for (itrRegion=spatialRegionList.begin(); itrRegion != spatialRegionList.end(); ++itrRegion){
  	    thisMemblock = *itrRegion; 
@@ -884,8 +894,8 @@ int main(int argc, char ** argv){
                                               memarea.blockCount, spatialResult, mapMinAddrToID[setRegionAddr[i].first]); 
           vecBlockInfo.push_back(newBlock);
       }
-     // Correlational RUD analysis done for inter-region - region based range - to identify co-existence of objects
-	   analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, out, vecBlockInfo, true, setRegionAddr); 
+     // Affinity analysis done for inter-region - region based range - to identify co-existence of objects
+	   analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, true, setRegionAddr,false,memIncludePages); 
      if(analysisReturn ==-1) {
       printf("Spatial Analysis at region level returned without results \n");
       return -1;
@@ -914,7 +924,7 @@ int main(int argc, char ** argv){
          curBlock->printBlockSpatialInterval(spatialOutFile,zoomLastLvlPageWidth, false);
     }
     // END - STEP 1 
-    // STEP 2 -  Intra-region spatial correlation - correlation at cache-line level
+    // STEP 2 -  Intra-region spatial affinity - affinity at cache-line level
     // STEP 2 -  Zoom into objects to find OS page sized hot blocks
     mapMinAddrToID.clear(); 
     for (itrRegion=spatialRegionList.begin(); itrRegion != spatialRegionList.end(); ++itrRegion){
@@ -947,7 +957,8 @@ int main(int argc, char ** argv){
                                               memarea.blockCount, 0, mapMinAddrToID[memarea.min]); 
           vecBlockInfo.push_back(newBlock);
         }
-  		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, out, vecBlockInfo,false, setRegionAddr); // spatialResult=0
+  		  //analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo,false, setRegionAddr,false, memIncludePages); // spatialResult=0
+        analysisReturn= getAccessCount(vecInstAddr,   memarea,  coreNumber , vecBlockInfo );
         if(analysisReturn ==-1) {
           printf("Spatial Analysis Step 2 - Zoom into objects to find OS page sized %ld B hot blocks returned without results\n", OSPageSize);
           return -1;
@@ -973,7 +984,7 @@ int main(int argc, char ** argv){
       }
     }
       // END - STEP 2
-      // STEP 3 - Calculate spatial correlational RUD at OS page level - using 64 B cache line 
+      // STEP 3 - Calculate spatial affinity at OS page level - using 64 B cache line 
       mapMinAddrToID.clear(); 
       for (itrOSPage=spatialOSPageList.begin(); itrOSPage != spatialOSPageList.end(); ++itrOSPage){
  	    thisMemblock = *itrOSPage; 
@@ -987,10 +998,15 @@ int main(int argc, char ** argv){
         delete (*itr_blk);
       }
       vecBlockInfo.clear();
+      // NEW experiment to check sparsity patterna
+      bool blFlagAddPages = false;
+      uint32_t addPages = 16;
+      if(addPages > 0)
+        blFlagAddPages = true;
       for(i = 0; i< memarea.blockCount; i++){
         pair<unsigned int, unsigned int> blockID = make_pair(0, i);
         BlockInfo *newBlock = new BlockInfo(blockID, memarea.min+(i*memarea.blockSize), memarea.min+((i+1)*memarea.blockSize-1), 
-                                              memarea.blockCount, spatialResult,mapMinAddrToID[memarea.min]); 
+                                              memarea.blockCount+addPages, spatialResult,mapMinAddrToID[memarea.min]); 
         vecBlockInfo.push_back(newBlock);
       }
       printf(" STEP3 in spatial %d size %ld count %d memarea.min %08lx memarea.max %08lx ID %s \n", thisMemblock.level, memarea.blockSize, 
@@ -998,7 +1014,12 @@ int main(int argc, char ** argv){
 		  printf("Memory address min %lx max %lx ", memarea.min, memarea.max);
 			printf(" page number = %d ", memarea.blockCount);
 			printf(" page size =  %ld\n", memarea.blockSize);
-		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, out, vecBlockInfo, false, setRegionAddr);
+      memIncludePages.min = memarea.min - ((addPages/2)*OSPageSize);
+      memIncludePages.max = memarea.max + ((addPages/2)*OSPageSize);
+      memIncludePages.blockSize = OSPageSize;
+      memIncludePages.blockCount = addPages;
+      
+		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, false, setRegionAddr, blFlagAddPages, memIncludePages);
       if(analysisReturn ==-1) {
         printf("Spatial Analysis Step 2 - Zoom into objects to find OS page sized %ld B hot blocks returned without results\n", OSPageSize);
         return -1;
