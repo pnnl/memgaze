@@ -64,7 +64,7 @@ class BlockInfo {
 
   BlockInfo(pair< unsigned int, unsigned int> _blockID,  uint64_t _addrMin, uint64_t _addrMax, unsigned int _numBlocksInLevel, int spatialResult, string _strBlockId);
   ~BlockInfo();
-  
+  void setAccess(uint32_t _totalAccess); 
   void setAccessRUD(uint32_t _totalAccess, int _totalRUD, int _minRUD, int _maxRUD, uint32_t lifetime, double _sampleAvgRUD);
   void setSpatialRUD(uint32_t blkID, SpatialRUD* curSpatialRUD);
 
