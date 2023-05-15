@@ -167,7 +167,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         arRegPages=df_reg_pages['reg-page'].to_list()
 
         #plot_SP_col=['self-3','self-2','self-1','self','self+1','self+2','self+3']
-        plot_SP_col=['self-1', 'self','self+1','self+2','self+3','self+4']
+        plot_SP_col=['self-1', 'self','self+1','self+2'] #,'self+3','self+4']
         plot_SP_col.reverse()
         for colname in plot_SP_col:
             if( 1==0):
@@ -291,32 +291,24 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             ax.set_xticks([])
             ax.set_yticks([0, 0.25,0.5, 0.75, 1.0])
             ax.set_yticklabels([0, 0.25,0.5, 0.75, 1.0], fontsize=12)
-
+            #ax.set_yticklabels([0, 0.125,0.25, 0.625, 0.75], fontsize=12)
             ax.set_ylim(-0.25, 1.0)
             ax.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SP-'+plot_SP_col[i]], color=SP_color,label='SP')
-            if ('SP-SI' in strMetric and (not('SD' in strMetric)) ):
-                ax.tick_params(axis='y', labelcolor=SP_color)
-                ax.set_ylabel('SA', color=SP_color)
-            if('SP-SI-SD' in strMetric):
-                ax.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SD-'+plot_SP_col[i]], color=SD_color,label='SD')
-                ax.tick_params(axis='y', labelcolor='black')
-                label_y = -0.05
-                ax.text(label_y, 0.3, r"SA ", color=SP_color, style='italic', fontsize='16' , rotation='vertical', transform=ax.transAxes)
-                ax.text(label_y, 0.60, r"& ", color='black', style='italic',fontsize='16' ,rotation='vertical', transform=ax.transAxes)
-                ax.text(label_y, 0.75, r"SD", color=SD_color, style='italic',fontsize='16' ,rotation='vertical', transform=ax.transAxes)
-                # To draw a horizantal threshold line
-                #xmin, xmax = ax.get_xlim()
-                #ax.hlines(y=0.25, xmin=xmin, xmax=xmax, linewidth=1, color='black')
+            ax.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SD-'+plot_SP_col[i]], color=SD_color,label='SD')
+            ax.tick_params(axis='y', labelcolor='black')
+            label_y = -0.05
+            ax.text(label_y, 0.3, r"SA ", color=SP_color, style='italic', fontsize='16' , rotation='vertical', transform=ax.transAxes)
+            ax.text(label_y, 0.60, r"& ", color='black', style='italic',fontsize='16' ,rotation='vertical', transform=ax.transAxes)
+            ax.text(label_y, 0.75, r"SD", color=SD_color, style='italic',fontsize='16' ,rotation='vertical', transform=ax.transAxes)
+            # To draw a horizantal threshold line
+            #xmin, xmax = ax.get_xlim()
+            #ax.hlines(y=0.25, xmin=xmin, xmax=xmax, linewidth=1, color='black')
             # Instantiate a second axes that shares the same x-axis
             ax2 = ax.twinx()
             ax2.set_ylabel('SI', fontsize='16' ,style='italic',color=SI_color)
-            if('minivite' in strApp.lower()):
-                ax2.set_ylim(0,200)
-                ax2.set_yticks([0,50,100,150,200])
-            else:
-                ax2.set_ylim(0,50)
-                ax2.set_yticks([0,10,20,30,40,50])
-                ax2.set_yticklabels([0,10,20,30,40,50],fontsize=12)
+            ax2.set_ylim(0,200)
+            ax2.set_yticks([0,40,80,120,160,200])
+            ax2.set_yticklabels([0,40,80,120,160,200],fontsize=12)
 
             ax2.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SI-'+plot_SP_col[i]], color=SI_color,label='SI')
             ax2.tick_params(axis='y', labelcolor=SI_color)
@@ -366,9 +358,9 @@ if( 1 ==0):
     intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI-SD', flWeight=flWeight)
 
 numExtraPages=0
-intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SD-SP-SI',flWeight=flWeight,numExtraPages=numExtraPages)
-intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SD-SP-SI',flWeight=flWeight,numExtraPages=numExtraPages)
+intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,numExtraPages=numExtraPages)
+intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,numExtraPages=numExtraPages)
 
 numExtraPages=16
-intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SD-SP-SI',flWeight=flWeight,numExtraPages=numExtraPages)
-intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SD-SP-SI',flWeight=flWeight,numExtraPages=numExtraPages)
+intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,numExtraPages=numExtraPages)
+intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,numExtraPages=numExtraPages)

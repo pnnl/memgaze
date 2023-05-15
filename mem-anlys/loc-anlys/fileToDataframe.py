@@ -25,7 +25,7 @@ def get_intra_obj (data_intra_obj, fileline,reg_page_id,regionIdNum,numExtraPage
         #print("else", linecache, cor_data[0], 5+255+(int(cor_data[0])-linecache))
         if(int(cor_data[0])>255):
             add_row_index = 516+(int(cor_data[0])-255)
-            print('pages line', data[0], 'reg-page-id ', reg_page_id, ' access ', data[11], cor_data[0], cor_data[1],  ' index ', add_row_index)
+            #print('pages line', data[0], 'reg-page-id ', reg_page_id, ' access ', data[11], cor_data[0], cor_data[1],  ' index ', add_row_index)
         add_row[add_row_index]=cor_data[1]
         #if(add_row_index == 260 ):
             #print('address', add_row[4], 'index', add_row_index, ' value ', add_row[add_row_index])
