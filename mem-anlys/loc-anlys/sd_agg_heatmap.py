@@ -29,6 +29,7 @@ import os
 import copy
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 import datetime
+from fileToDataframe import get_intra_obj,getFileColumnNames,getMetricColumns,getRearrangeColumns
 
 sns.set_palette(sns.light_palette("seagreen"),100)
 sns.set()
@@ -38,35 +39,6 @@ def weightMultiply(inValue, multValue):
 vectorWeightMultiply = np.vectorize(weightMultiply)
 vectorWeightMultiply.excluded.add(1)
 
-def get_intra_obj (data_intra_obj, fileline,reg_page_id,regionIdNum,numExtraPages):
-    add_row=[None]*(516+numExtraPages)
-    data = fileline.strip().split(' ')
-    #print("in fill_data_frame", data[2], data[4], data[15:])
-    str_index=regionIdNum+'-'+data[2][-1]+'-'+data[4] #regionid-pageid-cacheline
-    add_row[0]=reg_page_id
-    add_row[1]=str_index
-    add_row[2] = data[11] # access count
-    add_row[3]=data[9] # lifetime
-    add_row[4]=data[7] # Address range
-    linecache = int(data[4])
-    # Added value for 'self' so that it doesnt get dropped in dropna
-    add_row[260]=0.0
-    for i in range(15,len(data)):
-        cor_data=data[i].split(',')
-        if(int(cor_data[0])<=linecache):
-            add_row_index=5+255-(linecache-int(cor_data[0]))
-            #print("if ", linecache, cor_data[0], 5+255-(linecache-int(cor_data[0])))
-        else:
-            add_row_index=5+255+(int(cor_data[0])-linecache)
-            #print("else", linecache, cor_data[0], 5+255+(int(cor_data[0])-linecache))
-        if(int(cor_data[0])>255):
-            add_row_index = 515+(int(cor_data[0])-255)
-            print('pages line', data[0], 'reg-page-id ', reg_page_id, ' access ', data[11], cor_data[0], cor_data[1],  ' index ', add_row_index)
-
-        add_row[add_row_index]=cor_data[1]
-        #if(add_row_index == 260 ):
-            #print('address', add_row[4], 'index', add_row_index, ' value ', add_row[add_row_index])
-    data_intra_obj.append(add_row)
 
 # Works for spatial denity, Spatial Probability and Proximity
 def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeight=None,numExtraPages:int=0):
@@ -189,33 +161,10 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             print("Proceed to plot")
 
         # STEP 3b - Convert list to data frame
-        #print(data_list_intra_obj)
-        list_col_names=[None]*(516+numExtraPages)
-        list_col_names[0]='reg_page_id'
-        list_col_names[1]='reg-page-blk'
-        list_col_names[2]='Access'
-        list_col_names[3]='Lifetime'
-        list_col_names[4]='Address'
-        for i in range ( 0,255):
-            list_col_names[5+i]='self'+'-'+str(255-i)
-        list_col_names[260]='self'
-        for i in range ( 1,256):
-            list_col_names[260+i]='self'+'+'+str(i)
-        j=0
-        print(int(numExtraPages/2))
-        for i in range (int(numExtraPages/2),0,-1):
-            print ('i in range', i)
-            list_col_names[516+j] = 'p-'+str(i)
-            j = j+1
-        j=int(numExtraPages/2)
-        for i in range (1,int(numExtraPages/2)+1):
-            print ('i in range', i)
-            list_col_names[516+j] = 'p+'+str(int(i))
-            j = j+1
-        #print((list_col_names))
+        list_col_names=getFileColumnNames(numExtraPages)
+        print((list_col_names))
         df_intra_obj=pd.DataFrame(data_list_intra_obj,columns=list_col_names)
         #print(df_intra_obj[['Address', 'reg-page-blk','self-2','self-1','self','self+1','self+2']])
-        #df_intra_obj.to_csv('/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/temp.csv')
 
         # STEP 3c - Process data frame to get access, lifetime totals
         df_intra_obj = df_intra_obj.astype({"Access": int, "Lifetime": int})
@@ -228,21 +177,22 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             #print(arRegionBlockId, df_intra_obj[df_intra_obj['blockid']==arRegionBlocks[arRegionBlockId]]['Access'].sum())
             arRegPageAccess[int(arRegPageId)] = df_intra_obj[df_intra_obj['reg_page_id']==arRegPages[arRegPageId]]['Access'].sum()
         #print (arBlockIdAccess)
-
         print(arRegPageAccess.shape)
         listCombine = zip(arRegPages, arRegPageAccess.tolist())
         df_reg_pages = pd.DataFrame(listCombine, columns=('reg-page', 'Access'))
-
         #df_reg_pages = df_reg_pages.astype({"Access": int})
         df_reg_pages.set_index('reg-page')
         df_reg_pages.sort_index(inplace=True)
         df_reg_pages["Access"] = df_reg_pages["Access"].apply(pd.to_numeric)
         df_reg_pages = df_reg_pages.astype({"Access": int})
         df_reg_pages.sort_values(by=['Access'],ascending=False,inplace=True)
-
-
         arRegPageAccess=(df_reg_pages[['Access']]).to_numpy()
         arRegPages=df_reg_pages['reg-page'].to_list()
+
+        # Change data to numeric
+        metricColumns=getMetricColumns(numExtraPages)
+        for i in range (0,len(metricColumns)):
+            df_intra_obj[metricColumns[i]]=pd.to_numeric(df_intra_obj[metricColumns[i]])
 
         # STEP 3d - Get average of self before sampling for highest access blocks
         average_sd= pd.to_numeric(df_intra_obj["self"]).mean()
@@ -250,72 +200,20 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         if (f_avg != None):
             f_avg.write ( '*** Before sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd)+'\n')
 
-        get_col_list=[None]*(511+numExtraPages)
-        for i in range ( 0,255):
-            get_col_list[i]='self'+'-'+str(255-i)
-        get_col_list[255]='self'
-        for i in range ( 1,256):
-            get_col_list[255+i]='self'+'+'+str(i)
-        j=0
-        for i in range (int(numExtraPages/2),0,-1):
-            print ('i in range', i)
-            get_col_list[511+j] = 'p-'+str(i)
-            j = j+1
-        j=int(numExtraPages/2)
-        for i in range (1,int(numExtraPages/2)+1):
-            print ('i in range', i)
-            get_col_list[511+j] = 'p+'+str(int(i))
-            j = j+1
-        # Change data to numeric
-        print('columns \n', df_intra_obj.columns.to_list())
-        for i in range (0,len(get_col_list)):
-            df_intra_obj[get_col_list[i]]=pd.to_numeric(df_intra_obj[get_col_list[i]])
-
         print(df_intra_obj.columns.to_list())
-        if(numExtraPages != 0):
-            colList= df_intra_obj.columns.to_list()
-            pattern = re.compile('p-.*')
-            lowerPagelist=list(filter(pattern.match, colList))
-            pattern = re.compile('p\+.*')
-            upperPagelist=list(filter(pattern.match, colList))
-            selfIndex = colList.index('self-255')
-            print(selfIndex)
-            colRearrangeList=colList[:selfIndex]
-            colRearrangeList.extend(lowerPagelist)
-            colRearrangeList.extend(colList[selfIndex: selfIndex+511])
-            colRearrangeList.extend(upperPagelist)
-            df_intra_obj = df_intra_obj[colRearrangeList]
+        colRearrangeList =[]
+        if (numExtraPages !=0):
+            colRearrangeList = getRearrangeColumns(df_intra_obj.columns.to_list())
+        else:
+            colRearrangeList = df_intra_obj.columns.to_list()
 
+        df_intra_obj = df_intra_obj[colRearrangeList]
+        df_intra_obj.drop('Type',axis=1,inplace=True)
+        colNameList =df_intra_obj.columns.to_list()
         # Adding weighting by page access total here
         if (flWeight == True):
             print('before weight \n ' , df_intra_obj[['reg-page-blk', 'Access', 'self', 'self+1', 'self-255']])
             normSDMax=np.ones(len(arRegPages))
-            flRealSlow = False
-            # Dataframe looping very slow - each visualization takes 15 minutes or so
-            if (flRealSlow == True ):
-                arRegPageIndex = 0
-                for regPageId in arRegPages:
-                    weightAccess = (df_reg_pages[(df_reg_pages['reg-page'] == regPageId)]['Access'].item())
-                    arRegPageBlk = df_intra_obj[(df_intra_obj['reg_page_id'] == regPageId)]['reg-page-blk'].to_list()
-                    #print(arRegPageBlk)
-                    #print( ' reg-page ' , regPageId, ' - ' , weightAccess)
-                    for regPageBlkId in arRegPageBlk:
-                        percentAccess = df_intra_obj[(df_intra_obj['reg-page-blk'] == regPageBlkId)]['Access'].values[0] * (100 / weightAccess)
-                        #print( ' reg-page ' , regPageId, ' - ' , weightAccess, ' reg-page-blk ', regPageBlkId, ' percentAccess ', percentAccess, ' self ', df_intra_obj[(df_intra_obj['reg-page-blk'] == regPageBlkId)]['self'].values[0])
-                        np_row_SD_values=df_intra_obj[(df_intra_obj['reg-page-blk'] == regPageBlkId)][get_col_list].to_numpy()
-                        #print(np_row_SD_values)
-                        np_change_SD_values= vectorWeightMultiply(np_row_SD_values, percentAccess)
-                        #print(np_row_SD_values[0][255], np_change_SD_values[0][255])
-                        if(1 ==1):
-                            i=0
-                            for colName in get_col_list:
-                                df_intra_obj.loc[df_intra_obj['reg-page-blk'] == regPageBlkId,[colName]] = np_change_SD_values[0][i]
-                                i = i+1
-                        changeSDValue=np_change_SD_values.max()
-                        if ((normSDMax[arRegPageIndex]) < changeSDValue):
-                            normSDMax[arRegPageIndex] = changeSDValue
-                    arRegPageIndex = arRegPageIndex + 1
-
             list_DF_Intra_obj = df_intra_obj.values.tolist()
             newlist = [x for x in list_DF_Intra_obj[2] if pd.isnull(x) == False]
             #print(newlist)
@@ -324,19 +222,18 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 regPageBlkId = list_DF_Intra_obj[i][1]
                 weightAccess = (df_reg_pages[(df_reg_pages['reg-page'] == regPageId)]['Access'].item())
                 percentAccess = df_intra_obj[(df_intra_obj['reg-page-blk'] == regPageBlkId)]['Access'].item() * (100 / weightAccess)
+                #print('percentAccess ', percentAccess)
                 arRegPageIndex = arRegPages.index(regPageId)
                 for j in range(5, len(list_DF_Intra_obj[i])):
                     list_DF_Intra_obj[i][j]=list_DF_Intra_obj[i][j]*percentAccess
                     if ((normSDMax[arRegPageIndex]) < list_DF_Intra_obj[i][j]):
                             normSDMax[arRegPageIndex] = list_DF_Intra_obj[i][j]
+            df_intra_obj=pd.DataFrame(list_DF_Intra_obj,columns=(colNameList))
 
-            newlist = [x for x in list_DF_Intra_obj[2] if pd.isnull(x) == False]
-            #print(newlist)
-            df_intra_obj=pd.DataFrame(list_DF_Intra_obj,columns=list_col_names)
             print('before normalize \n ' , df_intra_obj[['reg-page-blk', 'Access', 'self', 'self+1']])
             arRegPageIndex = 0
             for regPageId in arRegPages:
-                for colName in get_col_list:
+                for colName in metricColumns:
                     df_intra_obj.loc[df_intra_obj['reg_page_id'] == regPageId,[colName]] = df_intra_obj.loc[df_intra_obj['reg_page_id'] == regPageId, [colName]].div(normSDMax[arRegPageIndex])
                 arRegPageIndex = arRegPageIndex + 1
 
@@ -349,7 +246,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         list_blk_range_gap=[]
         for df_id in range (0, len(df_intra_obj)):
             blk_id=df_intra_obj.iloc[df_id,1]
-            df_row=pd.to_numeric(df_intra_obj.iloc[df_id,5:516]).squeeze()
+            df_row=pd.to_numeric(df_intra_obj.iloc[df_id,5:(516+numExtraPages)]).squeeze()
             first_index=df_row.first_valid_index()
             last_index=df_row.last_valid_index()
             if ( first_index == 'self'):
@@ -384,20 +281,17 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         df_intra_obj_rows=df_intra_obj.shape[0]
         if ( df_intra_obj_rows < num_sample):
             num_sample = df_intra_obj_rows
-        print(num_sample)
-        #print('before sample \n', df_intra_obj[['reg-page-blk','Access']])
-        #df_intra_obj.to_csv(strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'before_sample.csv')
 
+        print('self before sample ', df_intra_obj['self'])
         df_intra_obj_sample=df_intra_obj.nlargest(num_sample, 'Access')
-        #print('after sample\n' , df_intra_obj_sample[['reg-page-blk','Access']])
-        #df_intra_obj_sample.to_csv(strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'after_sample.csv')
-
         df_intra_obj_sample.set_index('reg-page-blk')
         df_intra_obj_sample.sort_index(inplace=True)
         df_intra_obj_sample.sort_values(by=['Access'],ascending=False,inplace=True)
         list_xlabel=df_intra_obj_sample['reg-page-blk'].to_list()
         accessBlockCacheLine = (df_intra_obj_sample[['Access']]).to_numpy()
-        df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
+        colHeatMap= [x for x in colRearrangeList if x in metricColumns]
+        df_intra_obj_sample_hm=df_intra_obj_sample[colHeatMap]
+        print('self in sample ', df_intra_obj_sample['self'])
         self_bef_drop=df_intra_obj_sample_hm['self'].to_list()
 
         # STEP 3g - drop columns with "all" NaN values
@@ -409,7 +303,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
         get_col_list=df_intra_obj_sample_hm.columns.to_list()
         print('before drop', get_col_list)
-
+        print('before drop self \n', df_intra_obj_sample_hm['self'])
         df_intra_obj_drop=df_intra_obj_sample_hm.dropna(axis=1,how='all')
         get_col_list=df_intra_obj_drop.columns.to_list()
         print('after drop', get_col_list)
@@ -560,7 +454,7 @@ mainPath='/Users/suri836/Projects/spatial_rud/'
 
 intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight)
 intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_0/spatial.txt', 1,flWeight=flWeight)
-#intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_16/spatial.txt', 1,flWeight=flWeight,numExtraPages=16)
+intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_16/spatial.txt', 1,flWeight=flWeight,numExtraPages=16)
 
 #Minivite - paper plots SD - Combine regions
 if (1 ==0):
