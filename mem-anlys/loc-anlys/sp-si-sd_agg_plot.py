@@ -298,8 +298,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             ax.tick_params(axis='y', labelcolor='black')
             label_y = -0.05
             ax.text(label_y, 0.3, r"SA ", color=SP_color, style='italic', fontsize='16' , rotation='vertical', transform=ax.transAxes)
-            ax.text(label_y, 0.60, r"& ", color='black', style='italic',fontsize='16' ,rotation='vertical', transform=ax.transAxes)
-            ax.text(label_y, 0.75, r"SD", color=SD_color, style='italic',fontsize='16' ,rotation='vertical', transform=ax.transAxes)
+            ax.text(label_y, 0.55, r"& ", color='black', style='italic',fontsize='16' ,rotation='vertical', transform=ax.transAxes)
+            ax.text(label_y, 0.70, r"SD", color=SD_color, style='italic',fontsize='16' ,rotation='vertical', transform=ax.transAxes)
             # To draw a horizantal threshold line
             #xmin, xmax = ax.get_xlim()
             #ax.hlines(y=0.25, xmin=xmin, xmax=xmax, linewidth=1, color='black')
@@ -344,7 +344,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         plt.savefig(imageFileName, bbox_inches='tight')
         plt.close()
 
-flWeight=True
+flWeight=False
 mainPath='/Users/suri836/Projects/spatial_rud/'
 
 # Not very useful plots for Minivite, heatmap shows interesting information

@@ -381,9 +381,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         fig_ylabel=[]
         for y_label in list_y_ticks:
             if ('self' in get_col_list[int(y_label.get_text())]):
-                fig_ylabel.append(get_col_list[int(y_label.get_text())][7:])
+                fig_ylabel.append(get_col_list[int(y_label.get_text())][4:])
             else:
-                fig_ylabel.append(get_col_list[int(y_label.get_text())][3:])
+                fig_ylabel.append(get_col_list[int(y_label.get_text())])
         list_x_ticks=ax_0.get_xticklabels()
         fig_xlabel=[]
         color_xlabel=[]
@@ -452,9 +452,12 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 flWeight = True
 mainPath='/Users/suri836/Projects/spatial_rud/'
 
-intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight)
-intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_0/spatial.txt', 1,flWeight=flWeight)
-intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_16/spatial.txt', 1,flWeight=flWeight,numExtraPages=16)
+#intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight)
+#intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_0/spatial.txt', 1,flWeight=flWeight)
+numExtraPages=64
+intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'_64/spatial.txt', 1,flWeight=flWeight,numExtraPages=numExtraPages)
+intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'_64/spatial.txt', 1,flWeight=flWeight,numExtraPages=numExtraPages)
+
 
 #Minivite - paper plots SD - Combine regions
 if (1 ==0):

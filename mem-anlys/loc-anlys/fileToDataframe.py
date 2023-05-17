@@ -1,5 +1,5 @@
 import re
-def get_intra_obj (data_intra_obj, fileline,reg_page_id,regionIdNum,numExtraPages):
+def get_intra_obj (data_intra_obj, fileline,reg_page_id,regionIdNum,numExtraPages:int=0):
     #print(reg_page_id)
     add_row=[None]*(517+numExtraPages)
     data = fileline.strip().split(' ')
@@ -84,11 +84,29 @@ def getRearrangeColumns(listColNames):
     lowerPagelist=list(filter(pattern.match, colList))
     pattern = re.compile('p\+.*')
     upperPagelist=list(filter(pattern.match, colList))
-    selfIndex = colList.index('self-255')
-    print(selfIndex)
-    colRearrangeList=colList[:selfIndex]
+    selfStartIndex = [colList.index(l) for l in colList if l.startswith('self-')]
+    print(selfStartIndex[0])
+    colRevList = list(reversed(colList))
+    print(colRevList)
+    selfEndIndex = [colRevList.index(l) for l in colRevList if l.startswith('self+')]
+    print(len(colList)-selfEndIndex[0]-1)
+    colRearrangeList=colList[:selfStartIndex[0]]
     colRearrangeList.extend(lowerPagelist)
-    colRearrangeList.extend(colList[selfIndex: selfIndex+511])
+    colRearrangeList.extend(colList[selfStartIndex[0]: (len(colList)-selfEndIndex[0]-1)])
     colRearrangeList.extend(upperPagelist)
     colRearrangeList.append(colList[-1])
+    return colRearrangeList
+
+def getPageColList(listColNames):
+    colList= listColNames
+    pattern = re.compile('p-.*')
+    lowerPagelist=list(filter(pattern.match, colList))
+    pattern = re.compile('p\+.*')
+    upperPagelist=list(filter(pattern.match, colList))
+    pattern = re.compile('self.*')
+    selfList=list(filter(pattern.match, colList))
+    colRearrangeList=[]
+    colRearrangeList.extend(lowerPagelist)
+    colRearrangeList.extend(selfList)
+    colRearrangeList.extend(upperPagelist)
     return colRearrangeList
