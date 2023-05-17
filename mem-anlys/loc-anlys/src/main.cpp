@@ -1000,7 +1000,7 @@ int main(int argc, char ** argv){
       vecBlockInfo.clear();
       // NEW experiment to check sparsity patterna
       bool blFlagAddPages = false;
-      uint32_t addPages = 16;
+      uint32_t addPages = 64;
       if(addPages > 0)
         blFlagAddPages = true;
       for(i = 0; i< memarea.blockCount; i++){
@@ -1014,9 +1014,9 @@ int main(int argc, char ** argv){
 		  printf("Memory address min %lx max %lx ", memarea.min, memarea.max);
 			printf(" page number = %d ", memarea.blockCount);
 			printf(" page size =  %ld\n", memarea.blockSize);
-      memIncludePages.min = memarea.min - ((addPages/2)*OSPageSize);
-      memIncludePages.max = memarea.max + ((addPages/2)*OSPageSize);
-      memIncludePages.blockSize = OSPageSize;
+      memIncludePages.min = memarea.min - ((addPages/2)*OSPageSize*4);
+      memIncludePages.max = memarea.max + ((addPages/2)*OSPageSize*4);
+      memIncludePages.blockSize = OSPageSize*4;
       memIncludePages.blockCount = addPages;
       
 		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, false, setRegionAddr, blFlagAddPages, memIncludePages);

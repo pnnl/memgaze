@@ -388,15 +388,15 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
               }
             // NEW page sparsity
             } else if (flagIncludePages ==1 ) {
-              printf( "loadAddr %08lx memarea.blockCount %ld  add %d \n", loadAddr, memIncludeArea.blockSize, memarea.blockCount );
               if ( loadAddr < memarea.min) {
                   pageID = memarea.blockCount - ceil(((double)(memarea.min - loadAddr)/(double)memIncludeArea.blockSize)) + (memIncludeArea.blockCount/2) ;
-                  printf( "less loadAddr %ld memarea.min %ld diff %lf ceil %lf  add %d pageID %d \n", loadAddr, memarea.min, (double)(memarea.min - loadAddr)/(double)memIncludeArea.blockSize, ceil(((double)( memarea.min - loadAddr)/(double) memIncludeArea.blockSize)), memarea.blockCount, pageID);
+                  //printf( "less loadAddr %ld memarea.min %ld diff %lf ceil %lf  add %d pageID %d \n", loadAddr, memarea.min, (double)(memarea.min - loadAddr)/(double)memIncludeArea.blockSize, ceil(((double)( memarea.min - loadAddr)/(double) memIncludeArea.blockSize)), memarea.blockCount, pageID);
               }
               else if ( loadAddr > memarea.max) {
                   pageID = memarea.blockCount + floor(((double)(loadAddr-memarea.max)/(double)memIncludeArea.blockSize)) + (memIncludeArea.blockCount/2)  ;
-                  printf( "more loadAddr %ld memarea.max %ld florr %lf  add %d pageID %d \n", loadAddr, memarea.max,floor(((double)(loadAddr-memarea.max)/(double)memIncludeArea.blockSize)), memarea.blockCount, pageID);
+                  //printf( "more loadAddr %ld memarea.max %ld florr %lf  add %d pageID %d \n", loadAddr, memarea.max,floor(((double)(loadAddr-memarea.max)/(double)memIncludeArea.blockSize)), memarea.blockCount, pageID);
               }
+              printf( "loadAddr %ld memarea.min %ld  memarea.max %ld pageID %d\n", loadAddr, memarea.min, memarea.max, pageID );
             } 
           } else {
             for (uint32_t k=0; k<setRegionAddr.size(); k++) {
