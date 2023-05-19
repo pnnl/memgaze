@@ -51,11 +51,22 @@ def getFileColumnNames (numExtraPages:int =0):
         list_col_names[260+i]='self'+'+'+str(i)
     j=0
     for i in range (int(numExtraPages/2),0,-1):
-        list_col_names[516+j] = 'p-'+str(i)
+        if(i==1):
+            list_col_names[516+j] = '- 1p'
+        elif(i<13):
+            list_col_names[516+j] = '- ['+str(2**(i-1))+'-'+str((2**i)-1)+'] p'
+        else:
+            list_col_names[516+j] = '- [2^'+str((i-1))+'-2^'+str(i)+'] p'
         j = j+1
     j=int(numExtraPages/2)
     for i in range (1,int(numExtraPages/2)+1):
-        list_col_names[516+j] = 'p+'+str(int(i))
+        if( i ==1):
+            list_col_names[516+j] = '+ 1p'
+        elif (i<13):
+            list_col_names[516+j] = '+ ['+str(2**(i-1))+'-'+str((2**i)-1)+'] p'
+        else:
+            list_col_names[516+j] = '+ [2^'+str((i-1))+'-2^'+str(i)+'] p'
+
         j = j+1
     list_col_names[516+numExtraPages]='Type'
     #print((list_col_names))
@@ -70,26 +81,36 @@ def getMetricColumns(numExtraPages:int =0):
         metricColumns[255+i]='self'+'+'+str(i)
     j=0
     for i in range (int(numExtraPages/2),0,-1):
-        metricColumns[511+j] = 'p-'+str(i)
+        if( i ==1):
+            metricColumns[511+j] = '- 1p'
+        elif(i<13):
+            metricColumns[511+j] = '- ['+str(2**(i-1))+'-'+str((2**i)-1)+'] p'
+        else:
+            metricColumns[511+j] = '- [2^'+str((i-1))+'-2^'+str(i)+'] p'
         j = j+1
     j=int(numExtraPages/2)
     for i in range (1,int(numExtraPages/2)+1):
-        metricColumns[511+j] = 'p+'+str(int(i))
+        if( i ==1):
+            metricColumns[511+j] = '+ 1p'
+        elif (i<13):
+            metricColumns[511+j] = '+ ['+str(2**(i-1))+'-'+str((2**i)-1)+'] p'
+        else:
+           metricColumns[511+j] = '+ [2^'+str((i-1))+'-2^'+str(i)+'] p'
         j = j+1
     return metricColumns
 
 def getRearrangeColumns(listColNames):
     colList= listColNames
-    pattern = re.compile('p-.*')
+    pattern = re.compile('-.*p')
     lowerPagelist=list(filter(pattern.match, colList))
-    pattern = re.compile('p\+.*')
+    pattern = re.compile('\+.*p')
     upperPagelist=list(filter(pattern.match, colList))
     selfStartIndex = [colList.index(l) for l in colList if l.startswith('self-')]
-    print(selfStartIndex[0])
+    #print(selfStartIndex[0])
     colRevList = list(reversed(colList))
-    print(colRevList)
+    #print(colRevList)
     selfEndIndex = [colRevList.index(l) for l in colRevList if l.startswith('self+')]
-    print(len(colList)-selfEndIndex[0]-1)
+    #print(len(colList)-selfEndIndex[0]-1)
     colRearrangeList=colList[:selfStartIndex[0]]
     colRearrangeList.extend(lowerPagelist)
     colRearrangeList.extend(colList[selfStartIndex[0]: (len(colList)-selfEndIndex[0]-1)])
@@ -99,9 +120,9 @@ def getRearrangeColumns(listColNames):
 
 def getPageColList(listColNames):
     colList= listColNames
-    pattern = re.compile('p-.*')
+    pattern = re.compile('-.*p')
     lowerPagelist=list(filter(pattern.match, colList))
-    pattern = re.compile('p\+.*')
+    pattern = re.compile('\+.*p')
     upperPagelist=list(filter(pattern.match, colList))
     pattern = re.compile('self.*')
     selfList=list(filter(pattern.match, colList))

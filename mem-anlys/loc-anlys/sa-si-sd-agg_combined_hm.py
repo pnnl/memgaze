@@ -177,18 +177,18 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         for i in range (0,len(plot_SP_col)):
             df_intra_obj[plot_SP_col[i]]=pd.to_numeric(df_intra_obj[plot_SP_col[i]])
 
-        print('before rearrange ', df_intra_obj.columns.to_list())
+        #print('before rearrange ', df_intra_obj.columns.to_list())
         colRearrangeList =[]
         if (numExtraPages !=0):
-            print('in numExtraPages 0')
+            print('in numExtraPages NOT 0')
             colRearrangeList = getRearrangeColumns(df_intra_obj.columns.to_list())
         else:
-            print('in numExtraPages NOT 0')
+            print('in numExtraPages 0')
             colRearrangeList = df_intra_obj.columns.to_list()
 
 
         df_intra_obj = df_intra_obj[colRearrangeList]
-        print('after rearrange ', df_intra_obj.columns.to_list())
+        #print('after rearrange ', df_intra_obj.columns.to_list())
 
         df_intra_obj.set_index('reg-page-blk')
         df_intra_obj.sort_index(inplace=True)
@@ -196,10 +196,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # STEP 3d - drop columns with "all" NaN values
         # DROP - columns with no values
         print('before replace drop - ', df_intra_obj.shape, df_intra_obj.columns.to_list())
-        pattern=re.compile('p.*[0-9]')
-        print('line 255', list(filter(pattern.match, df_intra_obj.columns.to_list())))
         df_intra_obj_drop=df_intra_obj.dropna(axis=1,how='all')
-        print('line 260', list(filter(pattern.match, df_intra_obj_drop.columns.to_list())))
 
         self_aft_drop=df_intra_obj_drop['self'].to_list()
 
@@ -218,12 +215,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print('before sample - ', df_intra_obj.shape)
         num_sample=50
         print ('SP shape ', df_intra_obj[(df_intra_obj['Type'] == 'SP')].shape)
-        pattern=re.compile('p.*[0-9]')
-        print('line 273', list(filter(pattern.match, df_intra_obj.columns.to_list())))
         if (df_intra_obj[(df_intra_obj['Type'] == 'SP')].shape[0] < num_sample):
             num_sample = df_intra_obj[(df_intra_obj['Type'] == 'SP')].shape[0]
         df_intra_obj_sample_SP=df_intra_obj[(df_intra_obj['Type'] == 'SP')].nlargest(num_sample, 'Access')
-        print('line 277', list(filter(pattern.match, df_intra_obj_sample_SP.columns.to_list())))
 
         df_intra_obj_sample_SP.set_index('reg-page-blk')
         df_intra_obj_sample_SP.sort_index(inplace=True)
@@ -236,14 +230,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print('SP blocks', list_xlabel)
 
         df_intra_obj_SP=df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SP')]
-        pattern=re.compile('p.*[0-9]')
-        print('line 296', list(filter(pattern.match, df_intra_obj_SP.columns.to_list())))
         df_intra_obj_SI=df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SI')]
-        print('line 298', list(filter(pattern.match, df_intra_obj_SI.columns.to_list())))
         df_intra_obj_SD=df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SD')]
-        print('line 300', list(filter(pattern.match, df_intra_obj_SD.columns.to_list())))
-        #print('SP cols ', df_intra_obj_SP.columns)
-        #print('SI cols ', df_intra_obj_SI.columns)
         print('after drop SP - ', df_intra_obj_SP.shape)
         print('after drop SI - ', df_intra_obj_SI.shape)
         print('after drop SD - ', df_intra_obj_SD.shape)
@@ -306,7 +294,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                         flNormalize = True
 
         #print(list_SP_SI)
-        print('line 352', plot_SP_col)
+        #print('line 352', plot_SP_col)
         for plotCol in plot_SP_col:
             list_col_names.append('SP-'+plotCol)
             list_col_names.append('SI-'+plotCol)
@@ -315,11 +303,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print(normSPMax, normSDMax)
         #print(list_col_names)
         pattern=re.compile('.*p.*[0-9]')
-        print('line 305', list(filter(pattern.match, list_col_names)))
+        #print('line 305', list(filter(pattern.match, list_col_names)))
 
         df_SP_SI_SD=pd.DataFrame(list_SP_SI_SD,columns=list_col_names)
         df_SP_SI_SD=df_SP_SI_SD.dropna(axis=1, how='all')
-        print('line 358', list(filter(pattern.match, df_SP_SI_SD.columns.to_list())))
+        #print('line 358', list(filter(pattern.match, df_SP_SI_SD.columns.to_list())))
        # To show all three in tandem
         # Get rows with more SA entries - non zero SA will result in  SI and maybe SD
         #print(df_SP_SI_SD['reg-page-blk'])
@@ -384,47 +372,48 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     cols_df_SD.append(col_SD_name)
 
         # Add columns so that self is not the only one shown
-            pattern = re.compile('.*self-')
-            add_cols = list(filter(pattern.match, cols_df_SP))
-            if(len(add_cols) ==0):
-                cols_df_SP.insert(0,'SP-self-2')
-                cols_df_SP.insert(1,'SP-self-1')
-                df_SP_SI_SD['SP-self-2']=np.NaN
-                df_SP_SI_SD['SP-self-1']=np.NaN
-            add_cols = list(filter(pattern.match, cols_df_SD))
-            if(len(add_cols) ==0):
-                cols_df_SD.insert(0,'SD-self-2')
-                cols_df_SD.insert(1,'SD-self-1')
-                df_SP_SI_SD['SD-self-2']=np.NaN
-                df_SP_SI_SD['SD-self-1']=np.NaN
-            add_cols = list(filter(pattern.match, cols_df_SI))
-            if(len(add_cols) ==0):
-                cols_df_SI.insert(0,'SI-self-2')
-                cols_df_SI.insert(1,'SI-self-1')
-                df_SP_SI_SD['SI-self-2']=np.NaN
-                df_SP_SI_SD['SI-self-1']=np.NaN
-            pattern = re.compile('.*self\+.*')
-            print(cols_df_SP)
-            add_cols = list(filter(pattern.match, cols_df_SP))
-            print(add_cols)
-            print(len(add_cols))
-            if(len(add_cols) ==0):
-                cols_df_SP.append('SP-self+1')
-                cols_df_SP.append('SP-self+2')
-                df_SP_SI_SD['SP-self+1']=np.NaN
-                df_SP_SI_SD['SP-self+2']=np.NaN
-            add_cols = list(filter(pattern.match, cols_df_SD))
-            if(len(add_cols) ==0):
-                cols_df_SD.append('SD-self+1')
-                cols_df_SD.append('SD-self+2')
-                df_SP_SI_SD['SD-self+1']=np.NaN
-                df_SP_SI_SD['SD-self+2']=np.NaN
-            add_cols = list(filter(pattern.match, cols_df_SI))
-            if(len(add_cols) ==0):
-                cols_df_SI.append('SI-self+1')
-                cols_df_SI.append('SI-self+2')
-                df_SP_SI_SD['SI-self+1']=np.NaN
-                df_SP_SI_SD['SI-self+2']=np.NaN
+            if(numExtraPages==0):
+                pattern = re.compile('.*self-')
+                add_cols = list(filter(pattern.match, cols_df_SP))
+                if(len(add_cols) ==0):
+                    cols_df_SP.insert(0,'SP-self-2')
+                    cols_df_SP.insert(1,'SP-self-1')
+                    df_SP_SI_SD['SP-self-2']=np.NaN
+                    df_SP_SI_SD['SP-self-1']=np.NaN
+                add_cols = list(filter(pattern.match, cols_df_SD))
+                if(len(add_cols) ==0):
+                    cols_df_SD.insert(0,'SD-self-2')
+                    cols_df_SD.insert(1,'SD-self-1')
+                    df_SP_SI_SD['SD-self-2']=np.NaN
+                    df_SP_SI_SD['SD-self-1']=np.NaN
+                add_cols = list(filter(pattern.match, cols_df_SI))
+                if(len(add_cols) ==0):
+                    cols_df_SI.insert(0,'SI-self-2')
+                    cols_df_SI.insert(1,'SI-self-1')
+                    df_SP_SI_SD['SI-self-2']=np.NaN
+                    df_SP_SI_SD['SI-self-1']=np.NaN
+                pattern = re.compile('.*self\+.*')
+                print(cols_df_SP)
+                add_cols = list(filter(pattern.match, cols_df_SP))
+                print(add_cols)
+                print(len(add_cols))
+                if(len(add_cols) ==0):
+                    cols_df_SP.append('SP-self+1')
+                    cols_df_SP.append('SP-self+2')
+                    df_SP_SI_SD['SP-self+1']=np.NaN
+                    df_SP_SI_SD['SP-self+2']=np.NaN
+                add_cols = list(filter(pattern.match, cols_df_SD))
+                if(len(add_cols) ==0):
+                    cols_df_SD.append('SD-self+1')
+                    cols_df_SD.append('SD-self+2')
+                    df_SP_SI_SD['SD-self+1']=np.NaN
+                    df_SP_SI_SD['SD-self+2']=np.NaN
+                add_cols = list(filter(pattern.match, cols_df_SI))
+                if(len(add_cols) ==0):
+                    cols_df_SI.append('SI-self+1')
+                    cols_df_SI.append('SI-self+2')
+                    df_SP_SI_SD['SI-self+1']=np.NaN
+                    df_SP_SI_SD['SI-self+2']=np.NaN
 
 
         #print(cols_df_SP)
@@ -456,9 +445,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             df_hm_SD=df_hm_SD.transpose()
             print('df_hm_SP shape', df_hm_SP.shape)
 
-            fig = plt.figure(constrained_layout=True, figsize=(15, 10))
+            fig = plt.figure(constrained_layout=True, figsize=(15, 12))
             gs = gridspec.GridSpec(1, 2, figure=fig,width_ratios=[12,3])
-            gsleft = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec = gs[0] ,hspace=0.02)#height_ratios=[3.5,3.25,3.25])
+            gsleft = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec = gs[0] ,hspace=0.02)#,height_ratios=[3.25,3.5,3.25])
             gsrightwhole=gridspec.GridSpecFromSubplotSpec(2, 1, height_ratios=[0.01,9.99], subplot_spec = gs[1] ,hspace=0.0)
             gsright = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec = gsrightwhole[1] ,wspace=0.02)
             gsrighttop= fig.add_subplot(gsrightwhole[0])
@@ -485,8 +474,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             gsleft_ax_2.set_ylabel("SI", fontsize=16,style='italic')
 
             gsleft_ax_0.invert_yaxis()
+            list_y_ticks=gsleft_ax_0.get_yminorticklabels()
+            print('SD App minor ', strApp, 'cols ',cols_df_SD, ' list_y ', list_y_ticks, ' len ', len(list_y_ticks))
             list_y_ticks=gsleft_ax_0.get_yticklabels()
             fig_ylabel=[]
+            print('SD App ', strApp, 'cols ',cols_df_SD, ' list_y ', list_y_ticks, ' len ', len(list_y_ticks))
             for y_label in list_y_ticks:
                 if ('self' in cols_df_SD[int(y_label.get_text())]):
                     fig_ylabel.append(cols_df_SD[int(y_label.get_text())][7:])
@@ -504,23 +496,22 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             background_color = mpl.colormaps["Blues"]
 
             gsleft_ax_1.invert_yaxis()
+            #gsleft_ax_1.set_yticks(range(len(cols_df_SP)))
             list_y_ticks=gsleft_ax_1.get_yticklabels()
+
             fig_ylabel=[]
+            print('SA App ', strApp, ' list_y ', list_y_ticks, ' len ', len(list_y_ticks))
             for y_label in list_y_ticks:
                 if ('self' in cols_df_SP[int(y_label.get_text())]):
                     fig_ylabel.append(cols_df_SP[int(y_label.get_text())][7:])
                 else:
                     fig_ylabel.append(cols_df_SP[int(y_label.get_text())][3:])
-            list_x_ticks=gsleft_ax_1.get_xticklabels()
-            fig_xlabel=[]
-            for x_label in list_x_ticks:
-                fig_xlabel.append(df_SP_SI_SD['reg-page-blk'][int(x_label.get_text())])
             gsleft_ax_1.set_yticklabels(fig_ylabel,rotation='horizontal')
-            #gsleft_ax_1.set_xticklabels(fig_xlabel,rotation='vertical')
             gsleft_ax_1.set_xticklabels([])
 
             gsleft_ax_2.invert_yaxis()
             list_y_ticks=gsleft_ax_2.get_yticklabels()
+            print('SI App ', strApp, ' list_y ', list_y_ticks, ' len ', len(list_y_ticks))
             fig_ylabel=[]
             for y_label in list_y_ticks:
                 if ('self' in cols_df_SI[int(y_label.get_text())]):
@@ -613,12 +604,12 @@ if( 1 == 0):
                 listCombineReg=['1-A0000010','4-A0002000'] ,flWeighted=flWeight)
     intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
                 listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight)
-if(1):
+if(0):
     numExtraPages=64
-    intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/spatial_pages/v1_spatial_det.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
-    intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/spatial_pages/v2_spatial_det.txt',3,strMetric='SD-SP-SI', \
+    intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/spatial_pages_exp/v1_spatial_det.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/spatial_pages_exp/v2_spatial_det.txt',3,strMetric='SD-SP-SI', \
                 listCombineReg=['1-A0000010','4-A0002000'] ,flWeighted=flWeight,numExtraPages=numExtraPages)
-    intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/spatial_pages/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
+    intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/spatial_pages_exp/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
                 listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight,numExtraPages=numExtraPages)
 
 if (1 ==0):
@@ -632,10 +623,10 @@ if (1 ==0):
 
 if(1):
     numExtraPages=64
-    intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'_64/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
-    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'_64/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
-    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'_64/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
-    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'_64/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    #intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    #intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    #intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
 
 if ( 1 == 0):
     intraObjectPlot('ResNet', mainPath+'darknet_cluster/resnet152_single/spatial_affinity/spatial.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight)
@@ -651,6 +642,17 @@ if ( 1 == 0):
                     2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'],f_avg=f_avg1, strMetric='SD-SP-SI', flWeighted=flWeight)
     intraObjectPlot('HiParTi - HiCOO',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-0-trace-b8192-p4000000/spatial_affinity_time/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', flWeighted=flWeight)
     intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-1-trace-b8192-p4000000/spatial_affinity_time/spatial.txt',3,f_avg=f_avg1,strMetric='SD-SP-SI', flWeighted=flWeight)
+
+if ( 1 == 0):
+    f_avg1=None
+    numExtraPages=64
+    intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/page_anlys_csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('HiParTi - COO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/page_anlys_coo_u_0/spatial.txt',3,f_avg=f_avg1,\
+                    listCombineReg=['1-A0000010','2-A0000020'], strMetric='SD-SP-SI', flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('HiParTi - COO-Reduce',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/page_anlys_coo_u_1/spatial.txt', \
+                    2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'],f_avg=f_avg1, strMetric='SD-SP-SI', flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('HiParTi - HiCOO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/page_anlys_h_u_0/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/page_anlys_h_u_1/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', flWeighted=flWeight,numExtraPages=numExtraPages)
 
 #intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
 #intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
