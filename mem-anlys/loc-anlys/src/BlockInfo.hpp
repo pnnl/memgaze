@@ -90,6 +90,7 @@ class BlockInfo {
   void printBlockSpatialInterval(std::ofstream& outFile, uint64_t blockWidth, bool flagLastLevel);
   void printBlockSpatialNext(std::ofstream& outFile, uint64_t blockWidth, bool flagLastLevel);
   void printBlockRUD();
+  void printBlockAccess();
 
 };
 #endif

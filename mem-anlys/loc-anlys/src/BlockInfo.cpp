@@ -129,7 +129,7 @@ using namespace std;
 
   void BlockInfo::printBlockRUD(){
     if(totalAccess != 0){
-      printf("Page %d: area %08lx-%08lx, total access %d ", blockID.second, addrMin, addrMax, totalAccess);
+      printf("Page %d: area %08lx-%08lx, Access %d ", blockID.second, addrMin, addrMax, totalAccess);
       if (totalAccess != 1 ){
         //printf("min RUD - %d ,", minRUD);
         //printf("max RUD - %d ,", maxRUD);
@@ -137,6 +137,12 @@ using namespace std;
         printf("smpl-avg RUD %f", sampleAvgRUD);
       } 
       printf("\n");
+    }
+  }
+
+  void BlockInfo::printBlockAccess(){
+    if(totalAccess != 0){
+      printf("Page %d: area %08lx-%08lx, Access %d \n", blockID.second, addrMin, addrMax, totalAccess);
     }
   }
 

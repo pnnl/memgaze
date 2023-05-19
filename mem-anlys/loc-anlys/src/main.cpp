@@ -445,8 +445,8 @@ int main(int argc, char ** argv){
 	int zoomOption = 0;
   int bottomUp = 0;
   int getInsn = 0;
-  uint64_t min = stoull("FFFFFF",0,16); // Added for invalid load address checks - range reduced because heap addresses have 0x1d49620 format
-  uint64_t max = stoull("8F0000000000", 0, 16); // Omit load addresses beyond stack range - 12 hex digits with 7F..
+  uint64_t traceMin = stoull("FFFFFF",0,16); // Added for invalid load address checks - range corrected - load address with 0x1d49620 format refers to offset in double ptwrite loads, and perf drops some records resulting in offset loads being reported
+  uint64_t traceMax = stoull("8F0000000000", 0, 16); // Omit load addresses beyond stack range - 12 hex digits with 7F..
   uint64_t user_max = 0;
 	uint64_t user_min = 0;
 	char *qpoint;
@@ -587,14 +587,14 @@ int main(int argc, char ** argv){
   //check the memory area for the first time
 	uint32_t totalAccess = 0;
   std::cout << "Application: " << memoryfile << "\n";
-	printf("Reading trace with load address in range min %lx max %lx \n", min, max);
+	printf("Reading trace with load address in range min %lx max %lx \n", traceMin, traceMax);
   uint32_t windowMin;
   uint32_t windowMax;
   double windowAvg;
   windowMin=0; 
   windowMax=0;
   windowAvg=0.0;
-  int readReturn = readTrace(memoryfile, &intTotalTraceLine, vecInstAddr, &windowMin, &windowMax, &windowAvg, &max, &min);
+  int readReturn = readTrace(memoryfile, &intTotalTraceLine, vecInstAddr, &windowMin, &windowMax, &windowAvg, &traceMax, &traceMin);
   if(readReturn == -1) {
     printf("Error in readTrace \n");
     return -1;
@@ -602,7 +602,7 @@ int main(int argc, char ** argv){
   totalAccess = intTotalTraceLine;
   printf( "Number of lines in trace %d number of lines with valid addresses %ld total access %d \n", 
           intTotalTraceLine, vecInstAddr.size(), totalAccess);
-	printf("Data from Trace load address min %lx max %lx \n", min, max);
+	printf("Data from Trace load address min %lx max %lx \n", traceMin, traceMax);
   printf("Sample sizes in trace min %d max %d average %f \n", windowMin, windowMax, windowAvg);
   printf("Using Zoom perrcent value %lf\n", zoomThreshold); 
 	printf("Using heap address range to max of %lx \n", heapAddrEnd);
@@ -660,9 +660,10 @@ int main(int argc, char ** argv){
   thisMemblock.rightPid=0;
 	MemArea memarea;
 	MemArea memIncludePages;
+  uint64_t cntAddPages=1;
 	if(memRange ==0){
-			memarea.max = max;
-			memarea.min = min;
+			memarea.max = traceMax;
+			memarea.min = traceMin;
 	}else{
 			memarea.max = user_max;
 			memarea.min = user_min;
@@ -716,9 +717,9 @@ int main(int argc, char ** argv){
           curBlock->printBlockRUD();
         }
       }
-    }
-    // END bottom-up - TRIAL 
-    /************************************************/
+    } // END bottom-up - TRIAL 
+
+    /*-------------------------------------------------------------------------------*/
     // START Analysis and top-down zoom functionality 
     // Spatial Affinity analysis not done in this loop - costs space & time overhead
     while((bottomUp==0) && (done != 1)){ //loop in zoom itr
@@ -751,20 +752,23 @@ int main(int argc, char ** argv){
         for (itr_blk = vecBlockInfo.begin(); itr_blk != vecBlockInfo.end(); ++itr_blk) {
           delete (*itr_blk);
         }
+        cntAddPages=1;
+        memIncludePages.min = traceMin; 
+        memIncludePages.max = traceMax; 
+        memIncludePages.blockSize = OSPageSize;
+        memIncludePages.blockCount = cntAddPages;
         vecBlockInfo.clear();
         for(i = 0; i< memarea.blockCount; i++){
           pair<unsigned int, unsigned int> blockID = make_pair(0, i);
           BlockInfo *newBlock = new BlockInfo(blockID, memarea.min+(i*memarea.blockSize), memarea.min+((i+1)*memarea.blockSize-1), 
-                                              memarea.blockCount, 0, thisMemblock.strID); // spatialResult=0
+                                              memarea.blockCount+cntAddPages, 0, thisMemblock.strID); // spatialResult=0
           vecBlockInfo.push_back(newBlock);
         }
         if (memarea.blockSize == cacheLineWidth) { 
-          // Affinity analysis not done in this loop - costly space & time overhead
-          // RUD analyisis only
+          // RUD analyisis only - Affinity analysis not done in this loop - costly space & time overhead
   		    analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo,false, setRegionAddr,false,memIncludePages); // spatialResult=0
         } else {
           analysisReturn= getAccessCount(vecInstAddr,   memarea,  coreNumber , vecBlockInfo );
-  		    //analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo,false, setRegionAddr,false,memIncludePages); // spatialResult=0
         }
         if(analysisReturn ==-1) {
           printf("No analysis done\n");
@@ -777,7 +781,10 @@ int main(int argc, char ** argv){
         sampleRud.clear();
         for(i = 0; i< memarea.blockCount; i++){
           BlockInfo *curBlock = vecBlockInfo.at(i);
-          curBlock->printBlockRUD();
+          if (memarea.blockSize == cacheLineWidth) { 
+            curBlock->printBlockRUD();
+          } else
+            curBlock->printBlockAccess();
           pageTotalAccess.push_back(curBlock->getTotalAccess());
           Rud.push_back(curBlock->getAvgRUD());
           sampleRud.push_back(curBlock->getSampleAvgRUD());
@@ -887,11 +894,16 @@ int main(int argc, char ** argv){
     for (itr_blk = vecBlockInfo.begin(); itr_blk != vecBlockInfo.end(); ++itr_blk) {
         delete (*itr_blk);
     }
+    cntAddPages=1;
+    memIncludePages.min = traceMin; 
+    memIncludePages.max = traceMax; 
+    memIncludePages.blockSize = OSPageSize;
+    memIncludePages.blockCount = cntAddPages;
     vecBlockInfo.clear(); 
     for(i = 0; i< memarea.blockCount; i++){
         pair<unsigned int, unsigned int> blockID = make_pair(0, i);
         BlockInfo *newBlock = new BlockInfo(blockID, setRegionAddr[i].first, setRegionAddr[i].second, 
-                                              memarea.blockCount, spatialResult, mapMinAddrToID[setRegionAddr[i].first]); 
+                                              memarea.blockCount+cntAddPages, spatialResult, mapMinAddrToID[setRegionAddr[i].first]); 
           vecBlockInfo.push_back(newBlock);
       }
      // Affinity analysis done for inter-region - region based range - to identify co-existence of objects
@@ -935,12 +947,6 @@ int main(int argc, char ** argv){
         mapMinAddrToID[memarea.min] = thisMemblock.strID;
         memarea.blockSize = OSPageSize; 
        	memarea.blockCount =  ceil((memarea.max - memarea.min)/(double)memarea.blockSize);
-        // FOR 100 line trace - calculate SD at root level for verification
-	      //totalAccess = areacheck(memoryfile, &max, &min, &coreNumber);
-      	//memarea.max = max;
-  	    //memarea.min = min;
-       	//memarea.blockCount =  mempin; 
-  	    //memarea.blockSize = ceil((memarea.max - memarea.min)/(double)mempin);
         printf(" STEP2 in before zoom spatial %d size %ld count %d memarea.min %08lx memarea.max %08lx ID %s \n", thisMemblock.level, 
                             memarea.blockSize, memarea.blockCount, memarea.min, memarea.max, (thisMemblock.strID).c_str());
 	  	  printf("Memory address min %lx max %lx ", memarea.min, memarea.max);
@@ -957,7 +963,6 @@ int main(int argc, char ** argv){
                                               memarea.blockCount, 0, mapMinAddrToID[memarea.min]); 
           vecBlockInfo.push_back(newBlock);
         }
-  		  //analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo,false, setRegionAddr,false, memIncludePages); // spatialResult=0
         analysisReturn= getAccessCount(vecInstAddr,   memarea,  coreNumber , vecBlockInfo );
         if(analysisReturn ==-1) {
           printf("Spatial Analysis Step 2 - Zoom into objects to find OS page sized %ld B hot blocks returned without results\n", OSPageSize);
@@ -968,7 +973,7 @@ int main(int argc, char ** argv){
         sampleRud.clear();
         for(i = 0; i< memarea.blockCount; i++){
           BlockInfo *curBlock = vecBlockInfo.at(i);
-          curBlock->printBlockRUD();
+          curBlock->printBlockAccess();
           pageTotalAccess.push_back(curBlock->getTotalAccess());
           sampleRud.push_back(curBlock->getSampleAvgRUD());
         }
@@ -998,15 +1003,16 @@ int main(int argc, char ** argv){
         delete (*itr_blk);
       }
       vecBlockInfo.clear();
-      // NEW experiment to check sparsity patterna
-      bool blFlagAddPages = false;
-      uint32_t addPages = 64;
-      if(addPages > 0)
-        blFlagAddPages = true;
+      // NEW experiment to cover blindspots 
+      cntAddPages = 64;
+      memIncludePages.min = traceMin; 
+      memIncludePages.max = traceMax; 
+      memIncludePages.blockSize = OSPageSize;
+      memIncludePages.blockCount = cntAddPages;
       for(i = 0; i< memarea.blockCount; i++){
         pair<unsigned int, unsigned int> blockID = make_pair(0, i);
         BlockInfo *newBlock = new BlockInfo(blockID, memarea.min+(i*memarea.blockSize), memarea.min+((i+1)*memarea.blockSize-1), 
-                                              memarea.blockCount+addPages, spatialResult,mapMinAddrToID[memarea.min]); 
+                                              memarea.blockCount+cntAddPages, spatialResult,mapMinAddrToID[memarea.min]); 
         vecBlockInfo.push_back(newBlock);
       }
       printf(" STEP3 in spatial %d size %ld count %d memarea.min %08lx memarea.max %08lx ID %s \n", thisMemblock.level, memarea.blockSize, 
@@ -1014,12 +1020,8 @@ int main(int argc, char ** argv){
 		  printf("Memory address min %lx max %lx ", memarea.min, memarea.max);
 			printf(" page number = %d ", memarea.blockCount);
 			printf(" page size =  %ld\n", memarea.blockSize);
-      memIncludePages.min = memarea.min - ((addPages/2)*OSPageSize*4);
-      memIncludePages.max = memarea.max + ((addPages/2)*OSPageSize*4);
-      memIncludePages.blockSize = OSPageSize*4;
-      memIncludePages.blockCount = addPages;
       
-		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, false, setRegionAddr, blFlagAddPages, memIncludePages);
+		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, false, setRegionAddr, true, memIncludePages);
       if(analysisReturn ==-1) {
         printf("Spatial Analysis Step 2 - Zoom into objects to find OS page sized %ld B hot blocks returned without results\n", OSPageSize);
         return -1;
@@ -1058,8 +1060,8 @@ int main(int argc, char ** argv){
    if(model == 1 ){
 	   //initial memarea
 	   if(memRange ==0){
-			memarea.max = max;
-			memarea.min = min;
+			memarea.max = traceMax;
+			memarea.min = traceMin;
 		}else{
 			memarea.max = user_max;
 			memarea.min = user_min;
