@@ -203,13 +203,16 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         print(df_intra_obj.columns.to_list())
         colRearrangeList =[]
         if (numExtraPages !=0):
+            print(len(df_intra_obj.columns.to_list()))
             colRearrangeList = getRearrangeColumns(df_intra_obj.columns.to_list())
+            print(len(colRearrangeList))
         else:
             colRearrangeList = df_intra_obj.columns.to_list()
 
         df_intra_obj = df_intra_obj[colRearrangeList]
         df_intra_obj.drop('Type',axis=1,inplace=True)
         colNameList =df_intra_obj.columns.to_list()
+        print(colNameList)
         # Adding weighting by page access total here
         if (flWeight == True):
             print('before weight \n ' , df_intra_obj[['reg-page-blk', 'Access', 'self', 'self+1', 'self-255']])
@@ -229,6 +232,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     if ((normSDMax[arRegPageIndex]) < list_DF_Intra_obj[i][j]):
                             normSDMax[arRegPageIndex] = list_DF_Intra_obj[i][j]
             df_intra_obj=pd.DataFrame(list_DF_Intra_obj,columns=(colNameList))
+
+            for colName in metricColumns:
+                df_intra_obj[colName]=pd.to_numeric(df_intra_obj[colName])
 
             print('before normalize \n ' , df_intra_obj[['reg-page-blk', 'Access', 'self', 'self+1']])
             arRegPageIndex = 0
@@ -455,8 +461,8 @@ mainPath='/Users/suri836/Projects/spatial_rud/'
 #intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight)
 #intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_0/spatial.txt', 1,flWeight=flWeight)
 numExtraPages=64
-intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'_64/spatial.txt', 1,flWeight=flWeight,numExtraPages=numExtraPages)
-intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'_64/spatial.txt', 1,flWeight=flWeight,numExtraPages=numExtraPages)
+intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,flWeight=flWeight,numExtraPages=numExtraPages)
+intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,flWeight=flWeight,numExtraPages=numExtraPages)
 
 
 #Minivite - paper plots SD - Combine regions

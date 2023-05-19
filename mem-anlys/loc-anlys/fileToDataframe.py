@@ -113,7 +113,7 @@ def getRearrangeColumns(listColNames):
     #print(len(colList)-selfEndIndex[0]-1)
     colRearrangeList=colList[:selfStartIndex[0]]
     colRearrangeList.extend(lowerPagelist)
-    colRearrangeList.extend(colList[selfStartIndex[0]: (len(colList)-selfEndIndex[0]-1)])
+    colRearrangeList.extend(colList[selfStartIndex[0]: (len(colList)-selfEndIndex[0])])
     colRearrangeList.extend(upperPagelist)
     colRearrangeList.append(colList[-1])
     return colRearrangeList

@@ -340,7 +340,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             str_col_orig_name = str(col_orig_name)
             #print('column name', str_col_orig_name)#, df_SP_SI_SD[col_orig_name])
             #print(df_SP_SI_SD[col_orig_name].isnull().all())
-            if ( (not (df_SP_SI_SD[col_orig_name].isnull().all())) and (np.sum(df_SP_SI_SD[col_orig_name]>=0.01) > 2)):
+            if ( (not (df_SP_SI_SD[col_orig_name].isnull().all())) and (np.sum(df_SP_SI_SD[col_orig_name]>=0.05) > 2)):
                 #print(' return value ', np.sum(df_SP_SI_SD[col_orig_name]>=0.01))
                 #print(col_orig_name)
                 col_SP_name='SP-'+str_col_orig_name[3:]
@@ -623,10 +623,10 @@ if (1 ==0):
 
 if(1):
     numExtraPages=64
-    #intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
     intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
-    #intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
-    #intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
 
 if ( 1 == 0):
     intraObjectPlot('ResNet', mainPath+'darknet_cluster/resnet152_single/spatial_affinity/spatial.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight)
