@@ -32,48 +32,23 @@ using namespace std;
     totalRUD=-1;
     avgRUD=-1.0;
     sampleAvgRUD=-1.0;
-    minRUD=-1;
-    maxRUD=-1;
     lifetime=0;
-    if(spatialResult == 1) {
-    //vector <pair<uint32_t, class SpatialRUD*>> vecSpatialResult;
-    /*
-    spatialNext = new  uint16_t[numBlocksInLevel];
-    totalAccessAllBlocks = new  uint32_t[numBlocksInLevel];
-    spatialMiddle = new uint16_t[numBlocksInLevel];
-    totalSpatialDist = new  uint16_t[numBlocksInLevel];
-    spatialAccess = new  uint16_t[numBlocksInLevel];
-    minSpatialDist = new  int[numBlocksInLevel];
-    maxSpatialDist = new  int[numBlocksInLevel];
-    */
-    }
   }
   
   BlockInfo::~BlockInfo()
   {
- /*     delete spatialNext;
-      delete totalAccessAllBlocks;
-      delete spatialMiddle; 
-      delete totalSpatialDist; 
-      delete spatialAccess; 
-      delete minSpatialDist; 
-      delete maxSpatialDist; 
-  */
-
   }
   
   void BlockInfo::setAccess(uint32_t _totalAccess) 
   {
     totalAccess = _totalAccess;
   }
-  void BlockInfo::setAccessRUD(uint32_t _totalAccess, int _totalRUD, int _minRUD, int _maxRUD, uint32_t _lifetime, double _sampleAvgRUD)
+  void BlockInfo::setAccessRUD(uint32_t _totalAccess, int _totalRUD,  uint32_t _lifetime, double _sampleAvgRUD)
   {
     totalAccess = _totalAccess;
     totalRUD = _totalRUD;
     if(totalAccess > 1)
       avgRUD = (double)totalRUD/(double)(totalAccess-1);
-    minRUD = _minRUD;
-    maxRUD = _maxRUD;
     lifetime = _lifetime;
     sampleAvgRUD = _sampleAvgRUD;
   }
@@ -108,31 +83,17 @@ using namespace std;
     for (unsigned int i=0; i<numBlocksInLevel; i++)
       *(totalSpatialDist+i) = *(_totalSpatialDist+i);
   }
-  void BlockInfo::setMinSpatialDist(int * _minSpatialDist)
-  {
-    for (unsigned int i=0; i<numBlocksInLevel; i++)
-      *(minSpatialDist+i) = *(_minSpatialDist+i);
-  }
-  void BlockInfo::setMaxSpatialDist(int * _maxSpatialDist)
-  {
-    for (unsigned int i=0; i<numBlocksInLevel; i++)
-      *(maxSpatialDist+i) = *(_maxSpatialDist+i);
-  }
   
   uint32_t BlockInfo::getTotalAccess() { return totalAccess;}
   int BlockInfo::getTotalRUD() { return totalRUD;}
   double BlockInfo::getAvgRUD() { return avgRUD;}
   double BlockInfo::getSampleAvgRUD() { return sampleAvgRUD;}
   uint32_t BlockInfo::getLifetime() { return lifetime;}
-  int BlockInfo::getMinRUD() { return minRUD;}
-  int BlockInfo::getMaxRUD() { return maxRUD;}
 
   void BlockInfo::printBlockRUD(){
     if(totalAccess != 0){
       printf("Page %d: area %08lx-%08lx, Access %d ", blockID.second, addrMin, addrMax, totalAccess);
       if (totalAccess != 1 ){
-        //printf("min RUD - %d ,", minRUD);
-        //printf("max RUD - %d ,", maxRUD);
         //printf("average RUD - %f, ", avgRUD);
         printf("smpl-avg RUD %f", sampleAvgRUD);
       } 
@@ -340,7 +301,7 @@ using namespace std;
 }
   
   void BlockInfo::printBlockInfo(){
-    printf("*** Page ID %d Area %08lx-%08lx level %d block num %d  Access %d RUD avg %lf min %d max %d lifetime %d sampleAvgRUD %f \n "
-               , blockID.second, addrMin, addrMax, blockID.first, blockID.second, totalAccess, avgRUD, minRUD, maxRUD, lifetime, sampleAvgRUD);
+    printf("*** Page ID %d Area %08lx-%08lx level %d block num %d  Access %d RUD avg %lf lifetime %d sampleAvgRUD %f \n "
+               , blockID.second, addrMin, addrMax, blockID.first, blockID.second, totalAccess, avgRUD, lifetime, sampleAvgRUD);
   }
 

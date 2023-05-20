@@ -50,8 +50,6 @@ class BlockInfo {
     int totalRUD=-1;
     double avgRUD=-1.0;
     double sampleAvgRUD=-1.0;
-    int minRUD=-1;
-    int maxRUD=-1;
     uint32_t lifetime=0;
     vector <pair<uint32_t, class SpatialRUD*>> vecSpatialResult;
     uint32_t *totalAccessAllBlocks;
@@ -59,13 +57,11 @@ class BlockInfo {
     uint16_t *spatialAccess;
     uint16_t *spatialMiddle;
     uint16_t *totalSpatialDist; 
-    int *minSpatialDist;
-    int *maxSpatialDist;
 
   BlockInfo(pair< unsigned int, unsigned int> _blockID,  uint64_t _addrMin, uint64_t _addrMax, unsigned int _numBlocksInLevel, int spatialResult, string _strBlockId);
   ~BlockInfo();
   void setAccess(uint32_t _totalAccess); 
-  void setAccessRUD(uint32_t _totalAccess, int _totalRUD, int _minRUD, int _maxRUD, uint32_t lifetime, double _sampleAvgRUD);
+  void setAccessRUD(uint32_t _totalAccess, int _totalRUD, uint32_t lifetime, double _sampleAvgRUD);
   void setSpatialRUD(uint32_t blkID, SpatialRUD* curSpatialRUD);
 
   void setTotalAccessAllBlocks( uint32_t  * _totalAccessAllBlocks);
@@ -73,8 +69,6 @@ class BlockInfo {
   void setSpatialAccess( uint16_t  * _spatialAccess);
   void setSpatialMiddle( uint16_t * _spatialMiddle);
   void setTotalSpatialDist( uint16_t * _totalSpatialDist);
-  void setMinSpatialDist( int * _minSpatialDist);
-  void setMaxSpatialDist( int * _maxSpatialDist);
   
   uint32_t getTotalAccess(); 
   uint32_t getLifetime(); 
