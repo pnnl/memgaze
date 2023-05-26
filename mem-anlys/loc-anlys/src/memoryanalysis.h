@@ -295,14 +295,14 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
     //totalCAccess[ptrTraceLine->getCoreNum()]++; // Ununsed - coreNumber (index) is 0 - Seg faults
     totalinst++; // Time does not gets filtered 
     // minivite v3  55c45da0c170-55c45da1416f 55c45da0c170-55c45da1416f
+    //0190d8e0 memarea.max 019118df
     /*
-    uint64_t low_addr = stoull("55c45da0c170", 0, 16); uint64_t high_addr = stoull("55c45da1416f", 0, 16);
-    if ((((loadAddr>= low_addr) && (loadAddr <= high_addr)) ) && (spatialResult ==1))
+    uint64_t low_addr = stoull("0190d8e0", 0, 16); uint64_t high_addr = stoull("019118df", 0, 16);
+    if ((((memarea.min>= low_addr) && (memarea.max <= high_addr)) ) && (spatialResult ==1))
       printDebug=1;
     else
       printDebug=0;
     */
-
      /* REMOVE - filtering by address for spatial analysis - handle blindspots
       if(( (loadAddr>=memarea.min)&&(loadAddr<=memarea.max)) 
       || ((flagSetRegion==1) && (loadAddr>=setRegionAddr[0].first)&&(loadAddr<=setRegionAddr[(setRegionAddr.size()-1)].second))
@@ -361,6 +361,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
               sampleLastAccess[i]=0;
               sampleRefdistance[i]=0;
               sampleLifetime[i]=0;
+              if(printDebug ==1 ) printf(" pageID %d, sampleRef[%d] %d inSampleAccess[%d] %d \n", i,i, sampleRefdistance[i], i, inSampleAccess[i]);
             }
             blNewSample=1;
           }
@@ -384,7 +385,11 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
                   if( pageID < memarea.blockCount) pageID++; // Do not overwrite spill into actual results
               } else if ( loadAddr > memarea.max) {
                   pageID = memarea.blockCount + ceil(log(ceil(((double)(loadAddr-memarea.max)/(double)memIncludeArea.blockSize)))/log(2)) + (memIncludeArea.blockCount/2)  ;
-                  if( pageID >= (memarea.blockCount+(memIncludeArea.blockCount))) pageID--; // Beyond 2^31 put in the same bucket
+                  if( pageID >= (memarea.blockCount+(memIncludeArea.blockCount))) { 
+                  if(printDebug) printf( "in IF more more loadAddr %ld memarea.max %ld diff %lf ceil %lf  add %d pageID %d \n", loadAddr, memarea.max, 
+                    ((double)(loadAddr-memarea.max)/(double)memIncludeArea.blockSize), ceil(((double)(loadAddr-memarea.max)/(double)memIncludeArea.blockSize)), memarea.blockCount, pageID);
+                      pageID = memarea.blockCount+memIncludeArea.blockCount-1; // Beyond 2^31 put in the same bucket
+                  }
                   if(printDebug) printf( "more loadAddr %ld memarea.max %ld diff %lf ceil %lf  add %d pageID %d \n", loadAddr, memarea.max, 
                     ((double)(loadAddr-memarea.max)/(double)memIncludeArea.blockSize), ceil(((double)(loadAddr-memarea.max)/(double)memIncludeArea.blockSize)), memarea.blockCount, pageID);
               }
@@ -432,6 +437,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
     				if ((distance[pageID]>maxDistance[pageID])||(maxDistance[pageID]==-1)) maxDistance[pageID] = distance[pageID];
     				if ((distance[pageID]<minDistance[pageID])||(minDistance[pageID]==-1)) minDistance[pageID] = distance[pageID];
     			} */
+            if(printDebug ==1 ) printf(" pageID %d, sampleRef[%d] %d inSampleAccess[%d] %d \n", pageID, pageID, sampleRefdistance[pageID], pageID, inSampleAccess[pageID]);
       		if (inSampleAccess[pageID] == 1){
       			sampleStack[sampleStackLength] = pageID;
       			sampleStackLength++;
