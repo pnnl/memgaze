@@ -42,8 +42,10 @@ MK_PROGRAMS_CXX = $(mg_analyze)
 
 $(mg_analyze)_SRCS = \
 	src/main.cpp \
+	src/structure.cpp \
 	src/BlockInfo.cpp \
 	src/SpatialRUD.cpp \
+	src/memoryanalysis.cpp \
 
 # src/memoryanalysis.h \
 # src/memorymodeling.h\

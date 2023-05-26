@@ -24,6 +24,12 @@
 #define LIFO 1
 #define PAGEHIT 2
 
+uint64_t addrThreshold = stoull("FFFFFFFF",0,16);   //Threshold for checking if the addr is a offsit of PTR write
+uint64_t pageSize; 
+
+int phyPage;
+uint32_t mempin;
+
 //configruation parameters
 int queueNumber;
 int queuePolicy;

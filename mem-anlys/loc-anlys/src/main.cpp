@@ -1,6 +1,6 @@
-#include "structure.h"
 #include "memoryanalysis.h"
 #include "memorymodeling.h"
+
 using std::list;
 // Global variables for threshold values
 int32_t lvlConstBlockSize = 2; // Level for setting constant blocksize in zoom
