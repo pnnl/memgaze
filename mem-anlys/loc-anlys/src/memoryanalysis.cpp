@@ -28,15 +28,16 @@ int readTrace(string filename, int *intTotalTraceLine,  vector<TraceLine *>& vec
   // read the state line
   string line,ip,addr,core, inittime, sampleIdStr;
   string dso_id, dso_value; 
-  uint64_t insPtrAddr, loadAddr, instTime; 
-  uint32_t  coreNum; 
-  int  sampleId, curSampleId, prevSampleId; 
+  uint64_t insPtrAddr, loadAddr; 
+  uint32_t instTime; 
+  uint8_t  coreNum; 
+  uint32_t  sampleId, curSampleId, prevSampleId; 
   uint32_t  curSampleCnt, numSamples; 
   map <int, string> dsoMap;
   curSampleCnt = 0;
   numSamples=0;
-  prevSampleId=-1;
-  curSampleId=-1;  
+  prevSampleId=0;
+  curSampleId=0;  
 	core = "0";
   bool isDSO = false, anyDSO = false;
   bool isTrace = false;
@@ -81,7 +82,7 @@ int readTrace(string filename, int *intTotalTraceLine,  vector<TraceLine *>& vec
           instTime= stoull(inittime);
         	getline(s,sampleIdStr,' ');
           sampleId= stoull(sampleIdStr);
-          if ( (curSampleId ==-1) && (prevSampleId ==-1)) {
+          if ( (curSampleId ==0) && (prevSampleId ==0)) {
              curSampleId=sampleId;
             prevSampleId=sampleId;
             numSamples++;
@@ -121,7 +122,7 @@ Get IP for data addresses in memarea
 */
 void getInstInRange(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,MemArea memarea)
 {
-	uint64_t loadAddr =0;  //used for offsit check
+	uint64_t loadAddr =0;  
   std::map<uint64_t,uint32_t> insMap;
   std::map<uint64_t,uint32_t>::iterator it;
   uint64_t insPtrAddr;
@@ -155,6 +156,40 @@ void getInstInRange(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,Mem
   for (itr=sortInstr.begin(); itr!=sortInstr.end(); itr++)
     printf("%lx\\|", itr->second);
   printf("\n");
+}
+
+/* Update trace wih region Id based on load address
+ * Set UINT8_MAX-1 to non hot regions
+ * Set UINT8_MAX to stack - above heap
+*/
+
+int updateTraceRegion(vector<TraceLine *>& vecInstAddr ,vector<pair<uint64_t, uint64_t>> setRegionAddr, uint64_t heapAddrEnd) {
+  TraceLine *ptrTraceLine;
+	uint64_t loadAddr =0;  
+  bool flInRegion = false;
+  uint8_t k =0;
+  for (uint32_t itr=0; itr<vecInstAddr.size(); itr++){
+      ptrTraceLine=vecInstAddr.at(itr);
+      //ptrTraceLine->printTraceLine();    
+      loadAddr = ptrTraceLine->getLoadAddr();
+      flInRegion = false;
+      for (k=0; k<setRegionAddr.size(); k++) {
+        if((loadAddr>=setRegionAddr[k].first)&&(loadAddr<=setRegionAddr[k].second)) {
+          flInRegion=true;
+          break;
+        } 
+      }
+      if(flInRegion)
+        ptrTraceLine->setRegionId(k);
+      else {
+        if (loadAddr > heapAddrEnd) 
+          ptrTraceLine->setRegionId(UINT8_MAX);
+        else
+          ptrTraceLine->setRegionId(UINT8_MAX-1);
+      }
+    //ptrTraceLine->printTraceRegion();
+  }
+  return 0;
 }
 
 /* 
@@ -273,10 +308,11 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
 	  inSampleAvgRUD[i] = -1; 
 	}
   printf("Spatial analysis before vector procesing address range %08lx - %08lx \n", memarea.min, memarea.max);
-	int lastPage = 0;
-  uint64_t totalinst = 0;
+	uint32_t lastPage = 0;
+  uint32_t totalinst = 0;
 	int time = 0 ;
   uint32_t pageID =0;
+  uint8_t regionID=0;
   if(printDebug) printf("Size of vector %ld\n", vecBlockInfo.size()); 
   // START - Vector FOR loop 
   for (uint32_t itr=0; itr<vecInstAddr.size(); itr++){
@@ -284,10 +320,12 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
       if(itr%1000000==0) printf("in spatial analysis procesing trace line %d\n", itr);
     }
     ptrTraceLine=vecInstAddr.at(itr);
-    //ptrTraceLine->printTraceLine();    
+    //ptrTraceLine->printTraceRegion();    
     loadAddr = ptrTraceLine->getLoadAddr();
-    //totalCAccess[ptrTraceLine->getCoreNum()]++; // Ununsed - coreNumber (index) is 0 - Seg faults
+    regionID =  ptrTraceLine->getRegionId();
     totalinst++; // Time does not gets filtered 
+    //totalCAccess[ptrTraceLine->getCoreNum()]++; // Ununsed - coreNumber (index) is 0 - Seg faults
+
     // minivite v3  55c45da0c170-55c45da1416f 55c45da0c170-55c45da1416f
     //0190d8e0 memarea.max 019118df
     /*
@@ -297,6 +335,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
     else
       printDebug=0;
     */
+
      /* REMOVE - filtering by address for spatial analysis - handle blindspots
       if(( (loadAddr>=memarea.min)&&(loadAddr<=memarea.max)) 
       || ((flagSetRegion==1) && (loadAddr>=setRegionAddr[0].first)&&(loadAddr<=setRegionAddr[(setRegionAddr.size()-1)].second))
@@ -316,7 +355,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
       */
         //totalinst++; // Filter by region trace - Time also gets filtered would not be correct for SI or SD
       	curSampleId = ptrTraceLine->getSampleId();
-        if ((printDebug)) printf(" %08lx totalinst %ld \n", loadAddr,totalinst);
+        if ((printDebug)) printf(" %08lx totalinst %d \n", loadAddr,totalinst);
         if ((((itr!=0) && (curSampleId != prevSampleId))) ) 
         {
           if(printDebug) printf(" ----- NEW SAMPLE %08lx prevSampleID %d curSampleId %d\n", loadAddr, prevSampleId, curSampleId);
@@ -390,6 +429,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
             } 
             if(printDebug) printf( "loadAddr %08lx memarea.min %08lx  memarea.max %08lx pageID %d\n", loadAddr, memarea.min, memarea.max, pageID );
           } else {
+            /*
             bool flInRegion = false;
             for (uint32_t k=0; k<setRegionAddr.size(); k++) {
              if((loadAddr>=setRegionAddr[k].first)&&(loadAddr<=setRegionAddr[k].second)) {
@@ -399,6 +439,12 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
              } 
             }
             if( flInRegion == false) pageID = memarea.blockCount; // Put all other accesses into one bucket
+            */
+            if( (regionID == UINT8_MAX) || (regionID == (UINT8_MAX -1)))
+              pageID = memarea.blockCount;
+            else
+              pageID = regionID;
+            //printf( "loadAddr %08lx regionID %d pageID %d\n", loadAddr, regionID, pageID );
           }
       		totalAccess[pageID]++;
           inSampleAccess[pageID]++;
@@ -473,7 +519,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
      				
           if((spatialResult == 1) && (blNewSample==0) ) {
        	  	//record the access in mid
-     	  	  if(printDebug) printf("******* %ld: page ID %d\n", totalinst, pageID);
+     	  	  if(printDebug) printf("******* %d: page ID %d\n", totalinst, pageID);
             if(pageID < memarea.blockCount) {
      		  	  for(j = 0; j < numBlocks; j++){
                 if(totalAccess[j] !=0) {

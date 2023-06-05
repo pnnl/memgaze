@@ -1,5 +1,6 @@
 #include "memoryanalysis.h"
 #include "memorymodeling.h"
+#include "hyperloglog.hpp"
 
 using std::list;
 // Global variables for threshold values
@@ -421,6 +422,7 @@ int main(int argc, char ** argv){
 			  //stack changes between 0x7f.. in single threaded to 0x7ff.. in multi-threaded application
 			  printf("--heapAddrEnd\t: Set heap address max value - spcify end (length of address 12), located in memgaze.config file \n"); 
 			  printf("--insn\t: Find instructions in memRange - use with memRange\n");
+			  printf("--count\t: Find cardinality in trace\n");
 			  //printf("--bottomUp\t: enable bottom-up analysis - doesnt implement feature yet\n");
 			  return -1;
 		  }
@@ -445,6 +447,7 @@ int main(int argc, char ** argv){
 	int zoomOption = 0;
   int bottomUp = 0;
   int getInsn = 0;
+  int countCardinality=0;
   uint64_t traceMin = stoull("FFFFFF",0,16); // Added for invalid load address checks - range corrected - load address with 0x1d49620 format refers to offset in double ptwrite loads, and perf drops some records resulting in offset loads being reported
   uint64_t traceMax = stoull("8F0000000000", 0, 16); // Omit load addresses beyond stack range - 12 hex digits with 7F..
   uint64_t user_max = 0;
@@ -461,6 +464,7 @@ int main(int argc, char ** argv){
   // Minivite - Single threaded - stack starts at 0x7f
   // Others - multi-threaded stack starts at 0x7ff
   heapAddrEnd = stol("7f0000000000",0,16); // stack region is getting included in mid-point 
+
 
 	//get parameters
   while(argc > argi){
@@ -579,6 +583,10 @@ int main(int argc, char ** argv){
         return -1;
       }
 		}
+		if (strcmp(qpoint, "--count") == 0){
+			printf("--count : Find cardinality for trace %s\n", memoryfile);
+      countCardinality = 1;
+    }
   }
   
 	if(model == 1){
@@ -599,6 +607,18 @@ int main(int argc, char ** argv){
     printf("Error in readTrace \n");
     return -1;
   }
+  if(countCardinality ==1) {
+     TraceLine *ptrTraceLine;
+     hll::HyperLogLog hll(4);
+    for (uint32_t itr=0; itr<vecInstAddr.size(); itr++){
+      ptrTraceLine=vecInstAddr.at(itr);
+      std::string strLoadAddr = std::to_string(ptrTraceLine->getLoadAddr());
+      hll.add(strLoadAddr.c_str(), strLoadAddr.size());
+      }
+    double cardinality = hll.estimate();
+    std::cout << "Cardinality:" << cardinality << std::endl;
+  }
+    
   totalAccess = intTotalTraceLine;
   printf( "Number of lines in trace %d number of lines with valid addresses %ld total access %d \n", 
           intTotalTraceLine, vecInstAddr.size(), totalAccess);
@@ -886,6 +906,13 @@ int main(int argc, char ** argv){
       printf("In Spatial Analysis Step 1 - Region address list is empty\n");
       return 0;
     }
+    // STEP 1.5 - Update Trace with region Ids for addresses
+    int updateReturn = updateTraceRegion(vecInstAddr ,setRegionAddr, heapAddrEnd);
+    if(updateReturn !=0) {
+      printf("Error in updateTraceRegion\n");
+      return -1;
+    }
+    
     memarea.min = setRegionAddr[0].first;
     memarea.max = setRegionAddr[(setRegionAddr.size()-1)].second;
     memarea.blockCount = setRegionAddr.size();
