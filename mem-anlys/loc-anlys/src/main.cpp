@@ -225,7 +225,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
       vecBlockId.push_back(vecAccessBlockId[iter].second);
       //printf( " sorted vector blockid %ld access %ld \n", vecAccessBlockId[iter].second, vecAccessBlockId[iter].first);
     }
-    // SORT - based on blockid (cache line number)
+    // SORT - based on blockid 
     std::sort(vecBlockId.begin(), vecBlockId.end() );
 
     for (int iter =0; iter< ((int)vecBlockId.size()); iter++) {
@@ -256,7 +256,6 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
 int writeZoomFile(const MemArea memarea, const Memblock thisMemblock, const vector<BlockInfo *>& vecBlockInfo, std::ofstream& zoomFile_det, 
                   uint32_t* thresholdTotAccess, int zoominTimes, int writeOption) 
 {
-  double * w_Rud; 
   double * w_sampleRud; 
   uint32_t * w_pageTotalAccess; 
   uint32_t printTotAccess =0;
@@ -284,7 +283,6 @@ int writeZoomFile(const MemArea memarea, const Memblock thisMemblock, const vect
       return 0;
   } else {
     w_pageTotalAccess = new uint32_t [memarea.blockCount];   
-    w_Rud = new double [memarea.blockCount];   // Whole trace RUD
     w_sampleRud = new double [memarea.blockCount];   //Intra-sample RUD
     w_printPageAccess.clear();
     w_printPageRUD.clear();
@@ -301,7 +299,7 @@ int writeZoomFile(const MemArea memarea, const Memblock thisMemblock, const vect
       BlockInfo *curBlock = vecBlockInfo.at(i);
       //curBlock->printBlockRUD();
       w_pageTotalAccess[i]=curBlock->getTotalAccess();
-      w_Rud[i]=curBlock->getAvgRUD();
+      //w_Rud[i]=curBlock->getAvgRUD();
       w_sampleRud[i]=curBlock->getSampleAvgRUD();
       if(w_pageTotalAccess[i]!=0){
           //printf("level %d Non-Zero access %d %ld \n", thisMemblock.level, i, pageTotalAccess[i]);
@@ -309,11 +307,6 @@ int writeZoomFile(const MemArea memarea, const Memblock thisMemblock, const vect
           cntSingleAccessblocks++;
         printTotAccess+=w_pageTotalAccess[i];
         w_printPageAccess.push_back(w_pageTotalAccess[i]); 
-        if(w_Rud[i] != -1){ 
-          w_printPageRUD.push_back(w_Rud[i]);
-          printAvgRUD+= w_Rud[i];
-          printAvgRUDdiv+=1;
-        }
         if(w_sampleRud[i] != -1){ 
           w_printPageSampleRUD.push_back(w_sampleRud[i]);
           printSampleAvgRUD+= w_sampleRud[i];
@@ -370,12 +363,12 @@ int writeZoomFile(const MemArea memarea, const Memblock thisMemblock, const vect
         if(thisMemblock.level ==1) 
 	         zoomFile_det << std::dec << "p"<< i << ": " 
                     <<hex << blockMinAddr <<"-" << hex<< blockMaxAddr 
-                    //<< " "<< std::dec<< w_pageTotalAccess[i] << "(" << w_Rud[i]<< ","<<w_sampleRud[i]<< ");";
+                    //<< " "<< std::dec<< w_pageTotalAccess[i] << "(" << w_sampleRud[i]<< ");";
                     << " " << std::dec<< w_pageTotalAccess[i] << " ";
         else if(memarea.blockSize == cacheLineWidth) 
 			      zoomFile_det << std::dec << "p"<< i << ":" 
                     //<<hex << blockMinAddr <<"-" << hex<< blockMaxAddr 
-                    //<< " "<< std::dec<< w_pageTotalAccess[i] << "(" << w_Rud[i]<< ","<<w_sampleRud[i]<< "); ";
+                    //<< " "<< std::dec<< w_pageTotalAccess[i] << "(" <<w_sampleRud[i]<< "); ";
                     << std::dec<< w_pageTotalAccess[i] << "(" << w_sampleRud[i]<< "); ";
         else
 			      zoomFile_det << std::dec << "p"<< i << ":" 
@@ -388,7 +381,6 @@ int writeZoomFile(const MemArea memarea, const Memblock thisMemblock, const vect
   w_printPageAccess.clear();
   w_printPageRUD.clear();
   w_printPageSampleRUD.clear();
-  delete[] w_Rud; 
   delete[] w_sampleRud; 
   delete[] w_pageTotalAccess; 
   return 0;
@@ -636,6 +628,8 @@ int main(int argc, char ** argv){
   std::list<Memblock>::iterator itrRegion;
   std::list<Memblock>::iterator itrOSPage;
   vector<pair<uint64_t, uint64_t>> setRegionAddr;
+  std::vector<Memblock> vecParentFamily ;
+  bool flagPagesRegion=false;
   int zoomin = 0;
   int zoominTimes = 0;
   ofstream zoomInFile_det;
@@ -695,7 +689,6 @@ int main(int argc, char ** argv){
 		  memarea.blockCount =  ceil((memarea.max - memarea.min)/(double)pageSize);
 		  memarea.blockSize = pageSize;
   }
-  vector<double> Rud; 
   vector<double> sampleRud; 
   vector<uint32_t> pageTotalAccess; 
   uint32_t thresholdTotAccess =0;
@@ -729,7 +722,7 @@ int main(int argc, char ** argv){
           vecBlockInfo.push_back(newBlock);
         }
         printf("Size of vector BlockInfo %ld\n", vecBlockInfo.size());
-	  	  analysisReturn=spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo,false, setRegionAddr,false, memIncludePages); //spatialResult =0
+	  	  analysisReturn=spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo,false, setRegionAddr,false, memIncludePages,false,vecParentFamily); //spatialResult =0
         if(analysisReturn ==-1)
           return -1;
         for(i = 0; i< memarea.blockCount; i++){
@@ -786,7 +779,7 @@ int main(int argc, char ** argv){
         }
         if (memarea.blockSize == cacheLineWidth) { 
           // RUD analyisis only - Affinity analysis not done in this loop - costly space & time overhead
-  		    analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo,false, setRegionAddr,false,memIncludePages); // spatialResult=0
+  		    analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo,false, setRegionAddr,false,memIncludePages, false,vecParentFamily); // spatialResult=0
         } else {
           analysisReturn= getAccessCount(vecInstAddr,   memarea,  coreNumber , vecBlockInfo );
         }
@@ -797,7 +790,6 @@ int main(int argc, char ** argv){
         printTotAccess=0;
         // Do not move these out of the loop - memarea.blockCount is different for each run
 	      pageTotalAccess.clear();
-        Rud.clear();
         sampleRud.clear();
         for(i = 0; i< memarea.blockCount; i++){
           BlockInfo *curBlock = vecBlockInfo.at(i);
@@ -806,8 +798,6 @@ int main(int argc, char ** argv){
           } else
             curBlock->printBlockAccess();
           pageTotalAccess.push_back(curBlock->getTotalAccess());
-          Rud.push_back(curBlock->getAvgRUD());
-          sampleRud.push_back(curBlock->getSampleAvgRUD());
           //printf(" sampleRud %lf\n", curBlock->getSampleAvgRUD());
           if(pageTotalAccess.at(i)!=0){
               //printf("level %d Non-Zero access %d %ld \n", thisMemblock.level, i, pageTotalAccess.at(i));
@@ -934,7 +924,7 @@ int main(int argc, char ** argv){
           vecBlockInfo.push_back(newBlock);
       }
      // Affinity analysis done for inter-region - region based range - to identify co-existence of objects
-	   analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, true, setRegionAddr,false,memIncludePages); 
+	   analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, true, setRegionAddr,false,memIncludePages,false,vecParentFamily); 
      if(analysisReturn ==-1) {
       printf("Spatial Analysis at region level returned without results \n");
       return -1;
@@ -996,13 +986,10 @@ int main(int argc, char ** argv){
           return -1;
         }
   	    pageTotalAccess.clear();
-        Rud.clear();
-        sampleRud.clear();
         for(i = 0; i< memarea.blockCount; i++){
           BlockInfo *curBlock = vecBlockInfo.at(i);
           curBlock->printBlockAccess();
           pageTotalAccess.push_back(curBlock->getTotalAccess());
-          sampleRud.push_back(curBlock->getSampleAvgRUD());
         }
         zoomOption =3;
         findHotPage(memarea, zoomOption, sampleRud, pageTotalAccess,thresholdTotAccess, &zoomin, thisMemblock, zoomPageList);
@@ -1015,10 +1002,42 @@ int main(int argc, char ** argv){
         }
       }
     }
-      // END - STEP 2
-      // STEP 3 - Calculate spatial affinity at OS page level - using 64 B cache line 
-      mapMinAddrToID.clear(); 
-      for (itrOSPage=spatialOSPageList.begin(); itrOSPage != spatialOSPageList.end(); ++itrOSPage){
+    // END - STEP 2
+    // STEP 2.5 - Create a map of parent-children regions
+    std::vector<Memblock> vecParentChild[spatialRegionList.size()];
+    std::unordered_map<std::string, uint8_t> mapParentIndex;
+    int regionCnt=0;
+    uint8_t parentIndex=0;
+    for (itrRegion=spatialRegionList.begin(); itrRegion != spatialRegionList.end(); ++itrRegion){
+      thisMemblock = *itrRegion;
+      //printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx parent %s Id %s \n", thisMemblock.level, thisMemblock.blockSize, thisMemblock.blockCount, thisMemblock.min, thisMemblock.max, thisMemblock.strParentID.c_str(), thisMemblock.strID.c_str());
+      if( thisMemblock.blockSize == spatiallastlvlBlockSize) {
+      printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx parent %s Id %s \n", thisMemblock.level, thisMemblock.blockSize, thisMemblock.blockCount, thisMemblock.min, thisMemblock.max, thisMemblock.strParentID.c_str(), thisMemblock.strID.c_str());
+        vecParentChild[regionCnt].push_back(thisMemblock);
+        mapParentIndex[(thisMemblock.strID.c_str())] = regionCnt;
+        regionCnt++;
+      }
+    }
+    for (itrOSPage=spatialOSPageList.begin(); itrOSPage != spatialOSPageList.end(); ++itrOSPage){
+ 	    thisMemblock = *itrOSPage;
+      //printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx parent %s Id %s \n", thisMemblock.level, thisMemblock.blockSize, thisMemblock.blockCount, thisMemblock.min, thisMemblock.max, thisMemblock.strParentID.c_str(), thisMemblock.strID.c_str());
+      parentIndex = mapParentIndex.find(thisMemblock.strParentID.c_str())->second;
+      vecParentChild[parentIndex].push_back(thisMemblock);
+    }
+    for( int dbg_i=0; dbg_i<spatialRegionList.size(); dbg_i++)
+    {
+      vecParentFamily = vecParentChild[dbg_i];
+      for (int dbg_j=0; dbg_j< vecParentFamily.size(); dbg_j++)
+      {
+ 	      thisMemblock = vecParentFamily.at(dbg_j);
+      printf(" in spatial 2.5 last %d size %ld count %d memarea.min %08lx memarea.max %08lx parent %s Id %s \n", thisMemblock.level, thisMemblock.blockSize, thisMemblock.blockCount, thisMemblock.min, thisMemblock.max, thisMemblock.strParentID.c_str(), thisMemblock.strID.c_str());
+      }
+      
+    }
+
+    // STEP 3 - Calculate spatial affinity at OS page level - using 64 B cache line 
+    mapMinAddrToID.clear(); 
+    for (itrOSPage=spatialOSPageList.begin(); itrOSPage != spatialOSPageList.end(); ++itrOSPage){
  	    thisMemblock = *itrOSPage; 
     	memarea.max = thisMemblock.max;
 	    memarea.min = thisMemblock.min;
@@ -1048,7 +1067,7 @@ int main(int argc, char ** argv){
 			printf(" page number = %d ", memarea.blockCount);
 			printf(" page size =  %ld\n", memarea.blockSize);
       
-		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, false, setRegionAddr, true, memIncludePages);
+		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, false, setRegionAddr, true, memIncludePages,false,vecParentFamily);
       if(analysisReturn ==-1) {
         printf("Spatial Analysis Step 2 - Zoom into objects to find OS page sized %ld B hot blocks returned without results\n", OSPageSize);
         return -1;
@@ -1127,7 +1146,6 @@ int main(int argc, char ** argv){
         delete (*itr_blk);
   }
   vecBlockInfo.clear();   
-  Rud.clear(); 
   sampleRud.clear(); 
   pageTotalAccess.clear(); 
   setRegionAddr.clear();
