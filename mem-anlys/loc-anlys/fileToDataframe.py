@@ -1,6 +1,6 @@
 import re
 def get_intra_obj (data_intra_obj, fileline,reg_page_id,regionIdNum,numExtraPages:int=0):
-    #print(reg_page_id)
+    #print(reg_page_id,numExtraPages)
     add_row=[None]*(517+numExtraPages)
     data = fileline.strip().split(' ')
     #print("in fill_data_frame", data[2], data[4], data[15:])
@@ -24,7 +24,7 @@ def get_intra_obj (data_intra_obj, fileline,reg_page_id,regionIdNum,numExtraPage
             add_row_index=5+255+(int(cor_data[0])-linecache)
         #print("else", linecache, cor_data[0], 5+255+(int(cor_data[0])-linecache))
         if(int(cor_data[0])>255):
-            add_row_index = 516+(int(cor_data[0])-255)
+            add_row_index = 515+(int(cor_data[0])-255)
             #print('pages line', data[0], 'reg-page-id ', reg_page_id, ' access ', data[11], cor_data[0], cor_data[1],  ' index ', add_row_index)
         add_row[add_row_index]=cor_data[1]
         #if(add_row_index == 260 ):
@@ -35,6 +35,7 @@ def get_intra_obj (data_intra_obj, fileline,reg_page_id,regionIdNum,numExtraPage
         add_row[516+numExtraPages] = 'SI'
     elif(data[0] == '***'):
         add_row[516+numExtraPages] = 'SD'
+    #print(add_row)
     data_intra_obj.append(add_row)
 
 def getFileColumnNames (numExtraPages:int =0):
@@ -56,7 +57,7 @@ def getFileColumnNames (numExtraPages:int =0):
         elif(i<13):
             list_col_names[516+j] = '- ['+str(2**(i-1))+'-'+str((2**i)-1)+'] p'
         else:
-            list_col_names[516+j] = '- [2^'+str((i-1))+'-2^'+str(i)+'] p'
+            list_col_names[516+j] = '- [2^'+str((i-1))+'-2^'+str(i)+') p'
         j = j+1
     j=int(numExtraPages/2)
     for i in range (1,int(numExtraPages/2)+1):
@@ -65,11 +66,35 @@ def getFileColumnNames (numExtraPages:int =0):
         elif (i<13):
             list_col_names[516+j] = '+ ['+str(2**(i-1))+'-'+str((2**i)-1)+'] p'
         else:
-            list_col_names[516+j] = '+ [2^'+str((i-1))+'-2^'+str(i)+'] p'
+            list_col_names[516+j] = '+ [2^'+str((i-1))+'-2^'+str(i)+') p'
 
         j = j+1
     list_col_names[516+numExtraPages]='Type'
     #print((list_col_names))
+    return list_col_names
+
+def getFileColumnNamesPageRegion (regionId, numRegions):
+    # 517 for page, 10 pages in region, numRegions, 1 - non-hot, 1 - stack
+    list_col_names=[None]*(517+10+numRegions+2)
+    list_col_names[0]='reg_page_id'
+    list_col_names[1]='reg-page-blk'
+    list_col_names[2]='Access'
+    list_col_names[3]='Lifetime'
+    list_col_names[4]='Address'
+    for i in range ( 0,255):
+        list_col_names[5+i]='self'+'-'+str(255-i)
+    list_col_names[260]='self'
+    for i in range ( 1,256):
+        list_col_names[260+i]='self'+'+'+str(i)
+    for i in range (0,10):
+            list_col_names[516+i] = 'p-'+str(i)
+    for i in range (0,numRegions):
+            list_col_names[526+i] = 'r-'+str(i)
+    list_col_names[526+numRegions]='Non-hot'
+    list_col_names[526+numRegions+1]='Stack'
+    list_col_names[526+numRegions+2]='Type'
+
+    print((list_col_names))
     return list_col_names
 
 def getMetricColumns(numExtraPages:int =0):
@@ -86,7 +111,7 @@ def getMetricColumns(numExtraPages:int =0):
         elif(i<13):
             metricColumns[511+j] = '- ['+str(2**(i-1))+'-'+str((2**i)-1)+'] p'
         else:
-            metricColumns[511+j] = '- [2^'+str((i-1))+'-2^'+str(i)+'] p'
+            metricColumns[511+j] = '- [2^'+str((i-1))+'-2^'+str(i)+') p'
         j = j+1
     j=int(numExtraPages/2)
     for i in range (1,int(numExtraPages/2)+1):
@@ -95,8 +120,23 @@ def getMetricColumns(numExtraPages:int =0):
         elif (i<13):
             metricColumns[511+j] = '+ ['+str(2**(i-1))+'-'+str((2**i)-1)+'] p'
         else:
-           metricColumns[511+j] = '+ [2^'+str((i-1))+'-2^'+str(i)+'] p'
+           metricColumns[511+j] = '+ [2^'+str((i-1))+'-2^'+str(i)+') p'
         j = j+1
+    return metricColumns
+
+def getMetricColumnsPageRegion(regionId, numRegions):
+    metricColumns=[None]*(511+10+numRegions+2)
+    for i in range ( 0,255):
+        metricColumns[i]='self'+'-'+str(255-i)
+    metricColumns[255]='self'
+    for i in range ( 1,256):
+        metricColumns[255+i]='self'+'+'+str(i)
+    for i in range (0,10):
+            metricColumns[511+i] = 'p-'+str(i)
+    for i in range (0,numRegions):
+            metricColumns[521+i] = 'r-'+str(i)
+    metricColumns[521+numRegions]='Non-hot'
+    metricColumns[521+numRegions+1]='Stack'
     return metricColumns
 
 def getRearrangeColumns(listColNames):

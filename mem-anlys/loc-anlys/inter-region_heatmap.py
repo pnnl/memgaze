@@ -48,7 +48,7 @@ def spatialPlot(filename, strApp,strMetricType, colSelect=None, sampleSize=None)
     if(strMetricType=='SD'):
         strTitle = 'SD'
     elif(strMetricType=='SP'):
-        strTitle = 'SA & SI'
+        strTitle = '$SA$ & $SI$'
     elif (strMetricType=='SR'):
         strTitle = 'SI'
     line_identifier=['***','===','---']
@@ -197,7 +197,7 @@ def callPlot(plotApp):
     colSelect=0
     appName=''
     sampleSize=0
-    strMetricType='SP'
+    strMetricType='SD'
     if (plotApp.lower()=='ubench'):
         #filename='/Users/suri836/Projects/spatial_rud/ubench_simple_vector/sel_func/vec_gpp_exe-memgaze-trace-b8192-p40000/spatial_inter.txt'
         filename='/Users/suri836/Projects/spatial_rud/ubench_simple_array/paper_data/arr_exe-memgaze-trace-b16384-p250000/spatial_inter.txt'
@@ -206,7 +206,7 @@ def callPlot(plotApp):
         #filename='/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v3_inter_sd.txt'
         #filename='/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_inter.txt'
         #filename='/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_inter_sp_sr.txt'
-        filename='/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_inter_sp_si.txt'
+        filename='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/include_all_pages/v3_spatial_inter_sp_si_sd.txt'
         appName='minivite-v3'
     elif(plotApp.lower()=='minivite-v2'):
         filename='/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v2_inter_sd.txt'
