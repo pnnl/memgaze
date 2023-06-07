@@ -235,18 +235,26 @@ int getAccessCount(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int core
 /* 
 * RUD analysis if spatialResult == 0
 * Spatial Correlational analysis if spatialResult == 1
-* Spatial Correlational analysis between set of regions if flagSetRegion ==1
+* Inter-region Spatial Correlational analysis between set of regions if flagSetRegion ==1
+* Intra-region Spatial Correlational analysis between blocks in a page (reference), all other addresses (affinity)
+*   flagIncludePages - set to 0 - all other addresses lumped into one bucket
+*   flagIncludePages - set to 1 - all other addresses bucketed based on exponential spatial location
+*   flagPagesRegion - set to 1 - all other addresses bucketed based hot pages in region, other regions, non-hot and stack
 * --- There is spill code from original whole trace analysis (not considering samples), 
 *      will have to clean it up for overhead analysis
 */
 int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int coreNumber, int spatialResult, 
                         vector<BlockInfo *>& vecBlockInfo, bool flagSetRegion, vector<pair<uint64_t, uint64_t>> setRegionAddr,
                         bool flagIncludePages, MemArea memIncludeArea, // Include all address range - exponential coverage
-                        bool flagPagesRegion, vector<Memblock> vecParentChild //Include pages in region, regions, non-hot, stack separately 
+                        bool flagPagesRegion, vector<pair<uint64_t, uint64_t>> vecParentChild //Include pages in region, regions, non-hot, stack separately 
                     ){
   TraceLine *ptrTraceLine;
   uint32_t numBlocks =0;
+  uint8_t numHotPages = 10;
   numBlocks = memarea.blockCount+memIncludeArea.blockCount; // memIncludeArea.blockCount should be set to least value of 1 
+  if (flagPagesRegion == true)
+    numBlocks = memarea.blockCount+numHotPages + setRegionAddr.size()+ 2;  // 10 hot pages in region, all regions, non-hot, stack 
+    
 	int * distance = new int [numBlocks];   
 	int * sampleDistance = new int [numBlocks];   
   if(printProgress) printf("in memory analysis before array\n");
@@ -277,6 +285,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
   prevSampleId = 0;
   curSampleId = 0; 
 	uint64_t loadAddr =0;  
+	uint64_t regLowAddr, regHighAddr;   
   std::map<uint32_t, class SpatialRUD*> spatialRUD;
   std::map<uint32_t, class SpatialRUD*>::iterator itrSpRUD;
   SpatialRUD *curSpatialRUD; 
@@ -313,6 +322,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
 	uint32_t time = 0 ;
   uint32_t pageID =0;
   uint8_t regionID=0;
+  bool flInHotPages = false;
   if(printDebug) printf("Size of vector %ld\n", vecBlockInfo.size()); 
   // START - Vector FOR loop 
   for (uint32_t itr=0; itr<vecInstAddr.size(); itr++){
@@ -382,44 +392,70 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
       blNewSample=1;
     }
     // END - new sample
-    // Find PageID - either cache-line in a page OR regionId
-    if(flagSetRegion==0) { 
+    // Find PageID - reference, affinity blocks - either cache-line in a page OR regionId
+    if((flagSetRegion==0) && (flagPagesRegion == false)) { 
       if ( loadAddr >= memarea.min && loadAddr <= memarea.max) {
     		pageID = floor((loadAddr-memarea.min)/memarea.blockSize);
         // Number of blocks does not evenly divide address space - so the last one includes spill-over address range
-        if(pageID == memarea.blockCount) {
-              pageID--;
-        }
-        // NEW include blindspots
+        if(pageID == memarea.blockCount) pageID--;
+      // NEW include blindspots
       } else if (flagIncludePages ==0 ) { 
-                // Put all other accesses into one bucket
-               pageID = memarea.blockCount;
+          pageID = memarea.blockCount; // Put all other accesses into one bucket
       } else { 
           // Assign appropriate buckets based on address range
           // For memarea.blockCount = 256, memIncludeArea.blockCount=64
           // PageID  0-255 = regular cache blocks, 256-287 = -(2^32)p to -p, 288-319 = p to (2^31)p
           if ( loadAddr < memarea.min) {
-              pageID = memarea.blockCount - ceil(log(ceil(((double)(memarea.min - loadAddr)/(double)memIncludeArea.blockSize))) / log(2)) + (memIncludeArea.blockCount/2) ;
+              pageID = memarea.blockCount - ceil(log(ceil(((double)(memarea.min - loadAddr)/(double)memIncludeArea.blockSize))) / log(2)) 
+                                          + (memIncludeArea.blockCount/2) ;
               if( pageID < memarea.blockCount) pageID++; // Do not overwrite spill into actual results
           } else if ( loadAddr > memarea.max) {
-              pageID = memarea.blockCount + ceil(log(ceil(((double)(loadAddr-memarea.max)/(double)memIncludeArea.blockSize)))/log(2)) + (memIncludeArea.blockCount/2)  ;
-              if( pageID >= (memarea.blockCount+(memIncludeArea.blockCount))) { 
-              if(printDebug) printf( "in IF more more loadAddr %ld memarea.max %ld diff %lf ceil %lf  add %d pageID %d \n", loadAddr, memarea.max, 
-                    ((double)(loadAddr-memarea.max)/(double)memIncludeArea.blockSize), ceil(((double)(loadAddr-memarea.max)/(double)memIncludeArea.blockSize)), memarea.blockCount, pageID);
+              pageID = memarea.blockCount + ceil(log(ceil(((double)(loadAddr-memarea.max)/(double)memIncludeArea.blockSize)))/log(2)) 
+                                          + (memIncludeArea.blockCount/2)  ;
+              if( pageID >= (memarea.blockCount+(memIncludeArea.blockCount)))  
                   pageID = memarea.blockCount+memIncludeArea.blockCount-1; // Beyond 2^31 put in the same bucket
-              }
               if(printDebug) printf( "more loadAddr %ld memarea.max %ld diff %lf ceil %lf  add %d pageID %d \n", loadAddr, memarea.max, 
-                ((double)(loadAddr-memarea.max)/(double)memIncludeArea.blockSize), ceil(((double)(loadAddr-memarea.max)/(double)memIncludeArea.blockSize)), memarea.blockCount, pageID);
+                        ((double)(loadAddr-memarea.max)/(double)memIncludeArea.blockSize), 
+                        ceil(((double)(loadAddr-memarea.max)/(double)memIncludeArea.blockSize)), memarea.blockCount, pageID);
           }
       } 
-      if(printDebug) printf( "loadAddr %08lx memarea.min %08lx  memarea.max %08lx pageID %d\n", loadAddr, memarea.min, memarea.max, pageID );
-    } else {
+    } else if ((flagSetRegion==0) && (flagPagesRegion == true)) {
+	    regLowAddr=vecParentChild[0].first;
+      regHighAddr=vecParentChild[0].second; 
+      // Affinity arrangement - 0:255 reference blocks, 256:265 - hot pages in region, 
+      //                        266:266+numRegion - all regions, non-hot, stack
+      // FIND pageID if in valid reference block range  
+      if ( loadAddr >= memarea.min && loadAddr <= memarea.max) {
+    		pageID = floor((loadAddr-memarea.min)/memarea.blockSize);
+        if(pageID == memarea.blockCount) pageID--;
+      // FIND pageID if in region affinity range   
+      } else if ( loadAddr >= regLowAddr && loadAddr <= regHighAddr ) {
+        flInHotPages = false;
+        for (uint32_t k=1; k<vecParentChild.size(); k++) {
+           if((loadAddr>=vecParentChild[k].first)&&(loadAddr<=vecParentChild[k].second)) {
+              pageID = memarea.blockCount+k-1; // Parent is at position 0, k starts from 1
+              flInHotPages=true;
+              break;
+            }
+        }
+        if( flInHotPages == false) 
+              pageID = memarea.blockCount + numHotPages + regionID;
+      } else { 
+          if (regionID == UINT8_MAX)  
+              pageID = memarea.blockCount + numHotPages + setRegionAddr.size() +1 ;
+          else if (regionID == (UINT8_MAX -1)) 
+              pageID = memarea.blockCount + numHotPages + setRegionAddr.size() ;
+          else 
+              pageID = memarea.blockCount + numHotPages + regionID;
+      }
+    } else { // Inter-region analysis, uses updated trace with region ids
         if( (regionID == UINT8_MAX) || (regionID == (UINT8_MAX -1)))
           pageID = memarea.blockCount;
         else
           pageID = regionID;
             //printf( "loadAddr %08lx regionID %d pageID %d\n", loadAddr, regionID, pageID );
     }
+    //if( (flagPagesRegion == true) && (pageID ==0) ) printf( "loadAddr %08lx memarea.min %08lx  memarea.max %08lx pageID %d, regionID %d  %08lx   %08lx \n", loadAddr, memarea.min, memarea.max, pageID, regionID, regLowAddr, regHighAddr );
     totalAccess[pageID]++;
     inSampleAccess[pageID]++;
     time = totalinst; 

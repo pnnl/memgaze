@@ -628,7 +628,7 @@ int main(int argc, char ** argv){
   std::list<Memblock>::iterator itrRegion;
   std::list<Memblock>::iterator itrOSPage;
   vector<pair<uint64_t, uint64_t>> setRegionAddr;
-  std::vector<Memblock> vecParentFamily ;
+  std::vector<pair<uint64_t, uint64_t>> vecParentFamily ;
   bool flagPagesRegion=false;
   int zoomin = 0;
   int zoominTimes = 0;
@@ -1004,7 +1004,7 @@ int main(int argc, char ** argv){
     }
     // END - STEP 2
     // STEP 2.5 - Create a map of parent-children regions
-    std::vector<Memblock> vecParentChild[spatialRegionList.size()];
+    std::vector<pair<uint64_t, uint64_t>> vecParentChild[spatialRegionList.size()];
     std::unordered_map<std::string, uint8_t> mapParentIndex;
     int regionCnt=0;
     uint8_t parentIndex=0;
@@ -1013,7 +1013,7 @@ int main(int argc, char ** argv){
       //printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx parent %s Id %s \n", thisMemblock.level, thisMemblock.blockSize, thisMemblock.blockCount, thisMemblock.min, thisMemblock.max, thisMemblock.strParentID.c_str(), thisMemblock.strID.c_str());
       if( thisMemblock.blockSize == spatiallastlvlBlockSize) {
       printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx parent %s Id %s \n", thisMemblock.level, thisMemblock.blockSize, thisMemblock.blockCount, thisMemblock.min, thisMemblock.max, thisMemblock.strParentID.c_str(), thisMemblock.strID.c_str());
-        vecParentChild[regionCnt].push_back(thisMemblock);
+        vecParentChild[regionCnt].push_back(make_pair(thisMemblock.min, thisMemblock.max));
         mapParentIndex[(thisMemblock.strID.c_str())] = regionCnt;
         regionCnt++;
       }
@@ -1022,15 +1022,14 @@ int main(int argc, char ** argv){
  	    thisMemblock = *itrOSPage;
       //printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx parent %s Id %s \n", thisMemblock.level, thisMemblock.blockSize, thisMemblock.blockCount, thisMemblock.min, thisMemblock.max, thisMemblock.strParentID.c_str(), thisMemblock.strID.c_str());
       parentIndex = mapParentIndex.find(thisMemblock.strParentID.c_str())->second;
-      vecParentChild[parentIndex].push_back(thisMemblock);
+      vecParentChild[parentIndex].push_back(make_pair(thisMemblock.min, thisMemblock.max));
     }
     for( int dbg_i=0; dbg_i<spatialRegionList.size(); dbg_i++)
     {
       vecParentFamily = vecParentChild[dbg_i];
       for (int dbg_j=0; dbg_j< vecParentFamily.size(); dbg_j++)
       {
- 	      thisMemblock = vecParentFamily.at(dbg_j);
-      printf(" in spatial 2.5 last %d size %ld count %d memarea.min %08lx memarea.max %08lx parent %s Id %s \n", thisMemblock.level, thisMemblock.blockSize, thisMemblock.blockCount, thisMemblock.min, thisMemblock.max, thisMemblock.strParentID.c_str(), thisMemblock.strID.c_str());
+ 	     printf(" in spatial 2.5 memarea.min %08lx memarea.max %08lx \n",  vecParentFamily[dbg_j].first, vecParentFamily.at(dbg_j).second);
       }
       
     }
@@ -1042,6 +1041,8 @@ int main(int argc, char ** argv){
     	memarea.max = thisMemblock.max;
 	    memarea.min = thisMemblock.min;
       mapMinAddrToID[memarea.min] = thisMemblock.strID;
+      parentIndex = mapParentIndex.find(thisMemblock.strParentID.c_str())->second;
+      vecParentFamily = vecParentChild[parentIndex];
       memarea.blockSize = cacheLineWidth; 
      	memarea.blockCount =  ceil((memarea.max - memarea.min)/(double)memarea.blockSize);
       //printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx \n", thisMemblock.level, memarea.blockSize, memarea.blockCount, memarea.min, memarea.max);
@@ -1067,7 +1068,7 @@ int main(int argc, char ** argv){
 			printf(" page number = %d ", memarea.blockCount);
 			printf(" page size =  %ld\n", memarea.blockSize);
       
-		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, false, setRegionAddr, true, memIncludePages,false,vecParentFamily);
+		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, false, setRegionAddr, true, memIncludePages,true,vecParentFamily);
       if(analysisReturn ==-1) {
         printf("Spatial Analysis Step 2 - Zoom into objects to find OS page sized %ld B hot blocks returned without results\n", OSPageSize);
         return -1;

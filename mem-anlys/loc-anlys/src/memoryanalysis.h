@@ -19,7 +19,8 @@ int getAccessCount(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int core
 /* RUD analysis if spatialResult == 0 */
 int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int coreNumber, int spatialResult, 
                         vector<BlockInfo *>& vecBlockInfo, bool flagSetRegion, vector<pair<uint64_t, uint64_t>> setRegionAddr,
-                        bool flagIncludePages, MemArea memIncludeArea, bool flagPagesRegion, vector<Memblock> vecParentChild);
+                        bool flagIncludePages, MemArea memIncludeArea, 
+                        bool flagPagesRegion, vector<pair<uint64_t, uint64_t>> vecParentChild);
 
 int updateTraceRegion(vector<TraceLine *>& vecInstAddr ,vector<pair<uint64_t, uint64_t>> setRegionAddr, uint64_t heapAddrEnd);
 #endif
