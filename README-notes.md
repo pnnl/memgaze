@@ -22,6 +22,7 @@ MemGaze Issues
     
   - `install/bin/memgaze-analyaze` is erroring with seg fault.
 
+
 -----------------------------------------------------------------------------
 MemGaze Structure
 =============================================================================
