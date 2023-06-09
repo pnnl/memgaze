@@ -2,6 +2,7 @@ import sys
 import os
 import subprocess
 import argparse
+import string
 
 # Use for reading source line
 # grep -n 79070 -B 5 miniVite_O3-v1_obj_nuke_line | grep '\/'
@@ -164,6 +165,11 @@ def readFile(inFile, outFile,appName):
                   objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld/obj_v3'
                   objFile_C = ''
                   varVersion = 'm-v3: '
+                if (appName == 'alpaca'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/alpaca.cpp-81bd894/mg-alpaca/chat-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/alpaca.cpp-81bd894/mg-alpaca/obj_chat'
+                  objFile_C = ''
+                  varVersion = 'al: '
                 if (appName == 'vec_store_lm'): 
                   logFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/vec_gpp_st_no_frame_gh/vec_gpp_exe-memgaze.binanlys'
                   objFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/vec_gpp_st_no_frame_gh/obj_vec_gpp'
@@ -267,19 +273,22 @@ def readFile(inFile, outFile,appName):
                         strFnMap= subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT,universal_newlines=True)
                     except subprocess.CalledProcessError as grepexc:
                         print("error code ", command, grepexc.returncode, grepexc.output)
+                    print(command )
                     if('\n' in strFnMap):
+                        print(strFnMap)
                         arrStrFnMap= strFnMap.split('\n')
                         for i in range(0,len(arrStrFnMap)):
                             arrFnMapData = arrStrFnMap[i].split(' ')
-                            print(arrFnMapData)
-                            if(len(arrFnMapData)>1):
+                            #print(arrFnMapData)
+                            if((len(arrFnMapData)>1) and ((all(c in string.hexdigits for c in arrFnMapData[0]))==True) and (arrFnMapData[0] != '')):
                                 if (len(arrFnMapData)==3):
                                     dictFnMap[arrFnMapData[0]] = arrFnMapData[1] + arrFnMapData[2]
                                 else:
                                     dictFnMap[arrFnMapData[0]] = arrFnMapData[1]
+                                print(arrFnMapData[0],  '***')
                                 dictFnIdentify[int(arrFnMapData[0],16)] = arrFnMapData[0]
-                    print(dictFnMap)
-                    print(dictFnIdentify)
+                    #print(dictFnMap)
+                    #print(dictFnIdentify)
             elif data[0].isnumeric():
                 strMapping=''
                 strBinLine=''
