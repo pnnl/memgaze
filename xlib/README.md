@@ -60,7 +60,7 @@ Linux Perf
   ```
 
 
-- Check for throttling:
+- Check for throttling (drops):
   `perf report -D | grep THROTTLE`
 
 
