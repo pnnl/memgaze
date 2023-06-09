@@ -232,6 +232,49 @@ int getAccessCount(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int core
   return 0;
 }
 
+int getTopAccessCountLines(vector<TraceLine *>& vecInstAddr,  vector<pair<uint64_t, uint64_t>> vecParentChild,
+                                 vector<pair<uint64_t, string>>& vecLineInfo , uint64_t pageSize, uint64_t lineSize) {
+  TraceLine *ptrTraceLine;
+  uint32_t numLinesInPage = (pageSize/lineSize);
+  uint32_t numLines = numLinesInPage * (vecParentChild.size()-1);
+	vector <uint32_t> totalAccess; 
+	uint64_t loadAddr =0;  
+  uint32_t i;
+  uint32_t pageID = 0 ;
+  bool flInHotPages = false;
+  uint64_t regLowAddr=vecParentChild[0].first;
+  uint64_t regHighAddr=vecParentChild[0].second;
+	for(i = 0; i < numLines; i++){
+	  totalAccess.push_back(0);
+  }
+  for (uint32_t itr=0; itr<vecInstAddr.size(); itr++){
+    ptrTraceLine=vecInstAddr.at(itr);
+    loadAddr = ptrTraceLine->getLoadAddr();
+    //if(printDebug) printf("previous Addr %08lx less than %d greater than %d \n", loadAddr, (loadAddr<=memarea.max), (loadAddr>=memarea.min));
+    if(( (loadAddr>=regLowAddr)&&(loadAddr<=regHighAddr) ) ){
+        flInHotPages = false;
+        for (uint32_t k=1; k<vecParentChild.size(); k++) {
+           if((loadAddr>=vecParentChild[k].first)&&(loadAddr<=vecParentChild[k].second)) {
+              pageID = floor((loadAddr-vecParentChild[k].first)/lineSize); 
+              pageID = (k-1)*numLinesInPage+pageID;
+              flInHotPages=true;
+              break;
+            }
+        }
+        if (flInHotPages) 
+        { (totalAccess.at(pageID))++;
+          printf(" Addr %08lx less than %d greater than %d pageID %d \n", loadAddr, (loadAddr<=regLowAddr), (loadAddr>=regHighAddr), pageID);
+        }
+      }
+    }
+        std::sort(totalAccess.begin(), totalAccess.end(), greater<>());
+        for(int i=0; i<5; i++)
+          printf("value %d \n", totalAccess.at(i));
+  return 0;
+}
+
+
+
 /* 
 * RUD analysis if spatialResult == 0
 * Spatial Correlational analysis if spatialResult == 1

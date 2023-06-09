@@ -5,8 +5,8 @@
 using std::list;
 // Global variables for threshold values
 int32_t lvlConstBlockSize = 2; // Level for setting constant blocksize in zoom
-double zoomThreshold = 0.10; // Threshold for access count - to include in zoom
-//double zoomThreshold = 0.05 ; // Minivite uses this - Cluster paper data used different threshold values - to match regions to paper use this value 
+//double zoomThreshold = 0.10; // Threshold for access count - to include in zoom
+double zoomThreshold = 0.05 ; // Minivite uses this - Cluster paper data used different threshold values - to match regions to paper use this value 
 uint64_t heapAddrEnd ; // 
 uint64_t cacheLineWidth; // Added for ZoomRUD analysis - option to set last level's block width
 uint64_t zoomLastLvlPageWidth ; // Added for ZoomRUD analysis - option to set last Zoom level's page width
@@ -1024,6 +1024,8 @@ int main(int argc, char ** argv){
       parentIndex = mapParentIndex.find(thisMemblock.strParentID.c_str())->second;
       vecParentChild[parentIndex].push_back(make_pair(thisMemblock.min, thisMemblock.max));
     }
+
+    
     for( int dbg_i=0; dbg_i<spatialRegionList.size(); dbg_i++)
     {
       vecParentFamily = vecParentChild[dbg_i];
@@ -1031,8 +1033,11 @@ int main(int argc, char ** argv){
       {
  	     printf(" in spatial 2.5 memarea.min %08lx memarea.max %08lx \n",  vecParentFamily[dbg_j].first, vecParentFamily.at(dbg_j).second);
       }
-      
+      vector<pair<uint64_t, string>> vecLineInfo;
+      if(vecParentFamily.size() >0)
+        int accessReturn = getTopAccessCountLines(vecInstAddr,  vecParentFamily, vecLineInfo , OSPageSize, cacheLineWidth);
     }
+   
 
     // STEP 3 - Calculate spatial affinity at OS page level - using 64 B cache line 
     mapMinAddrToID.clear(); 
