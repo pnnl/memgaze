@@ -122,8 +122,10 @@ MemGaze has four main steps.
   ```
 
 
-4. Analyze memory behavior using execution interval tree and generate
-   memory-related metrics. As inputs, takes `<trace-dir>`.
+4. Analyze memory behavior. Default analyzes memory operations over
+   time using execution interval tree and generates metrics
+   characterizing accesses, spatio-temporal reuse, and access
+   patterns. As inputs, takes `<trace-dir>`.
 
    ```
    memgaze-analyze [-o <output>] <trace-dir>
