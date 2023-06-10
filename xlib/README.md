@@ -46,13 +46,21 @@ Linux Perf
 
 - Perf examples
 
-  - Intel PT, sampling based on loads:
+  - Intel PT, sampling based on loads (ptloads) or loads-and-stores
+    (ptloads-stores):
   ```
+  # Loads only
   perf record -m 2M,2M -o ${bin}.data
-    -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u 
+    -e intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u
     -e cpu/umask=0x81,event=0xd0,period=<period>,aux-sample-size=<bufsz>,call-graph=lbr/u -g
     -- <app>
+    
+  # For load and stores use "umask=0x83,event=0xd0"
   ```
+
+  - Intel PT in Cycle-Accurate Mode (cf. Intel Soft Dev Manual,
+    33.3.6, 33.4.2.21)
+    `cyc=1,cyc_thresh=0`
 
   - Intel PT, sampling based on time:
   ```

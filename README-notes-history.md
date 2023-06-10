@@ -6,11 +6,6 @@ $Id$
 TODO
 =============================================================================
 
-* Correctly interpret vector loads for memory metrics. Convert to
-  scalar words rather than count as 1.
-
-* Assign distinct class to atomic memory operations.
-
 -----------------------------------------------------------------------------
 Detailed Notes
 =============================================================================

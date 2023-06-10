@@ -191,7 +191,7 @@ if [[ ${opt_method} =~ pt-* ]] ; then
             if [[ ${hostName} = 'nuke' ]] ; then
 		            event_smpl="cpu/umask=0x81,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
 	          else
-            	  # doesnt work - mem_inst_retired.all_loads
+            	  # 'mem_inst_retired.all_loads' doesn't work
                 event_smpl_core="cpu_core/umask=0x81,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
                 event_smpl_atom="cpu_atom/umask=0x81,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
 	          fi
@@ -201,7 +201,7 @@ if [[ ${opt_method} =~ pt-* ]] ; then
             if [[ ${hostName} = 'nuke' ]] ; then
 		            event_smpl="cpu/umask=0x83,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
 	          else
-            	  # doesnt work - mem_inst_retired.any      
+            	  # 'mem_inst_retired.any' doesn't work
                 event_smpl_core="cpu_core/umask=0x83,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
                 event_smpl_atom="cpu_atom/umask=0x83,event=0xd0,period=${opt_period},aux-sample-size=${opt_buffer}${opt_callpath_lbr}/u"
 	          fi
