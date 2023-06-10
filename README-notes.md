@@ -49,3 +49,18 @@ Directory Structure
   - Palm coarse-grained footprint analysis
     palm-task: hpctoolkit run + fp analysis on database xml file
 
+
+-----------------------------------------------------------------------------
+Trace formats
+=============================================================================
+
+* MemGaze's final format:
+
+  `<insn-pc> <mem-addr> <cpu-id> <timestamp> <sample-id> <LoadModule-id>`
+
+  In initial trace, a two-source load has two lines that are later converted to one line.
+
+
+* MemCAMera
+
+  `<insn-pc> <mem-addr> <cpu-id> <timestamp> [mem-addr2 cpu-id timestamp]`

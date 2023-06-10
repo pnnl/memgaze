@@ -13,8 +13,8 @@ Environment
     - `pefile` for perf
 
 Benchmarks
-    - OpemMP
-    - MPI
+  - OpemMP
+  - MPI
 
 Building & Installing
 =============================================================================
@@ -137,20 +137,5 @@ MemGaze has four main steps.
 
    Note: -f <func>: Focus the above analysis on 'func', i.e., the effective trace includes all accesses between first and last instance of <func>.
    
-
-
-Trace format
-=============================================================================
-
-MemGaze:   <insn-pc> <mem-addr> <cpu-id> <timestamp> <sample-id> <LoadModule-id>
-  (in initial trace, a two-source load has two lines, which are converted to one line)
-
-
-MemCAMera: <insn-pc> <mem-addr> <cpu-id> <timestamp> [mem-addr2 cpu-id timestamp]
-
-
-
-Notes
-=============================================================================
 
 
