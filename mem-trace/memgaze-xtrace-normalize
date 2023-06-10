@@ -15,12 +15,12 @@ def main():
   if len(sys.argv) != 5:
     print ("Run as following\n./memgaze-xtrace-normalize <input trace> <binary path> <binanlys file> <output trace>")
 
-  print (sys.argv[1]) 
-  print (sys.argv[2]) 
-  print (sys.argv[3]) 
+  print (sys.argv[1])
+  print (sys.argv[2])
+  print (sys.argv[3])
 
   inputTrace = open(sys.argv[1], "r")
-  inputLC = open(sys.argv[3], "r")
+  inputBinAnlys = open(sys.argv[3], "r")
 
   binaryPath = sys.argv[2]
   outputTrace = open(sys.argv[4], "w")
@@ -28,20 +28,29 @@ def main():
   
   offsetMap = {}
   scaleMap = {}
+
+  # read <binanlys file>
   while True:
-    line  = inputLC.readline()
+    line  = inputBinAnlys.readline()
+    
     if not line:
       break
-#    print line
-    l =  line.split()
-    ip = int(l[0], 16)
-    lc = int(l[1], 10)
-    offset = twos_comp(int(l[2],16), 32)
-    scale = int(l[3], 16)
+
+    # print line
+    lineA =  line.split()
+
+    # See <memgaze>/README-notes.md
+    # <0:insn pointer> <1:load|store & load class> <2:offset?> <3:compression ratio> <4:symbol-id> <5:symbol-offset> <6:symbol-name>
+    
+    ip = int(lineA[0], 16)
+    lc = int(lineA[1], 10)
+    offset = twos_comp(int(lineA[2],16), 32)
+    scale = int(lineA[3], 16)
+
     offsetMap[ip]=offset
     scaleMap[ip]=scale
 
-#  print offsetMap
+  # print offsetMap
 
   command = "objdump -h {} | grep .dyninstInst".format(binaryPath)
   dumpOut=subprocess.Popen(['objdump', '-h', binaryPath],stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -119,10 +128,12 @@ def main():
       offset = 0
     Addr = Addr + offset
     out_dso = -1
+    
     if in_dso in dso:
       out_dso = dso[in_dso]
     str_output = "{} {} {} {} {} {}\n".format(hex(IP),hex(Addr),CPU,Time,windowID,out_dso)
 #    outputTrace.write("{} {} {} {}\n".format(hex(IP),Addr,CPU,Time))
+
     prev_ip = IP
     prev_cpu = CPU
     prev_time = Time

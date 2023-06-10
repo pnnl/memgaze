@@ -51,16 +51,20 @@ Directory Structure
 
 
 -----------------------------------------------------------------------------
-Trace formats
+Data formats
 =============================================================================
 
-* MemGaze's final format:
+* MemGaze's final trace format:
 
   `<insn-pc> <mem-addr> <cpu-id> <timestamp> <sample-id> <LoadModule-id>`
 
   In initial trace, a two-source load has two lines that are later converted to one line.
 
 
-* MemCAMera
+* MemCAMera trace format:
 
   `<insn-pc> <mem-addr> <cpu-id> <timestamp> [mem-addr2 cpu-id timestamp]`
+
+* MemGaze's `<binanlys file>`
+
+  `<0:insn pointer> <1:load|store & load class> <2:offset?> <3:compression ratio> <4:symbol-id> <5:symbol-offset> <6:symbol-name>`
