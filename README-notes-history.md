@@ -40,14 +40,14 @@ Detailed Notes
   2. Won't work: invoke with < quoted. The redirect looses meaning.
        `./memgaze-run ... -- ./a.out \< file`
        
-  3a. Current solution: invoke as (1), read STDIN to tmp and invoke as:
+  3. Current solution: invoke as (1), read STDIN to tmp and invoke as:
        `perf record ... < tmp`
 
-  3b. Better solution: invoke as (1), detect something on STDIN and
+  4. Better solution: invoke as (1), detect something on STDIN and
   pass the resulting file descriptor directly to perf:
     `perf record ... < 0`
 
-  3c. Better solution: invoke as (2) but use `eval <args>`
+  5. Better solution: invoke as (2) but use `eval <args>`
 
 * Corrected problem where `memgaze-inst` failed when CFG building
   encountered a non-contiguous function (e.g., for hot-cold region
