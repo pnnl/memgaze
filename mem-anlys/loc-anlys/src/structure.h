@@ -22,15 +22,8 @@ struct MemArea {
 	uint64_t min;
 };
 
-//Define the structure of memory input 
-//Used to find target instruction. Didn't use now
-struct MemIns {
-   string ip;
-   MemArea memarea;
-};
 
-//Define the structure of memory input 
-//Used to find target instruction. Didn't use now
+//Define the structure of memory block 
 struct Memblock{
   int level;
   string strID;
@@ -45,6 +38,22 @@ struct Memblock{
 	uint64_t blockSize;
 };
 
+struct TopAccessLine {
+  uint8_t regionId;
+  uint32_t pageId;
+  uint32_t lineId;
+  uint64_t lowAddr; // low addr of cache-line (64B)
+  uint32_t accessCount;
+};
+
+// Unused - carries over from original code
+// Define the structure of memory input 
+struct MemIns {
+   string ip;
+   MemArea memarea;
+};
+
+// Unused functions carried over from original code
 int searchAddr(string* addrDetail, string filename);
 uint64_t areacheck(string filename, uint64_t * addr_max, uint64_t * addr_min, int *coreNumber);
 

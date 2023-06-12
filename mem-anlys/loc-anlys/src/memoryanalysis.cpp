@@ -232,20 +232,23 @@ int getAccessCount(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int core
   return 0;
 }
 
-int getTopAccessCountLines(vector<TraceLine *>& vecInstAddr,  vector<pair<uint64_t, uint64_t>> vecParentChild,
-                                 vector<pair<uint64_t, string>>& vecLineInfo , uint64_t pageSize, uint64_t lineSize) {
+int getTopAccessCountLines(vector<TraceLine *>& vecInstAddr,   Memblock memRegion, vector<pair<uint64_t, uint64_t>> vecParentChild,
+                                 vector<TopAccessLine *>& vecLineInfo , uint64_t pageSize, uint64_t lineSize, uint8_t regionId) {
   TraceLine *ptrTraceLine;
+  TopAccessLine *ptrTopAccessLine;
   uint32_t numLinesInPage = (pageSize/lineSize);
   uint32_t numLines = numLinesInPage * (vecParentChild.size()-1);
-	vector <uint32_t> totalAccess; 
+  // pair <access count, loadAddr>
+	vector <pair<uint32_t ,uint64_t>> totalAccess; 
 	uint64_t loadAddr =0;  
   uint32_t i;
   uint32_t pageID = 0 ;
+  uint32_t lineID = 0 ;
   bool flInHotPages = false;
   uint64_t regLowAddr=vecParentChild[0].first;
   uint64_t regHighAddr=vecParentChild[0].second;
 	for(i = 0; i < numLines; i++){
-	  totalAccess.push_back(0);
+	  totalAccess.push_back(make_pair(0,0));
   }
   for (uint32_t itr=0; itr<vecInstAddr.size(); itr++){
     ptrTraceLine=vecInstAddr.at(itr);
@@ -261,15 +264,34 @@ int getTopAccessCountLines(vector<TraceLine *>& vecInstAddr,  vector<pair<uint64
               break;
             }
         }
-        if (flInHotPages) 
-        { (totalAccess.at(pageID))++;
-          printf(" Addr %08lx less than %d greater than %d pageID %d \n", loadAddr, (loadAddr<=regLowAddr), (loadAddr>=regHighAddr), pageID);
+        if (flInHotPages) { 
+          if ((totalAccess.at(pageID).first)==0) totalAccess.at(pageID).second = loadAddr;
+          (totalAccess.at(pageID).first)++;
+          //printf(" Addr %08lx less than %d greater than %d pageID %d \n", loadAddr, (loadAddr<=regLowAddr), (loadAddr>=regHighAddr), pageID);
         }
       }
     }
-        std::sort(totalAccess.begin(), totalAccess.end(), greater<>());
-        for(int i=0; i<5; i++)
-          printf("value %d \n", totalAccess.at(i));
+    std::sort(totalAccess.begin(), totalAccess.end(), greater<>());
+    for(int i=0; i<10; i++) {
+      printf("value %d  %08lx \n", totalAccess.at(i).first, totalAccess.at(i).second);
+      if(totalAccess.at(i).first != 0) {
+        ptrTopAccessLine = (TopAccessLine*) malloc(sizeof(TopAccessLine));
+        ptrTopAccessLine->accessCount = totalAccess.at(i).first;
+        ptrTopAccessLine->regionId = regionId;
+        loadAddr = totalAccess.at(i).second;
+        for (uint32_t k=1; k<vecParentChild.size(); k++) {
+          if((loadAddr>=vecParentChild[k].first)&&(loadAddr<=vecParentChild[k].second)) {
+            pageID = (k-1);
+            lineID = floor((loadAddr-vecParentChild[k].first)/lineSize);
+            ptrTopAccessLine->lowAddr = vecParentChild[k].first + lineID*lineSize;
+            ptrTopAccessLine->pageId = pageID;
+            ptrTopAccessLine->lineId = lineID;
+            vecLineInfo.push_back(ptrTopAccessLine); 
+            break;
+          }
+        }
+      }
+    }
   return 0;
 }
 
@@ -313,9 +335,8 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
 	uint32_t * lastAccess = new uint32_t [numBlocks]; // Record the temp access time
 	uint32_t * sampleLastAccess = new uint32_t [numBlocks]; //Record the temp access time
 	uint32_t * stack = new uint32_t [numBlocks]; //stack distance buffer
-	uint32_t stacklength = 0;
-	uint32_t * sampleStack = new uint32_t [numBlocks]; //stack distance buffer
 	uint32_t sampleStackLength = 0;
+  uint32_t * sampleStack = new uint32_t [numBlocks]; //stack distance buffer
   uint32_t i, j;
 
 	uint32_t * inSampleAccess = new uint32_t [numBlocks];    //Total memory access inside a sample 
@@ -332,12 +353,9 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
   std::map<uint32_t, class SpatialRUD*> spatialRUD;
   std::map<uint32_t, class SpatialRUD*>::iterator itrSpRUD;
   SpatialRUD *curSpatialRUD; 
-  uint32_t * totalCAccess = new uint32_t [coreNumber]; // Ununsed - stored as 0 - Seg faults
+  //uint32_t * totalCAccess = new uint32_t [coreNumber]; // Ununsed - stored as 0 - Seg faults
   bool blNewSample=1;
-  bool blProcessTrace=1;
 	
-	for(int i = 0; i < coreNumber; i++) totalCAccess[i] = 0; // Ununsed - coreNumber is 0, Seg faults
-
   if(printProgress) printf("in memory analysis before for loop\n");
 	for(i = 0; i < numBlocks; i++){
 		stack[i] = 0;
@@ -684,6 +702,5 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
 	delete[] inSampleAccess; 
   delete[] inSampleTotalRUD; 
 	delete[] inSampleRUDAvgCnt; 
-  delete[] totalCAccess;
   return 0;
 }

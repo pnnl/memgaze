@@ -10,43 +10,35 @@ using std::ofstream;
 using std::setw;
 using std::string;
 
+// Unused functions carried over from original code
 
 //Load target instrution IP from filename. Didn't use now
 //Data stores as <IP\n>
 int searchAddr(string* addrDetail, string filename) 
 { 
-  
     // File pointer 
     fstream fin; 
-  
     // Open an existing file 
     fin.open(filename, ios::in); 
-
     // read the state line
-    
     string line,addr2, core;
 	int linenumber = 0;
-        
-
     while (!fin.eof()){ 
-  
     getline(fin, line);
     std::stringstream s(line);
     getline(s,addr2,' '); 
-	
 	(*addrDetail).append("0x");
     (*addrDetail).append(addr2);
 	(*addrDetail).append(";");
 	//cout<< " read address form file" << addr2 << filename<< "\n";
 	linenumber++;
-
 	}
-
 	cout<<"target instruction: "<< *addrDetail<<"\n";
     fin.close();    
-    
 	return linenumber;
 }
+
+// Unused functions carried over from original code
 
 //Use to check the max, min memory area for the memory trace and how many cores to determine page size
 //Data stored as <IP addr core initialtime\n>
@@ -61,13 +53,10 @@ uint64_t areacheck(string filename, uint64_t * addr_max, uint64_t * addr_min, in
     cout << " File open failed on "<< filename<< endl;
     return 0;
   }
-
     // read the state line
     string line,ip2,addr, core;
 	uint64_t previousAddr =0;  //used for offsit check
-
     while (!fin.eof()){ 
-  
     getline(fin, line);
     std::stringstream s(line);
     if(getline(s,ip2,' ')){ 
@@ -85,16 +74,12 @@ uint64_t areacheck(string filename, uint64_t * addr_max, uint64_t * addr_min, in
 			if (previousAddr < (*addr_min)) (*addr_min) = previousAddr; //check min
       totalAccess++;
 			}
-		
 	}
     fin.close();
-
 		(*coreNumber)++;
-		
 		printf("min address - %08lx  ", (*addr_min));
 		printf("max address - %08lx  ", (*addr_max));
                 printf("total core - %d\n", (*coreNumber));
-	
 return totalAccess;	
 }
 

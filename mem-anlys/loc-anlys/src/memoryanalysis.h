@@ -17,8 +17,8 @@ void getInstInRange(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,Mem
 int getAccessCount(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int coreNumber , vector<BlockInfo *>& vecBlockInfo );
 
 /*  Get highest access cache-lines in region */
-int getTopAccessCountLines(vector<TraceLine *>& vecInstAddr,  vector<pair<uint64_t, uint64_t>> vecParentChild,
-                                  vector<pair<uint64_t, string>>& vecLineInfo , uint64_t pageSize, uint64_t lineSize) ;
+int getTopAccessCountLines(vector<TraceLine *>& vecInstAddr,  Memblock memRegion, vector<pair<uint64_t, uint64_t>> vecParentChild,
+                                  vector<TopAccessLine *>& vecLineInfo , uint64_t pageSize, uint64_t lineSize,uint8_t regionId) ;
 
 /* RUD analysis if spatialResult == 0 */
 int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int coreNumber, int spatialResult, 

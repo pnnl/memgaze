@@ -624,11 +624,14 @@ int main(int argc, char ** argv){
   bool done = 0;
   std::list<Memblock > zoomPageList;
   std::list<Memblock > spatialRegionList;
+  std::list<Memblock > finalRegionList;
   std::list<Memblock > spatialOSPageList;
   std::list<Memblock>::iterator itrRegion;
   std::list<Memblock>::iterator itrOSPage;
   vector<pair<uint64_t, uint64_t>> setRegionAddr;
   std::vector<pair<uint64_t, uint64_t>> vecParentFamily ;
+  std::vector<TopAccessLine *> vecLineInfo;
+  TopAccessLine ptrTopAccessLine;
   bool flagPagesRegion=false;
   int zoomin = 0;
   int zoominTimes = 0;
@@ -865,33 +868,44 @@ int main(int argc, char ** argv){
       thisMemblock = *itrRegion;
       spatiallastlvlBlockSize = thisMemblock.blockSize; 
     }
-    for (itrRegion=spatialRegionList.begin(); itrRegion != spatialRegionList.end(); ++itrRegion){
- 	    thisMemblock = *itrRegion; 
-      if( thisMemblock.blockSize == spatiallastlvlBlockSize) {
-    		insnMemArea.max = thisMemblock.max;
-	    	insnMemArea.min = thisMemblock.min;
-        printf("--insn  : Find instructions for %s in memRange ", memoryfile);
-        printf(" %08lx-%08lx\n",thisMemblock.min,thisMemblock.max);
-        //--insn  : Find instructions for ../MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1.trace.final in memRange 56122007b08a-56122007f089
-        spatialOutInsnFile << " --insn  : Find instructions in " << memoryfile << " for memRange " << hex<< insnMemArea.min << "-" << insnMemArea.max << " ID " << thisMemblock.strID << endl;
-        getInstInRange(&spatialOutInsnFile, vecInstAddr,insnMemArea);
-      }
-    }
-    // STEP 1 - Calculate spatial affinity at data object (inter-region) level
+
+    // Copy final sorted region list to a new one 
     std::unordered_map<uint64_t, std::string> mapMinAddrToID;
     for (itrRegion=spatialRegionList.begin(); itrRegion != spatialRegionList.end(); ++itrRegion){
  	    thisMemblock = *itrRegion; 
       if( thisMemblock.blockSize == spatiallastlvlBlockSize) {
     	  minRegionAddr = thisMemblock.min;
-  	    maxRegionAddr = thisMemblock.max;
+    	  maxRegionAddr = thisMemblock.max;
         setRegionAddr.push_back(make_pair(minRegionAddr, maxRegionAddr));
         mapMinAddrToID[minRegionAddr] = thisMemblock.strID;
       }
-      printf(" STEP1 in before zoom spatial %d ID %s \n", thisMemblock.level, (thisMemblock.strID).c_str());
-    }
+    } 
+
+    // SORT region by address - regionId updated to trace
     sort(setRegionAddr.begin(), setRegionAddr.end());
-    //for(uint32_t k=0; k<setRegionAddr.size(); k++)
-    //  printf("main Spatial set min-max %d %lx-%lx \n", k, setRegionAddr[k].first, setRegionAddr[k].second);
+    for(uint32_t k=0; k<setRegionAddr.size(); k++) {
+      printf("main Spatial set min-max %d %lx-%lx \n", k, setRegionAddr[k].first, setRegionAddr[k].second);
+      for (itrRegion=spatialRegionList.begin(); itrRegion != spatialRegionList.end(); ++itrRegion){
+ 	      thisMemblock = *itrRegion; 
+        if( thisMemblock.blockSize == spatiallastlvlBlockSize) {
+          if (thisMemblock.min == setRegionAddr[k].first && thisMemblock.max == setRegionAddr[k].second) {
+        	  finalRegionList.push_back(thisMemblock);
+          }
+        }
+      }
+    }
+    spatialRegionList.clear();
+
+    for (itrRegion=finalRegionList.begin(); itrRegion != finalRegionList.end(); ++itrRegion){
+      insnMemArea.max = thisMemblock.max;
+	   	insnMemArea.min = thisMemblock.min;
+       printf("--insn  : Find instructions for %s in memRange ", memoryfile);
+       printf(" %08lx-%08lx\n",thisMemblock.min,thisMemblock.max);
+       //--insn  : Find instructions for ../MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1.trace.final in memRange 56122007b08a-56122007f089
+       spatialOutInsnFile << " --insn  : Find instructions in " << memoryfile << " for memRange " << hex<< insnMemArea.min << "-" << insnMemArea.max << " ID " << thisMemblock.strID << endl;
+        getInstInRange(&spatialOutInsnFile, vecInstAddr,insnMemArea);
+    }
+    // STEP 1 - Calculate spatial affinity at data object (inter-region) level
     if(setRegionAddr.size() ==0) {
       printf("In Spatial Analysis Step 1 - Region address list is empty\n");
       return 0;
@@ -922,19 +936,19 @@ int main(int argc, char ** argv){
         BlockInfo *newBlock = new BlockInfo(blockID, setRegionAddr[i].first, setRegionAddr[i].second, 
                                               memarea.blockCount+cntAddPages, spatialResult, mapMinAddrToID[setRegionAddr[i].first]); 
           vecBlockInfo.push_back(newBlock);
-      }
-     // Affinity analysis done for inter-region - region based range - to identify co-existence of objects
-	   analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, true, setRegionAddr,false,memIncludePages,false,vecParentFamily); 
-     if(analysisReturn ==-1) {
+    }
+    // Affinity analysis done for inter-region - region based range - to identify co-existence of objects
+	  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, true, setRegionAddr,false,memIncludePages,false,vecParentFamily); 
+    if(analysisReturn ==-1) {
       printf("Spatial Analysis at region level returned without results \n");
       return -1;
-     }
-     spatialOutFile << endl;
-     uint64_t regionTotalAccess=0;
-     for(i = 0; i< memarea.blockCount; i++){
+    }
+    spatialOutFile << endl;
+    uint64_t regionTotalAccess=0;
+    for(i = 0; i< memarea.blockCount; i++){
          BlockInfo *curBlock = vecBlockInfo.at(i);
          regionTotalAccess += curBlock->getTotalAccess();
-     }
+    }
     spatialOutFile<< ">---- New inter-region starts " << " MemoryArea " << hex<< memarea.min << "-" << memarea.max 
                   << " Total-access "<<std::dec << regionTotalAccess 
                   << " Block size " <<std::dec << zoomLastLvlPageWidth <<" Region count " << std::dec << memarea.blockCount << " -----" << endl; 
@@ -956,9 +970,8 @@ int main(int argc, char ** argv){
     // STEP 2 -  Intra-region spatial affinity - affinity at cache-line level
     // STEP 2 -  Zoom into objects to find OS page sized hot blocks
     mapMinAddrToID.clear(); 
-    for (itrRegion=spatialRegionList.begin(); itrRegion != spatialRegionList.end(); ++itrRegion){
+    for (itrRegion=finalRegionList.begin(); itrRegion != finalRegionList.end(); ++itrRegion){
  	    thisMemblock = *itrRegion; 
-      if( thisMemblock.blockSize == spatiallastlvlBlockSize) {
     	  memarea.max = thisMemblock.max;
   	    memarea.min = thisMemblock.min;
         mapMinAddrToID[memarea.min] = thisMemblock.strID;
@@ -1000,23 +1013,20 @@ int main(int argc, char ** argv){
         		spatialOSPageList.push_back(thisMemblock);
    				  zoomPageList.pop_front();
         }
-      }
     }
     // END - STEP 2
     // STEP 2.5 - Create a map of parent-children regions
-    std::vector<pair<uint64_t, uint64_t>> vecParentChild[spatialRegionList.size()];
+    std::vector<pair<uint64_t, uint64_t>> vecParentChild[finalRegionList.size()];
     std::unordered_map<std::string, uint8_t> mapParentIndex;
     int regionCnt=0;
     uint8_t parentIndex=0;
-    for (itrRegion=spatialRegionList.begin(); itrRegion != spatialRegionList.end(); ++itrRegion){
+    for (itrRegion=finalRegionList.begin(); itrRegion != finalRegionList.end(); ++itrRegion){
       thisMemblock = *itrRegion;
       //printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx parent %s Id %s \n", thisMemblock.level, thisMemblock.blockSize, thisMemblock.blockCount, thisMemblock.min, thisMemblock.max, thisMemblock.strParentID.c_str(), thisMemblock.strID.c_str());
-      if( thisMemblock.blockSize == spatiallastlvlBlockSize) {
       printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx parent %s Id %s \n", thisMemblock.level, thisMemblock.blockSize, thisMemblock.blockCount, thisMemblock.min, thisMemblock.max, thisMemblock.strParentID.c_str(), thisMemblock.strID.c_str());
         vecParentChild[regionCnt].push_back(make_pair(thisMemblock.min, thisMemblock.max));
         mapParentIndex[(thisMemblock.strID.c_str())] = regionCnt;
         regionCnt++;
-      }
     }
     for (itrOSPage=spatialOSPageList.begin(); itrOSPage != spatialOSPageList.end(); ++itrOSPage){
  	    thisMemblock = *itrOSPage;
@@ -1026,18 +1036,40 @@ int main(int argc, char ** argv){
     }
 
     
-    for( int dbg_i=0; dbg_i<spatialRegionList.size(); dbg_i++)
+    for( uint32_t dbg_i=0; dbg_i<finalRegionList.size(); dbg_i++)
     {
       vecParentFamily = vecParentChild[dbg_i];
-      for (int dbg_j=0; dbg_j< vecParentFamily.size(); dbg_j++)
+      for (uint32_t dbg_j=0; dbg_j< vecParentFamily.size(); dbg_j++)
       {
  	     printf(" in spatial 2.5 memarea.min %08lx memarea.max %08lx \n",  vecParentFamily[dbg_j].first, vecParentFamily.at(dbg_j).second);
       }
-      vector<pair<uint64_t, string>> vecLineInfo;
-      if(vecParentFamily.size() >0)
-        int accessReturn = getTopAccessCountLines(vecInstAddr,  vecParentFamily, vecLineInfo , OSPageSize, cacheLineWidth);
     }
-   
+    // STEP 2.6 - Get top-10 hot cache-lines in the finalRegionList
+    uint8_t cntRegion=0;
+    for (itrRegion=finalRegionList.begin(); itrRegion != finalRegionList.end(); ++itrRegion){
+      thisMemblock = *itrRegion;
+      parentIndex = mapParentIndex.find(thisMemblock.strID.c_str())->second;
+      if( thisMemblock.blockSize == spatiallastlvlBlockSize) {
+        parentIndex = mapParentIndex.find(thisMemblock.strID.c_str())->second;
+        vecParentFamily = vecParentChild[parentIndex];
+        printf(" in spatial 2.6 last %d size %ld count %d memarea.min %08lx memarea.max %08lx parent %s Id %s \n", thisMemblock.level, 
+                thisMemblock.blockSize, thisMemblock.blockCount, thisMemblock.min, thisMemblock.max, thisMemblock.strParentID.c_str(), thisMemblock.strID.c_str());
+        int accessReturn = getTopAccessCountLines(vecInstAddr, thisMemblock, vecParentFamily, vecLineInfo , OSPageSize, cacheLineWidth,cntRegion);
+        cntRegion++;
+      }
+    }
+
+    // STEP 2.6a - sort and get top 10
+    std::vector <pair<uint32_t, uint64_t>> vecAccessCount;
+    for(uint32_t dbg_j=0; dbg_j< vecLineInfo.size(); dbg_j++) {
+      ptrTopAccessLine = *(vecLineInfo.at(dbg_j)); 
+      printf(" after spatial 2.6 regionId %d pageId %d lineId %d addrd %08lx access %d\n", ptrTopAccessLine.regionId, ptrTopAccessLine.pageId,  ptrTopAccessLine.lineId, ptrTopAccessLine.lowAddr, ptrTopAccessLine.accessCount);
+      vecAccessCount.push_back(make_pair(ptrTopAccessLine.accessCount, ptrTopAccessLine.lowAddr));
+    }
+    std::sort(vecAccessCount.begin(),vecAccessCount.end());
+    for(uint32_t dbg_j=0; dbg_j< 10; dbg_j++) {
+      printf(" after spatial 2.6a %d addr %08lx \n", vecAccessCount.at(dbg_j).first, vecAccessCount.at(dbg_j).second); 
+    }
 
     // STEP 3 - Calculate spatial affinity at OS page level - using 64 B cache line 
     mapMinAddrToID.clear(); 
