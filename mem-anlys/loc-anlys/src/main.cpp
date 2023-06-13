@@ -1052,24 +1052,41 @@ int main(int argc, char ** argv){
       if( thisMemblock.blockSize == spatiallastlvlBlockSize) {
         parentIndex = mapParentIndex.find(thisMemblock.strID.c_str())->second;
         vecParentFamily = vecParentChild[parentIndex];
-        printf(" in spatial 2.6 last %d size %ld count %d memarea.min %08lx memarea.max %08lx parent %s Id %s \n", thisMemblock.level, 
-                thisMemblock.blockSize, thisMemblock.blockCount, thisMemblock.min, thisMemblock.max, thisMemblock.strParentID.c_str(), thisMemblock.strID.c_str());
+        //printf(" in spatial 2.6 last %d size %ld count %d memarea.min %08lx memarea.max %08lx parent %s Id %s \n", thisMemblock.level, 
+        //        thisMemblock.blockSize, thisMemblock.blockCount, thisMemblock.min, thisMemblock.max, thisMemblock.strParentID.c_str(), thisMemblock.strID.c_str());
         int accessReturn = getTopAccessCountLines(vecInstAddr, thisMemblock, vecParentFamily, vecLineInfo , OSPageSize, cacheLineWidth,cntRegion);
+        if(accessReturn !=0) {
+          printf("Error - failed in getTopAccessCountLines\n");
+          return 0;
+        }
         cntRegion++;
       }
     }
 
     // STEP 2.6a - sort and get top 10
     std::vector <pair<uint32_t, uint64_t>> vecAccessCount;
+    std::map<uint64_t, TopAccessLine> mapAddrHotLine;
+    std::vector<uint64_t> topAccessLineAddr;
     for(uint32_t dbg_j=0; dbg_j< vecLineInfo.size(); dbg_j++) {
       ptrTopAccessLine = *(vecLineInfo.at(dbg_j)); 
-      printf(" after spatial 2.6 regionId %d pageId %d lineId %d addrd %08lx access %d\n", ptrTopAccessLine.regionId, ptrTopAccessLine.pageId,  ptrTopAccessLine.lineId, ptrTopAccessLine.lowAddr, ptrTopAccessLine.accessCount);
+      //printf(" after spatial 2.6 regionId %d pageId %d lineId %d addrd %08lx access %d\n", ptrTopAccessLine.regionId, ptrTopAccessLine.pageId,  ptrTopAccessLine.lineId, ptrTopAccessLine.lowAddr, ptrTopAccessLine.accessCount);
       vecAccessCount.push_back(make_pair(ptrTopAccessLine.accessCount, ptrTopAccessLine.lowAddr));
+      mapAddrHotLine[ptrTopAccessLine.lowAddr] = ptrTopAccessLine;
     }
-    std::sort(vecAccessCount.begin(),vecAccessCount.end());
-    for(uint32_t dbg_j=0; dbg_j< 10; dbg_j++) {
-      printf(" after spatial 2.6a %d addr %08lx \n", vecAccessCount.at(dbg_j).first, vecAccessCount.at(dbg_j).second); 
+    std::sort(vecAccessCount.begin(),vecAccessCount.end(),greater<>());
+    uint8_t cntTopHotLines=10;
+    if (vecAccessCount.size()<10) 
+      cntTopHotLines = vecAccessCount.size();
+    for(uint8_t cntVecAccess=0; cntVecAccess< cntTopHotLines; cntVecAccess++) {
+      //printf(" after spatial 2.6a %d addr %08lx \n", vecAccessCount.at(cntVecAccess).first, vecAccessCount.at(cntVecAccess).second); 
+      topAccessLineAddr.push_back(vecAccessCount.at(cntVecAccess).second);
+      ptrTopAccessLine = (mapAddrHotLine[vecAccessCount.at(cntVecAccess).second]);
+      printf(" after spatial 2.6 regionId %d pageId %d lineId %d addrd %08lx access %d\n", ptrTopAccessLine.regionId, ptrTopAccessLine.pageId, 
+                                                       ptrTopAccessLine.lineId, ptrTopAccessLine.lowAddr, ptrTopAccessLine.accessCount);
+      spatialOutFile<< "#---- Top Access line Address "<< std::hex << ptrTopAccessLine.lowAddr << " Access " << std::dec<< ptrTopAccessLine.accessCount << " RegionID " 
+                    << std::dec<< unsigned(ptrTopAccessLine.regionId) << " pageID "<<std::dec<< ptrTopAccessLine.pageId << " lineID " << std::dec<< ptrTopAccessLine.lineId <<endl; 
     }
+    mapAddrHotLine.clear();
 
     // STEP 3 - Calculate spatial affinity at OS page level - using 64 B cache line 
     mapMinAddrToID.clear(); 
