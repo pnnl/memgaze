@@ -58,13 +58,34 @@ Data formats
 
   `<insn-pc> <mem-addr> <cpu-id> <timestamp> <sample-id> <LoadModule-id>`
 
-  In initial trace, a two-source load has two lines that are later converted to one line.
+  - `<insn-pc>`:  instruction pointer of memory access (static, unrelocated)
+  - `<mem-addr>`: memory data address (dynamic, run-time)
+  - `<cpu-id>`:   core id executing instruction
+
+  Note: In initial trace, a two-source load has two lines that are later converted to one line.
 
 
 * MemCAMera trace format:
 
   `<insn-pc> <mem-addr> <cpu-id> <timestamp> [mem-addr2 cpu-id timestamp]`
 
-* MemGaze's `<binanlys file>`
 
-  `<0:insn pointer> <1:load|store & load class> <2:offset?> <3:compression ratio> <4:symbol-id> <5:symbol-offset> <6:symbol-name>`
+* MemGaze's final `<binanlys file>`
+
+  `<0:insn-pc> <1:access-class> <2:access-offset> <3:access-scale>`
+  `<4:skipped-accesses> <5:symbol-offset> <6:symbol-name>`
+
+  - <0:insn-pc>: (hex) instruction pointer of memory access *before* instrumentation, i.e., instruction pointer in original binary
+  
+  - <1:access-class>: (integer) access class: load class (0,1,2) or store (90)
+ 
+  - <2:access-offset>: (hex) instruction's memory access offset <o>, i.e, actual memory access is to (<mem-addr> + <o>)
+  
+  - <3:access-scale>: (hex) "scale of the access where there is a calculation to find the address ( move (eax , ebx, 4) ecx => 4 (size of the single item)"
+
+  - <4:skipped-accesses>: Number of skipped constant loads
+
+  - <5:symbol-offset>: (hex) symbol offset
+
+  - <6:symbol-name>: (string) symbol (function) name
+
