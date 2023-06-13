@@ -85,6 +85,6 @@ Data formats
 
   - <4:skipped-accesses>: Number of skipped constant loads
 
-  - <5:symbol-offset>: (hex) symbol offset
+  - <5:symbol-offset>: (hex) symbol offset (from section?)
 
   - <6:symbol-name>: (string) symbol (function) name
