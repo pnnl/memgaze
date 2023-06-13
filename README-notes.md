@@ -79,13 +79,12 @@ Data formats
   
   - <1:access-class>: (integer) access class: load class (0,1,2) or store (90)
  
-  - <2:access-offset>: (hex) instruction's memory access offset <o>, i.e, actual memory access is to (<mem-addr> + <o>)
+  - <2:access-offset>: (hex) memory access offset <o> for an access with offsets. Consider the load: "load dest <- [src] + o", where the accessed access include <o>.
   
-  - <3:access-scale>: (hex) "scale of the access where there is a calculation to find the address ( move (eax , ebx, 4) ecx => 4 (size of the single item)"
+  - <3:access-scale>: (hex) memory access scale <k> for an access with scaling. Consider the load: "load dest <- [src1] + k [src2] + o", where the accessed access include <k>.
 
   - <4:skipped-accesses>: Number of skipped constant loads
 
   - <5:symbol-offset>: (hex) symbol offset
 
   - <6:symbol-name>: (string) symbol (function) name
-
