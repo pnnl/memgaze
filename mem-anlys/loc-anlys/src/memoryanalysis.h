@@ -24,7 +24,8 @@ int getTopAccessCountLines(vector<TraceLine *>& vecInstAddr,  Memblock memRegion
 int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int coreNumber, int spatialResult, 
                         vector<BlockInfo *>& vecBlockInfo, bool flagSetRegion, vector<pair<uint64_t, uint64_t>> setRegionAddr,
                         bool flagIncludePages, MemArea memIncludeArea, 
-                        bool flagPagesRegion, vector<pair<uint64_t, uint64_t>> vecParentChild);
+                        bool flagPagesRegion, vector<pair<uint64_t, uint64_t>> vecParentChild,
+                        bool flagHotLines, vector<uint64_t> vecHotLines);
 
 int updateTraceRegion(vector<TraceLine *>& vecInstAddr ,vector<pair<uint64_t, uint64_t>> setRegionAddr, uint64_t heapAddrEnd);
 #endif

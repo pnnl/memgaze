@@ -229,6 +229,7 @@ int getAccessCount(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int core
       //curBlock->printBlockRUD();
     }
   }
+  delete[] totalAccess;
   return 0;
 }
 
@@ -292,6 +293,7 @@ int getTopAccessCountLines(vector<TraceLine *>& vecInstAddr,   Memblock memRegio
         }
       }
     }
+  totalAccess.clear();
   return 0;
 }
 
@@ -305,13 +307,15 @@ int getTopAccessCountLines(vector<TraceLine *>& vecInstAddr,   Memblock memRegio
 *   flagIncludePages - set to 0 - all other addresses lumped into one bucket
 *   flagIncludePages - set to 1 - all other addresses bucketed based on exponential spatial location
 *   flagPagesRegion - set to 1 - all other addresses bucketed based hot pages in region, other regions, non-hot and stack
+*   flagHotLines - set to 1 - all other address bucketed based top 10 hot lines, other regions, non-hot and stack
 * --- There is spill code from original whole trace analysis (not considering samples), 
 *      will have to clean it up for overhead analysis
 */
 int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int coreNumber, int spatialResult, 
                         vector<BlockInfo *>& vecBlockInfo, bool flagSetRegion, vector<pair<uint64_t, uint64_t>> setRegionAddr,
                         bool flagIncludePages, MemArea memIncludeArea, // Include all address range - exponential coverage
-                        bool flagPagesRegion, vector<pair<uint64_t, uint64_t>> vecParentChild //Include pages in region, regions, non-hot, stack separately 
+                        bool flagPagesRegion, vector<pair<uint64_t, uint64_t>> vecParentChild ,//Include pages in region, regions, non-hot, stack separately 
+                        bool flagHotLines, vector<uint64_t> vecHotLines
                     ){
   TraceLine *ptrTraceLine;
   uint32_t numBlocks =0;
@@ -320,6 +324,9 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
   if (flagPagesRegion == true)
     numBlocks = memarea.blockCount+numHotPages + setRegionAddr.size()+ 2;  // 10 hot pages in region, all regions, non-hot, stack 
     
+  uint8_t numHotLines= 10;
+  if(flagHotLines == true)
+      numHotLines = vecHotLines.size();
 	int * distance = new int [numBlocks];   
 	int * sampleDistance = new int [numBlocks];   
   if(printProgress) printf("in memory analysis before array\n");
@@ -384,6 +391,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
   uint32_t pageID =0;
   uint8_t regionID=0;
   bool flInHotPages = false;
+  bool flInHotLines = false;
   if(printDebug) printf("Size of vector %ld\n", vecBlockInfo.size()); 
   // START - Vector FOR loop 
   for (uint32_t itr=0; itr<vecInstAddr.size(); itr++){
@@ -454,12 +462,12 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
     }
     // END - new sample
     // Find PageID - reference, affinity blocks - either cache-line in a page OR regionId
-    if((flagSetRegion==0) && (flagPagesRegion == false)) { 
+    if((flagSetRegion==0) && (flagPagesRegion == false) && (flagHotLines == false)) { 
       if ( loadAddr >= memarea.min && loadAddr <= memarea.max) {
     		pageID = floor((loadAddr-memarea.min)/memarea.blockSize);
         // Number of blocks does not evenly divide address space - so the last one includes spill-over address range
         if(pageID == memarea.blockCount) pageID--;
-      // NEW include blindspots
+      // NEW include blindspots - exponential address range
       } else if (flagIncludePages ==0 ) { 
           pageID = memarea.blockCount; // Put all other accesses into one bucket
       } else { 
@@ -480,7 +488,8 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
                         ceil(((double)(loadAddr-memarea.max)/(double)memIncludeArea.blockSize)), memarea.blockCount, pageID);
           }
       } 
-    } else if ((flagSetRegion==0) && (flagPagesRegion == true)) {
+      // Hot pages - experimental
+      } else if ((flagSetRegion==0) && (flagPagesRegion == true)) {
 	    regLowAddr=vecParentChild[0].first;
       regHighAddr=vecParentChild[0].second; 
       // Affinity arrangement - 0:255 reference blocks, 256:265 - hot pages in region, 
@@ -502,12 +511,39 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
         if( flInHotPages == false) 
               pageID = memarea.blockCount + numHotPages + regionID;
       } else { 
-          if (regionID == UINT8_MAX)  
+          if (regionID == UINT8_MAX) // Stack 
               pageID = memarea.blockCount + numHotPages + setRegionAddr.size() +1 ;
-          else if (regionID == (UINT8_MAX -1)) 
+          else if (regionID == (UINT8_MAX -1)) // Non-hot 
               pageID = memarea.blockCount + numHotPages + setRegionAddr.size() ;
           else 
               pageID = memarea.blockCount + numHotPages + regionID;
+      }
+    // Hot lines
+    } else if ((flagSetRegion==0) && (flagHotLines == true)) {
+      if ( loadAddr >= memarea.min && loadAddr <= memarea.max) {
+    		pageID = floor((loadAddr-memarea.min)/memarea.blockSize);
+        if(pageID == memarea.blockCount) pageID--;
+              printf( " in hotlines memArea loadAddr %08lx regionID %d pageID %d\n", loadAddr, regionID, pageID );
+      // FIND pageID if in hot-lines affinity range   
+      } else {
+        flInHotLines = false;
+        for (uint8_t k=0; k<vecHotLines.size(); k++) {
+           if((loadAddr>=vecHotLines[k])&&(loadAddr<(vecHotLines[k]+64))) {
+              pageID = memarea.blockCount+k; 
+              printf( " in hotLines vector loadAddr %08lx regionID %d pageID %d\n", loadAddr, regionID, pageID );
+              flInHotLines=true;
+              break;
+            }
+        }  
+        if( flInHotLines == false) { 
+          if (regionID == UINT8_MAX) // Stack 
+              pageID = memarea.blockCount + numHotLines + setRegionAddr.size() +1 ;
+          else if (regionID == (UINT8_MAX -1)) // Non-hot
+              pageID = memarea.blockCount + numHotLines + setRegionAddr.size() ;
+          else 
+              pageID = memarea.blockCount + numHotLines + regionID;       
+          printf( " in hotLines region loadAddr %08lx regionID %d pageID %d\n", loadAddr, regionID, pageID );
+        }
       }
     } else { // Inter-region analysis, uses updated trace with region ids
         if( (regionID == UINT8_MAX) || (regionID == (UINT8_MAX -1)))
@@ -516,7 +552,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
           pageID = regionID;
             //printf( "loadAddr %08lx regionID %d pageID %d\n", loadAddr, regionID, pageID );
     }
-    //if( (flagPagesRegion == true) && (pageID ==0) ) printf( "loadAddr %08lx memarea.min %08lx  memarea.max %08lx pageID %d, regionID %d  %08lx   %08lx \n", loadAddr, memarea.min, memarea.max, pageID, regionID, regLowAddr, regHighAddr );
+    if( (flagPagesRegion == false) && (pageID ==256) ) printf( "loadAddr %08lx memarea.min %08lx  memarea.max %08lx pageID %d, regionID %d  \n", loadAddr, memarea.min, memarea.max, pageID, regionID );
     totalAccess[pageID]++;
     inSampleAccess[pageID]++;
     time = totalinst; 

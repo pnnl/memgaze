@@ -631,6 +631,7 @@ int main(int argc, char ** argv){
   vector<pair<uint64_t, uint64_t>> setRegionAddr;
   std::vector<pair<uint64_t, uint64_t>> vecParentFamily ;
   std::vector<TopAccessLine *> vecLineInfo;
+  std::vector<uint64_t> vecTopAccessLineAddr;
   TopAccessLine ptrTopAccessLine;
   bool flagPagesRegion=false;
   int zoomin = 0;
@@ -725,7 +726,8 @@ int main(int argc, char ** argv){
           vecBlockInfo.push_back(newBlock);
         }
         printf("Size of vector BlockInfo %ld\n", vecBlockInfo.size());
-	  	  analysisReturn=spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo,false, setRegionAddr,false, memIncludePages,false,vecParentFamily); //spatialResult =0
+	  	  analysisReturn=spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo,false, setRegionAddr,false, memIncludePages,
+                                  false,vecParentFamily, false, vecTopAccessLineAddr); //spatialResult =0
         if(analysisReturn ==-1)
           return -1;
         for(i = 0; i< memarea.blockCount; i++){
@@ -782,7 +784,8 @@ int main(int argc, char ** argv){
         }
         if (memarea.blockSize == cacheLineWidth) { 
           // RUD analyisis only - Affinity analysis not done in this loop - costly space & time overhead
-  		    analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo,false, setRegionAddr,false,memIncludePages, false,vecParentFamily); // spatialResult=0
+  		    analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo,false, setRegionAddr,false,memIncludePages, 
+                                          false,vecParentFamily,false, vecTopAccessLineAddr); // spatialResult=0
         } else {
           analysisReturn= getAccessCount(vecInstAddr,   memarea,  coreNumber , vecBlockInfo );
         }
@@ -938,7 +941,8 @@ int main(int argc, char ** argv){
           vecBlockInfo.push_back(newBlock);
     }
     // Affinity analysis done for inter-region - region based range - to identify co-existence of objects
-	  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, true, setRegionAddr,false,memIncludePages,false,vecParentFamily); 
+	  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, true, setRegionAddr,
+                                                false,memIncludePages,false,vecParentFamily,false, vecTopAccessLineAddr); 
     if(analysisReturn ==-1) {
       printf("Spatial Analysis at region level returned without results \n");
       return -1;
@@ -966,6 +970,7 @@ int main(int argc, char ** argv){
          BlockInfo *curBlock = vecBlockInfo.at(i);
          curBlock->printBlockSpatialInterval(spatialOutFile,zoomLastLvlPageWidth, false);
     }
+    spatialOutFile << endl;
     // END - STEP 1 
     // STEP 2 -  Intra-region spatial affinity - affinity at cache-line level
     // STEP 2 -  Zoom into objects to find OS page sized hot blocks
@@ -1066,7 +1071,6 @@ int main(int argc, char ** argv){
     // STEP 2.6a - sort and get top 10
     std::vector <pair<uint32_t, uint64_t>> vecAccessCount;
     std::map<uint64_t, TopAccessLine> mapAddrHotLine;
-    std::vector<uint64_t> topAccessLineAddr;
     for(uint32_t dbg_j=0; dbg_j< vecLineInfo.size(); dbg_j++) {
       ptrTopAccessLine = *(vecLineInfo.at(dbg_j)); 
       //printf(" after spatial 2.6 regionId %d pageId %d lineId %d addrd %08lx access %d\n", ptrTopAccessLine.regionId, ptrTopAccessLine.pageId,  ptrTopAccessLine.lineId, ptrTopAccessLine.lowAddr, ptrTopAccessLine.accessCount);
@@ -1079,12 +1083,13 @@ int main(int argc, char ** argv){
       cntTopHotLines = vecAccessCount.size();
     for(uint8_t cntVecAccess=0; cntVecAccess< cntTopHotLines; cntVecAccess++) {
       //printf(" after spatial 2.6a %d addr %08lx \n", vecAccessCount.at(cntVecAccess).first, vecAccessCount.at(cntVecAccess).second); 
-      topAccessLineAddr.push_back(vecAccessCount.at(cntVecAccess).second);
+      vecTopAccessLineAddr.push_back(vecAccessCount.at(cntVecAccess).second);
       ptrTopAccessLine = (mapAddrHotLine[vecAccessCount.at(cntVecAccess).second]);
       printf(" after spatial 2.6 regionId %d pageId %d lineId %d addrd %08lx access %d\n", ptrTopAccessLine.regionId, ptrTopAccessLine.pageId, 
                                                        ptrTopAccessLine.lineId, ptrTopAccessLine.lowAddr, ptrTopAccessLine.accessCount);
-      spatialOutFile<< "#---- Top Access line Address "<< std::hex << ptrTopAccessLine.lowAddr << " Access " << std::dec<< ptrTopAccessLine.accessCount << " RegionID " 
-                    << std::dec<< unsigned(ptrTopAccessLine.regionId) << " pageID "<<std::dec<< ptrTopAccessLine.pageId << " lineID " << std::dec<< ptrTopAccessLine.lineId <<endl; 
+      spatialOutFile<< "#---- Top Access line aff_blockid " << (OSPageSize/cacheLineWidth)+ cntVecAccess<< " Address "<< std::hex << ptrTopAccessLine.lowAddr 
+                    << " Access " << std::dec<< ptrTopAccessLine.accessCount << " RegionID " << std::dec<< unsigned(ptrTopAccessLine.regionId) 
+                    << " pageID "<<std::dec<< ptrTopAccessLine.pageId << " lineID " << std::dec<< ptrTopAccessLine.lineId <<endl; 
     }
     mapAddrHotLine.clear();
 
@@ -1121,8 +1126,25 @@ int main(int argc, char ** argv){
 		  printf("Memory address min %lx max %lx ", memarea.min, memarea.max);
 			printf(" page number = %d ", memarea.blockCount);
 			printf(" page size =  %ld\n", memarea.blockSize);
-      
-		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, false, setRegionAddr, true, memIncludePages,true,vecParentFamily);
+      // Exponential page segments
+      /* 
+      vecParentFamily.clear();
+      vecTopAccessLineAddr.clear();
+		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, false, setRegionAddr, 
+                                                  true, memIncludePages,false,vecParentFamily, false, vecTopAccessLineAddr);
+      */
+
+      // Hot Pages 
+      /*
+      vecTopAccessLineAddr.clear();
+		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, false, setRegionAddr, 
+                                            true, memIncludePages,true,vecParentFamily, false, vecTopAccessLineAddr);
+      */
+
+      // Hot lines
+      vecParentFamily.clear();
+		  analysisReturn= spatialAnalysis(vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo,false,setRegionAddr, 
+                                            false, memIncludePages,false,vecParentFamily, true, vecTopAccessLineAddr);
       if(analysisReturn ==-1) {
         printf("Spatial Analysis Step 2 - Zoom into objects to find OS page sized %ld B hot blocks returned without results\n", OSPageSize);
         return -1;
