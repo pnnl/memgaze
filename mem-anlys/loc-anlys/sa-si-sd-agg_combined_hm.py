@@ -30,11 +30,20 @@ sns.color_palette("light:#5A9", as_cmap=True)
 sns.set()
 
 from fileToDataframe import get_intra_obj,getFileColumnNames,getMetricColumns,getRearrangeColumns,getPageColList
-from fileToDataframe import getFileColumnNamesPageRegion,getMetricColumnsPageRegion
+from fileToDataframe import getFileColumnNamesPageRegion,getMetricColumnsPageRegion,getPageColListPageRegion
+from fileToDataframe import getFileColumnNamesLineRegion,getMetricColumnsLineRegion,getPageColListLineRegion
 
 # Works for spatial denity, Spatial Probability and Proximity
-def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeighted=None,numExtraPages:int=None):
+def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeighted=None,numExtraPages:int=None,affinityOption:int=None):
     flagPhysicalPages = 0
+    flagHotPages =0
+    flagHotLines = 0
+    if(affinityOption==1):
+        flagPhysicalPages = 1
+    elif (affinityOption == 2):
+        flagHotPages = 1
+    elif (affinityOption == 3):
+        flagHotLines = 1
     # STEP 1 - Read spatial.txt and write inter-region file
     strPath=strFileName[0:strFileName.rindex('/')]
     if('SP-SI' in strMetric  ):
@@ -124,7 +133,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         lineStartList=['---','===','***']
         if (flagPhysicalPages== 1):
             numExtra = numExtraPages
-        else:
+        elif(flagHotPages ==1):
+            numExtra = 10+numRegionInFile+2
+        elif(flagHotLines ==1 ):
             numExtra = 10+numRegionInFile+2
         with open(strFileName) as f:
             for fileLine in f:
@@ -148,11 +159,15 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             print("Proceed to plot")
         # STEP 3b - Convert list to data frame
         #print(data_list_intra_obj)
-        list_col_names =getFileColumnNamesPageRegion (regionIdNum, numRegionInFile)
-        #print(list_col_names)
-
         if (flagPhysicalPages== 1):
             list_col_names=getFileColumnNames(numExtraPages)
+        elif(flagHotPages == 1):
+            list_col_names =getFileColumnNamesPageRegion (regionIdNum, numRegionInFile)
+        elif(flagHotLines == 1):
+            list_col_names =getFileColumnNamesLineRegion (strFileName, numRegionInFile)
+
+        #print(list_col_names)
+
 
         df_intra_obj=pd.DataFrame(data_list_intra_obj,columns=list_col_names)
         print('columns ', df_intra_obj.columns.to_list())
@@ -178,14 +193,17 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         df_reg_pages.sort_index(inplace=True)
         df_reg_pages["Access"] = df_reg_pages["Access"].apply(pd.to_numeric)
         df_reg_pages = df_reg_pages.astype({"Access": int})
-        df_reg_pages.sort_values(by=['Access'],ascending=False,inplace=True)
+        #df_reg_pages.sort_values(by=['Access'],ascending=False,inplace=True)
         arRegPageAccess=(df_reg_pages[['Access']]).to_numpy()
         arRegPages=df_reg_pages['reg-page'].to_list()
 
         if(flagPhysicalPages ==1):
             plot_SP_col = getMetricColumns(numExtraPages)
-        else:
+        elif(flagHotPages == 1):
             plot_SP_col = getMetricColumnsPageRegion(regionIdNum, numRegionInFile)
+        elif(flagHotLines == 1):
+            plot_SP_col = getMetricColumnsLineRegion(regionIdNum, numRegionInFile)
+
         #print('plot_SP_col', plot_SP_col)
         # Change data to numeric
         for i in range (0,len(plot_SP_col)):
@@ -199,7 +217,6 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         else:
             #print('in numExtraPages 0')
             colRearrangeList = df_intra_obj.columns.to_list()
-
 
         df_intra_obj = df_intra_obj[colRearrangeList]
         #print('after rearrange ', df_intra_obj.columns.to_list())
@@ -260,6 +277,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         normSPMax = np.ones(len(arRegPages))
         if(flagPhysicalPages == 1):
             plot_SP_col=getPageColList(plot_SP_col)
+        elif(flagHotPages ==1):
+            plot_SP_col=getPageColListPageRegion(plot_SP_col)
+        elif(flagHotLines ==1):
+            plot_SP_col=getPageColListLineRegion(plot_SP_col)
+
         list_SP_SI_SD=[[None]*(3*len(plot_SP_col)+2) for i in range(len(list_xlabel))]
 
         list_col_names=['reg-page-blk','reg-page']
@@ -360,7 +382,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             str_col_orig_name = str(col_orig_name)
             #print('column name', str_col_orig_name)#, df_SP_SI_SD[col_orig_name])
             #print(df_SP_SI_SD[col_orig_name].isnull().all())
-            if ( (not (df_SP_SI_SD[col_orig_name].isnull().all())) and (np.sum(df_SP_SI_SD[col_orig_name]>=0.05) > 2)):
+            if ( (not (df_SP_SI_SD[col_orig_name].isnull().all())) and (np.sum(df_SP_SI_SD[col_orig_name]>=0.05) > 4)):
                 #print(' return value ', np.sum(df_SP_SI_SD[col_orig_name]>=0.01))
                 #print(col_orig_name)
                 col_SP_name='SP-'+str_col_orig_name[3:]
@@ -392,25 +414,25 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     cols_df_SD.append(col_SD_name)
 
         # Add columns so that self is not the only one shown
-            pattern = re.compile('.*self-.*')
-            negSelfCols = list(filter(pattern.match, cols_df_SD))
-            pattern = re.compile('.*--.*')
-            negPageCols = list(filter(pattern.match, cols_df_SD))
-            if(len(negSelfCols) ==0 and len(negPageCols)==0):
-                cols_df_SP.insert(0,'SP-self-2')
-                cols_df_SP.insert(1,'SP-self-1')
-                df_SP_SI_SD['SP-self-2']=np.NaN
-                df_SP_SI_SD['SP-self-1']=np.NaN
-                cols_df_SD.insert(0,'SD-self-2')
-                cols_df_SD.insert(1,'SD-self-1')
-                df_SP_SI_SD['SD-self-2']=np.NaN
-                df_SP_SI_SD['SD-self-1']=np.NaN
-                cols_df_SI.insert(0,'SI-self-2')
-                cols_df_SI.insert(1,'SI-self-1')
-                df_SP_SI_SD['SI-self-2']=np.NaN
-                df_SP_SI_SD['SI-self-1']=np.NaN
+            if (flagPhysicalPages ==1):
+                pattern = re.compile('.*self-.*')
+                negSelfCols = list(filter(pattern.match, cols_df_SD))
+                pattern = re.compile('.*--.*')
+                negPageCols = list(filter(pattern.match, cols_df_SD))
+                if(len(negSelfCols) ==0 and len(negPageCols)==0 ):
+                    cols_df_SP.insert(0,'SP-self-2')
+                    cols_df_SP.insert(1,'SP-self-1')
+                    df_SP_SI_SD['SP-self-2']=np.NaN
+                    df_SP_SI_SD['SP-self-1']=np.NaN
+                    cols_df_SD.insert(0,'SD-self-2')
+                    cols_df_SD.insert(1,'SD-self-1')
+                    df_SP_SI_SD['SD-self-2']=np.NaN
+                    df_SP_SI_SD['SD-self-1']=np.NaN
+                    cols_df_SI.insert(0,'SI-self-2')
+                    cols_df_SI.insert(1,'SI-self-1')
+                    df_SP_SI_SD['SI-self-2']=np.NaN
+                    df_SP_SI_SD['SI-self-1']=np.NaN
 
-            if(flagPhysicalPages ==1):
                 pattern = re.compile('.*self\+.*')
                 posSelfCols = list(filter(pattern.match, cols_df_SD))
                 pattern = re.compile('.*-\+.*')
@@ -517,23 +539,24 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             ax_3 = fig.add_subplot(gsright[0, 1])
             gsleft_ax_0 = sns.heatmap(df_hm_SD, cmap='mako_r',cbar=True, cbar_kws={"pad":0.02}, annot=False,ax=gsleft_ax_0,vmin=0.02,vmax=1.0)
             gsleft_ax_1 = sns.heatmap(df_hm_SP, cmap='mako_r',cbar=True, cbar_kws={"pad":0.02}, annot=False,ax=gsleft_ax_1,vmin=0.02, vmax=1.0)
-            if ('minivite' in strApp.lower()):
-                vmin = 0
-                vmax= 20
-            else:
-                vmin=0
-                vmax=20
+            vmin=0
+            vmax=20
             gsleft_ax_2 = sns.heatmap(df_hm_SI, cmap='mako',cbar=True, cbar_kws={"pad":0.02}, annot=False,ax=gsleft_ax_2,vmin=vmin, vmax=vmax)
             gsleft_ax_0.set_ylabel("SD",fontsize=16,style='italic')
             gsleft_ax_1.set_ylabel("SA",fontsize=16,style='italic')
             gsleft_ax_2.set(xlabel="Region-Page-Block")
             gsleft_ax_2.set_ylabel("SI", fontsize=16,style='italic')
+            custom_blue = sns.light_palette("#79C")
+            background_color = mpl.colormaps["Blues"]
+            hotLineColor='indianred'
+            regionColor='steelblue'
 
             gsleft_ax_0.invert_yaxis()
             #list_y_ticks=gsleft_ax_0.get_yminorticklabels() # its always zero
             list_y_ticks=gsleft_ax_0.get_yticklabels()
             fig_ylabel=[]
-            print('SD App ', strApp, 'cols ',cols_df_SD, ' list_y ', list_y_ticks, ' len ', len(list_y_ticks))
+            print('SD App ', strApp, 'len', len(cols_df_SD),' cols ',cols_df_SD)
+            print('len ', len(list_y_ticks),' list_y ', list_y_ticks)
             for y_label in list_y_ticks:
                 if ('self' in cols_df_SD[int(y_label.get_text())]):
                     fig_ylabel.append(cols_df_SD[int(y_label.get_text())][7:])
@@ -547,16 +570,16 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             for x_label in list_x_ticks:
                 fig_xlabel.append(df_SP_SI_SD['reg-page-blk'][int(x_label.get_text())])
             gsleft_ax_0.set_yticklabels(fig_ylabel,rotation='horizontal')
-            #gsleft_ax_0.set_xticklabels(fig_xlabel,rotation='vertical')
+            for ticklabel in gsleft_ax_0.get_yticklabels():
+                if(ticklabel.get_text().count('-')==2):
+                    ticklabel.set_color(hotLineColor)
+                elif(ticklabel.get_text().count('r-')==1):
+                    ticklabel.set_color(regionColor)
             gsleft_ax_0.set_xticklabels([])
-            # Colors for Access heatmap, and labels for affinity matrix
-            custom_blue = sns.light_palette("#79C")
-            background_color = mpl.colormaps["Blues"]
 
             gsleft_ax_1.invert_yaxis()
             #gsleft_ax_1.set_yticks(range(len(cols_df_SP)))
             list_y_ticks=gsleft_ax_1.get_yticklabels()
-
             fig_ylabel=[]
             #print('SA App ', strApp, ' list_y ', list_y_ticks, ' len ', len(list_y_ticks))
             for y_label in list_y_ticks:
@@ -569,6 +592,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     #print(strColName)
                     fig_ylabel.append(strColName)
             gsleft_ax_1.set_yticklabels(fig_ylabel,rotation='horizontal')
+            for ticklabel in gsleft_ax_1.get_yticklabels():
+                if(ticklabel.get_text().count('-')==2):
+                    ticklabel.set_color(hotLineColor)
+                elif(ticklabel.get_text().count('r-')==1):
+                    ticklabel.set_color(regionColor)
             gsleft_ax_1.set_xticklabels([])
 
             gsleft_ax_2.invert_yaxis()
@@ -597,6 +625,12 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 my_colors.append(background_color((accessBlockCacheLine[int(x_label.get_text())].item()-accessLowValue)/accessRange))
             gsleft_ax_2.set_yticklabels(fig_ylabel,rotation='horizontal')
             gsleft_ax_2.set_xticklabels(fig_xlabel,rotation='vertical')
+            for ticklabel in gsleft_ax_2.get_yticklabels():
+                if(ticklabel.get_text().count('-')==2):
+                    ticklabel.set_color(hotLineColor)
+                elif(ticklabel.get_text().count('r-')==1):
+                    ticklabel.set_color(regionColor)
+
             i=0
             for ticklabel, tickcolor in zip(gsleft_ax_2.get_xticklabels(), my_colors):
                 if(color_xlabel[i]>0.5):
@@ -654,16 +688,39 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             plt.close()
 
 
-intraObjectPlot('miniVite-v3','/Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/page_region/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
-                listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=True,numExtraPages=17)
 
 flWeight=True
-mainPath='/Users/suri836/Projects/spatial_rud/'
-#intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',2,strMetric='SD-SP-SI', \
-#                listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight)
 f_avg1=None
-#intraObjectPlot('HiParTi - CSR',mainPath+'HiParTi/4096-same-iter/mg-csr/spmm_csr_mat-trace-b8192-p4000000/spatial_affinity/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',flWeighted=flWeight)
+mainPath='/Users/suri836/Projects/spatial_rud/'
+if(1==0):
+    intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD-SP-SI', \
+                 flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/hot_lines/v2_spatial_det.txt',3,strMetric='SD-SP-SI', \
+                listCombineReg=['1-A0000010','4-A0002000'] ,flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
+                listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight,affinityOption=3)
 
+if(0):
+    intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+
+if(1):
+    intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',\
+                    flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTi - COO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/coo_u_0/spatial.txt',3,f_avg=f_avg1,\
+                    listCombineReg=['1-A0000010','2-A0000020'], strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTi - COO-Reduce',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/coo_u_1/spatial.txt', \
+                    2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'],f_avg=f_avg1, strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTi - HiCOO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_0/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', \
+                    flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_1/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', \
+                    flWeighted=flWeight,affinityOption=3)
 if( 1 == 0):
     intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight)
     intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SD-SP-SI', \
@@ -672,33 +729,43 @@ if( 1 == 0):
                 listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight)
 if(0):
     numExtraPages=64
-    intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/include_all_pages/v1_spatial_det.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/include_all_pages/v1_spatial_det.txt',1,strMetric='SD-SP-SI',\
+                    flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=1)
     intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/include_all_pages/v2_spatial_det.txt',3,strMetric='SD-SP-SI', \
-                listCombineReg=['1-A0000010','4-A0002000'] ,flWeighted=flWeight,numExtraPages=numExtraPages)
+                listCombineReg=['1-A0000010','4-A0002000'] ,flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=1)
     intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/include_all_pages/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
-                listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight,numExtraPages=numExtraPages)
+                listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=1)
 
 if(0):
     numExtraPages=64
-    intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/page_region/v1_spatial_det.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/page_region/v1_spatial_det.txt',1,strMetric='SD-SP-SI',\
+                    flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=2)
     intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/page_region/v2_spatial_det.txt',3,strMetric='SD-SP-SI', \
-                listCombineReg=['1-A0000010','4-A0002000'] ,flWeighted=flWeight,numExtraPages=numExtraPages)
+                listCombineReg=['1-A0000010','4-A0002000'] ,flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=2)
     intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/page_region/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
-                listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight,numExtraPages=numExtraPages)
+                listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=2)
 
 if(0):
     numExtraPages=64
-    intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/include_all_pages/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
-    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/include_all_pages/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
-    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/include_all_pages/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
-    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/include_all_pages/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/include_all_pages/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=1)
+    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/include_all_pages/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=1)
+    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/include_all_pages/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=1)
+    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/include_all_pages/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=1)
 
 if(0):
     numExtraPages=64
-    intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/pages_region/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
-    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/pages_region/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
-    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/pages_region/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
-    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/pages_region/spatial.txt', 1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/pages_region/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=2)
+    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/pages_region/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=2)
+    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/pages_region/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=2)
+    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/pages_region/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=2)
 
 if ( 1 == 0):
     intraObjectPlot('ResNet', mainPath+'darknet_cluster/resnet152_single/spatial_affinity/spatial.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight)
@@ -707,35 +774,44 @@ if ( 1 == 0):
 
 if ( 1 == 0):
     f_avg1=None
-    intraObjectPlot('HiParTi - CSR',mainPath+'HiParTi/4096-same-iter/mg-csr/spmm_csr_mat-trace-b8192-p4000000/spatial_affinity_time/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',flWeighted=flWeight)
+    intraObjectPlot('HiParTi - CSR',mainPath+'HiParTi/4096-same-iter/mg-csr/spmm_csr_mat-trace-b8192-p4000000/spatial_affinity_time/spatial.txt',2,f_avg=f_avg1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight)
     intraObjectPlot('HiParTi - COO',mainPath+'HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-0-trace-b8192-p4000000/spatial_affinity_time/spatial.txt',3,f_avg=f_avg1,\
                     listCombineReg=['1-A0000010','2-A0000020'], strMetric='SD-SP-SI', flWeighted=flWeight)
     intraObjectPlot('HiParTi - COO-Reduce',mainPath+'HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-1-trace-b8192-p4000000/spatial_affinity_time/spatial.txt', \
                     2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'],f_avg=f_avg1, strMetric='SD-SP-SI', flWeighted=flWeight)
-    intraObjectPlot('HiParTi - HiCOO',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-0-trace-b8192-p4000000/spatial_affinity_time/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', flWeighted=flWeight)
-    intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-1-trace-b8192-p4000000/spatial_affinity_time/spatial.txt',3,f_avg=f_avg1,strMetric='SD-SP-SI', flWeighted=flWeight)
+    intraObjectPlot('HiParTi - HiCOO',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-0-trace-b8192-p4000000/spatial_affinity_time/spatial.txt',2,f_avg=f_avg1,\
+                    strMetric='SD-SP-SI', flWeighted=flWeight)
+    intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-1-trace-b8192-p4000000/spatial_affinity_time/spatial.txt',3,f_avg=f_avg1,\
+                    strMetric='SD-SP-SI', flWeighted=flWeight)
 
 if ( 1 == 0):
     f_avg1=None
     numExtraPages=64
-    intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/include_all_pages/csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/include_all_pages/csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',\
+                    flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=1)
     intraObjectPlot('HiParTi - COO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/include_all_pages/coo_u_0/spatial.txt',3,f_avg=f_avg1,\
-                    listCombineReg=['1-A0000010','2-A0000020'], strMetric='SD-SP-SI', flWeighted=flWeight,numExtraPages=numExtraPages)
+                    listCombineReg=['1-A0000010','2-A0000020'], strMetric='SD-SP-SI', flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=1)
     intraObjectPlot('HiParTi - COO-Reduce',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/include_all_pages/coo_u_1/spatial.txt', \
-                    2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'],f_avg=f_avg1, strMetric='SD-SP-SI', flWeighted=flWeight,numExtraPages=numExtraPages)
-    intraObjectPlot('HiParTi - HiCOO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/include_all_pages/hicoo_u_0/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', flWeighted=flWeight,numExtraPages=numExtraPages)
-    intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/include_all_pages/hicoo_u_1/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', flWeighted=flWeight,numExtraPages=numExtraPages)
+                    2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'],f_avg=f_avg1, strMetric='SD-SP-SI', flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=1)
+    intraObjectPlot('HiParTi - HiCOO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/include_all_pages/hicoo_u_0/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', \
+                    flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=1)
+    intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/include_all_pages/hicoo_u_1/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', \
+                    flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=1)
 
-if ( 1 == 1):
+if ( 1 == 0):
     f_avg1=None
     numExtraPages=64
-    intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/pages_region/csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/pages_region/csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',flWeighted=flWeight, \
+                    numExtraPages=numExtraPages,affinityOption=2)
     intraObjectPlot('HiParTi - COO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/pages_region/coo_u_0/spatial.txt',3,f_avg=f_avg1,\
-                    listCombineReg=['1-A0000010','2-A0000020'], strMetric='SD-SP-SI', flWeighted=flWeight,numExtraPages=numExtraPages)
+                    listCombineReg=['1-A0000010','2-A0000020'], strMetric='SD-SP-SI', flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=2)
     intraObjectPlot('HiParTi - COO-Reduce',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/pages_region/coo_u_1/spatial.txt', \
-                    2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'],f_avg=f_avg1, strMetric='SD-SP-SI', flWeighted=flWeight,numExtraPages=numExtraPages)
-    intraObjectPlot('HiParTi - HiCOO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/pages_region/hicoo_u_0/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', flWeighted=flWeight,numExtraPages=numExtraPages)
-    intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/pages_region/hicoo_u_1/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', flWeighted=flWeight,numExtraPages=numExtraPages)
+                    2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'],f_avg=f_avg1, strMetric='SD-SP-SI', flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=2)
+    intraObjectPlot('HiParTi - HiCOO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/pages_region/hicoo_u_0/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', \
+                    flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=2)
+    intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/pages_region/hicoo_u_1/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', \
+                    flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=2)
 
 #intraObjectPlot('HiParTI-HiCOO', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-0-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')
 #intraObjectPlot('HiParTI-HiCOO-Lexi', '/Users/suri836/Projects/spatial_rud/HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI')

@@ -1,4 +1,5 @@
 import re
+dictBlockIdLine={}
 def get_intra_obj (data_intra_obj, fileline,reg_page_id,regionIdNum,numExtraPages:int=0):
     #print(reg_page_id,numExtraPages)
     add_row=[None]*(517+numExtraPages)
@@ -97,6 +98,38 @@ def getFileColumnNamesPageRegion (regionId, numRegions):
     print((list_col_names))
     return list_col_names
 
+def getFileColumnNamesLineRegion (strFileName, numRegions):
+    with open(strFileName) as f:
+        for fileLine in f:
+            if (fileLine.startswith('#----')):
+                data = fileLine.replace('\n','').split(' ')
+                #print(data[5], data[11],data[13],data[15])
+                dictBlockIdLine[str(data[5])]=str(data[11])+'-'+str(data[13])+'-'+str(data[15])
+    f.close()
+    for k, v in dictBlockIdLine.items():
+        print(k, v)
+    # 517 for page, 10 pages in region, numRegions, 1 - non-hot, 1 - stack
+    list_col_names=[None]*(517+10+numRegions+2)
+    list_col_names[0]='reg_page_id'
+    list_col_names[1]='reg-page-blk'
+    list_col_names[2]='Access'
+    list_col_names[3]='Lifetime'
+    list_col_names[4]='Address'
+    for i in range ( 0,255):
+        list_col_names[5+i]='self'+'-'+str(255-i)
+    list_col_names[260]='self'
+    for i in range ( 1,256):
+        list_col_names[260+i]='self'+'+'+str(i)
+    for i in range (0,10):
+            list_col_names[516+i] =  dictBlockIdLine[str(256+i)]
+    for i in range (0,numRegions):
+            list_col_names[526+i] = 'r-'+str(i)
+    list_col_names[526+numRegions]='Non-hot'
+    list_col_names[526+numRegions+1]='Stack'
+    list_col_names[526+numRegions+2]='Type'
+    print((list_col_names))
+    return list_col_names
+
 def getMetricColumns(numExtraPages:int =0):
     metricColumns=[None]*(511+numExtraPages)
     for i in range ( 0,255):
@@ -139,6 +172,21 @@ def getMetricColumnsPageRegion(regionId, numRegions):
     metricColumns[521+numRegions+1]='Stack'
     return metricColumns
 
+def getMetricColumnsLineRegion(regionId, numRegions):
+    metricColumns=[None]*(511+10+numRegions+2)
+    for i in range ( 0,255):
+        metricColumns[i]='self'+'-'+str(255-i)
+    metricColumns[255]='self'
+    for i in range ( 1,256):
+        metricColumns[255+i]='self'+'+'+str(i)
+    for i in range (0,10):
+            metricColumns[511+i] = dictBlockIdLine[str(256+i)]
+    for i in range (0,numRegions):
+            metricColumns[521+i] = 'r-'+str(i)
+    metricColumns[521+numRegions]='Non-hot'
+    metricColumns[521+numRegions+1]='Stack'
+    return metricColumns
+
 def getRearrangeColumns(listColNames):
     colList= listColNames
     pattern = re.compile('-.*p')
@@ -171,3 +219,28 @@ def getPageColList(listColNames):
     colRearrangeList.extend(selfList)
     colRearrangeList.extend(upperPagelist)
     return colRearrangeList
+
+def getPageColListPageRegion(listColNames):
+    colList= listColNames
+    pattern = re.compile('Non-hot')
+    lowerPagelist=list(filter(pattern.match, colList))
+    colRearrangeList=[]
+    if(len(lowerPagelist)!=0):
+        subList = [x for x in colList if x not in lowerPagelist]
+        colRearrangeList.extend(subList)
+    else:
+        colRearrangeList.extend(listColNames)
+    return colRearrangeList
+
+def getPageColListLineRegion(listColNames):
+    colList= listColNames
+    pattern = re.compile('Non-hot')
+    lowerPagelist=list(filter(pattern.match, colList))
+    colRearrangeList=[]
+    if(len(lowerPagelist)!=0):
+        subList = [x for x in colList if x not in lowerPagelist]
+        colRearrangeList.extend(subList)
+    else:
+        colRearrangeList.extend(listColNames)
+    return colRearrangeList
+

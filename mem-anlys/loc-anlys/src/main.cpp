@@ -726,8 +726,8 @@ int main(int argc, char ** argv){
           vecBlockInfo.push_back(newBlock);
         }
         printf("Size of vector BlockInfo %ld\n", vecBlockInfo.size());
-	  	  analysisReturn=spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo,false, setRegionAddr,false, memIncludePages,
-                                  false,vecParentFamily, false, vecTopAccessLineAddr); //spatialResult =0
+	  	  analysisReturn=spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo, setRegionAddr, memIncludePages,
+                                  vecParentFamily, vecTopAccessLineAddr,1); //spatialResult =0
         if(analysisReturn ==-1)
           return -1;
         for(i = 0; i< memarea.blockCount; i++){
@@ -784,8 +784,8 @@ int main(int argc, char ** argv){
         }
         if (memarea.blockSize == cacheLineWidth) { 
           // RUD analyisis only - Affinity analysis not done in this loop - costly space & time overhead
-  		    analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo,false, setRegionAddr,false,memIncludePages, 
-                                          false,vecParentFamily,false, vecTopAccessLineAddr); // spatialResult=0
+	  	    analysisReturn=spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo, setRegionAddr, memIncludePages,
+                                  vecParentFamily, vecTopAccessLineAddr,1); //spatialResult =0
         } else {
           analysisReturn= getAccessCount(vecInstAddr,   memarea,  coreNumber , vecBlockInfo );
         }
@@ -879,6 +879,7 @@ int main(int argc, char ** argv){
       if( thisMemblock.blockSize == spatiallastlvlBlockSize) {
     	  minRegionAddr = thisMemblock.min;
     	  maxRegionAddr = thisMemblock.max;
+        printf("add Spatial set min-max %08lx-%08lx \n", minRegionAddr, maxRegionAddr);
         setRegionAddr.push_back(make_pair(minRegionAddr, maxRegionAddr));
         mapMinAddrToID[minRegionAddr] = thisMemblock.strID;
       }
@@ -887,12 +888,14 @@ int main(int argc, char ** argv){
     // SORT region by address - regionId updated to trace
     sort(setRegionAddr.begin(), setRegionAddr.end());
     for(uint32_t k=0; k<setRegionAddr.size(); k++) {
-      printf("main Spatial set min-max %d %lx-%lx \n", k, setRegionAddr[k].first, setRegionAddr[k].second);
+      printf("main Spatial set min-max %d %08lx-%08lx \n", k, setRegionAddr[k].first, setRegionAddr[k].second);
       for (itrRegion=spatialRegionList.begin(); itrRegion != spatialRegionList.end(); ++itrRegion){
  	      thisMemblock = *itrRegion; 
         if( thisMemblock.blockSize == spatiallastlvlBlockSize) {
+            printf(" Spatial set min-max  %08lx-%08lx \n", thisMemblock.min, thisMemblock.max);
           if (thisMemblock.min == setRegionAddr[k].first && thisMemblock.max == setRegionAddr[k].second) {
         	  finalRegionList.push_back(thisMemblock);
+            printf("final Spatial set min-max %d %08lx-%08lx \n", k, thisMemblock.min, thisMemblock.max);
           }
         }
       }
@@ -900,6 +903,7 @@ int main(int argc, char ** argv){
     spatialRegionList.clear();
 
     for (itrRegion=finalRegionList.begin(); itrRegion != finalRegionList.end(); ++itrRegion){
+ 	    thisMemblock = *itrRegion; 
       insnMemArea.max = thisMemblock.max;
 	   	insnMemArea.min = thisMemblock.min;
        printf("--insn  : Find instructions for %s in memRange ", memoryfile);
@@ -941,8 +945,8 @@ int main(int argc, char ** argv){
           vecBlockInfo.push_back(newBlock);
     }
     // Affinity analysis done for inter-region - region based range - to identify co-existence of objects
-	  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, true, setRegionAddr,
-                                                false,memIncludePages,false,vecParentFamily,false, vecTopAccessLineAddr); 
+	  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, setRegionAddr,
+                                                memIncludePages,vecParentFamily, vecTopAccessLineAddr,0); 
     if(analysisReturn ==-1) {
       printf("Spatial Analysis at region level returned without results \n");
       return -1;
@@ -1109,7 +1113,13 @@ int main(int argc, char ** argv){
         delete (*itr_blk);
       }
       vecBlockInfo.clear();
-      // NEW experiment to cover blindspots 
+      printf(" STEP3 in spatial %d size %ld count %d memarea.min %08lx memarea.max %08lx ID %s \n", thisMemblock.level, memarea.blockSize, 
+                    memarea.blockCount, memarea.min, memarea.max, (thisMemblock.strID).c_str());
+		  printf("Memory address min %lx max %lx ", memarea.min, memarea.max);
+			printf(" page number = %d ", memarea.blockCount);
+			printf(" page size =  %ld\n", memarea.blockSize);
+      // Exponential page segments
+      /* 
       cntAddPages = 64;
       memIncludePages.min = traceMin; 
       memIncludePages.max = traceMax; 
@@ -1121,32 +1131,39 @@ int main(int argc, char ** argv){
                                               memarea.blockCount+cntAddPages, spatialResult,mapMinAddrToID[memarea.min]); 
         vecBlockInfo.push_back(newBlock);
       }
-      printf(" STEP3 in spatial %d size %ld count %d memarea.min %08lx memarea.max %08lx ID %s \n", thisMemblock.level, memarea.blockSize, 
-                    memarea.blockCount, memarea.min, memarea.max, (thisMemblock.strID).c_str());
-		  printf("Memory address min %lx max %lx ", memarea.min, memarea.max);
-			printf(" page number = %d ", memarea.blockCount);
-			printf(" page size =  %ld\n", memarea.blockSize);
-      // Exponential page segments
-      /* 
       vecParentFamily.clear();
       vecTopAccessLineAddr.clear();
-		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, false, setRegionAddr, 
-                                                  true, memIncludePages,false,vecParentFamily, false, vecTopAccessLineAddr);
+		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo,  setRegionAddr, 
+                                                   memIncludePages,vecParentFamily,  vecTopAccessLineAddr, 2);
       */
 
       // Hot Pages 
       /*
       vecTopAccessLineAddr.clear();
-		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo, false, setRegionAddr, 
-                                            true, memIncludePages,true,vecParentFamily, false, vecTopAccessLineAddr);
+      for(i = 0; i< memarea.blockCount; i++){
+        pair<unsigned int, unsigned int> blockID = make_pair(0, i);
+        BlockInfo *newBlock = new BlockInfo(blockID, memarea.min+(i*memarea.blockSize), memarea.min+((i+1)*memarea.blockSize-1), 
+                                              (memarea.blockCount+vecParentFamily.size()-1+setRegionAddr.size()+2),spatialResult, 
+                                              mapMinAddrToID[memarea.min]); 
+        vecBlockInfo.push_back(newBlock);
+      }
+		  analysisReturn= spatialAnalysis( vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo,  setRegionAddr, 
+                                             memIncludePages,vecParentFamily,  vecTopAccessLineAddr,3);
       */
 
       // Hot lines
       vecParentFamily.clear();
-		  analysisReturn= spatialAnalysis(vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo,false,setRegionAddr, 
-                                            false, memIncludePages,false,vecParentFamily, true, vecTopAccessLineAddr);
+      for(i = 0; i< memarea.blockCount; i++){
+        pair<unsigned int, unsigned int> blockID = make_pair(0, i);
+        BlockInfo *newBlock = new BlockInfo(blockID, memarea.min+(i*memarea.blockSize), memarea.min+((i+1)*memarea.blockSize-1), 
+                                              (memarea.blockCount+vecTopAccessLineAddr.size()+setRegionAddr.size()+2),spatialResult, 
+                                              mapMinAddrToID[memarea.min]); 
+        vecBlockInfo.push_back(newBlock);
+      }
+		  analysisReturn= spatialAnalysis(vecInstAddr, memarea, coreNumber, spatialResult, vecBlockInfo,setRegionAddr, 
+                                             memIncludePages,vecParentFamily,  vecTopAccessLineAddr,4);
       if(analysisReturn ==-1) {
-        printf("Spatial Analysis Step 2 - Zoom into objects to find OS page sized %ld B hot blocks returned without results\n", OSPageSize);
+        printf("Spatial Analysis Step 3 - returned without results\n");
         return -1;
       }
       spatialOutFile << endl;
