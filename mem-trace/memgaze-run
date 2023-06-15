@@ -137,7 +137,7 @@ if [[ -z $1 ]] ; then
 fi
 
 #****************************************************************************
-# 
+#
 #****************************************************************************
 
 app=$@
@@ -180,9 +180,10 @@ if [[ ${opt_method} =~ pt-* ]] ; then
     # call graph:            -g + 'call-graph=lbr' in event
     # retired_loads:         umask=0x81,event=0xd0
 
-    event_ptw="intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u"
+    #event_ptw="intel_pt/ptw=1,branch=0,period=1,fup_on_ptw=1/u"
+    event_ptw="intel_pt/cyc=1,cyc_thresh=0,ptw=1,branch=0,period=1,fup_on_ptw=1/u"
     event_smpl=""
-    
+
     opt_callpath="-g"
     opt_callpath_lbr=",call-graph=lbr"
 
@@ -238,11 +239,11 @@ if [[ ${opt_method} =~ pt-* ]] ; then
         else #bignuke - use core and atom events
           if [ $use_stdin -eq 0 ]; then
             ${perf} record -o "${out_fnm}" -m 2M,2M \
-                -e ${event_ptw} -e "${event_smpl_core}" -e "${event_smpl_atom}" ${opt_callpath} -- "$@" & 
+                -e ${event_ptw} -e "${event_smpl_core}" -e "${event_smpl_atom}" ${opt_callpath} -- "$@" &
 	          app_pid=$!
           else
             ${perf} record -o "${out_fnm}" -m 2M,2M \
-                -e ${event_ptw} -e "${event_smpl_core}" -e "${event_smpl_atom}" ${opt_callpath} -- "$@"  <&0 & 
+                -e ${event_ptw} -e "${event_smpl_core}" -e "${event_smpl_atom}" ${opt_callpath} -- "$@"  <&0 &
 	          app_pid=$!
           fi
         fi
@@ -266,7 +267,7 @@ fi
 
 
 #-----------------------------------------------------------
-# 
+#
 #-----------------------------------------------------------
 
 sleep 1
@@ -284,7 +285,7 @@ stack_addr="${stack_map_line%%-*}"
 heap_map_line=`grep -i heap /proc/$correct_app_pid/maps`
 heap_addr="${heap_map_line%%-*}"
 
-wait $app_pid 
+wait $app_pid
 sleep 1
 
 
@@ -305,4 +306,3 @@ cat <<EOF > ${opt_outDir}/memgaze.config
 -stack_start ${stack_addr}
 -heap_start ${heap_addr}
 EOF
-
