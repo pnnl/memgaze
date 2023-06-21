@@ -22,12 +22,23 @@ import csv
 import os
 import copy
 from fileToDataframe import get_intra_obj,getFileColumnNames,getMetricColumns,getRearrangeColumns
+from fileToDataframe import getFileColumnNamesPageRegion,getMetricColumnsPageRegion,getPageColListPageRegion
+from fileToDataframe import getFileColumnNamesLineRegion,getMetricColumnsLineRegion,getPageColListLineRegion
 
 sns.color_palette("light:#5A9", as_cmap=True)
 sns.set()
 
 # Works for spatial denity, Spatial Probability and Proximity
-def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeight=None,numExtraPages:int=0):
+def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeight=None,numExtraPages:int=0,affinityOption:int=None):
+    flagPhysicalPages = 0
+    flagHotPages =0
+    flagHotLines = 0
+    if(affinityOption==1):
+        flagPhysicalPages = 1
+    elif (affinityOption == 2):
+        flagHotPages = 1
+    elif (affinityOption == 3):
+        flagHotLines = 1
     # STEP 1 - Read spatial.txt and write inter-region file
     strPath=strFileName[0:strFileName.rindex('/')]
     if('SP-SI' in strMetric):
@@ -70,6 +81,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
     #print(df_inter)
     df_inter_data=df_inter[['RegionId_Name', 'RegionId_Num', 'Address Range', 'Lifetime', 'Access count', 'Block count']]
     df_inter_data['Reg_Num-Name']=df_inter_data.apply(lambda x:'%s-%s' % (x['RegionId_Num'],x['RegionId_Name']),axis=1)
+    numRegionInFile = df_inter_data['RegionId_Num'].count()
+
     #print(df_inter_data)
     df_inter_data_sample=df_inter_data.nlargest(n=numRegion,  columns=['Access count'])
     arRegionId = df_inter_data_sample['Reg_Num-Name'].values.flatten().tolist()
@@ -115,13 +128,19 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # STEP 3b - Read original spatial data input file to gather the pages-blocks in the region to a list
         # Read both SP and SI to dataframe
         lineStartList=['---','===','***']
+        if (flagPhysicalPages== 1):
+            numExtra = numExtraPages
+        elif(flagHotPages ==1):
+            numExtra = 10+numRegionInFile+2
+        elif(flagHotLines ==1 ):
+            numExtra = 10+numRegionInFile+2
         with open(strFileName) as f:
             for fileLine in f:
                 data=fileLine.strip().split(' ')
                 if ((data[0] in lineStartList) and (data[2][0:len(data[2])-1]) == regionIdName):
                     pageId=data[2][-1]
                     #print('region line' , regionIdNumName, pageId, data[2])
-                    get_intra_obj(data_list_intra_obj,fileLine,regionIdNum+'-'+pageId,regionIdNum,numExtraPages)
+                    get_intra_obj(data_list_intra_obj,fileLine,regionIdNum+'-'+pageId,regionIdNum,numExtra)
         f.close()
         print('**** before regionIdNumName ', regionIdNumName, 'list length', len(data_list_intra_obj))
         if(listCombineReg != None and regionIdNumName_copy in listCombineReg):
@@ -139,7 +158,12 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print(data_list_intra_obj)
         # STEP 3b - Convert list to data frame
         #print(data_list_intra_obj)
-        list_col_names=getFileColumnNames(numExtraPages)
+        if (flagPhysicalPages== 1):
+            list_col_names=getFileColumnNames(numExtraPages)
+        elif(flagHotPages == 1):
+            list_col_names =getFileColumnNamesPageRegion (regionIdNum, numRegionInFile)
+        elif(flagHotLines == 1):
+            list_col_names =getFileColumnNamesLineRegion (strFileName, numRegionInFile)
         df_intra_obj=pd.DataFrame(data_list_intra_obj,columns=list_col_names)
         print(df_intra_obj.shape)
         #print(df_intra_obj['Type'])
@@ -344,7 +368,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         plt.savefig(imageFileName, bbox_inches='tight')
         plt.close()
 
-flWeight=False
+flWeight=True
 mainPath='/Users/suri836/Projects/spatial_rud/'
 
 # Not very useful plots for Minivite, heatmap shows interesting information
@@ -357,10 +381,16 @@ if( 1 ==0):
     intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-1-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI-SD', flWeight=flWeight)
     intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-3-b16384-p4000000-U-0/sp-si/spatial.txt', 1,strMetric='SP-SI-SD', flWeight=flWeight)
 
-numExtraPages=0
-intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,numExtraPages=numExtraPages)
-intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,numExtraPages=numExtraPages)
+if(0):
+    numExtraPages=0
+    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,numExtraPages=numExtraPages)
 
-numExtraPages=16
-intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,numExtraPages=numExtraPages)
-intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,numExtraPages=numExtraPages)
+if(0):
+    numExtraPages=16
+    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,numExtraPages=numExtraPages)
+    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,numExtraPages=numExtraPages)
+
+if(1):
+    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,affinityOption=3)

@@ -378,11 +378,26 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # Filter SP, SI and SD to show in heatmap
         pattern = re.compile('SD-')
         cols_df_orig = list(filter(pattern.match, cols_df_SP_SI_SD))
+        affinityColCount=0
+        for col_orig_name in cols_df_orig:
+            if ( (not (df_SP_SI_SD[col_orig_name].isnull().all())) and (np.sum(df_SP_SI_SD[col_orig_name]>=0.005) >= 4)):
+                affinityColCount= affinityColCount+1
+
+        print('affinityColCount  ', affinityColCount)
+        if(affinityColCount >15):
+            SDthreshold =0.005
+            SDcount = 4
+        else:
+            SDthreshold =0.005
+            SDcount = 1
+
+        #print(df_SP_SI_SD[['SD-self+1','SD-self+2']])
+
         for col_orig_name in cols_df_orig:
             str_col_orig_name = str(col_orig_name)
             #print('column name', str_col_orig_name)#, df_SP_SI_SD[col_orig_name])
             #print(df_SP_SI_SD[col_orig_name].isnull().all())
-            if ( (not (df_SP_SI_SD[col_orig_name].isnull().all())) and (np.sum(df_SP_SI_SD[col_orig_name]>=0.05) > 4)):
+            if ( (not (df_SP_SI_SD[col_orig_name].isnull().all())) and (np.sum(df_SP_SI_SD[col_orig_name]>=SDthreshold) >= SDcount)):
                 #print(' return value ', np.sum(df_SP_SI_SD[col_orig_name]>=0.01))
                 #print(col_orig_name)
                 col_SP_name='SP-'+str_col_orig_name[3:]
@@ -394,26 +409,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 cols_df_SD.append(col_SD_name)
 
 
-        if (len(cols_df_SP) < 15):
-            cols_df_SI=[]
-            cols_df_SP=[]
-            cols_df_SD=[]
-            # Filter SP, SI and SD to show in heatmap
-            pattern = re.compile('SD-')
-            cols_df_orig = list(filter(pattern.match, cols_df_SP_SI_SD))
-            for col_orig_name in cols_df_orig:
-                str_col_orig_name = str(col_orig_name)
-                if ( (not (df_SP_SI_SD[col_orig_name].isnull().all())) and (np.sum(df_SP_SI_SD[col_orig_name]>=0.005) > 1)):
-                    #print(col_orig_name)
-                    col_SP_name='SP-'+str_col_orig_name[3:]
-                    col_SI_name='SI-'+str_col_orig_name[3:]
-                    col_SD_name='SD-'+str_col_orig_name[3:]
-                    #print( 'col_SI_name ', col_SI_name, ' col_SD_name ', col_SD_name)
-                    cols_df_SP.append(col_SP_name)
-                    cols_df_SI.append(col_SI_name)
-                    cols_df_SD.append(col_SD_name)
-
         # Add columns so that self is not the only one shown
+        if(len(cols_df_SP)<15):
             if (flagPhysicalPages ==1):
                 pattern = re.compile('.*self-.*')
                 negSelfCols = list(filter(pattern.match, cols_df_SD))
@@ -455,7 +452,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             negSelfCols = list(filter(pattern.match, cols_df_SD))
             pattern = re.compile('.*self\+.*')
             posSelfCols = list(filter(pattern.match, cols_df_SD))
-            print(cols_df_SD)
+            print('cols_df_SD for ', strApp, ' ', cols_df_SD)
+            print('posSelfCols ', posSelfCols)
+            print('negSelfCols ', negSelfCols)
             if(len(negSelfCols)==0 ):
                 colSelfIndex = cols_df_SD.index('SD-self') if 'SD-self' in cols_df_SD else -1
                 if(colSelfIndex != -1):
@@ -474,7 +473,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
             if(len(posSelfCols)==0):
                 colSelfIndex = cols_df_SD.index('SD-self') if 'SD-self' in cols_df_SD else -1
-                print(colSelfIndex)
+                #print('posSelfCols ==0', colSelfIndex)
                 if(colSelfIndex != -1):
                     cols_df_SP.insert(colSelfIndex+1, 'SP-self+1')
                     cols_df_SD.insert(colSelfIndex+1, 'SD-self+1')
@@ -491,10 +490,32 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
         #print(cols_df_SP)
         #print(cols_df_SI)
-        pattern = re.compile('.*self-\d\d.*')
+        pattern = re.compile('SD-self-\d\d.*')
         negSelfCols = list(filter(pattern.match, cols_df_SD))
-        if(len(negSelfCols)>0 ):
+        if(len(negSelfCols)>10 ):
             print ('***** More negative cols', negSelfCols)
+            for negSelfColsItem in negSelfCols:
+                print('more negative negSelfColsItem ', negSelfColsItem, 'count ', np.sum(df_SP_SI_SD[negSelfColsItem]>=SDthreshold) )
+                df_SP_SI_SD.drop(negSelfColsItem, axis=1, inplace=True)
+                cols_df_SD.remove(negSelfColsItem)
+
+            pattern = re.compile('SP-self-\d\d.*')
+            negSelfCols = list(filter(pattern.match, cols_df_SP))
+            if(len(negSelfCols)>10 ):
+                print ('***** More negative cols', negSelfCols)
+                for negSelfColsItem in negSelfCols:
+                    print('more negative negSelfColsItem ', negSelfColsItem, 'count ', np.sum(df_SP_SI_SD[negSelfColsItem]>=SDthreshold) )
+                    df_SP_SI_SD.drop(negSelfColsItem, axis=1, inplace=True)
+                    cols_df_SP.remove(negSelfColsItem)
+
+            pattern = re.compile('SI-self-\d\d.*')
+            negSelfCols = list(filter(pattern.match, cols_df_SI))
+            if(len(negSelfCols)>10 ):
+                print ('***** More negative cols', negSelfCols)
+                for negSelfColsItem in negSelfCols:
+                    print('more negative negSelfColsItem ', negSelfColsItem, 'count ', np.sum(df_SP_SI_SD[negSelfColsItem]>=SDthreshold) )
+                    df_SP_SI_SD.drop(negSelfColsItem, axis=1, inplace=True)
+                    cols_df_SI.remove(negSelfColsItem)
 
         if (len(cols_df_SP) > 0 and len(cols_df_SI) >0 and len(cols_df_SD)>0):
             df_intra_obj_sample_hm_SP=df_SP_SI_SD[cols_df_SP]
@@ -548,8 +569,21 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             gsleft_ax_2.set_ylabel("SI", fontsize=16,style='italic')
             custom_blue = sns.light_palette("#79C")
             background_color = mpl.colormaps["Blues"]
-            hotLineColor='indianred'
-            regionColor='steelblue'
+            hotLineColor='darkred'
+            affRegionColor='dodgerblue'
+            hotLineInRegionColor='indianred'
+            refRegionColor='black'
+            pattern = re.compile('SD-.*-.*-.*')
+            listAffinityLines=list(filter(pattern.match, cols_df_SD))
+            for i in range(0,len(listAffinityLines)):
+                listAffinityLines[i] = listAffinityLines[i].replace('SD-','')
+            print('hot lines in affinity', listAffinityLines)
+            refRgionNamelist = regionIdNumName.replace(' ','').split('&')
+            refRegionList=[]
+            print(refRgionNamelist)
+            for item in refRgionNamelist:
+                print('region id', item.split('-')[0])
+                refRegionList.append(item.split('-')[0])
 
             gsleft_ax_0.invert_yaxis()
             #list_y_ticks=gsleft_ax_0.get_yminorticklabels() # its always zero
@@ -564,6 +598,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     strColName = cols_df_SP[int(y_label.get_text())][3:]
                     if(strColName.find('^') != -1):
                         strColName=strColName.replace('[2','[$2').replace('2^','2^{').replace('-2','}$-$2').replace(')','}$)')
+                    if((strColName.find('r-') != -1)):
+                        strColName=cols_df_SP[int(y_label.get_text())][5:]
                     fig_ylabel.append(strColName)
             list_x_ticks=gsleft_ax_0.get_xticklabels()
             fig_xlabel=[]
@@ -572,9 +608,16 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             gsleft_ax_0.set_yticklabels(fig_ylabel,rotation='horizontal')
             for ticklabel in gsleft_ax_0.get_yticklabels():
                 if(ticklabel.get_text().count('-')==2):
-                    ticklabel.set_color(hotLineColor)
-                elif(ticklabel.get_text().count('r-')==1):
-                    ticklabel.set_color(regionColor)
+                    if(ticklabel.get_text().split('-')[0]  in refRegionList):
+                        ticklabel.set_color(hotLineInRegionColor)
+                    else:
+                        ticklabel.set_color(hotLineColor)
+                elif(ticklabel.get_text().isdigit()):
+                    if(ticklabel.get_text()  in refRegionList):
+                        ticklabel.set_color(refRegionColor)
+                    else:
+                        ticklabel.set_color(affRegionColor)
+
             gsleft_ax_0.set_xticklabels([])
 
             gsleft_ax_1.invert_yaxis()
@@ -589,14 +632,23 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     strColName = cols_df_SP[int(y_label.get_text())][3:]
                     if(strColName.find('^') != -1):
                         strColName=strColName.replace('[2','[$2').replace('2^','2^{').replace('-2','}$-$2').replace(')','}$)')
+                    if((strColName.find('r-') != -1)):
+                        strColName=cols_df_SP[int(y_label.get_text())][5:]
+
                     #print(strColName)
                     fig_ylabel.append(strColName)
             gsleft_ax_1.set_yticklabels(fig_ylabel,rotation='horizontal')
             for ticklabel in gsleft_ax_1.get_yticklabels():
                 if(ticklabel.get_text().count('-')==2):
-                    ticklabel.set_color(hotLineColor)
-                elif(ticklabel.get_text().count('r-')==1):
-                    ticklabel.set_color(regionColor)
+                    if(ticklabel.get_text().split('-')[0] in refRegionList):
+                        ticklabel.set_color(hotLineInRegionColor)
+                    else:
+                        ticklabel.set_color(hotLineColor)
+                elif(ticklabel.get_text().isdigit()):
+                    if(ticklabel.get_text() in refRegionList):
+                        ticklabel.set_color(refRegionColor)
+                    else:
+                        ticklabel.set_color(affRegionColor)
             gsleft_ax_1.set_xticklabels([])
 
             gsleft_ax_2.invert_yaxis()
@@ -610,8 +662,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     strColName = cols_df_SP[int(y_label.get_text())][3:]
                     if(strColName.find('^') != -1):
                         strColName=strColName.replace('[2','[$2').replace('2^','2^{').replace('-2','}$-$2').replace(')','}$)')
+                    if((strColName.find('r-') != -1)):
+                        strColName=cols_df_SP[int(y_label.get_text())][5:]
                     fig_ylabel.append(strColName)
-
             list_x_ticks=gsleft_ax_2.get_xticklabels()
             fig_xlabel=[]
             my_colors=[]
@@ -627,9 +680,15 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             gsleft_ax_2.set_xticklabels(fig_xlabel,rotation='vertical')
             for ticklabel in gsleft_ax_2.get_yticklabels():
                 if(ticklabel.get_text().count('-')==2):
-                    ticklabel.set_color(hotLineColor)
-                elif(ticklabel.get_text().count('r-')==1):
-                    ticklabel.set_color(regionColor)
+                    if(ticklabel.get_text().split('-')[0] in refRegionList):
+                        ticklabel.set_color(hotLineInRegionColor)
+                    else:
+                        ticklabel.set_color(hotLineColor)
+                elif(ticklabel.get_text().isdigit()):
+                    if(ticklabel.get_text()  in refRegionList):
+                        ticklabel.set_color(refRegionColor)
+                    else:
+                        ticklabel.set_color(affRegionColor)
 
             i=0
             for ticklabel, tickcolor in zip(gsleft_ax_2.get_xticklabels(), my_colors):
@@ -653,8 +712,10 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 ax2_ylabel.append(list_blkcache_label[int(y_label.get_text())])
             ax_2.set_yticklabels(list_blkcache_label, rotation='horizontal', wrap=True )
             ax_2.yaxis.set_ticks_position('right')
+            for ticklabel in ax_2.get_yticklabels():
+                if(ticklabel.get_text() in listAffinityLines):
+                    ticklabel.set_color(hotLineInRegionColor)
 
-            # All three metrics are in here, access includes all three, so divide by 3000 instead of 1000
             rndAccess = np.round((arRegPageAccess/1000).astype(float),2)
             annot = np.char.add(rndAccess.astype(str), 'K')
             sns.heatmap(rndAccess, cmap=custom_blue, cbar=False,annot=annot, fmt='', annot_kws = {'size':12},  ax=ax_3)
@@ -692,7 +753,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 flWeight=True
 f_avg1=None
 mainPath='/Users/suri836/Projects/spatial_rud/'
-if(1==0):
+if(0):
     intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD-SP-SI', \
                  flWeighted=flWeight,affinityOption=3)
     intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/hot_lines/v2_spatial_det.txt',3,strMetric='SD-SP-SI', \
@@ -710,7 +771,7 @@ if(0):
     intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
                     strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
 
-if(1):
+if(0):
     intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',\
                     flWeighted=flWeight,affinityOption=3)
     intraObjectPlot('HiParTi - COO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/coo_u_0/spatial.txt',3,f_avg=f_avg1,\
@@ -767,10 +828,10 @@ if(0):
     intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/pages_region/spatial.txt', 1,\
                     strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=2)
 
-if ( 1 == 0):
-    intraObjectPlot('ResNet', mainPath+'darknet_cluster/resnet152_single/spatial_affinity/spatial.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight)
-    intraObjectPlot('AlexNet',mainPath+'darknet_cluster/alexnet_single/spatial_affinity/spatial.txt',5, \
-                    listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],strMetric='SD-SP-SI',flWeighted=flWeight)
+if ( 1 == 1):
+    intraObjectPlot('ResNet', mainPath+'spatial_pages_exp/Darknet/resnet152_single/hot_lines/spatial.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('AlexNet',mainPath+'spatial_pages_exp/Darknet/alexnet_single/hot_lines/spatial.txt',5, \
+                    listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
 
 if ( 1 == 0):
     f_avg1=None

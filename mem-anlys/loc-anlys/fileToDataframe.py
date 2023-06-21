@@ -95,7 +95,7 @@ def getFileColumnNamesPageRegion (regionId, numRegions):
     list_col_names[526+numRegions+1]='Stack'
     list_col_names[526+numRegions+2]='Type'
 
-    print((list_col_names))
+    #print((list_col_names))
     return list_col_names
 
 def getFileColumnNamesLineRegion (strFileName, numRegions):
@@ -106,8 +106,8 @@ def getFileColumnNamesLineRegion (strFileName, numRegions):
                 #print(data[5], data[11],data[13],data[15])
                 dictBlockIdLine[str(data[5])]=str(data[11])+'-'+str(data[13])+'-'+str(data[15])
     f.close()
-    for k, v in dictBlockIdLine.items():
-        print(k, v)
+    #for k, v in dictBlockIdLine.items():
+    #    print(k, v)
     # 517 for page, 10 pages in region, numRegions, 1 - non-hot, 1 - stack
     list_col_names=[None]*(517+10+numRegions+2)
     list_col_names[0]='reg_page_id'
@@ -127,7 +127,7 @@ def getFileColumnNamesLineRegion (strFileName, numRegions):
     list_col_names[526+numRegions]='Non-hot'
     list_col_names[526+numRegions+1]='Stack'
     list_col_names[526+numRegions+2]='Type'
-    print((list_col_names))
+    #print((list_col_names))
     return list_col_names
 
 def getMetricColumns(numExtraPages:int =0):
