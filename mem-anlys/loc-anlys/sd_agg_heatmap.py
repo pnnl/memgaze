@@ -30,6 +30,8 @@ import copy
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 import datetime
 from fileToDataframe import get_intra_obj,getFileColumnNames,getMetricColumns,getRearrangeColumns
+from fileToDataframe import getFileColumnNamesPageRegion,getMetricColumnsPageRegion,getPageColListPageRegion
+from fileToDataframe import getFileColumnNamesLineRegion,getMetricColumnsLineRegion,getPageColListLineRegion
 
 sns.set_palette(sns.light_palette("seagreen"),100)
 sns.set()
@@ -41,7 +43,16 @@ vectorWeightMultiply.excluded.add(1)
 
 
 # Works for spatial denity, Spatial Probability and Proximity
-def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeight=None,numExtraPages:int=0):
+def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeight=None,numExtraPages:int=0,affinityOption:int=None):
+    flagPhysicalPages = 0
+    flagHotPages =0
+    flagHotLines = 0
+    if(affinityOption==1):
+        flagPhysicalPages = 1
+    elif (affinityOption == 2):
+        flagHotPages = 1
+    elif (affinityOption == 3):
+        flagHotLines = 1
     # STEP 1 - Read spatial.txt and write inter-region file
     strPath=strFileName[0:strFileName.rindex('/')]
     if (strMetric == 'SD' or strMetric == None):
@@ -56,7 +67,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         lineStart='==='
         lineEnd='---'
         strMetricIdentifier='Spatial_Prob'
-        strMetricTitle='Spatial Probability'
+        strMetricTitle='Spatial Aniticpation'
     elif(strMetric == 'SI'):
         fileName='/inter_object_si.txt'
         lineStart='---'
@@ -96,6 +107,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
     #print(df_inter)
     df_inter_data=df_inter[['RegionId_Name', 'RegionId_Num', 'Address Range', 'Lifetime', 'Access count', 'Block count']]
     df_inter_data['Reg_Num-Name']=df_inter_data.apply(lambda x:'%s-%s' % (x['RegionId_Num'],x['RegionId_Name']),axis=1)
+    numRegionInFile = df_inter_data['RegionId_Num'].count()
+
     #print(df_inter_data)
     df_inter_data_sample=df_inter_data.nlargest(n=numRegion,  columns=['Access count'])
     arRegionId = df_inter_data_sample['Reg_Num-Name'].values.flatten().tolist()
@@ -138,13 +151,19 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             numRegionBlocks = df_inter_data[ df_inter_data['Reg_Num-Name']==regionIdNumName]['Block count'].values.flatten()[0]
 
         # STEP 3b - Read original spatial data input file to gather the pages-blocks in the region to a list
+        if (flagPhysicalPages== 1):
+            numExtra = numExtraPages
+        elif(flagHotPages ==1):
+            numExtra = 10+numRegionInFile+2
+        elif(flagHotLines ==1 ):
+            numExtra = 10+numRegionInFile+2
         with open(strFileName) as f:
             for fileLine in f:
                 data=fileLine.strip().split(' ')
                 if (data[0] == lineStart and (data[2][0:len(data[2])-1]) == regionIdName):
                     pageId=data[2][-1]
                     #print('region line' , regionIdNumName, blockId, data[2])
-                    get_intra_obj(data_list_intra_obj,fileLine,regionIdNum+'-'+pageId,regionIdNum,numExtraPages)
+                    get_intra_obj(data_list_intra_obj,fileLine,regionIdNum+'-'+pageId,regionIdNum,numExtra)
         f.close()
         print('**** before regionIdNumName ', regionIdNumName, 'list length', len(data_list_intra_obj))
 
@@ -161,7 +180,12 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             print("Proceed to plot")
 
         # STEP 3b - Convert list to data frame
-        list_col_names=getFileColumnNames(numExtraPages)
+        if (flagPhysicalPages== 1):
+            list_col_names=getFileColumnNames(numExtraPages)
+        elif(flagHotPages == 1):
+            list_col_names =getFileColumnNamesPageRegion (regionIdNum, numRegionInFile)
+        elif(flagHotLines == 1):
+            list_col_names =getFileColumnNamesLineRegion (strFileName, numRegionInFile)
         print((list_col_names))
         df_intra_obj=pd.DataFrame(data_list_intra_obj,columns=list_col_names)
         #print(df_intra_obj[['Address', 'reg-page-blk','self-2','self-1','self','self+1','self+2']])
@@ -190,7 +214,13 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         arRegPages=df_reg_pages['reg-page'].to_list()
 
         # Change data to numeric
-        metricColumns=getMetricColumns(numExtraPages)
+        if(flagPhysicalPages ==1):
+            metricColumns = getMetricColumns(numExtraPages)
+        elif(flagHotPages == 1):
+            metricColumns = getMetricColumnsPageRegion(regionIdNum, numRegionInFile)
+        elif(flagHotLines == 1):
+            metricColumns = getMetricColumnsLineRegion(regionIdNum, numRegionInFile)
+
         for i in range (0,len(metricColumns)):
             df_intra_obj[metricColumns[i]]=pd.to_numeric(df_intra_obj[metricColumns[i]])
 
@@ -202,11 +232,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
         print(df_intra_obj.columns.to_list())
         colRearrangeList =[]
-        if (numExtraPages !=0):
-            print(len(df_intra_obj.columns.to_list()))
+        if ((numExtraPages !=0) and (flagPhysicalPages ==1)):
+            #print('in numExtraPages NOT 0')
             colRearrangeList = getRearrangeColumns(df_intra_obj.columns.to_list())
-            print(len(colRearrangeList))
         else:
+            #print('in numExtraPages 0')
             colRearrangeList = df_intra_obj.columns.to_list()
 
         df_intra_obj = df_intra_obj[colRearrangeList]
@@ -215,7 +245,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         print(colNameList)
         # Adding weighting by page access total here
         if (flWeight == True):
-            print('before weight \n ' , df_intra_obj[['reg-page-blk', 'Access', 'self', 'self+1', 'self-255']])
+            #print('before weight \n ' , df_intra_obj[['reg-page-blk', 'Access', 'self', 'self+1', 'self-255']])
             normSDMax=np.ones(len(arRegPages))
             list_DF_Intra_obj = df_intra_obj.values.tolist()
             newlist = [x for x in list_DF_Intra_obj[2] if pd.isnull(x) == False]
@@ -236,14 +266,14 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             for colName in metricColumns:
                 df_intra_obj[colName]=pd.to_numeric(df_intra_obj[colName])
 
-            print('before normalize \n ' , df_intra_obj[['reg-page-blk', 'Access', 'self', 'self+1']])
+            #print('before normalize \n ' , df_intra_obj[['reg-page-blk', 'Access', 'self', 'self+1']])
             arRegPageIndex = 0
             for regPageId in arRegPages:
                 for colName in metricColumns:
                     df_intra_obj.loc[df_intra_obj['reg_page_id'] == regPageId,[colName]] = df_intra_obj.loc[df_intra_obj['reg_page_id'] == regPageId, [colName]].div(normSDMax[arRegPageIndex])
                 arRegPageIndex = arRegPageIndex + 1
 
-            print('afer normalize \n ' , df_intra_obj[['reg-page-blk', 'Access', 'self', 'self+1']])
+            #print('afer normalize \n ' , df_intra_obj[['reg-page-blk', 'Access', 'self', 'self+1']])
 
         # STEP 3e - Range and Count mean, standard deviation to understand the original spread of heatmap
         # STEP 3e - Range and Count mean, calculate before sampling
@@ -381,6 +411,25 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # Colors for Access heatmap, and labels for affinity matrix
         custom_blue = sns.light_palette("#79C")
         background_color = mpl.colormaps["Blues"]
+        fig_xlabel=[]
+        color_xlabel=[]
+        my_colors=[]
+        accessLowValue = accessBlockCacheLine.min()
+        accessHighValue = accessBlockCacheLine.max()
+        accessRange= accessHighValue-accessLowValue
+        hotLineColor='darkred'
+        affRegionColor='dodgerblue'
+        hotLineInRegionColor='indianred'
+        refRegionColor='black'
+        pattern = re.compile('.*-.*-.*')
+        listAffinityLines=list(filter(pattern.match, get_col_list))
+        print('hot lines in affinity', listAffinityLines)
+        refRgionNamelist = regionIdNumName.replace(' ','').split('&')
+        refRegionList=[]
+        print(refRgionNamelist)
+        for item in refRgionNamelist:
+            print('region id', item.split('-')[0])
+            refRegionList.append(item.split('-')[0])
 
         ax_0.invert_yaxis()
         list_y_ticks=ax_0.get_yticklabels()
@@ -389,19 +438,35 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             if ('self' in get_col_list[int(y_label.get_text())]):
                 fig_ylabel.append(get_col_list[int(y_label.get_text())][4:])
             else:
-                fig_ylabel.append(get_col_list[int(y_label.get_text())])
+                strColName = get_col_list[int(y_label.get_text())]
+                if(strColName.find('^') != -1):
+                    strColName=strColName.replace('[2','[$2').replace('2^','2^{').replace('-2','}$-$2').replace(')','}$)')
+                if((strColName.find('r-') != -1)):
+                    strColName=get_col_list[int(y_label.get_text())][2:]
+                fig_ylabel.append(strColName)
+        ax_0.set_yticklabels(fig_ylabel,rotation='horizontal')
+        for ticklabel in ax_0.get_yticklabels():
+            #print(ticklabel.get_text())
+            if(ticklabel.get_text().count('-')==2):
+                if(ticklabel.get_text().split('-')[0]  in refRegionList):
+                    #print(ticklabel.get_text(), ' color ', hotLineInRegionColor)
+                    ticklabel.set_color(hotLineInRegionColor)
+                else:
+                    #print(ticklabel.get_text(), ' color ', hotLineColor)
+                    ticklabel.set_color(hotLineColor)
+            elif(ticklabel.get_text().isdigit()):
+                if(ticklabel.get_text()  in refRegionList):
+                    #print(ticklabel.get_text(), ' color ', refRegionColor)
+                    ticklabel.set_color(refRegionColor)
+                else:
+                    #print(ticklabel.get_text(), ' color ', affRegionColor)
+                    ticklabel.set_color(affRegionColor)
+
         list_x_ticks=ax_0.get_xticklabels()
-        fig_xlabel=[]
-        color_xlabel=[]
-        my_colors=[]
-        accessLowValue = accessBlockCacheLine.min()
-        accessHighValue = accessBlockCacheLine.max()
-        accessRange= accessHighValue-accessLowValue
         for x_label in list_x_ticks:
             fig_xlabel.append(list_xlabel[int(x_label.get_text())])
             color_xlabel.append((accessBlockCacheLine[int(x_label.get_text())].item()-accessLowValue)/accessRange)
             my_colors.append(background_color((accessBlockCacheLine[int(x_label.get_text())].item()-accessLowValue)/accessRange))
-        ax_0.set_yticklabels(fig_ylabel,rotation='horizontal')
         ax_0.set_xticklabels(fig_xlabel,rotation='vertical')
         ax_0.set(xlabel="Region-Page-Block", ylabel="Affinity to contiguous blocks")
         #print(color_xlabel)
@@ -461,9 +526,15 @@ mainPath='/Users/suri836/Projects/spatial_rud/'
 #intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight)
 #intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_0/spatial.txt', 1,flWeight=flWeight)
 numExtraPages=64
-intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,flWeight=flWeight,numExtraPages=numExtraPages)
-intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,flWeight=flWeight,numExtraPages=numExtraPages)
+#intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,flWeight=flWeight,numExtraPages=numExtraPages)
+#intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,flWeight=flWeight,numExtraPages=numExtraPages)
 
+intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD', \
+             flWeight=flWeight,affinityOption=3)
+intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/hot_lines/v2_spatial_det.txt',3,strMetric='SD', \
+            listCombineReg=['1-A0000010','4-A0002000'] ,flWeight=flWeight,affinityOption=3)
+intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SD', \
+            listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight,affinityOption=3)
 
 #Minivite - paper plots SD - Combine regions
 if (1 ==0):

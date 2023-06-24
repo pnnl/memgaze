@@ -165,10 +165,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             list_col_names =getFileColumnNamesPageRegion (regionIdNum, numRegionInFile)
         elif(flagHotLines == 1):
             list_col_names =getFileColumnNamesLineRegion (strFileName, numRegionInFile)
-
         #print(list_col_names)
-
-
         df_intra_obj=pd.DataFrame(data_list_intra_obj,columns=list_col_names)
         print('columns ', df_intra_obj.columns.to_list())
         #print(df_intra_obj[['Address', 'reg-page-blk','p-2','p-1','self','p+1','p+2']])
