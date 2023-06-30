@@ -34,7 +34,7 @@ SPK_DYNINST = $(XLIB_SPACK)/var/spack/repos/builtin/packages/dyninst
 SPK_HPCTK = $(XLIB_SPACK)/var/spack/repos/builtin/packages/hpctoolkit
 
 #MY_HPCTK_DEV   = hpctoolkit@develop -papi -mpi
-MY_HPCTK_DEV   = hpctoolkit@develop.commit -papi -mpi
+MY_HPCTK_DEV   = hpctoolkit@develop -papi -mpi
 MY_HPCTK   = hpctoolkit@2022.05.15 -papi -mpi
 #MY_DYNINST = dyninst@12.0.1
 MY_DYNINST = dyninst@12.1.0
@@ -58,9 +58,9 @@ xlib_spack :
 	@$(PRINTF) $(_msg_infoGrp)
 	mkdir -p $(MG_XLIB_ROOT) && cd $(MG_XLIB_ROOT) && \
 	if [ ! -d "$(XLIB_SPACK)" ]; then \
-	  git clone -c feature.manyFiles=true https://github.com/spack/spack.git ; \
+	  git clone --depth 1 --branch v0.20.0 -c feature.manyFiles=true https://github.com/spack/spack.git ; \
 	fi && \
-	cp $(XLIB_CFG)/config.yaml     $(SPK_ETC)/ && \
+	cp $(XLIB_CFG)/config.yaml     $(SPK_ETC)/config.yaml && \
 	cp $(XLIB_CFG)/dyninst.py      $(SPK_DYNINST)/package.py && \
 	cp $(XLIB_CFG)/dyninst.patch   $(SPK_DYNINST)/memgaze.patch && \
 	cp $(XLIB_CFG)/hpctk.py        $(SPK_HPCTK)/package.py && \
@@ -90,7 +90,7 @@ xlib_dyninst_patch :
 
 
 xlib_hpctk_libs_copy:
-	$(eval HPCTK_STAGE_DIR := $(shell $(XLIB_SPACK)/bin/spack location -b hpctoolkit))
+	$(eval HPCTK_STAGE_DIR := $(shell $(XLIB_SPACK)/bin/spack location -b hpctoolkit@develop))
 	cp $(HPCTK_STAGE_DIR)/src/include/hpctoolkit-config.h $(HPCTK_DEV_SRC)/include
 	cp $(HPCTK_STAGE_DIR)/src/lib/prof/.libs/$(HPCTKLIB_Prof_a) $(HPCTKLIB_Prof) && \
 	cp $(HPCTK_STAGE_DIR)/src/lib/profile/.libs/$(HPCTKLIB_Profile_a) $(HPCTKLIB_Profile) && \
