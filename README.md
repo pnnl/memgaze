@@ -64,7 +64,7 @@ Acknowledgements
 This work was supported by the U.S. Department of Energy's Office of
 Advanced Scientific Computing Research:
 
-- Orchestration for Distributed \& Data-Intensive Scientific Exploration
+- Orchestration for Distributed & Data-Intensive Scientific Exploration
 
 - Advanced Memory to Support Artificial Intelligence for Science
 
