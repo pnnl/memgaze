@@ -522,18 +522,16 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
 flWeight = True
 mainPath='/Users/suri836/Projects/spatial_rud/'
-
-#intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'HiParTi/mg-tensor-reorder/nell-U-0/mttsel-re-2-b16384-p4000000-U-0/sp-si/spatial.txt', 1,flWeight=flWeight)
-#intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_0/spatial.txt', 1,flWeight=flWeight)
 numExtraPages=64
-#intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,flWeight=flWeight,numExtraPages=numExtraPages)
-#intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_exp/spatial.txt', 1,flWeight=flWeight,numExtraPages=numExtraPages)
 
-intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD', \
+intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b8192-p5000000/spatial.txt',3,strMetric='SD', \
              flWeight=flWeight,affinityOption=3)
-intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/hot_lines/v2_spatial_det.txt',3,strMetric='SD', \
+if(0):
+    intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD', \
+             flWeight=flWeight,affinityOption=3)
+    intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/hot_lines/v2_spatial_det.txt',3,strMetric='SD', \
             listCombineReg=['1-A0000010','4-A0002000'] ,flWeight=flWeight,affinityOption=3)
-intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SD', \
+    intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SD', \
             listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight,affinityOption=3)
 
 #Minivite - paper plots SD - Combine regions

@@ -206,7 +206,7 @@ int getAccessCount(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int core
   }
   for (uint32_t itr=0; itr<vecInstAddr.size(); itr++){
     if(printProgress) {
-      if(itr%1000000==0) printf("in getAccessCount procesing trace line %d\n", itr);
+      if(itr%4000000==0) printf("in getAccessCount procesing trace line %d\n", itr);
     }
     ptrTraceLine=vecInstAddr.at(itr);
     loadAddr = ptrTraceLine->getLoadAddr();
@@ -401,7 +401,7 @@ int spatialAnalysis(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int cor
   // START - Vector FOR loop 
   for (uint32_t itr=0; itr<vecInstAddr.size(); itr++){
     if(printProgress) {
-      if(itr%1000000==0) printf("in spatial analysis procesing trace line %d\n", itr);
+      if(itr%4000000==0) printf("in spatial analysis procesing trace line %d\n", itr);
     }
     ptrTraceLine=vecInstAddr.at(itr);
     //ptrTraceLine->printTraceRegion();    

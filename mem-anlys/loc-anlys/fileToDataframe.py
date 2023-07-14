@@ -101,7 +101,7 @@ def getFileColumnNamesPageRegion (regionId, numRegions):
 def getFileColumnNamesLineRegion (strFileName, numRegions):
     with open(strFileName) as f:
         for fileLine in f:
-            if (fileLine.startswith('#----')):
+            if (fileLine.startswith('#---- Top Access line')):
                 data = fileLine.replace('\n','').split(' ')
                 #print(data[5], data[11],data[13],data[15])
                 dictBlockIdLine[str(data[5])]=str(data[11])+'-'+str(data[13])+'-'+str(data[15])

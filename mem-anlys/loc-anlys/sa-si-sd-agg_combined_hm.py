@@ -697,7 +697,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
 
             list_xlabel=df_SP_SI_SD['reg-page-blk']
-            sns.heatmap(accessBlockCacheLine, cmap='Blues', cbar=False,annot=True, fmt='g', annot_kws = {'size':12},  ax=ax_2)
+            sns.heatmap(accessBlockCacheLine, cmap='Blues', cbar=False,annot=True, fmt='d', annot_kws = {'size':12},  ax=ax_2)
             ax_2.set_xticks([0])
             length_xlabel= len(list_xlabel)
             list_blkcache_label=[]
@@ -750,6 +750,33 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 flWeight=True
 f_avg1=None
 mainPath='/Users/suri836/Projects/spatial_rud/'
+
+if(1):
+    flWeight = True
+    intraObjectPlot('Alpaca-512-5p',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000-anlys-512-5p/spatial.txt',4,strMetric='SD-SP-SI', \
+             flWeighted=flWeight,affinityOption=3)
+if(0):
+    intraObjectPlot('Alpaca-1024-10p',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000-anlys-1024-10p/spatial.txt',3,strMetric='SD-SP-SI', \
+             flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('Alpaca-seq-512-5p',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000-t-1-anlys-512-5p/spatial.txt',3,strMetric='SD-SP-SI', \
+             flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('Alpaca-seq-1024-10p',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000-t-1-anlys-1024-10p/spatial.txt',3,strMetric='SD-SP-SI', \
+             flWeighted=flWeight,affinityOption=3)
+
+if(0):
+    flWeight = False
+    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000/spatial.txt',3,strMetric='SD-SP-SI', \
+             flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('Alpaca-seq',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000-t-1/spatial.txt',3,strMetric='SD-SP-SI', \
+             flWeighted=flWeight,affinityOption=3)
+
+
+if(0):
+    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000/spatial.txt',3,strMetric='SD-SP-SI', \
+             flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('Alpaca-seq',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000-t-1/spatial.txt',3,strMetric='SD-SP-SI', \
+             flWeighted=flWeight,affinityOption=3)
+
 if(0):
     intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD-SP-SI', \
                  flWeighted=flWeight,affinityOption=3)
@@ -825,7 +852,7 @@ if(0):
     intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/pages_region/spatial.txt', 1,\
                     strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=2)
 
-if ( 1 == 1):
+if ( 1 == 0):
     intraObjectPlot('ResNet', mainPath+'spatial_pages_exp/Darknet/resnet152_single/hot_lines/spatial.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
     intraObjectPlot('AlexNet',mainPath+'spatial_pages_exp/Darknet/alexnet_single/hot_lines/spatial.txt',5, \
                     listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)

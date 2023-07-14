@@ -5,8 +5,8 @@
 using std::list;
 // Global variables for threshold values
 int32_t lvlConstBlockSize = 2; // Level for setting constant blocksize in zoom
-//double zoomThreshold = 0.10; // Threshold for access count - to include in zoom
-double zoomThreshold = 0.05 ; // Minivite uses this - Cluster paper data used different threshold values - to match regions to paper use this value 
+double zoomThreshold = 0.10; // Threshold for access count - to include in zoom
+//double zoomThreshold = 0.05 ; // Minivite uses this - Cluster paper data used different threshold values - to match regions to paper use this value 
 uint64_t heapAddrEnd ; // 
 uint64_t cacheLineWidth; // Added for ZoomRUD analysis - option to set last level's block width
 uint64_t zoomLastLvlPageWidth ; // Added for ZoomRUD analysis - option to set last Zoom level's page width
@@ -1043,8 +1043,8 @@ int main(int argc, char ** argv){
       parentIndex = mapParentIndex.find(thisMemblock.strParentID.c_str())->second;
       vecParentChild[parentIndex].push_back(make_pair(thisMemblock.min, thisMemblock.max));
     }
-
-    
+    // Debug for parentFamily
+    /* 
     for( uint32_t dbg_i=0; dbg_i<finalRegionList.size(); dbg_i++)
     {
       vecParentFamily = vecParentChild[dbg_i];
@@ -1053,6 +1053,7 @@ int main(int argc, char ** argv){
  	     printf(" in spatial 2.5 memarea.min %08lx memarea.max %08lx \n",  vecParentFamily[dbg_j].first, vecParentFamily.at(dbg_j).second);
       }
     }
+    */
     // STEP 2.6 - Get top-10 hot cache-lines in the finalRegionList
     uint8_t cntRegion=0;
     for (itrRegion=finalRegionList.begin(); itrRegion != finalRegionList.end(); ++itrRegion){
@@ -1089,12 +1090,22 @@ int main(int argc, char ** argv){
       //printf(" after spatial 2.6a %d addr %08lx \n", vecAccessCount.at(cntVecAccess).first, vecAccessCount.at(cntVecAccess).second); 
       vecTopAccessLineAddr.push_back(vecAccessCount.at(cntVecAccess).second);
       ptrTopAccessLine = (mapAddrHotLine[vecAccessCount.at(cntVecAccess).second]);
-      printf(" after spatial 2.6 regionId %d pageId %d lineId %d addrd %08lx access %d\n", ptrTopAccessLine.regionId, ptrTopAccessLine.pageId, 
-                                                       ptrTopAccessLine.lineId, ptrTopAccessLine.lowAddr, ptrTopAccessLine.accessCount);
+      //printf(" after spatial 2.6 regionId %d pageId %d lineId %d addrd %08lx access %d\n", ptrTopAccessLine.regionId, ptrTopAccessLine.pageId, 
+      //                                                 ptrTopAccessLine.lineId, ptrTopAccessLine.lowAddr, ptrTopAccessLine.accessCount);
       spatialOutFile<< "#---- Top Access line aff_blockid " << (OSPageSize/cacheLineWidth)+ cntVecAccess<< " Address "<< std::hex << ptrTopAccessLine.lowAddr 
                     << " Access " << std::dec<< ptrTopAccessLine.accessCount << " RegionID " << std::dec<< unsigned(ptrTopAccessLine.regionId) 
                     << " pageID "<<std::dec<< ptrTopAccessLine.pageId << " lineID " << std::dec<< ptrTopAccessLine.lineId <<endl; 
     }
+    uint16_t affRegionId =0;
+    for (itrRegion=finalRegionList.begin(); itrRegion != finalRegionList.end(); ++itrRegion){
+      thisMemblock = *itrRegion;
+      spatialOutFile<< "#---- Region Address Range aff_blockid " << (OSPageSize/cacheLineWidth)+ cntTopHotLines+affRegionId<< " Address "<< std::hex << thisMemblock.min  
+                    << "-" << thisMemblock.max << " RegionID " << std::dec<< unsigned(affRegionId) << endl; 
+      affRegionId++;
+    }
+      spatialOutFile<< "#---- Region Address Range aff_blockid " << (OSPageSize/cacheLineWidth)+ cntTopHotLines+affRegionId<< " Non-hot " << endl; 
+      spatialOutFile<< "#---- Region Address Range aff_blockid " << (OSPageSize/cacheLineWidth)+ cntTopHotLines+affRegionId+1<< " Stack " << endl; 
+    
     mapAddrHotLine.clear();
 
     // STEP 3 - Calculate spatial affinity at OS page level - using 64 B cache line 
