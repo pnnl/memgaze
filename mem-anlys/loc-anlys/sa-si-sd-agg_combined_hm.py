@@ -697,7 +697,18 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
 
             list_xlabel=df_SP_SI_SD['reg-page-blk']
-            sns.heatmap(accessBlockCacheLine, cmap='Blues', cbar=False,annot=True, fmt='d', annot_kws = {'size':12},  ax=ax_2)
+            if(len(accessBlockCacheLine) < 20):
+                print('accessBlockCacheLine  ', accessBlockCacheLine)
+                sumAccessBlockCacheLine = accessBlockCacheLine.sum()
+                accessBlockCacheLinePercent= np.asarray(((accessBlockCacheLine / sumAccessBlockCacheLine) *100)).astype(int)
+                print('accessBlockCacheLinePercent ', accessBlockCacheLinePercent)
+                formatted_text = (np.asarray(["{0:,d} \n ({1:d} %)".format(spValue,srValue) for spValue, srValue \
+                                      in zip(accessBlockCacheLine.flatten(), accessBlockCacheLinePercent.flatten())])).reshape(len(accessBlockCacheLine),1)
+                print(formatted_text)
+                sns.heatmap(accessBlockCacheLine,cmap='Blues',cbar=False, annot=formatted_text, fmt="", annot_kws = {'size':12}, ax=ax_2)
+            else:
+                sns.heatmap(accessBlockCacheLine, cmap='Blues', cbar=False,annot=True, fmt=',d', annot_kws = {'size':12},  ax=ax_2)
+
             ax_2.set_xticks([0])
             length_xlabel= len(list_xlabel)
             list_blkcache_label=[]
