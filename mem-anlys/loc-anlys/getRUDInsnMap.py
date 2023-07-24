@@ -166,8 +166,8 @@ def readFile(inFile, outFile,appName):
                   objFile_C = ''
                   varVersion = 'm-v3: '
                 if (appName == 'alpaca'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/alpaca.cpp-81bd894/mg-alpaca/chat-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/alpaca.cpp-81bd894/mg-alpaca/obj_chat'
+                  logFile = '/home/suri836/Projects/run_memgaze/alpaca.cpp-81bd894/mg-alpaca-noAVX/chat-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/alpaca.cpp-81bd894/mg-alpaca-noAVX/obj_chat'
                   objFile_C = ''
                   varVersion = 'al: '
                 if (appName == 'vec_store_lm'): 

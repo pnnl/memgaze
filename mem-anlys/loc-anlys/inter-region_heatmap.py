@@ -44,13 +44,13 @@ def spatialPlot(filename, strApp,strMetricType, colSelect=None, sampleSize=None)
     print (listNumRegion)
 
     print('df1 columns\n', df1.columns.to_list)
-    strTitle = 'SD'
+    strTitle = '$SD$'
     if(strMetricType=='SD'):
-        strTitle = 'SD'
+        strTitle = '$SD$'
     elif(strMetricType=='SP'):
         strTitle = '$SA$ & $SI$'
     elif (strMetricType=='SR'):
-        strTitle = 'SI'
+        strTitle = '$SI$'
     line_identifier=['***','===','---']
     with open(filename) as f:
         indexCnt =0
@@ -97,8 +97,10 @@ def spatialPlot(filename, strApp,strMetricType, colSelect=None, sampleSize=None)
     elif(strApp=='ubench-array'):
         obj_list = ['E','D','C','B','A']
     else:
-        obj_list = df1['RegName'].to_list
+        obj_list = df1['RegName'].to_list()
     df1['Obj_name'] = obj_list
+    print(df1['RegionId'])
+    print(obj_list)
     dictRegObjMap = dict(zip(df1['RegionId'].to_list(), obj_list))
     print(dictRegObjMap)
     df1.sort_values(by='Access count',ascending=False, inplace=True)
@@ -164,7 +166,7 @@ def spatialPlot(filename, strApp,strMetricType, colSelect=None, sampleSize=None)
         sns.heatmap(arSpHeatMap,cmap='mako_r',cbar=False, annot=True, annot_kws = {'size':12}, ax=ax[0],vmin=0.0,vmax=1.0)
 
     ax[0].set_yticklabels(vecLabel_Y,rotation='horizontal', wrap=True)
-    ax[0].set_xticklabels(vecLabel_X,rotation='horizontal')
+    ax[0].set_xticklabels(vecLabel_X,rotation='vertical')
 
     sns.heatmap(arAccessPercent, cmap='Blues', cbar=False,annot=True, fmt='.1f', annot_kws = {'size':12},  ax=ax[1],vmin=0.0,vmax=100)
     #ax[1].invert_yaxis()
@@ -197,15 +199,16 @@ def callPlot(plotApp):
     colSelect=0
     appName=''
     sampleSize=0
-    strMetricType='SP'
+    strMetricType='SD'
+
     if (plotApp.lower()=='ubench'):
         #filename='/Users/suri836/Projects/spatial_rud/ubench_simple_vector/sel_func/vec_gpp_exe-memgaze-trace-b8192-p40000/spatial_inter.txt'
         filename='/Users/suri836/Projects/spatial_rud/ubench_simple_array/paper_data/arr_exe-memgaze-trace-b16384-p250000/spatial_inter.txt'
         appName='ubench-array'
+    elif(plotApp.lower()=='alpaca'):
+        filename='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/alpaca/mg-alpaca-ld-st/chat-trace-b16384-p5000000/spatial_inter.txt'
+        appName='Alpaca'
     elif(plotApp.lower()=='minivite-v3'):
-        #filename='/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v3_inter_sd.txt'
-        #filename='/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_inter.txt'
-        #filename='/Users/suri836/Projects/spatial_rud/minivite_detailed_look/inter-region/v3_spatial_inter_sp_sr.txt'
         filename='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/hot_lines/v3_spatial_inter_sp_si_sd.txt'
         appName='minivite-v3'
     elif(plotApp.lower()=='minivite-v2'):
@@ -231,9 +234,10 @@ def callPlot(plotApp):
 #callPlot('AMG-inter')
 #callPlot('AMG-inter-hot')
 #callPlot('ubench')
-callPlot('miniVite-v3')
 #callPlot('Minivite-v2')
 #callPlot('Minivite-v1')
-
+#Paper plots
+callPlot('miniVite-v3')
+#callPlot('Alpaca')
 
 

@@ -556,10 +556,13 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             ax_2 = fig.add_subplot(gsright[0, 0])
             ax_3 = fig.add_subplot(gsright[0, 1])
             gsleft_ax_0 = sns.heatmap(df_hm_SD, cmap='mako_r',cbar=True, cbar_kws={"pad":0.02}, annot=False,ax=gsleft_ax_0,vmin=0.02,vmax=1.0)
+            gsleft_ax_0.set_facecolor('white')
             gsleft_ax_1 = sns.heatmap(df_hm_SP, cmap='mako_r',cbar=True, cbar_kws={"pad":0.02}, annot=False,ax=gsleft_ax_1,vmin=0.02, vmax=1.0)
+            gsleft_ax_1.set_facecolor('white')
             vmin=0
             vmax=20
             gsleft_ax_2 = sns.heatmap(df_hm_SI, cmap='mako',cbar=True, cbar_kws={"pad":0.02}, annot=False,ax=gsleft_ax_2,vmin=vmin, vmax=vmax)
+            gsleft_ax_2.set_facecolor('white')
             gsleft_ax_0.set_ylabel("SD",fontsize=16,style='italic')
             gsleft_ax_1.set_ylabel("SA",fontsize=16,style='italic')
             gsleft_ax_2.set(xlabel="Region-Page-Block")
@@ -702,12 +705,12 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 sumAccessBlockCacheLine = accessBlockCacheLine.sum()
                 accessBlockCacheLinePercent= np.asarray(((accessBlockCacheLine / sumAccessBlockCacheLine) *100)).astype(int)
                 print('accessBlockCacheLinePercent ', accessBlockCacheLinePercent)
-                formatted_text = (np.asarray(["{0:,d} \n ({1:d} %)".format(spValue,srValue) for spValue, srValue \
+                formatted_text = (np.asarray(["{0:,d} \n ({1:d}%)".format(spValue,srValue) for spValue, srValue \
                                       in zip(accessBlockCacheLine.flatten(), accessBlockCacheLinePercent.flatten())])).reshape(len(accessBlockCacheLine),1)
                 print(formatted_text)
-                sns.heatmap(accessBlockCacheLine,cmap='Blues',cbar=False, annot=formatted_text, fmt="", annot_kws = {'size':12}, ax=ax_2)
+                sns.heatmap(accessBlockCacheLine,cmap='Blues',cbar=False, annot=formatted_text, fmt="", annot_kws = {'size':12}, ax=ax_2)#,linecolor='black',linewidths=1)
             else:
-                sns.heatmap(accessBlockCacheLine, cmap='Blues', cbar=False,annot=True, fmt=',d', annot_kws = {'size':12},  ax=ax_2)
+                sns.heatmap(accessBlockCacheLine, cmap='Blues', cbar=False,annot=True, fmt=',d', annot_kws = {'size':12},  ax=ax_2)#,linecolor='black',linewidths=1)
 
             ax_2.set_xticks([0])
             length_xlabel= len(list_xlabel)
@@ -761,8 +764,12 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 flWeight=True
 f_avg1=None
 mainPath='/Users/suri836/Projects/spatial_rud/'
+if(0):
+    flWeight = True
+    intraObjectPlot('Alpaca-ld-st',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-ld-st/chat-trace-b16384-p5000000/spatial.txt',6,strMetric='SD-SP-SI', \
+             flWeighted=flWeight,affinityOption=3)
 
-if(1):
+if(0):
     flWeight = True
     intraObjectPlot('Alpaca-512-5p',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000-anlys-512-5p/spatial.txt',4,strMetric='SD-SP-SI', \
              flWeighted=flWeight,affinityOption=3)
@@ -796,17 +803,12 @@ if(0):
     intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
                 listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight,affinityOption=3)
 
-if(0):
-    intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
-                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
-                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
-                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
-                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+if ( 1 == 0):
+    intraObjectPlot('ResNet', mainPath+'spatial_pages_exp/Darknet/resnet152_single/hot_lines/spatial.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('AlexNet',mainPath+'spatial_pages_exp/Darknet/alexnet_single/hot_lines/spatial.txt',5, \
+                    listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
 
-if(0):
+if(1):
     intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',\
                     flWeighted=flWeight,affinityOption=3)
     intraObjectPlot('HiParTi - COO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/coo_u_0/spatial.txt',3,f_avg=f_avg1,\
@@ -817,6 +819,18 @@ if(0):
                     flWeighted=flWeight,affinityOption=3)
     intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_1/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', \
                     flWeighted=flWeight,affinityOption=3)
+
+if(0):
+    intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+
+
 if( 1 == 0):
     intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight)
     intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SD-SP-SI', \
@@ -863,10 +877,6 @@ if(0):
     intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/pages_region/spatial.txt', 1,\
                     strMetric='SD-SP-SI',flWeighted=flWeight,numExtraPages=numExtraPages,affinityOption=2)
 
-if ( 1 == 0):
-    intraObjectPlot('ResNet', mainPath+'spatial_pages_exp/Darknet/resnet152_single/hot_lines/spatial.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('AlexNet',mainPath+'spatial_pages_exp/Darknet/alexnet_single/hot_lines/spatial.txt',5, \
-                    listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
 
 if ( 1 == 0):
     f_avg1=None

@@ -294,7 +294,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             else:
                 last_value=int(''.join(filter(str.isdigit, last_index)))
             valid_range=first_value+last_value+1
-            list_blk_range_gap.append([blk_id,first_value,last_value,valid_range, df_row.count() ])
+            list_blk_range_gap.append([blk_id,first_value,last_value,valid_range, df_row.   count() ])
 
         #print(list_blk_range_gap)
         df_range_gap=pd.DataFrame(list_blk_range_gap,columns=['reg-page-blk','first','last','range','count'])
@@ -526,13 +526,15 @@ numExtraPages=64
 
 intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b8192-p5000000/spatial.txt',3,strMetric='SD', \
              flWeight=flWeight,affinityOption=3)
-if(0):
+if(1):
+    f_avg1=open(mainPath+'spatial_pages_exp/miniVite/hot_lines/sd_avg_log','w')
     intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD', \
-             flWeight=flWeight,affinityOption=3)
+             flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
     intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/hot_lines/v2_spatial_det.txt',3,strMetric='SD', \
-            listCombineReg=['1-A0000010','4-A0002000'] ,flWeight=flWeight,affinityOption=3)
+            listCombineReg=['1-A0000010','4-A0002000'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
     intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SD', \
-            listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight,affinityOption=3)
+            listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
+    f_avg1.close()
 
 #Minivite - paper plots SD - Combine regions
 if (1 ==0):
