@@ -170,6 +170,11 @@ def readFile(inFile, outFile,appName):
                   objFile = '/home/suri836/Projects/run_memgaze/alpaca.cpp-81bd894/mg-alpaca-noAVX/obj_chat'
                   objFile_C = ''
                   varVersion = 'al: '
+                if (appName == 'xsbench'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading/memgaze-xs/XSBench-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading/memgaze-xs/obj_XSBench'
+                  objFile_C = ''
+                  varVersion = 'xs: '
                 if (appName == 'vec_store_lm'): 
                   logFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/vec_gpp_st_no_frame_gh/vec_gpp_exe-memgaze.binanlys'
                   objFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/vec_gpp_st_no_frame_gh/obj_vec_gpp'

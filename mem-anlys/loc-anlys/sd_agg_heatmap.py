@@ -95,9 +95,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
     appName=strApp
     colSelect=0
     sampleSize=0
-    print(plotFilename,colSelect,appName,sampleSize)
+    print(strFileName, plotFilename, colSelect,appName,sampleSize)
     if(f_avg != None):
-        f_avg.write('\nfilename ' + plotFilename + ' col select '+ str(colSelect)+ ' app '+appName+strWeight+ ' sample '+str(sampleSize)+'\n')
+        f_avg.write('\nfilename ' + strFileName + ' ' + plotFilename+' col select '+ str(colSelect)+ ' app '+appName+strWeight+ ' sample '+str(sampleSize)+'\n')
     #spatialPlot(plotFilename, colSelect, appName,sampleSize)
 
     # STEP 2 - Get region ID's from inter-region file
@@ -278,11 +278,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # STEP 3e - Range and Count mean, standard deviation to understand the original spread of heatmap
         # STEP 3e - Range and Count mean, calculate before sampling
         # START Lexi-BFS - experiment #3 - SD range & gap analysis
-        #print('dataframe length', len(df_intra_obj))
+        print('dataframe length', len(df_intra_obj))
         list_blk_range_gap=[]
         for df_id in range (0, len(df_intra_obj)):
             blk_id=df_intra_obj.iloc[df_id,1]
-            df_row=pd.to_numeric(df_intra_obj.iloc[df_id,5:(516+numExtraPages)]).squeeze()
+            df_row=pd.to_numeric(df_intra_obj.iloc[df_id,5:(516)]).squeeze()
             first_index=df_row.first_valid_index()
             last_index=df_row.last_valid_index()
             if ( first_index == 'self'):
