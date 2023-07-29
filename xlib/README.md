@@ -146,61 +146,98 @@ DynInst
 
 https://github.com/dyninst/
 
-1. Currently, we must apply one hack/patch to DynInst.
+
+1. DynInst not not generate source-line mapping for new instrumented
+   code but *does* generate a mapping of the new instrumentation to
+   the insertion point in the original binary. This mapping enables a
+   tool to associate new instrumentation to original source code.
+   
+   DynInst does *not* currently generate the mapping using official
+   DWARF. The format *can* be read via SymTabAPI. Consequently,
+   hpcstruct can exploit it (using SymTabAPI), but standard tools like
+   objdump and readelf cannot.
+
+
+2. MemGaze needs the mapping of each new ptwrite (instrumentation) to
+   the original memory access instruction. Not only does this provide
+   source line information, but it is also needed for the
+   memory-access class (e.g., load classes) associated with a given
+   ptwrite instrumentation.
+
+   Further, MemGaze's instrumentation has been designed to never
+   require that registers be saved or restored, i.e., spill code.
+   Consequently, DynInst should never insert spill code!
+
+   There are two DynInst issues.
+
+   First, DynInst has no interface for the desired mapping.
+   Consequently, we currently apply a hack/patch to print it for
+   MemGaze's consumption.
+   
+   Second, for an unknown reason, DynInst sometimes inserts
+   unnecessary spill code. Further, the spill code is added *after*
+   the mapping of new instrumentation to original code is generated!
+
+   This has two results. First, it adds time overhead to instrumented
+   code. Second, it means that DynInst's mapping of new
+   instrumentation to original code is wrong.
+
+   Possible workarounds: Re-run MemGaze's static binary analysis on
+   the new code within the binary.
+
+   Following is an example of the spill code. (Yasodha was able to
+   consistently reproduce this for AMG and HiParTI-matrix COO.)
+     ```
+     105ddf: 48 8d 64 24 80                lea    -0x80(%rsp),%rsp
+     105de4: 50                            push   %rax
+     105de5: 9f                            lahf
+     105de6: 0f 90 c0                      seto   %al
+     105de9: 50                            push   %rax
+     105dea: f3 48 0f ae e6                ptwrite %rsi            <==
+     105def: 58                            pop    %rax
+     105df0: 80 c0 7f                      add    $0x7f,%al
+     105df3: 9e                            sahf
+     105df4: 58                            pop    %rax
+     105df5: 48 8d a4 24 80 00 00          lea    0x80(%rsp),%rsp
+     ```
+
+   Following are some details on the mapping hack and spill code:
+
+   - Print the original to relocated address at following function 
+       `dyninstAPI/src/binaryEdit.C ->  490 bool BinaryEdit::writeFile(...)`
   
-  New Dyninst master provides source line mapping for instrumented
-  code (now in master), which hpcstruct can read.
+     while it is building dyninst symbols:
 
-  However, to gather instruction classes, we still need (more
-  precisely, want) the mapping.  The MemGaze instrumentor determines
-  instruction classes from the original binary, but we also need the
-  classes for the corresponding new/instrumented ins. Currently,
-  we use a one-line hack in Dyninst to print the mapping.
-  
-  Alternatives: 1) Re-run MemGaze's static binary analysis on the
-  new code within the binary. 2) Propose a DynInst interface for
-  exporting the details of the mapping.
+       `805 void BinaryEdit::buildDyninstSymbols(...)`
 
+   - After that point DynInst starts writing the binary with following call path:
+       ```
+       in  dyninstAPI/src/binaryEdit.C
+         675 if (!symObj->emit(newFileName.c_str())) {
 
-2. There is padding occurring on dyninst for some binaries which
-causes not matching IP addresses for instrumented binary.
-    
-We print the original to relocated address at following function 
+       in symtabAPI/src/Symtab.C
+         2213 SYMTAB_EXPORT bool Symtab::emit(..)
+         2199 SYMTAB_EXPORT bool Symtab::emitSymbols(...)
+           in here it is adding static and dynamic symbols to all symbols
 
-  `dyninstAPI/src/binaryEdit.C ->  490 bool BinaryEdit::writeFile(...)`
-  
-while it is building dyninst symbols:
+       in symtabAPI/src/Object-elf.C
+         3290 bool Object::emitDriver(...)
+           in here it calls create symbol table function
+           -> in symtabAPI/src/emitElf.C
+               1640 bool emitElf<ElfTypes>::createSymbolTables()
+                 this fuction creates the final symbolTables 
+       ```
 
-  `805 void BinaryEdit::buildDyninstSymbols(...)`
-
-After that point dyninst start writing the binary with following call path:
-  ```
-  in  dyninstAPI/src/binaryEdit.C
-    675 if (!symObj->emit(newFileName.c_str())) {
-
-  in symtabAPI/src/Symtab.C
-    2213 SYMTAB_EXPORT bool Symtab::emit(..)
-    2199 SYMTAB_EXPORT bool Symtab::emitSymbols(...)
-      in here it is adding static and dynamic symbols to all symbols
-
-  in symtabAPI/src/Object-elf.C
-    3290 bool Object::emitDriver(...)
-      in here it calls create symbol table function
-      -> in symtabAPI/src/emitElf.C
-          1640 bool emitElf<ElfTypes>::createSymbolTables()
-            this fuction creates the final symbolTables 
-  ```
-
-Note: I think extra padding is happining here:
-  ```
-  1730    Offset lastRegionAddr = 0, lastRegionSize = 0;
-  1731    vector<Region *>::iterator newRegIter;
-  1732    for (newRegIter = newRegs.begin(); newRegIter != newRegs.end();
-  1733         ++newRegIter) {
-  1734        if ((*newRegIter)->getDiskOffset() > lastRegionAddr) {
-  1735            lastRegionAddr = (*newRegIter)->getDiskOffset();
-  1736            lastRegionSize = (*newRegIter)->getDiskSize();
-  1737        }
-  1738    }
-  ```
-After that it will emit to the new file. 
+     Ozgur thinks extra padding is happening here.
+       ```
+       1730    Offset lastRegionAddr = 0, lastRegionSize = 0;
+       1731    vector<Region *>::iterator newRegIter;
+       1732    for (newRegIter = newRegs.begin(); newRegIter != newRegs.end();
+       1733         ++newRegIter) {
+       1734        if ((*newRegIter)->getDiskOffset() > lastRegionAddr) {
+       1735            lastRegionAddr = (*newRegIter)->getDiskOffset();
+       1736            lastRegionSize = (*newRegIter)->getDiskSize();
+       1737        }
+       1738    }
+       ```
+     After that it will emit to the new file.
