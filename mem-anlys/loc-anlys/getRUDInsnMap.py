@@ -151,8 +151,8 @@ def readFile(inFile, outFile,appName):
                   objFile_C = ''
                   varVersion = 'mt-re-sel: '
                 if (appName == 'mini-v1'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld/miniVite-v1-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld/obj_v1'
+                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/v1-mg-ld/miniVite-v1-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/v1-mg-ld/obj_v1'
                   objFile_C = ''
                   varVersion = 'm-v1: '
                 if (appName == 'mini-v2'): 

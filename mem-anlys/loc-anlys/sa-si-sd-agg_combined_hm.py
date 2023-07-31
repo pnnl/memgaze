@@ -764,6 +764,52 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 flWeight=True
 f_avg1=None
 mainPath='/Users/suri836/Projects/spatial_rud/'
+
+if (1):
+    #intraObjectPlot('XSBench-k-0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs/XSBench-memgaze-trace-b8192-p5000000-k-0/spatial.txt', 4, strMetric='SD-SP-SI', \
+    #    listCombineReg=['1-B0000000','2-B0010000','3-B0020000','4-B0030000','5-B0040000','6-B0050000','7-B0060000'] ,flWeighted=flWeight,affinityOption=3)
+    #intraObjectPlot('XSBench-k-0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs/XSBench-memgaze-trace-b8192-p5000000-k-0/spatial.txt', 3, strMetric='SD-SP-SI', \
+    #    listCombineReg=['8-C0000000','9-C0000001'] ,flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSBench-k-1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs/XSBench-memgaze-trace-b8192-p5000000-k-1/spatial.txt', 2, strMetric='SD-SP-SI', \
+        flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSBench-k-2',mainPath+'spatial_pages_exp/XSBench/memgaze-xs/XSBench-memgaze-trace-b8192-p5000000-k-2/spatial.txt', 2, strMetric='SD-SP-SI', \
+        flWeighted=flWeight,affinityOption=3)
+
+if(0):
+    intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD-SP-SI', \
+                 flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/hot_lines/v2_spatial_det.txt',3,strMetric='SD-SP-SI', \
+                listCombineReg=['1-A0000010','4-A0002000'] ,flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
+                listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight,affinityOption=3)
+
+if ( 1 == 0):
+    intraObjectPlot('ResNet', mainPath+'spatial_pages_exp/Darknet/resnet152_single/hot_lines/spatial.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('AlexNet',mainPath+'spatial_pages_exp/Darknet/alexnet_single/hot_lines/spatial.txt',5, \
+                    listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+
+if(0):
+    intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',\
+                    flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTi - COO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/coo_u_0/spatial.txt',3,f_avg=f_avg1,\
+                    listCombineReg=['1-A0000010','2-A0000020'], strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTi - COO-Reduce',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/coo_u_1/spatial.txt', \
+                    2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'],f_avg=f_avg1, strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTi - HiCOO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_0/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', \
+                    flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_1/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', \
+                    flWeighted=flWeight,affinityOption=3)
+
+if(0):
+    intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
+                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+
 if(0):
     flWeight = True
     intraObjectPlot('Alpaca-ld-st',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-ld-st/chat-trace-b16384-p5000000/spatial.txt',6,strMetric='SD-SP-SI', \
@@ -794,42 +840,6 @@ if(0):
              flWeighted=flWeight,affinityOption=3)
     intraObjectPlot('Alpaca-seq',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000-t-1/spatial.txt',3,strMetric='SD-SP-SI', \
              flWeighted=flWeight,affinityOption=3)
-
-if(0):
-    intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD-SP-SI', \
-                 flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/hot_lines/v2_spatial_det.txt',3,strMetric='SD-SP-SI', \
-                listCombineReg=['1-A0000010','4-A0002000'] ,flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
-                listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight,affinityOption=3)
-
-if ( 1 == 0):
-    intraObjectPlot('ResNet', mainPath+'spatial_pages_exp/Darknet/resnet152_single/hot_lines/spatial.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('AlexNet',mainPath+'spatial_pages_exp/Darknet/alexnet_single/hot_lines/spatial.txt',5, \
-                    listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
-
-if(0):
-    intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',\
-                    flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('HiParTi - COO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/coo_u_0/spatial.txt',3,f_avg=f_avg1,\
-                    listCombineReg=['1-A0000010','2-A0000020'], strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('HiParTi - COO-Reduce',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/coo_u_1/spatial.txt', \
-                    2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'],f_avg=f_avg1, strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('HiParTi - HiCOO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_0/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', \
-                    flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_1/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', \
-                    flWeighted=flWeight,affinityOption=3)
-
-if(1):
-    intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
-                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
-                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
-                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
-                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
-
 
 if( 1 == 0):
     intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight)

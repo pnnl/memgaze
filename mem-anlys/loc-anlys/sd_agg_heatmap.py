@@ -226,9 +226,12 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
         # STEP 3d - Get average of self before sampling for highest access blocks
         average_sd= pd.to_numeric(df_intra_obj["self"]).mean()
-        print('*** Before sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd))
+        print('*** Before sampling , weighted = ' +str(flWeight)+'Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd))
         if (f_avg != None):
-            f_avg.write ( '*** Before sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd)+'\n')
+            if(flWeight):
+                f_avg.write ( '*** Before sampling Weighted Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd)+'\n')
+            else:
+                f_avg.write ( '*** Before sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd)+'\n')
 
         print(df_intra_obj.columns.to_list())
         colRearrangeList =[]
@@ -280,6 +283,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # START Lexi-BFS - experiment #3 - SD range & gap analysis
         print('dataframe length', len(df_intra_obj))
         list_blk_range_gap=[]
+        print('self columns ',df_intra_obj.iloc[0,5:(516)] )
         for df_id in range (0, len(df_intra_obj)):
             blk_id=df_intra_obj.iloc[df_id,1]
             df_row=pd.to_numeric(df_intra_obj.iloc[df_id,5:(516)]).squeeze()
@@ -524,10 +528,10 @@ flWeight = True
 mainPath='/Users/suri836/Projects/spatial_rud/'
 numExtraPages=64
 
-intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b8192-p5000000/spatial.txt',3,strMetric='SD', \
-             flWeight=flWeight,affinityOption=3)
-if(1):
-    f_avg1=open(mainPath+'spatial_pages_exp/miniVite/hot_lines/sd_avg_log','w')
+#intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b8192-p5000000/spatial.txt',3,strMetric='SD', \
+#            flWeight=flWeight,affinityOption=3)
+if(0):
+    f_avg1=open(mainPath+'spatial_pages_exp/miniVite/hot_lines/sd_avg_log.txt','w')
     intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD', \
              flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
     intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/hot_lines/v2_spatial_det.txt',3,strMetric='SD', \
@@ -536,34 +540,37 @@ if(1):
             listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
     f_avg1.close()
 
-#Minivite - paper plots SD - Combine regions
-if (1 ==0):
-    f_avg1=open(mainPath+'minivite_detailed_look/inter-region/sd_avg_log','w')
-    intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD', flWeight=flWeight,f_avg=f_avg1)
-    intraObjectPlot('miniVite-v2',mainPath+'minivite_detailed_look/inter-region/v2_spatial_det.txt',3,strMetric='SD', \
-                listCombineReg=['1-A0000010','4-A0002000'] ,flWeight=flWeight,f_avg=f_avg1)
-    intraObjectPlot('miniVite-v3',mainPath+'minivite_detailed_look/inter-region/v3_spatial_det.txt',3,strMetric='SD', \
-                listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight,f_avg=f_avg1)
+if(0):
+    f_avg1=open(mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/sd_avg_log.txt','w')
+    intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD',\
+                    flWeight=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTi - COO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/coo_u_0/spatial.txt',3,f_avg=f_avg1,\
+                    listCombineReg=['1-A0000010','2-A0000020'], strMetric='SD', flWeight=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTi - COO-Reduce',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/coo_u_1/spatial.txt', \
+                    2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'],f_avg=f_avg1, strMetric='SD', flWeight=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTi - HiCOO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_0/spatial.txt',2,f_avg=f_avg1,strMetric='SD', \
+                    flWeight=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_1/spatial.txt',2,f_avg=f_avg1,strMetric='SD', \
+                    flWeight=flWeight,affinityOption=3)
     f_avg1.close()
 
-#Darknet - paper plots
-if ( 1 == 0):
-    intraObjectPlot('ResNet', mainPath+'darknet_cluster/resnet152_single/spatial_clean/spatial.txt',1,flWeight=flWeight)
-    intraObjectPlot('AlexNet',mainPath+'darknet_cluster/alexnet_single/spatial_clean/spatial.txt',4, \
-                    listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],flWeight=flWeight)
+if(1):
+    f_avg1=open(mainPath+'spatial_pages_exp/HICOO-tensor/sd_avg_log.txt','w')
+    intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
+                    f_avg=f_avg1,strMetric='SD',flWeight=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
+                    f_avg=f_avg1,strMetric='SD',flWeight=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
+                    f_avg=f_avg1,strMetric='SD',flWeight=flWeight,affinityOption=3)
+    intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
+                    f_avg=f_avg1,strMetric='SD',flWeight=flWeight,affinityOption=3)
+    f_avg1.close()
 
-#HiParTi - HiCOO - Matrix - paper plots
 if ( 1 == 0):
     #f_avg1=open(mainPath+'HiParTi/4096-same-iter/sd_agg_log_Wgt','w')
     f_avg1=None
     now = datetime.datetime.now()
     print(now)
-    intraObjectPlot('HiParTi - CSR',mainPath+'HiParTi/4096-same-iter/mg-csr/spmm_csr_mat-trace-b8192-p4000000/spatial.txt',2,f_avg=f_avg1,flWeight=flWeight)
-    intraObjectPlot('HiParTi - COO',mainPath+'HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-0-trace-b8192-p4000000/spatial.txt',3,f_avg=f_avg1,\
-                    listCombineReg=['1-A0000010','2-A0000020'], flWeight=flWeight)
-    intraObjectPlot('HiParTi - COO-Reduce',mainPath+'HiParTi/4096-same-iter/mg-spmm-mat/spmm_mat-U-1-trace-b8192-p4000000/spatial.txt', \
-                    2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'],f_avg=f_avg1, flWeight=flWeight)
-    intraObjectPlot('HiParTi - HiCOO',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-0-trace-b8192-p4000000/spatial.txt',2,f_avg=f_avg1,flWeight=flWeight)
     intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'HiParTi/4096-same-iter/mg-spmm-hicoo/spmm_hicoo-U-1-trace-b8192-p4000000/spatial.txt',3,f_avg=f_avg1,flWeight=flWeight)
     now = datetime.datetime.now()
     print(now)
