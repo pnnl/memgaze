@@ -1416,12 +1416,16 @@ int LoadModule::dyninstAnalyzeRoutines(ProgScope *prog, const MiamiOptions *mo, 
       //for (auto blk :  eblks){
       //  cout <<hex<<"Entry Start:"<<blk->getStartAddress()<<" End:"<<blk->getEndAddress()<<dec<<endl;
       //}
-      //for (auto blk :  xblks){
+      //for (auto blk :  blks){
       //  cout <<hex<<"Exit Start:"<<blk->getStartAddress()<<" End:"<<blk->getEndAddress()<<dec<<endl;
       //}
 
       for (auto blk :  blks){
-        if (Pend != blk->getStartAddress()){
+        // cout <<hex<<"Prev End:"<<Pend<<" Start-10:"<<(blk->getStartAddress())-0xa<<endl;
+        // Check for NOP discontinuity within the blocks in the function
+        // If it's within 10 bytes, then allow the function end to remain the same
+        // If there are jumps to other functions - it should be more than 10 bytes change in address range
+        if (!(Pend >= ((blk->getStartAddress())-0xa))){
           cout <<"Someting Wrong:"<<endl;
           cout <<hex<<"Prev End:"<<Pend<<" Start:"<<blk->getStartAddress()<<" End:"<<blk->getEndAddress()<<dec<<endl;
           if (Pend != start)
