@@ -770,9 +770,11 @@ if (1):
     #    listCombineReg=['1-B0000000','2-B0010000','3-B0020000','4-B0030000','5-B0040000','6-B0050000','7-B0060000'] ,flWeighted=flWeight,affinityOption=3)
     #intraObjectPlot('XSBench-k-0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs/XSBench-memgaze-trace-b8192-p5000000-k-0/spatial.txt', 3, strMetric='SD-SP-SI', \
     #    listCombineReg=['8-C0000000','9-C0000001'] ,flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSBench-k-1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs/XSBench-memgaze-trace-b8192-p5000000-k-1/spatial.txt', 2, strMetric='SD-SP-SI', \
+    intraObjectPlot('XSBench-k-1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs/XSBench-memgaze-trace-b8192-p5000000-k-1/5p/spatial.txt', 4, strMetric='SD-SP-SI', \
         flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSBench-k-2',mainPath+'spatial_pages_exp/XSBench/memgaze-xs/XSBench-memgaze-trace-b8192-p5000000-k-2/spatial.txt', 2, strMetric='SD-SP-SI', \
+    intraObjectPlot('XSBench-k-2',mainPath+'spatial_pages_exp/XSBench/memgaze-xs/XSBench-memgaze-trace-b8192-p5000000-k-2/5p/spatial.txt', 4, strMetric='SD-SP-SI', \
+        flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSBench-k-0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs/XSBench-memgaze-trace-b8192-p5000000-k-0/5p/spatial.txt', 4, strMetric='SD-SP-SI', \
         flWeighted=flWeight,affinityOption=3)
 
 if(0):

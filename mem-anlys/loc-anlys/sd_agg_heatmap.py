@@ -411,7 +411,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             ax_0 = sns.heatmap(df_hm, mask=df_mask, cmap='mako',cbar=True, annot=False,ax=ax_0,vmin=0,vmax=20)
 
         ax_0 = sns.heatmap(df_hm,cmap='mako_r',cbar=True, annot=False,ax=ax_0,vmin=vmin_val,vmax=vmax_val)
-
+        ax_0.set_facecolor('white')
         # Colors for Access heatmap, and labels for affinity matrix
         custom_blue = sns.light_palette("#79C")
         background_color = mpl.colormaps["Blues"]
@@ -484,6 +484,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
         #ax_0.set_ylabel("")
         sns.heatmap(accessBlockCacheLine, cmap="Blues", cbar=False,annot=True, fmt='g', annot_kws = {'size':12},  ax=ax_1)
+        ax_1.set_facecolor('white')
+
         #ax_1.invert_yaxis()
         ax_1.set_xticks([0])
         length_xlabel= len(list_xlabel)
@@ -498,6 +500,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         rndAccess = np.round((arRegPageAccess/1000).astype(float),2)
         annot = np.char.add(rndAccess.astype(str), 'K')
         sns.heatmap(rndAccess, cmap=custom_blue, cbar=False,annot=annot, fmt='', annot_kws = {'size':12},  ax=ax_2)
+        ax_2.set_facecolor('white')
+
         #ax_2.invert_yaxis()
         ax_2.set_xticks([0])
         list_blk_label=arRegPages
@@ -530,7 +534,7 @@ numExtraPages=64
 
 #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b8192-p5000000/spatial.txt',3,strMetric='SD', \
 #            flWeight=flWeight,affinityOption=3)
-if(0):
+if(1):
     f_avg1=open(mainPath+'spatial_pages_exp/miniVite/hot_lines/sd_avg_log.txt','w')
     intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD', \
              flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
@@ -554,7 +558,7 @@ if(0):
                     flWeight=flWeight,affinityOption=3)
     f_avg1.close()
 
-if(1):
+if(0):
     f_avg1=open(mainPath+'spatial_pages_exp/HICOO-tensor/sd_avg_log.txt','w')
     intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
                     f_avg=f_avg1,strMetric='SD',flWeight=flWeight,affinityOption=3)
