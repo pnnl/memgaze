@@ -151,12 +151,12 @@ https://github.com/dyninst/
    code but *does* generate a mapping of the new instrumentation to
    the insertion point in the original binary. This mapping enables a
    tool to associate new instrumentation to original source code.
-   
+
    DynInst does *not* currently generate the mapping using official
    DWARF. The format *can* be read via SymTabAPI. Consequently,
    hpcstruct can exploit it (using SymTabAPI), but standard tools like
    objdump and readelf cannot.
-
+   
 
 2. MemGaze needs the mapping of each new ptwrite (instrumentation) to
    the original memory access instruction. Not only does this provide
@@ -177,10 +177,16 @@ https://github.com/dyninst/
    Second, for an unknown reason, DynInst sometimes inserts
    unnecessary spill code. Further, the spill code is added *after*
    the mapping of new instrumentation to original code is generated!
+   
+   As an aside, it is important to note that the resolution of the
+   mapping is the basic-block level rather than per-instruction. The
+   basic-block mapping is typically sufficient to obtain an
+   instruction level one as long as the order of instrumented
+   instructions does not change. MemGaze does not change ordering.
 
-   This has two results. First, it adds time overhead to instrumented
-   code. Second, it means that DynInst's mapping of new
-   instrumentation to original code is wrong.
+   The two problems above have two results. First, it adds time
+   overhead to instrumented code. Second, it means that DynInst's
+   mapping of new instrumentation to original code is wrong.
 
    Possible workarounds: Re-run MemGaze's static binary analysis on
    the new code within the binary.
