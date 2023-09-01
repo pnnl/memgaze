@@ -28,7 +28,8 @@ MemGaze Issues
   These bugs occur only for some binaries. When they occur for a
   binary, they only occur for a few loads.
   
-  For more, see DynInst note (2) in `xlib/README.md`
+  For more, see DynInst note (2) in `xlib/README.md
+  `
   
 * Bug: Occasionally, `memgaze-inst` may not instrument portions of an
   extremely complex non-contiguous funciton. In the notes history, see
