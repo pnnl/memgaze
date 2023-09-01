@@ -44,12 +44,16 @@ Detailed Notes
 
   5. Better solution: invoke as (2) but use `eval <args>`
 
-* Corrected problem where `memgaze-inst` failed when CFG building
-  encountered a non-contiguous function (e.g., for hot-cold region
-  layout). The CFG build failed for a non-contiguous
-  functions. Solution: iterate through basic blocks and find first
-  config regions.
-
+* Limitation: `memgaze-inst` and non-contiguous functions. We have
+  corrected most but not all problems when `memgaze-inst` encounters a
+  non-contiguous function (e.g., for hot-cold region
+  layout). Initially the CFG build failed for non-contiguous
+  functions. Our first heuristic simply selected the first contiguous
+  region as the function ignored the rest. This was good for ignoring
+  uninteresting exception handling. Our second heuristic uses a small
+  threshold to expands the function for small gaps. This ensured that
+  we continued analyzing across nops or small bits of data.
+  
 * Corrected problem in `memgaze-inst` where source code mapping's line
   numbers to be off. Now capture DynInst's final values for .dyninst
   section.

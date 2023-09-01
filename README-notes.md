@@ -13,6 +13,9 @@ MemGaze Issues
   For more, see DynInst note (1) in `xlib/README.md`.
 
 * Bug: Occasionally, `memgaze-inst` looses track of the mapping between
+
+
+* Bug: Occasionally, `memgaze-inst` looses track of the mapping between
   an instrumented and original memory reference instruction. This
   causes a) source-code mapping's line numbers to be off; and b) (more
   important) memgaze-inst looses track of a load's class.
@@ -26,6 +29,12 @@ MemGaze Issues
   binary, they only occur for a few loads.
   
   For more, see DynInst note (2) in `xlib/README.md`
+  
+* Bug: Occasionally, `memgaze-inst` may not instrument portions of an
+  extremely complex non-contiguous funciton. In the notes history, see
+  the details assocated with "Limitation: `memgaze-inst` and
+  non-contiguous functions."
+
 
 -----------------------------------------------------------------------------
 Directory Structure
