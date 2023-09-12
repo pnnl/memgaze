@@ -26,6 +26,15 @@ import copy
 import matplotlib as mpl
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 
+import logging
+
+logging.basicConfig(format='%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d:%H:%M:%S',
+    level=logging.INFO)
+
+logger = logging.getLogger(__name__)
+
+
 sns.color_palette("light:#5A9", as_cmap=True)
 sns.set()
 
@@ -556,12 +565,15 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             ax_2 = fig.add_subplot(gsright[0, 0])
             ax_3 = fig.add_subplot(gsright[0, 1])
             gsleft_ax_0 = sns.heatmap(df_hm_SD, cmap='mako_r',cbar=True, cbar_kws={"pad":0.02}, annot=False,ax=gsleft_ax_0,vmin=0.02,vmax=1.0)
+            gsleft_ax_0.axvline(x=0, color='k',linewidth=1)
             gsleft_ax_0.set_facecolor('white')
             gsleft_ax_1 = sns.heatmap(df_hm_SP, cmap='mako_r',cbar=True, cbar_kws={"pad":0.02}, annot=False,ax=gsleft_ax_1,vmin=0.02, vmax=1.0)
+            gsleft_ax_1.axvline(x=0, color='k',linewidth=1)
             gsleft_ax_1.set_facecolor('white')
             vmin=0
             vmax=20
             gsleft_ax_2 = sns.heatmap(df_hm_SI, cmap='mako',cbar=True, cbar_kws={"pad":0.02}, annot=False,ax=gsleft_ax_2,vmin=vmin, vmax=vmax)
+            gsleft_ax_2.axvline(x=0, color='k',linewidth=1)
             gsleft_ax_2.set_facecolor('white')
             gsleft_ax_0.set_ylabel("SD",fontsize=16,style='italic')
             gsleft_ax_1.set_ylabel("SA",fontsize=16,style='italic')
@@ -589,6 +601,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             #list_y_ticks=gsleft_ax_0.get_yminorticklabels() # its always zero
             list_y_ticks=gsleft_ax_0.get_yticklabels()
             fig_ylabel=[]
+            logger.info("SD labels")
             print('SD App ', strApp, 'len', len(cols_df_SD),' cols ',cols_df_SD)
             print('len ', len(list_y_ticks),' list_y ', list_y_ticks)
             for y_label in list_y_ticks:
@@ -713,6 +726,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 sns.heatmap(accessBlockCacheLine, cmap='Blues', cbar=False,annot=True, fmt=',d', annot_kws = {'size':12},  ax=ax_2)#,linecolor='black',linewidths=1)
 
             ax_2.set_xticks([0])
+
             length_xlabel= len(list_xlabel)
             list_blkcache_label=[]
             for i in range (0, length_xlabel):
@@ -761,21 +775,26 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
 
 
-flWeight=True
+flWeight=False
 f_avg1=None
 mainPath='/Users/suri836/Projects/spatial_rud/'
 
 if (1):
-    #intraObjectPlot('XSBench-k-0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs/XSBench-memgaze-trace-b8192-p5000000-k-0/spatial.txt', 4, strMetric='SD-SP-SI', \
-    #    listCombineReg=['1-B0000000','2-B0010000','3-B0020000','4-B0030000','5-B0040000','6-B0050000','7-B0060000'] ,flWeighted=flWeight,affinityOption=3)
-    #intraObjectPlot('XSBench-k-0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs/XSBench-memgaze-trace-b8192-p5000000-k-0/spatial.txt', 3, strMetric='SD-SP-SI', \
-    #    listCombineReg=['8-C0000000','9-C0000001'] ,flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSBench-k-1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs/XSBench-memgaze-trace-b8192-p5000000-k-1/5p/spatial.txt', 4, strMetric='SD-SP-SI', \
-        flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSBench-k-2',mainPath+'spatial_pages_exp/XSBench/memgaze-xs/XSBench-memgaze-trace-b8192-p5000000-k-2/5p/spatial.txt', 4, strMetric='SD-SP-SI', \
-        flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSBench-k-0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs/XSBench-memgaze-trace-b8192-p5000000-k-0/5p/spatial.txt', 4, strMetric='SD-SP-SI', \
-        flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSB-NoInl-rd-HIST',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-noinline/XSBench-memgaze-trace-b16384-p4000000-hist/spatial.txt', 9, strMetric='SD-SP-SI', \
+        listCombineReg=['1-B0000000','2-B0010000','3-B0020000','4-B0030000','5-B0040000','6-B0050000','7-B0060000'] ,flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSB-NoInl-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-noinline/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 2, strMetric='SD-SP-SI', \
+        listCombineReg=['1-B0000000','2-B0010000','3-B0020000','4-B0030000','5-B0040000','6-B0050000','7-B0060000'] ,flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSB-NoInl-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-noinline/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 9, strMetric='SD-SP-SI', \
+        listCombineReg=['1-B0000000','2-B0010000','3-B0020000','4-B0030000','5-B0040000','6-B0050000','7-B0060000'] ,flWeighted=flWeight,affinityOption=3)
+
+if (0):
+    # NOT SO USEFUL - they all show same behavior
+    intraObjectPlot('XSB-rd-HIST',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-hist/spatial.txt', 4, strMetric='SD-SP-SI', \
+        listCombineReg=['2-B0000001','3-B0000002'], flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 1, strMetric='SD-SP-SI', \
+          flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 5, strMetric='SD-SP-SI', \
+        listCombineReg=['9-C0000000','10-C0000001','11-C0000002'], flWeighted=flWeight,affinityOption=3)
 
 if(0):
     intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD-SP-SI', \

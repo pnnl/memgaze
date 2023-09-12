@@ -43,7 +43,7 @@ vectorWeightMultiply.excluded.add(1)
 
 
 # Works for spatial denity, Spatial Probability and Proximity
-def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeight=None,numExtraPages:int=0,affinityOption:int=None):
+def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeight=None,numExtraPages:int=0,affinityOption:int=None,flPlot=None):
     flagPhysicalPages = 0
     flagHotPages =0
     flagHotLines = 0
@@ -282,249 +282,290 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # STEP 3e - Range and Count mean, calculate before sampling
         # START Lexi-BFS - experiment #3 - SD range & gap analysis
         print('dataframe length', len(df_intra_obj))
-        list_blk_range_gap=[]
-        print('self columns ',df_intra_obj.iloc[0,5:(516)] )
-        for df_id in range (0, len(df_intra_obj)):
-            blk_id=df_intra_obj.iloc[df_id,1]
-            df_row=pd.to_numeric(df_intra_obj.iloc[df_id,5:(516)]).squeeze()
-            first_index=df_row.first_valid_index()
-            last_index=df_row.last_valid_index()
-            if ( first_index == 'self'):
-                first_value=0
+        #print(df_intra_obj['Access'])
+        df_intra_obj_sort=df_intra_obj.sort_values(by=['Access'],ascending=False)
+        sumAccess = df_intra_obj_sort['Access'].sum()
+        #print(df_intra_obj_sort['Access'])
+        print(sumAccess)
+        #print(df_intra_obj_sort.columns)
+        list_SD_range_gap=[]
+        #print('self columns ',df_intra_obj_sort.iloc[0,5:(516)] )
+        blkAccessPercent =0
+        sumBlkAccess =0
+        if (strMetric == 'SD'):
+            for df_id in range (0, len(df_intra_obj_sort)):
+                blkAccessPercent = float(sumBlkAccess / sumAccess)
+                if(blkAccessPercent <= 0.9 ):
+                    print(' % ' , blkAccessPercent)
+                    blk_id=df_intra_obj_sort.iloc[df_id,1]
+                    blk_access = df_intra_obj_sort.iloc[df_id,2]
+                    sumBlkAccess += blk_access
+                    print(blk_id, blk_access)
+                    df_row=pd.to_numeric(df_intra_obj_sort.iloc[df_id,5:(516)]).squeeze()
+                    first_index=df_row.first_valid_index()
+                    last_index=df_row.last_valid_index()
+                    if ( first_index == 'self'):
+                        first_value=0
+                    else:
+                        first_value=int(''.join(filter(str.isdigit, first_index)))
+                    if ( last_index == 'self'):
+                        last_value=0
+                    else:
+                        last_value=int(''.join(filter(str.isdigit, last_index)))
+                    valid_range=first_value+last_value+1
+                    list_SD_range_gap.append([blk_id,blk_access, first_value,last_value,valid_range, df_row.count() ])
+
+            #print(list_SD_range_gap)
+            df_range_gap=pd.DataFrame(list_SD_range_gap,columns=['reg-page-blk','Access', 'first','last','range','count'])
+            df_range_gap = df_range_gap.astype({"range": int, "count": int})
+            print(strApp,' ', strMetric, ', Region ', regionIdNumName.replace(' ','').replace('&','-'), ' Range mean ', pd.to_numeric(df_range_gap["range"]).mean())
+            print(strApp,' ', strMetric, ', Region ', regionIdNumName.replace(' ','').replace('&','-'), ' Range std ', pd.to_numeric(df_range_gap["range"]).std())
+            print(strApp,' ', strMetric, ', Region ', regionIdNumName.replace(' ','').replace('&','-'), ' Count mean ', pd.to_numeric(df_range_gap["count"]).mean())
+            print(strApp,' ', strMetric, ', Region ', regionIdNumName.replace(' ','').replace('&','-'), ' Count std ', pd.to_numeric(df_range_gap["count"]).std())
+            # END Lexi-BFS - experiment #3 - SD range & gap analysis
+
+            if(f_avg != None):
+                f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName.replace(' ','').replace('&','-')+strWeight+ ' Range mean '+ str(pd.to_numeric(df_range_gap["range"]).mean())+'\n')
+                f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName.replace(' ','').replace('&','-')+strWeight+ ' Range std '+ str(pd.to_numeric(df_range_gap["range"]).std())+'\n')
+                f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName.replace(' ','').replace('&','-')+strWeight+ ' Count mean '+ str(pd.to_numeric(df_range_gap["count"]).mean())+'\n')
+                f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName.replace(' ','').replace('&','-')+strWeight+ ' Count std '+ str(pd.to_numeric(df_range_gap["count"]).std())+'\n')
+
+        elif (strMetric == 'SP' or strMetric =='SI'):
+            list_SP_range=[]
+            for df_id in range (0, len(df_intra_obj_sort)):
+                blkAccessPercent = float(sumBlkAccess / sumAccess)
+                if(blkAccessPercent <= 0.9 ):
+                    blk_id=df_intra_obj_sort.iloc[df_id,1]
+                    blk_access = df_intra_obj_sort.iloc[df_id,2]
+                    sumBlkAccess += blk_access
+                    print(blk_id, blk_access, ' % ' , blkAccessPercent,df_intra_obj_sort[df_intra_obj_sort['reg-page-blk'] == blk_id]['self'].item(), \
+                          df_intra_obj_sort[df_intra_obj_sort['reg-page-blk'] == blk_id]['self+1'].item(), df_intra_obj_sort[df_intra_obj_sort['reg-page-blk'] == blk_id]['self+2'].item())
+                    list_SP_range.append([blk_id,blk_access, df_intra_obj_sort[df_intra_obj_sort['reg-page-blk'] == blk_id]['self'].item(), \
+                                        df_intra_obj_sort[df_intra_obj_sort['reg-page-blk'] == blk_id]['self+1'].item(), \
+                                        df_intra_obj_sort[df_intra_obj_sort['reg-page-blk'] == blk_id]['self+2'].item(),\
+                                        df_intra_obj_sort[df_intra_obj_sort['reg-page-blk'] == blk_id]['self+3'].item()] )
+
+            df_range_gap=pd.DataFrame(list_SP_range,columns=['reg-page-blk','Access', 'self','self+1','self+2','self+3'])
+            df_range_gap = df_range_gap.astype({"self": float, "self+1": float, "self+2": float, "self+3":float})
+            percentileValue =df_range_gap['self'].quantile(0.01)
+            #print(df_range_gap['self'].quantile(0.01))
+            #print(df_range_gap[(df_range_gap.self > percentileValue)]['self'])
+            print(strApp,' ', strMetric, ' Region ',regionIdNumName.replace(' ','').replace('&','-'), \
+                  'self = ', df_range_gap[(df_range_gap.self > percentileValue)]['self'].min(), df_range_gap['self'].max(), 'self+1 = ', df_range_gap['self+1'].min(),  df_range_gap['self+1'].max(), \
+                  "self+2 = ", df_range_gap['self+2'].mean())
+
+
+        if(flPlot != False):
+            # STEP 3f - Sample dataframe for 50 rows based on access count as the weight
+            # Sample 50 reg-page-blkid lines from all blocks based on Access counts
+            num_sample=50
+            df_intra_obj_rows=df_intra_obj.shape[0]
+            if ( df_intra_obj_rows < num_sample):
+                num_sample = df_intra_obj_rows
+
+            #print('self before sample ', df_intra_obj['self'])
+            df_intra_obj_sample=df_intra_obj.nlargest(num_sample, 'Access')
+            df_intra_obj_sample.set_index('reg-page-blk')
+            df_intra_obj_sample.sort_index(inplace=True)
+            df_intra_obj_sample.sort_values(by=['Access'],ascending=False,inplace=True)
+            list_xlabel=df_intra_obj_sample['reg-page-blk'].to_list()
+            accessBlockCacheLine = (df_intra_obj_sample[['Access']]).to_numpy()
+            colHeatMap= [x for x in colRearrangeList if x in metricColumns]
+            df_intra_obj_sample_hm=df_intra_obj_sample[colHeatMap]
+            #print('self in sample ', df_intra_obj_sample['self'])
+            self_bef_drop=df_intra_obj_sample_hm['self'].to_list()
+
+            # STEP 3g - drop columns with "all" NaN values
+            # DROP - columns with no values
+            average_sd= pd.to_numeric(df_intra_obj["self"]).mean()
+            print('*** After weighting sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd))
+            if (f_avg != None):
+                f_avg.write ( '*** After weighting sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd)+'\n')
+
+            get_col_list=df_intra_obj_sample_hm.columns.to_list()
+            print('before drop', get_col_list)
+            print('before drop self \n', df_intra_obj_sample_hm['self'])
+            df_intra_obj_drop=df_intra_obj_sample_hm.dropna(axis=1,how='all')
+            get_col_list=df_intra_obj_drop.columns.to_list()
+            print('after drop', get_col_list)
+            # STEP 3g - add some columns above & below self line to visualize better
+            flAddSelfBelow=1
+            flAddSelfAbove=1
+            pattern = re.compile('self-.*')
+            if any((match := pattern.match(x)) for x in get_col_list):
+                flAddSelfBelow=0
+            pattern = re.compile('self\+.*')
+            if any((match := pattern.match(x)) for x in get_col_list):
+                #print(match.group(0))
+                flAddSelfAbove=0
+            if(flAddSelfBelow == 1):
+                for i in range (1,10):
+                    get_col_list.insert(0,'self-'+str(i))
+            if(flAddSelfAbove == 1):
+                for i in range (1,10):
+                    get_col_list.append('self+'+str(i))
+
+            # STEP 3h - get columns that are useful
+            df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
+            print(df_intra_obj_sample_hm.columns.to_list())
+            average_sd= pd.to_numeric(df_intra_obj_sample_hm["self"]).mean()
+            print('*** After sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd))
+            if (f_avg != None):
+                f_avg.write ( '*** After sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+strWeight+' '+str(average_sd)+'\n')
+            self_aft_drop=df_intra_obj_sample_hm['self'].to_list()
+            #print(self_aft_drop)
+            if(self_bef_drop == self_aft_drop):
+                print(" After drop equal ")
             else:
-                first_value=int(''.join(filter(str.isdigit, first_index)))
-            if ( last_index == 'self'):
-                last_value=0
+                print("Error - not equal")
+                print ("before drop", self_bef_drop)
+                print ("after drop", self_aft_drop)
+                break
+
+            # STEP 3i - Start Heatmap Visualization
+            df_intra_obj_sample_hm.apply(pd.to_numeric)
+            df_hm=np.empty([num_sample,len(get_col_list)])
+            df_hm=df_intra_obj_sample_hm.to_numpy()
+            df_hm=df_hm.astype('float64')
+            df_hm=df_hm.transpose()
+
+            #fig, ax =plt.subplots(1,3, figsize=(15, 10),gridspec_kw={'width_ratios': [11, 1.5, 1.5]})
+            fig = plt.figure(constrained_layout=True, figsize=(15, 10))
+            gs = gridspec.GridSpec(1, 2, figure=fig,width_ratios=[12,3])
+            gs0 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec = gs[0] )
+            gs1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec = gs[1] ,wspace=0.07)
+            ax_0 = fig.add_subplot(gs0[0, :])
+            ax_1 = fig.add_subplot(gs1[0, 0])
+            ax_2 = fig.add_subplot(gs1[0, 1])
+
+            if(strMetric == 'SI'):
+                vmin_val=0.0
+                vmax_val=100.0
             else:
-                last_value=int(''.join(filter(str.isdigit, last_index)))
-            valid_range=first_value+last_value+1
-            list_blk_range_gap.append([blk_id,first_value,last_value,valid_range, df_row.   count() ])
+                vmin_val=0.02
+                vmax_val=1.0
 
-        #print(list_blk_range_gap)
-        df_range_gap=pd.DataFrame(list_blk_range_gap,columns=['reg-page-blk','first','last','range','count'])
-        df_range_gap = df_range_gap.astype({"range": int, "count": int})
-        print(strApp,' ', strMetric, ', Region ', regionIdNumName.replace(' ','').replace('&','-'), ' Range mean ', pd.to_numeric(df_range_gap["range"]).mean())
-        print(strApp,' ', strMetric, ', Region ', regionIdNumName.replace(' ','').replace('&','-'), ' Range std ', pd.to_numeric(df_range_gap["range"]).std())
-        print(strApp,' ', strMetric, ', Region ', regionIdNumName.replace(' ','').replace('&','-'), ' Count mean ', pd.to_numeric(df_range_gap["count"]).mean())
-        print(strApp,' ', strMetric, ', Region ', regionIdNumName.replace(' ','').replace('&','-'), ' Count std ', pd.to_numeric(df_range_gap["count"]).std())
-        # END Lexi-BFS - experiment #3 - SD range & gap analysis
+            if (1 == 0 and 'minivite' in strApp.lower() and strMetric == 'SI'):
+                df_mask = df_intra_obj_sample_hm.applymap(lambda x: True if (x >150) else False).transpose().to_numpy().astype(bool)
+                #print(df_mask,' \n', df_hm)
+                print ('mask ', df_mask.shape, ' df_hm ', df_hm.shape)
+                ax_0 = sns.heatmap(df_hm, mask=df_mask, cmap='mako',cbar=True, annot=False,ax=ax_0,vmin=0,vmax=20)
 
-        if(f_avg != None):
-            f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName.replace(' ','').replace('&','-')+strWeight+ ' Range mean '+ str(pd.to_numeric(df_range_gap["range"]).mean())+'\n')
-            f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName.replace(' ','').replace('&','-')+strWeight+ ' Range std '+ str(pd.to_numeric(df_range_gap["range"]).std())+'\n')
-            f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName.replace(' ','').replace('&','-')+strWeight+ ' Count mean '+ str(pd.to_numeric(df_range_gap["count"]).mean())+'\n')
-            f_avg.write(strApp+' '+ strMetric+ ' '+', Region '+regionIdNumName.replace(' ','').replace('&','-')+strWeight+ ' Count std '+ str(pd.to_numeric(df_range_gap["count"]).std())+'\n')
+            ax_0 = sns.heatmap(df_hm,cmap='mako_r',cbar=True, annot=False,ax=ax_0,vmin=vmin_val,vmax=vmax_val)
+            ax_0.set_facecolor('white')
+            # Colors for Access heatmap, and labels for affinity matrix
+            custom_blue = sns.light_palette("#79C")
+            background_color = mpl.colormaps["Blues"]
+            fig_xlabel=[]
+            color_xlabel=[]
+            my_colors=[]
+            accessLowValue = accessBlockCacheLine.min()
+            accessHighValue = accessBlockCacheLine.max()
+            accessRange= accessHighValue-accessLowValue
+            hotLineColor='darkred'
+            affRegionColor='dodgerblue'
+            hotLineInRegionColor='indianred'
+            refRegionColor='black'
+            pattern = re.compile('.*-.*-.*')
+            listAffinityLines=list(filter(pattern.match, get_col_list))
+            print('hot lines in affinity', listAffinityLines)
+            refRgionNamelist = regionIdNumName.replace(' ','').split('&')
+            refRegionList=[]
+            print(refRgionNamelist)
+            for item in refRgionNamelist:
+                print('region id', item.split('-')[0])
+                refRegionList.append(item.split('-')[0])
 
-        # STEP 3f - Sample dataframe for 50 rows based on access count as the weight
-        # Sample 50 reg-page-blkid lines from all blocks based on Access counts
-        num_sample=50
-        df_intra_obj_rows=df_intra_obj.shape[0]
-        if ( df_intra_obj_rows < num_sample):
-            num_sample = df_intra_obj_rows
-
-        print('self before sample ', df_intra_obj['self'])
-        df_intra_obj_sample=df_intra_obj.nlargest(num_sample, 'Access')
-        df_intra_obj_sample.set_index('reg-page-blk')
-        df_intra_obj_sample.sort_index(inplace=True)
-        df_intra_obj_sample.sort_values(by=['Access'],ascending=False,inplace=True)
-        list_xlabel=df_intra_obj_sample['reg-page-blk'].to_list()
-        accessBlockCacheLine = (df_intra_obj_sample[['Access']]).to_numpy()
-        colHeatMap= [x for x in colRearrangeList if x in metricColumns]
-        df_intra_obj_sample_hm=df_intra_obj_sample[colHeatMap]
-        print('self in sample ', df_intra_obj_sample['self'])
-        self_bef_drop=df_intra_obj_sample_hm['self'].to_list()
-
-        # STEP 3g - drop columns with "all" NaN values
-        # DROP - columns with no values
-        average_sd= pd.to_numeric(df_intra_obj["self"]).mean()
-        print('*** After weighting sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd))
-        if (f_avg != None):
-            f_avg.write ( '*** After weighting sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd)+'\n')
-
-        get_col_list=df_intra_obj_sample_hm.columns.to_list()
-        print('before drop', get_col_list)
-        print('before drop self \n', df_intra_obj_sample_hm['self'])
-        df_intra_obj_drop=df_intra_obj_sample_hm.dropna(axis=1,how='all')
-        get_col_list=df_intra_obj_drop.columns.to_list()
-        print('after drop', get_col_list)
-        # STEP 3g - add some columns above & below self line to visualize better
-        flAddSelfBelow=1
-        flAddSelfAbove=1
-        pattern = re.compile('self-.*')
-        if any((match := pattern.match(x)) for x in get_col_list):
-            flAddSelfBelow=0
-        pattern = re.compile('self\+.*')
-        if any((match := pattern.match(x)) for x in get_col_list):
-            #print(match.group(0))
-            flAddSelfAbove=0
-        if(flAddSelfBelow == 1):
-            for i in range (1,10):
-                get_col_list.insert(0,'self-'+str(i))
-        if(flAddSelfAbove == 1):
-            for i in range (1,10):
-                get_col_list.append('self+'+str(i))
-
-        # STEP 3h - get columns that are useful
-        df_intra_obj_sample_hm=df_intra_obj_sample[get_col_list]
-        print(df_intra_obj_sample_hm.columns.to_list())
-        average_sd= pd.to_numeric(df_intra_obj_sample_hm["self"]).mean()
-        print('*** After sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd))
-        if (f_avg != None):
-            f_avg.write ( '*** After sampling Average '+strMetric+' for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+strWeight+' '+str(average_sd)+'\n')
-        self_aft_drop=df_intra_obj_sample_hm['self'].to_list()
-        #print(self_aft_drop)
-        if(self_bef_drop == self_aft_drop):
-            print(" After drop equal ")
-        else:
-            print("Error - not equal")
-            print ("before drop", self_bef_drop)
-            print ("after drop", self_aft_drop)
-            break
-
-        # STEP 3i - Start Heatmap Visualization
-        df_intra_obj_sample_hm.apply(pd.to_numeric)
-        df_hm=np.empty([num_sample,len(get_col_list)])
-        df_hm=df_intra_obj_sample_hm.to_numpy()
-        df_hm=df_hm.astype('float64')
-        df_hm=df_hm.transpose()
-
-        #fig, ax =plt.subplots(1,3, figsize=(15, 10),gridspec_kw={'width_ratios': [11, 1.5, 1.5]})
-        fig = plt.figure(constrained_layout=True, figsize=(15, 10))
-        gs = gridspec.GridSpec(1, 2, figure=fig,width_ratios=[12,3])
-        gs0 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec = gs[0] )
-        gs1 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec = gs[1] ,wspace=0.07)
-        ax_0 = fig.add_subplot(gs0[0, :])
-        ax_1 = fig.add_subplot(gs1[0, 0])
-        ax_2 = fig.add_subplot(gs1[0, 1])
-
-        if(strMetric == 'SI'):
-            vmin_val=0.0
-            vmax_val=100.0
-        else:
-            vmin_val=0.02
-            vmax_val=1.0
-
-        if (1 == 0 and 'minivite' in strApp.lower() and strMetric == 'SI'):
-            df_mask = df_intra_obj_sample_hm.applymap(lambda x: True if (x >150) else False).transpose().to_numpy().astype(bool)
-            #print(df_mask,' \n', df_hm)
-            print ('mask ', df_mask.shape, ' df_hm ', df_hm.shape)
-            ax_0 = sns.heatmap(df_hm, mask=df_mask, cmap='mako',cbar=True, annot=False,ax=ax_0,vmin=0,vmax=20)
-
-        ax_0 = sns.heatmap(df_hm,cmap='mako_r',cbar=True, annot=False,ax=ax_0,vmin=vmin_val,vmax=vmax_val)
-        ax_0.set_facecolor('white')
-        # Colors for Access heatmap, and labels for affinity matrix
-        custom_blue = sns.light_palette("#79C")
-        background_color = mpl.colormaps["Blues"]
-        fig_xlabel=[]
-        color_xlabel=[]
-        my_colors=[]
-        accessLowValue = accessBlockCacheLine.min()
-        accessHighValue = accessBlockCacheLine.max()
-        accessRange= accessHighValue-accessLowValue
-        hotLineColor='darkred'
-        affRegionColor='dodgerblue'
-        hotLineInRegionColor='indianred'
-        refRegionColor='black'
-        pattern = re.compile('.*-.*-.*')
-        listAffinityLines=list(filter(pattern.match, get_col_list))
-        print('hot lines in affinity', listAffinityLines)
-        refRgionNamelist = regionIdNumName.replace(' ','').split('&')
-        refRegionList=[]
-        print(refRgionNamelist)
-        for item in refRgionNamelist:
-            print('region id', item.split('-')[0])
-            refRegionList.append(item.split('-')[0])
-
-        ax_0.invert_yaxis()
-        list_y_ticks=ax_0.get_yticklabels()
-        fig_ylabel=[]
-        for y_label in list_y_ticks:
-            if ('self' in get_col_list[int(y_label.get_text())]):
-                fig_ylabel.append(get_col_list[int(y_label.get_text())][4:])
-            else:
-                strColName = get_col_list[int(y_label.get_text())]
-                if(strColName.find('^') != -1):
-                    strColName=strColName.replace('[2','[$2').replace('2^','2^{').replace('-2','}$-$2').replace(')','}$)')
-                if((strColName.find('r-') != -1)):
-                    strColName=get_col_list[int(y_label.get_text())][2:]
-                fig_ylabel.append(strColName)
-        ax_0.set_yticklabels(fig_ylabel,rotation='horizontal')
-        for ticklabel in ax_0.get_yticklabels():
-            #print(ticklabel.get_text())
-            if(ticklabel.get_text().count('-')==2):
-                if(ticklabel.get_text().split('-')[0]  in refRegionList):
-                    #print(ticklabel.get_text(), ' color ', hotLineInRegionColor)
-                    ticklabel.set_color(hotLineInRegionColor)
+            ax_0.invert_yaxis()
+            list_y_ticks=ax_0.get_yticklabels()
+            fig_ylabel=[]
+            for y_label in list_y_ticks:
+                if ('self' in get_col_list[int(y_label.get_text())]):
+                    fig_ylabel.append(get_col_list[int(y_label.get_text())][4:])
                 else:
-                    #print(ticklabel.get_text(), ' color ', hotLineColor)
-                    ticklabel.set_color(hotLineColor)
-            elif(ticklabel.get_text().isdigit()):
-                if(ticklabel.get_text()  in refRegionList):
-                    #print(ticklabel.get_text(), ' color ', refRegionColor)
-                    ticklabel.set_color(refRegionColor)
-                else:
-                    #print(ticklabel.get_text(), ' color ', affRegionColor)
-                    ticklabel.set_color(affRegionColor)
+                    strColName = get_col_list[int(y_label.get_text())]
+                    if(strColName.find('^') != -1):
+                        strColName=strColName.replace('[2','[$2').replace('2^','2^{').replace('-2','}$-$2').replace(')','}$)')
+                    if((strColName.find('r-') != -1)):
+                        strColName=get_col_list[int(y_label.get_text())][2:]
+                    fig_ylabel.append(strColName)
+            ax_0.set_yticklabels(fig_ylabel,rotation='horizontal')
+            for ticklabel in ax_0.get_yticklabels():
+                #print(ticklabel.get_text())
+                if(ticklabel.get_text().count('-')==2):
+                    if(ticklabel.get_text().split('-')[0]  in refRegionList):
+                        #print(ticklabel.get_text(), ' color ', hotLineInRegionColor)
+                        ticklabel.set_color(hotLineInRegionColor)
+                    else:
+                        #print(ticklabel.get_text(), ' color ', hotLineColor)
+                        ticklabel.set_color(hotLineColor)
+                elif(ticklabel.get_text().isdigit()):
+                    if(ticklabel.get_text()  in refRegionList):
+                        #print(ticklabel.get_text(), ' color ', refRegionColor)
+                        ticklabel.set_color(refRegionColor)
+                    else:
+                        #print(ticklabel.get_text(), ' color ', affRegionColor)
+                        ticklabel.set_color(affRegionColor)
 
-        list_x_ticks=ax_0.get_xticklabels()
-        for x_label in list_x_ticks:
-            fig_xlabel.append(list_xlabel[int(x_label.get_text())])
-            color_xlabel.append((accessBlockCacheLine[int(x_label.get_text())].item()-accessLowValue)/accessRange)
-            my_colors.append(background_color((accessBlockCacheLine[int(x_label.get_text())].item()-accessLowValue)/accessRange))
-        ax_0.set_xticklabels(fig_xlabel,rotation='vertical')
-        ax_0.set(xlabel="Region-Page-Block", ylabel="Affinity to contiguous blocks")
-        #print(color_xlabel)
-        i=0
-        for ticklabel, tickcolor in zip(ax_0.get_xticklabels(), my_colors):
-            if(color_xlabel[i]>0.5):
-                ticklabel.set_color('white')
-            ticklabel.set_backgroundcolor(tickcolor)
-            ticklabel.set_fontsize(10)
-            i = i+1
+            list_x_ticks=ax_0.get_xticklabels()
+            for x_label in list_x_ticks:
+                fig_xlabel.append(list_xlabel[int(x_label.get_text())])
+                color_xlabel.append((accessBlockCacheLine[int(x_label.get_text())].item()-accessLowValue)/accessRange)
+                my_colors.append(background_color((accessBlockCacheLine[int(x_label.get_text())].item()-accessLowValue)/accessRange))
+            ax_0.set_xticklabels(fig_xlabel,rotation='vertical')
+            ax_0.set(xlabel="Region-Page-Block", ylabel="Affinity to contiguous blocks")
+            #print(color_xlabel)
+            i=0
+            for ticklabel, tickcolor in zip(ax_0.get_xticklabels(), my_colors):
+                if(color_xlabel[i]>0.5):
+                    ticklabel.set_color('white')
+                ticklabel.set_backgroundcolor(tickcolor)
+                ticklabel.set_fontsize(10)
+                i = i+1
 
-        #ax_0.set_ylabel("")
-        sns.heatmap(accessBlockCacheLine, cmap="Blues", cbar=False,annot=True, fmt='g', annot_kws = {'size':12},  ax=ax_1)
-        ax_1.set_facecolor('white')
+            #ax_0.set_ylabel("")
+            sns.heatmap(accessBlockCacheLine, cmap="Blues", cbar=False,annot=True, fmt='g', annot_kws = {'size':12},  ax=ax_1)
+            ax_1.set_facecolor('white')
 
-        #ax_1.invert_yaxis()
-        ax_1.set_xticks([0])
-        length_xlabel= len(list_xlabel)
-        list_blkcache_label=[]
-        for i in range (0, length_xlabel):
-            list_blkcache_label.append(list_xlabel[i])
-        #print(range(0,len(list_blkcache_label)))
-        #ax_1.set_yticks(range(0,len(list_blkcache_label)),list_blkcache_label, rotation='horizontal',  wrap=True )
-        ax_1.set_yticklabels(list_blkcache_label, rotation='horizontal', wrap=True )
-        ax_1.yaxis.set_ticks_position('right')
+            #ax_1.invert_yaxis()
+            ax_1.set_xticks([0])
+            length_xlabel= len(list_xlabel)
+            list_blkcache_label=[]
+            for i in range (0, length_xlabel):
+                list_blkcache_label.append(list_xlabel[i])
+            #print(range(0,len(list_blkcache_label)))
+            #ax_1.set_yticks(range(0,len(list_blkcache_label)),list_blkcache_label, rotation='horizontal',  wrap=True )
+            ax_1.set_yticklabels(list_blkcache_label, rotation='horizontal', wrap=True )
+            ax_1.yaxis.set_ticks_position('right')
 
-        rndAccess = np.round((arRegPageAccess/1000).astype(float),2)
-        annot = np.char.add(rndAccess.astype(str), 'K')
-        sns.heatmap(rndAccess, cmap=custom_blue, cbar=False,annot=annot, fmt='', annot_kws = {'size':12},  ax=ax_2)
-        ax_2.set_facecolor('white')
+            rndAccess = np.round((arRegPageAccess/1000).astype(float),2)
+            annot = np.char.add(rndAccess.astype(str), 'K')
+            sns.heatmap(rndAccess, cmap=custom_blue, cbar=False,annot=annot, fmt='', annot_kws = {'size':12},  ax=ax_2)
+            ax_2.set_facecolor('white')
 
-        #ax_2.invert_yaxis()
-        ax_2.set_xticks([0])
-        list_blk_label=arRegPages
-        ax_2.set_yticklabels(list_blk_label, rotation='horizontal', wrap=True )
-        ax_2.yaxis.set_ticks_position('right')
+            #ax_2.invert_yaxis()
+            ax_2.set_xticks([0])
+            list_blk_label=arRegPages
+            ax_2.set_yticklabels(list_blk_label, rotation='horizontal', wrap=True )
+            ax_2.yaxis.set_ticks_position('right')
 
-        plt.suptitle(strMetricTitle +' and Access heatmap for '+strApp +' region - '+regionIdNumName)
-        strArRegionAccess = str(np.round((arRegionAccess/1000).astype(float),2))+'K'
-        strAccessSumBlocks= str(np.round((accessSumBlocks/1000).astype(float),2))+'K'
-        strTitle = strMetricTitle+' \n Region\'s access - ' + strArRegionAccess + ', Access count for selected pages - ' + strAccessSumBlocks \
-                   +' ('+ ("{0:.1f}".format((accessSumBlocks/arRegionAccess)*100)) +'%)\n Number of pages in region - '+ str(numRegionBlocks)
-        #print(strTitle)
-        ax_0.set_title(strTitle)
-        ax_1.set_title('Access count for selected blocks and \n          hottest pages in the region\n ',loc='left')
+            plt.suptitle(strMetricTitle +' and Access heatmap for '+strApp +' region - '+regionIdNumName)
+            strArRegionAccess = str(np.round((arRegionAccess/1000).astype(float),2))+'K'
+            strAccessSumBlocks= str(np.round((accessSumBlocks/1000).astype(float),2))+'K'
+            strTitle = strMetricTitle+' \n Region\'s access - ' + strArRegionAccess + ', Access count for selected pages - ' + strAccessSumBlocks \
+                       +' ('+ ("{0:.1f}".format((accessSumBlocks/arRegionAccess)*100)) +'%)\n Number of pages in region - '+ str(numRegionBlocks)
+            #print(strTitle)
+            ax_0.set_title(strTitle)
+            ax_1.set_title('Access count for selected blocks and \n          hottest pages in the region\n ',loc='left')
 
-        #plt.show()
-        fileNameLastSeg = '_hm_order.pdf'
-        if (flWeight == True):
-            fileNameLastSeg = '_hm_order_Wgt.pdf'
-        imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+fileNameLastSeg
-        print(imageFileName)
-        plt.savefig(imageFileName, bbox_inches='tight')
-        plt.close()
+            #plt.show()
+            fileNameLastSeg = '_hm_order.pdf'
+            if (flWeight == True):
+                fileNameLastSeg = '_hm_order_Wgt.pdf'
+            imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+fileNameLastSeg
+            print(imageFileName)
+            plt.savefig(imageFileName, bbox_inches='tight')
+            plt.close()
 
 
 
@@ -537,11 +578,20 @@ numExtraPages=64
 if(1):
     f_avg1=open(mainPath+'spatial_pages_exp/miniVite/hot_lines/sd_avg_log.txt','w')
     intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD', \
-             flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
-    intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/hot_lines/v2_spatial_det.txt',3,strMetric='SD', \
-            listCombineReg=['1-A0000010','4-A0002000'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
-    intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SD', \
-            listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
+             flWeight=flWeight,affinityOption=3,f_avg=f_avg1,flPlot=False)
+    intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SP', \
+             flWeight=flWeight,affinityOption=3,f_avg=f_avg1,flPlot=False)
+    intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SI', \
+             flWeight=False,affinityOption=3,f_avg=f_avg1,flPlot=False)
+    intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SP', \
+            listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1,flPlot=False)
+    intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SI', \
+            listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=False,affinityOption=3,f_avg=f_avg1,flPlot=False)
+
+  #  intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/hot_lines/v2_spatial_det.txt',3,strMetric='SD', \
+  #          listCombineReg=['1-A0000010','4-A0002000'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
+  #  intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SD', \
+  #          listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
     f_avg1.close()
 
 if(0):
