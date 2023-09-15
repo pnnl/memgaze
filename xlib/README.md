@@ -6,7 +6,7 @@ $Id$
 Libraries and build
 =============================================================================
 
-- MemGaze's dependencies are built using Spack.
+* MemGaze's dependencies are built using Spack.
 
   The build system leverages HPCToolkit's spack recipe. We customize
   the HPCToolkit build to use a patched DynInst (see below). The build
@@ -17,7 +17,23 @@ Libraries and build
   Note: The build no longer reinstalls Dyninst.
 
 
-- HPCToolkit, auto-generated sources and 'develop' branch
+* *Spack and build problems* 
+
+  Spack is plagued by non-determinism. Although we specify the direct
+  dependences for MemGaze in a well defined manner -- package,
+  version, etc -- we cannot specify in same way (completely and
+  statically) a recipe for the indirect dependences, i.e., packages
+  that the MemGaze depnedences depend upon.
+
+  Unfortunately, Spack is plagued by non-determinism and bugs. In
+  particular, it unexpectedly changes how indirect packages are built
+  to selects invalid combinations -- and will never try the perfectly
+  good combinations that have worked for ages. Sometimes this is due
+  to non-determinism in how dependences are completed; sometimes it is
+  just due to bugs.
+
+
+* HPCToolkit, auto-generated sources and 'develop' branch
 
   - We want to preserve HPCToolkit's source code tree in a
     *configured* (compilable) state, that is with the source files
@@ -26,7 +42,7 @@ Libraries and build
   - Keep spack's "staged" files (--keep-stage) and then copy the needed files
 
 
-- Customizations to Spack
+* Customizations to Spack
 
   - config.yaml:     Update of Spack's version to change 'root' dir names
   - hpctk-pkgs.yaml: HPCToolkit's "packages.yaml"
@@ -38,13 +54,13 @@ Libraries and build
 Linux Perf
 =============================================================================
 
-- Intel PT works with kernel >=5.5.9, no changes needed.
+* Intel PT works with kernel >=5.5.9, no changes needed.
   - Although we played with perf's kernel driver, we are not using it
     
-- Minor patch/modification to Linux perf's user level tool for "perf script"
+* Minor patch/modification to Linux perf's user level tool for "perf script"
   - convert the dynamic ip to a static ip, to attribute to binary
 
-- Perf examples
+* Perf examples
 
   - Intel PT, sampling based on loads (ptloads) or loads-and-stores
     (ptloads-stores):
@@ -124,7 +140,7 @@ Linux Perf
   Note: when using -a, ensure using ref-cycles!
 
 
-- Other notes:
+* Other notes:
 
   - Call paths: On our Atom-based (J5005) test machine, it appears
     that collecting call paths using LBR is not supported. Therefore,
