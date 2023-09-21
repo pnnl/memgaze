@@ -20,7 +20,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
                   vector<uint32_t>& pageTotalAccess, uint32_t thresholdTotAccess, int *zoomin, Memblock curPage, 
                   std::list<Memblock >& zoomPageList)
 {
-  //printf("findHotPage zoomOption %d  memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld \n",  zoomOption, memarea.min, memarea.max, memarea.blockSize);
+  printf("findHotPage zoomOption %d  memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld \n",  zoomOption, memarea.min, memarea.max, memarea.blockSize);
   uint32_t totalAccessParent = 0;
   int zoominaccess = 0;
   uint32_t wide = 0; 
@@ -139,6 +139,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
     // Zoom in blocks with high access counts upto block size 16384
     // Find contiguous blocks - form a region
     // After 16384 - join and look for 1024 or 256
+      bool flCombineFirstLevel = false;
       for(i = 0; i<memarea.blockCount; i++  ){
        zoominaccess = 0;
 	     wide = 0; 
@@ -152,10 +153,21 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
 	    }
       //Added to keep parents separate at the 'root+1' level
       //Access in Thread heap gets obscured by the stack access - so do not aggregate pages to region
-      if(curPage.level == (lvlConstBlockSize-1)) {
-        wide=1;
-        zoominaccess = pageTotalAccess.at(i);
-      }
+      // Issues with smaller region traces - example gemm tile vs reorder
+      // SIZE hack - FIX
+      if( (memarea.blockSize) >= levelOneSize && (curPage.level == (lvlConstBlockSize-1))) {
+        //printf(" %ld %ld in higher area\n", (memarea.max-memarea.min), levelOneSize);
+        if(curPage.level == (lvlConstBlockSize-1)) {
+          wide=1;
+          zoominaccess = pageTotalAccess.at(i);
+        }
+      } else {
+        flCombineFirstLevel = true;
+        uint32_t levelSize = 1;
+        while(levelSize < memarea.blockSize)
+          levelSize*=2;
+        levelOneSize =levelSize;
+      }  
       // 0.001 multiplier at level 1 - used for including heap address range at 'root+1' level 
       if(((curPage.level == (lvlConstBlockSize-1)) && ((double)zoominaccess>=(double)0.001*totalAccessParent)) ||
       // Using 1000 - to include all heap regions
@@ -172,12 +184,12 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
         hotpage.max = memarea.min+(memarea.blockSize*(i+wide))-1;
 	  	  hotpage.level = curPage.level+1;
   	  	hotpage.blockSize = memarea.blockSize;
-        //printf("Add to list zoom in  wide = %d memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld \n",  wide, memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize);
         if (hotpage.level <lvlConstBlockSize) {
   	  	    hotpage.blockSize = memarea.blockSize;
         } else if(hotpage.level >= lvlConstBlockSize) { 
             hotpage.blockSize = ((levelOneSize)/((int) pow((double)4,(hotpage.level-lvlConstBlockSize))));
         }
+        printf("Add to list zoom in  wide = %d memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld \n",  wide, memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize);
 			//printf("Using block size for last level in zoomRUD %08lx \n", cacheLineWidth);
         //if(memarea.blockSize <= 16777216) 
         if(memarea.blockSize <= zoomLastLvlPageWidth) 
@@ -198,7 +210,10 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
         }
 
       }
-      if(curPage.level != (lvlConstBlockSize-1)) {
+      // SIZE hack - FIX
+      if( flCombineFirstLevel == true)
+        i = i+wide;
+      if (curPage.level != (lvlConstBlockSize-1)) {
 		    i=i+wide;
       }
     }
@@ -1106,6 +1121,15 @@ int main(int argc, char ** argv){
       spatialOutFile<< "#---- Region Address Range aff_blockid " << (OSPageSize/cacheLineWidth)+ cntTopHotLines+affRegionId<< " Non-hot " << endl; 
       spatialOutFile<< "#---- Region Address Range aff_blockid " << (OSPageSize/cacheLineWidth)+ cntTopHotLines+affRegionId+1<< " Stack " << endl; 
     
+    // HOTLINE info - Add hot lines instruction mapping to spatial_insn
+    for(uint8_t cntVecAccess=0; cntVecAccess< cntTopHotLines; cntVecAccess++) {
+      ptrTopAccessLine = (mapAddrHotLine[vecAccessCount.at(cntVecAccess).second]);
+      insnMemArea.max = ptrTopAccessLine.lowAddr+cacheLineWidth;
+	   	insnMemArea.min = ptrTopAccessLine.lowAddr;
+      spatialOutInsnFile << " --insn  : Find instructions in " << memoryfile << " for memRange " << hex<< insnMemArea.min << "-" << insnMemArea.max << " ID " << thisMemblock.strID << endl;
+        getInstInRange(&spatialOutInsnFile, vecInstAddr,insnMemArea);
+    }
+
     mapAddrHotLine.clear();
 
     // STEP 3 - Calculate spatial affinity at OS page level - using 64 B cache line 
