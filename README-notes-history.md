@@ -50,7 +50,7 @@ Detailed Notes
 
 * Limitation: `memgaze-inst` and non-contiguous functions, i.e.,
   functions whose code is spread over multiple segments in the binary.
-
+  
   We have corrected most but not all problems when `memgaze-inst`
   encounters a non-contiguous function (e.g., for hot-cold region
   layout). DynInst represents a function as a set of regions, possibly
