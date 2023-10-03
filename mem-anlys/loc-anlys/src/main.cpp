@@ -11,6 +11,7 @@ uint64_t heapAddrEnd ; //
 uint64_t cacheLineWidth; // Added for ZoomRUD analysis - option to set last level's block width
 uint64_t zoomLastLvlPageWidth ; // Added for ZoomRUD analysis - option to set last Zoom level's page width
 uint64_t OSPageSize = 16384;
+uint64_t levelOneSize ;
 
 /********************************************************************************
 Zoom only uses Access counts
@@ -27,11 +28,6 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
   string strNodeId; 
   uint32_t i =0;
   uint32_t j =0;
-  uint64_t levelOneSize ;
-  if(zoomLastLvlPageWidth == 16384 || zoomLastLvlPageWidth == 4096)
-    levelOneSize = 4194304*16;
-  else
-    levelOneSize = 4194304*8;
     
   vector <uint32_t> sortPageAccess;
   vector<pair<uint32_t, uint32_t>> vecAccessBlockId;
@@ -155,18 +151,21 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
       //Access in Thread heap gets obscured by the stack access - so do not aggregate pages to region
       // Issues with smaller region traces - example gemm tile vs reorder
       // SIZE hack - FIX
-      if( (memarea.blockSize) >= levelOneSize && (curPage.level == (lvlConstBlockSize-1))) {
-        //printf(" %ld %ld in higher area\n", (memarea.max-memarea.min), levelOneSize);
-        if(curPage.level == (lvlConstBlockSize-1)) {
+      if( (curPage.level == (lvlConstBlockSize-1))) {
+          // Issues with smaller region traces - example gemm tile vs reorder
+          // SIZE hack - FIX
+          if( (memarea.blockSize) <= levelOneSize ) {
+            flCombineFirstLevel = true;
+            uint32_t levelSize = 1;
+            while(levelSize < memarea.blockSize) {
+              levelSize*=2;
+            }
+            levelOneSize =levelSize;
+            //printf(" combine first level levelOneSize %ld\n", levelOneSize);
+        } else {
           wide=1;
           zoominaccess = pageTotalAccess.at(i);
         }
-      } else {
-        flCombineFirstLevel = true;
-        uint32_t levelSize = 1;
-        while(levelSize < memarea.blockSize)
-          levelSize*=2;
-        levelOneSize =levelSize;
       }  
       // 0.001 multiplier at level 1 - used for including heap address range at 'root+1' level 
       if(((curPage.level == (lvlConstBlockSize-1)) && ((double)zoominaccess>=(double)0.001*totalAccessParent)) ||
@@ -211,11 +210,15 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
 
       }
       // SIZE hack - FIX
-      if( flCombineFirstLevel == true)
+      if( flCombineFirstLevel == true)  {
         i = i+wide;
+      }
       if (curPage.level != (lvlConstBlockSize-1)) {
 		    i=i+wide;
       }
+    }
+    if( flCombineFirstLevel == true)  {
+      printf(" WARNING - Small memarea trace - Level one combined to size levelOneSize %ld\n", levelOneSize); 
     }
   }
   /* 
@@ -595,6 +598,10 @@ int main(int argc, char ** argv){
       countCardinality = 1;
     }
   }
+  if(zoomLastLvlPageWidth == 16384 || zoomLastLvlPageWidth == 4096)
+    levelOneSize = 4194304*16;
+  else
+    levelOneSize = 4194304*8;
   
 	if(model == 1){
 		if(loadConfig()==-1) return -1;
