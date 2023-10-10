@@ -82,6 +82,7 @@ class Dyninst(CMakePackage):
     depends_on("cmake@3.0.0:", type="build", when="@10.0.0:10.0")
     depends_on("cmake@2.8:", type="build", when="@:9")
 
+    patch('memgaze.patch', when='@12.1.0')
     patch("stat_dysect.patch", when="+stat_dysect")
     patch("stackanalysis_h.patch", when="@9.2.0")
     patch("v9.3.2-auto.patch", when="@9.3.2 %gcc@:4.7")
