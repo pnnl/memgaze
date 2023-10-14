@@ -85,12 +85,12 @@ while [[ $# -gt 0 ]] ; do
             ;;
 
         # FIXME: to deprecate
-	      -t | --trace-dir )
+          -t | --trace-dir )
             opt_trace_dir="$1"
             shift # past value
             ;;
 
-	      # -s | --inst-dir )
+          # -s | --inst-dir )
         #     opt_inst_dir="$1"
         #     shift # past value
         #     ;;
