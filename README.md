@@ -7,7 +7,6 @@ MemGaze
 **Home**:
   - https://github.com/pnnl/memgaze
 
-
 **About**: As memory systems are the primary bottleneck in many
 workloads, effective hardware/software co-design requires a detailed
 understanding of memory behavior. Unfortunately, current analysis of
