@@ -39,6 +39,7 @@ MemGaze Issues
   
   Workaround: Recompile the binary and disable hot-cold path
   optimization, e.g., in GCC use `-fno-reorder-blocks-and-partition`.
+  A less common issue is inlining; disable inlining for target function.
 
 
 -----------------------------------------------------------------------------
