@@ -1,6 +1,5 @@
--*-Mode: markdown;-*-
-
-$Id$
+<!-- -*-Mode: markdown;-*- -->
+<!-- $Id$ -->
 
 
 Prerequisites
