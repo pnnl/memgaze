@@ -1,4 +1,4 @@
-#include "memoryanalysis.h"
+arar#include "memoryanalysis.h"
 #include "memorymodeling.h"
 #include "hyperloglog.hpp"
 
@@ -21,7 +21,8 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
                   vector<uint32_t>& pageTotalAccess, uint32_t thresholdTotAccess, int *zoomin, Memblock curPage, 
                   std::list<Memblock >& zoomPageList)
 {
-  printf("findHotPage zoomOption %d  memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld \n",  zoomOption, memarea.min, memarea.max, memarea.blockSize);
+  printf("findHotPage zoomOption %d  for %s memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld \n",  zoomOption, 
+                    (curPage.strID).c_str(), memarea.min, memarea.max, memarea.blockSize);
   uint32_t totalAccessParent = 0;
   int zoominaccess = 0;
   uint32_t wide = 0; 
@@ -120,7 +121,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
           hotpage.rightPid = i;
   		    hotpage.strParentID = curPage.strID;
           //Zoom only in heap area
-          //if((hotpage.min+((hotpage.max-hotpage.min)/2)) <= heapAddrEnd) {
+          //if((hotpage.min+((hotpage.max-hotpage.min)/2)) <= heapAddrEnd) 
           if(hotpage.max <= heapAddrEnd) {
     			  zoomPageList.push_back(hotpage);
   	  		  (*zoomin)++;
@@ -135,18 +136,19 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
     // Zoom in blocks with high access counts upto block size 16384
     // Find contiguous blocks - form a region
     // After 16384 - join and look for 1024 or 256
-      bool flCombineFirstLevel = false;
-      for(i = 0; i<memarea.blockCount; i++  ){
-       zoominaccess = 0;
-	     wide = 0; 
-  	   for(j = i; j<memarea.blockCount; j++){
-	       if(pageTotalAccess.at(j) != 0){
-	    		  zoominaccess = zoominaccess + pageTotalAccess.at(j);
-	  	  	  wide++;
-	  		  } else {
-	  			  break;
-	  		  }
+    bool flCombineFirstLevel = false;
+    for(i = 0; i<memarea.blockCount; i++  ){
+      zoominaccess = 0;
+	    wide = 0; 
+  	  for(j = i; j<memarea.blockCount; j++){
+	      if(pageTotalAccess.at(j) != 0 ){ 
+	  		  zoominaccess = zoominaccess + pageTotalAccess.at(j);
+	    	  wide++;
+	  	  } else {
+	  		  break;
+	  	  }
 	    }
+      //if(zoominaccess!=0) printf(" i = %d, wide = %d, zoominaccess %d , totalAccessParent %d \n", i, wide, zoominaccess, totalAccessParent);
       //Added to keep parents separate at the 'root+1' level
       //Access in Thread heap gets obscured by the stack access - so do not aggregate pages to region
       // Issues with smaller region traces - example gemm tile vs reorder
@@ -188,7 +190,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
         } else if(hotpage.level >= lvlConstBlockSize) { 
             hotpage.blockSize = ((levelOneSize)/((int) pow((double)4,(hotpage.level-lvlConstBlockSize))));
         }
-        printf("Add to list zoom in  wide = %d memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld \n",  wide, memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize);
+        printf("Before Add to zoomlist start=%d wide = %d memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld \n",  i, wide, memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize);
 			//printf("Using block size for last level in zoomRUD %08lx \n", cacheLineWidth);
         //if(memarea.blockSize <= 16777216) 
         if(memarea.blockSize <= zoomLastLvlPageWidth) 
@@ -199,15 +201,13 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
         //printf("zoomin value %d childCount %d\n", zoomin, childCount);
         if(((curPage.level == (lvlConstBlockSize-1)) ||  // Zoom in stack area also at Level 1 - below root
           ((curPage.level >= lvlConstBlockSize) && (hotpage.max <= heapAddrEnd ) && (memarea.blockSize !=cacheLineWidth)))) { //Zoom only in heap area, end at size 128
-        //printf("Add to list zoom in  memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld \n",  memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize);
-            printf("Add to list zoom in option = %d memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld iparent %s , ID %s \n",  zoomOption, memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize, (curPage.strID).c_str(), (hotpage.strID).c_str());
+            printf("Add to zoomlist option = %d memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld iparent %s , ID %s \n",  zoomOption, memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize, (curPage.strID).c_str(), (hotpage.strID).c_str());
       			  zoomPageList.push_back(hotpage);
   	    		  (*zoomin)++;
               childCount++;
         } else {
          printf(" Not zooming in stack region min = %08lx max = %08lx blockSize = %ld level =%d \n",  hotpage.min,hotpage.max, hotpage.blockSize, hotpage.level);
         }
-
       }
       // SIZE hack - FIX
       if( flCombineFirstLevel == true)  {
@@ -265,10 +265,115 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
          }
       }
     }
+    vecAccessBlockId.clear();
+    vecBlockId.clear();
+  }
+  // HOT-INSN add area
+  if(zoomOption == 4) {
+    // Zoom in blocks with high access counts upto block size 16384
+    // Find contiguous blocks - form a region
+    for(i = 0; i<memarea.blockCount; i++  ){
+      zoominaccess = 0;
+	    wide = 0; 
+  	  for(j = i; j<memarea.blockCount; j++){
+	      if(pageTotalAccess.at(j) != 0 ){ 
+	  		  zoominaccess = zoominaccess + pageTotalAccess.at(j);
+	    	  wide++;
+	  	  } else {
+	  		  break;
+	  	  }
+	    }
+       if ( (double)zoominaccess>=(double)zoomThreshold*totalAccessParent) {
+        Memblock hotpage;
+        strNodeId = curPage.strID+std::to_string(childCount);
+        hotpage.strID = strNodeId; 
+	  	  hotpage.min = memarea.min+memarea.blockSize*(i);
+        hotpage.max = memarea.min+(memarea.blockSize*(i+wide))-1;
+	  	  hotpage.level = curPage.level+1;
+  	  	hotpage.blockSize = memarea.blockSize;
+        printf("Add to list zoom in start=%d wide = %d \n",  i, wide);
+        hotpage.leftPid = i;
+        hotpage.rightPid = i+wide-1;
+		    hotpage.strParentID = curPage.strID;
+        printf("Add to zoomlist option= %d Memarea min = %08lx max = %08lx blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld iparent %s , ID %s \n",  zoomOption, memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize, (curPage.strID).c_str(), (hotpage.strID).c_str());
+        zoomPageList.push_back(hotpage);
+  	    (*zoomin)++;
+        childCount++;
+      }
+		    i=i+wide;
+    }
+    if(childCount == 0 )  {
+      printf("NON-STACK, No child added for %s Adding two CHILDREN with ZERO access pages\n", (curPage.strID).c_str());
+      uint32_t numBlockGroup = 16;
+      uint32_t numChildrenToAdd =2;
+      uint32_t numPagesInGroup = 1;
+      vector<pair<uint32_t, uint32_t>> vecAccessPages;
+      if ( memarea.blockCount <= numBlockGroup ) {
+        numBlockGroup =1 ;
+      } else {
+        while( (memarea.blockCount / numPagesInGroup ) > numBlockGroup) 
+          numPagesInGroup*=2;
+      }
+      printf(" CHILD memarea.blockCount = %d numBlockGroup = %d numPagesInGroup = %d \n", memarea.blockCount ,numBlockGroup , numPagesInGroup);  
+      for(i = 0; i<numBlockGroup; i++  ){
+          zoominaccess = 0;
+        for(j = 0; j<numPagesInGroup; j++ ){
+          if (((i*numPagesInGroup)+j) < memarea.blockCount) {
+            zoominaccess = zoominaccess + pageTotalAccess.at((i*numPagesInGroup)+j);
+          }
+        } 
+        //printf(" Child access i = %d j = %d access = %d \n", i, j, zoominaccess);  
+        vecAccessPages.push_back(make_pair(zoominaccess, i*numPagesInGroup));
+      }
+      sort(vecAccessPages.begin(), vecAccessPages.end(), greater<>());
+      
+      /* 
+      // Previous trial to add based on threshold with holes - still results in significant region loss
+      for(i = 0; i<memarea.blockCount; i++  ){
+        zoominaccess = 0;
+  	    wide = 0; 
+    	  for(j = i; j<memarea.blockCount; j++){
+	        if((pageTotalAccess.at(j) != 0) || (((j+2) < memarea.blockCount) && ((pageTotalAccess.at(j+1) != 0)|| (pageTotalAccess.at(j+2) != 0)))){ 
+	  	  	  zoominaccess = zoominaccess + pageTotalAccess.at(j);
+	    	    wide++;
+	  	    } else {
+	  		    break;
+	  	    }
+          if(zoominaccess > child_zoominaccess) {
+            child_i = i; 
+            child_wide = wide;
+            child_zoominaccess = zoominaccess;
+          }
+        }
+        //printf(" Child access i = %d wide = %d access = %d \n", i, wide, zoominaccess);  
+        i=i+wide;
+      } */
+      
+      for ( uint32_t vecItr=0; vecItr<numChildrenToAdd; vecItr++) {
+        printf(" top access - %d , i %d \n", vecAccessPages[vecItr].first, vecAccessPages[vecItr].second);
+        printf(" Child with largest access start = %d wide = %d access = %d \n", vecAccessPages[vecItr].second, numPagesInGroup, vecAccessPages[vecItr].first);  
+        i = vecAccessPages[vecItr].second;
+        wide = numPagesInGroup ;
+        childCount++;
+        Memblock hotpage;
+        strNodeId = curPage.strID+std::to_string(childCount);
+        hotpage.strID = strNodeId; 
+	  	  hotpage.min = memarea.min+memarea.blockSize*(i);
+        hotpage.max = memarea.min+(memarea.blockSize*(i+wide))-1;
+	  	  hotpage.level = curPage.level+1;
+  	  	hotpage.blockSize = memarea.blockSize;
+        printf("Add to list ATLEAST TWO CHILDREN zoom in start=%d wide = %d \n",  i, wide);
+        hotpage.leftPid = i;
+        hotpage.rightPid = i+wide-1;
+		    hotpage.strParentID = curPage.strID;
+        printf("Add to list ATLEAST TWO CHILDREN zoom in option = %d memarea.min = %08lx memarea.max = %08lx memarea.blockSize = %ld hotpage.level =%d hotpage min = %08lx max %08lx hotpage.blockSize = %ld iparent %s , ID %s \n",  zoomOption, 
+         memarea.min, memarea.max, memarea.blockSize, hotpage.level, hotpage.min,hotpage.max, hotpage.blockSize, (curPage.strID).c_str(), (hotpage.strID).c_str());
+      	 zoomPageList.push_back(hotpage);
+  	     (*zoomin)++;
+      }
+    }
   }
   sortPageAccess.clear();
-  vecAccessBlockId.clear();
-  vecBlockId.clear();
 }
 
 int writeZoomFile(const MemArea memarea, const Memblock thisMemblock, const vector<BlockInfo *>& vecBlockInfo, std::ofstream& zoomFile_det, 
@@ -655,7 +760,6 @@ int main(int argc, char ** argv){
   std::vector<TopAccessLine *> vecLineInfo;
   std::vector<uint64_t> vecTopAccessLineAddr;
   TopAccessLine ptrTopAccessLine;
-  bool flagPagesRegion=false;
   int zoomin = 0;
   int zoominTimes = 0;
   ofstream zoomInFile_det;
@@ -853,8 +957,9 @@ int main(int argc, char ** argv){
        if(!zoomPageList.empty()) {
  				 thisMemblock = zoomPageList.front();
         // RUD zoom analysis does not reaches cacheLine level - if not do at higher level
-         if (thisMemblock.blockSize == cacheLineWidth || thisMemblock.blockSize <= (4*zoomLastLvlPageWidth))
-      			  spatialRegionList.push_back(thisMemblock);
+         if (thisMemblock.blockSize == cacheLineWidth || thisMemblock.blockSize <= (4*zoomLastLvlPageWidth)) {
+      			  spatialRegionList.push_back(thisMemblock); // Final-Regions-of-Interest
+          }
  				 zoomPageList.pop_front();
   			 memarea.max = thisMemblock.max;
 	  		 memarea.min = thisMemblock.min;
@@ -862,8 +967,8 @@ int main(int argc, char ** argv){
            memarea.blockSize = thisMemblock.blockSize;
    	       memarea.blockCount =  ceil((memarea.max - memarea.min)/(double)memarea.blockSize);
            blCustomSize = 1;
-          //printf(" in zoom level %d size %ld count %ld memarea.min %08lx memarea.max %08lx \n", thisMemblock.level, memarea.blockSize, memarea.blockCount, memarea.min, memarea.max);
-         }
+          //printf("zoom level %d size %ld count %ld memarea.min %08lx memarea.max %08lx \n", thisMemblock.level, memarea.blockSize, memarea.blockCount, memarea.min, memarea.max);
+         } 
        } else {
           done =1;
           printf("Zoomlist empty \n");
@@ -875,16 +980,55 @@ int main(int argc, char ** argv){
 
   // START - affinity analysis
   // Steps
-  // 0. Find instructions to map regions to objects - using getInstInRange
+  // 0-a. Find hot instructions - handle sparse accesses with HOT instructions
+  //     Add region of HOT instruction with large, sparse footprint to Final-Regions-of-Interest 
+  // 0-b. Find instructions to map regions to objects - using getInstInRange
   // 1. Calculate spatial affinity at data object (region) level
   // 2. Zoom into objects to find OS page sized (default 16K) hot blocks 
   // 3. Calculate spatial affinity at OS page level - using 64 B cache line 
   if(spatialResult == 1)
   {
     printf("Spatial Analysis START \n");
+    /*---------------------------- HOT-INSN addition ----------------------------------*/
+    // STEP 0-a add rgions if the accesses are sparse, but the instruction is HOT 
+    vector<std::pair<uint64_t,uint32_t>> vecInstAccessCount;
+    vector<std::pair<uint64_t,uint64_t>> vecInstRegion;
+    printf(" STEP 0-a get HOT Insn\n");
+    getTopInst(vecInstAddr,vecInstAccessCount);
+    size_t numHotInsn = vecInstAccessCount.size(); 
+    for (size_t cntHotInsn=0; cntHotInsn < numHotInsn; cntHotInsn++)  {
+      printf("HOT INSN %08lx count %d\n", vecInstAccessCount.at(cntHotInsn).first, vecInstAccessCount.at(cntHotInsn).second);
+      getRegionforInst(&spatialOutInsnFile, vecInstAddr,vecInstAccessCount.at(cntHotInsn).first, vecInstRegion);
+    }
+    sort(vecInstRegion.begin(), vecInstRegion.end());
+    for (size_t cntHotInsn=0; cntHotInsn < vecInstRegion.size(); cntHotInsn++)  {
+      printf(" HOT INSN region  %08lx - %08lx \n", vecInstRegion.at(cntHotInsn).first, vecInstRegion.at(cntHotInsn).second);
+    }
+    // Coalesce regions if they cover overlapping address range
+    // Example  HOT INSN region  7fce42335d60 - 7fce432027bc
+    //          HOT INSN region  7fce42335d64 - 7fce432027c0 
     uint64_t minRegionAddr, maxRegionAddr;
+    typedef boost::icl::interval_set<uint64_t> set_t;
+    typedef set_t::interval_type ival;
+    set_t insnRegSet;
+    for (size_t cntVecInsn=0; cntVecInsn < vecInstRegion.size(); cntVecInsn++)  {
+      minRegionAddr = vecInstRegion[cntVecInsn].first;
+      maxRegionAddr = vecInstRegion[cntVecInsn].second;     
+      insnRegSet.insert(ival::open(minRegionAddr, maxRegionAddr)); 
+    }
+    vecInstRegion.clear();
+    for(set_t::iterator it = insnRegSet.begin(); it != insnRegSet.end(); it++){
+      std::cout <<" Interval Set "<< std::hex<< it->lower() << " - " << std::hex << it->upper() << "\n";
+      vecInstRegion.push_back(make_pair(it->lower(),it->upper())); 
+    }
+    sort(vecInstRegion.begin(), vecInstRegion.end());
+    for (size_t cntHotInsn=0; cntHotInsn < vecInstRegion.size(); cntHotInsn++)  {
+      printf(" First HOT-INSN Interval region  %08lx - %08lx \n", vecInstRegion.at(cntHotInsn).first, vecInstRegion.at(cntHotInsn).second);
+    }
+    //getRegionforInst(&spatialOutInsnFile, vecInstAddr,2106708); // Alpaca trials
+    /*---------------------------- HOT-INSN addition ----------------------------------*/
+
     setRegionAddr.clear();
-    // STEP 0   Get instructions that for corresponsing load addresses in the region
     MemArea insnMemArea; 
     // Check if RUD analysis reaches cacheLine level - if not do at higher level
     uint64_t spatiallastlvlBlockSize = cacheLineWidth;
@@ -894,44 +1038,143 @@ int main(int argc, char ** argv){
       spatiallastlvlBlockSize = thisMemblock.blockSize; 
     }
 
-    // Copy final sorted region list to a new one 
+    // Copy final sorted region list to a new one  
     std::unordered_map<uint64_t, std::string> mapMinAddrToID;
     for (itrRegion=spatialRegionList.begin(); itrRegion != spatialRegionList.end(); ++itrRegion){
  	    thisMemblock = *itrRegion; 
       if( thisMemblock.blockSize == spatiallastlvlBlockSize) {
     	  minRegionAddr = thisMemblock.min;
     	  maxRegionAddr = thisMemblock.max;
-        printf("add Spatial set min-max %08lx-%08lx \n", minRegionAddr, maxRegionAddr);
+        //printf("add Spatial set min-max %08lx-%08lx \n", minRegionAddr, maxRegionAddr);
         setRegionAddr.push_back(make_pair(minRegionAddr, maxRegionAddr));
         mapMinAddrToID[minRegionAddr] = thisMemblock.strID;
       }
     } 
 
-    // SORT region by address - regionId updated to trace
+    // SORT region by address - regionId updated to trace (in STEP 1.5)
     sort(setRegionAddr.begin(), setRegionAddr.end());
     for(uint32_t k=0; k<setRegionAddr.size(); k++) {
       printf("main Spatial set min-max %d %08lx-%08lx \n", k, setRegionAddr[k].first, setRegionAddr[k].second);
+    }
+
+    /*---------------------------- HOT-INSN addition ----------------------------------*/
+    // START - for-DEBUG
+    insnRegSet.clear();
+    for (size_t cntVecInsn=0; cntVecInsn < vecInstRegion.size(); cntVecInsn++)  {
+      minRegionAddr = vecInstRegion[cntVecInsn].first;
+      maxRegionAddr = vecInstRegion[cntVecInsn].second;     
+      insnRegSet.insert(ival::closed(minRegionAddr, maxRegionAddr)); 
+      printf("HOT-INSN add closed INSN set min-max %08lx-%08lx \n",  minRegionAddr, maxRegionAddr);
+    }
+    for(uint32_t k=0; k<setRegionAddr.size(); k++) {
+      minRegionAddr =setRegionAddr[k].first;
+      maxRegionAddr = setRegionAddr[k].second;
+      insnRegSet.insert(ival::closed(minRegionAddr, maxRegionAddr)); 
+      printf("HOT-INSN add closed REGION set min-max %08lx-%08lx \n",  minRegionAddr, maxRegionAddr);
+    }
+    for(set_t::iterator it = insnRegSet.begin(); it != insnRegSet.end(); it++){
+      std::cout <<" Closed HOT-INSN Interval Set "<< std::hex<< it->lower() << " - " << std::hex << it->upper() << "\n";
+    }
+    // END - for-DEBUG
+
+    insnRegSet.clear();
+    for(uint32_t k=0; k<setRegionAddr.size(); k++) {
+      minRegionAddr =setRegionAddr[k].first;
+      maxRegionAddr = setRegionAddr[k].second;
+      insnRegSet.insert(ival::closed(minRegionAddr, maxRegionAddr)); 
+      printf("HOT-INSN add before region check REGION set min-max %08lx-%08lx \n",  minRegionAddr, maxRegionAddr);
+    }
+    // Add regions from STEP 0-a if the region is not covered in the Final-Regions-of-Interest
+    for(uint32_t cntVecInsn=0; cntVecInsn<vecInstRegion.size(); cntVecInsn++) {
+      bool flInsnRegInList=false;
+      uint32_t cntIntervals = insnRegSet.iterative_size();
+      minRegionAddr = vecInstRegion[cntVecInsn].first;
+      maxRegionAddr = vecInstRegion[cntVecInsn].second;
+      if (maxRegionAddr < heapAddrEnd) {
+        insnRegSet.insert(ival::closed(minRegionAddr, maxRegionAddr)); 
+          printf(" HOT-INSN cntIntervals %d SIZE %ld region not in list %08lx-%08lx \n", cntIntervals, insnRegSet.iterative_size(), minRegionAddr, maxRegionAddr);
+        if( insnRegSet.iterative_size() <= cntIntervals) {
+          printf(" ****** NOT HOT-INSN cntIntervals %d SIZE %ld region not in list %08lx-%08lx \n", cntIntervals, insnRegSet.iterative_size(), minRegionAddr, maxRegionAddr);
+            flInsnRegInList = true;
+        }
+        if(flInsnRegInList ==false) {
+          printf(" HOT-INSN region not in list %08lx-%08lx \n", minRegionAddr, maxRegionAddr);
+          Memblock hotpage;
+          string strNodeId; 
+          strNodeId = "HotIns-"+std::to_string(cntVecInsn);
+          hotpage.strID = strNodeId; 
+	  	    hotpage.min = minRegionAddr; 
+          hotpage.max =  maxRegionAddr ;
+	    	  hotpage.level = 200; // random number - there's no level correlation
+  	    	hotpage.blockSize = OSPageSize; 
+		      hotpage.strParentID = "HotIns";
+          memarea.max = maxRegionAddr;
+          memarea.min = minRegionAddr;
+          memarea.blockSize = OSPageSize;
+          memarea.blockCount =  ceil((memarea.max - memarea.min)/(double)memarea.blockSize);
+          vecBlockInfo.clear();
+          for(i = 0; i< memarea.blockCount; i++){
+            pair<unsigned int, unsigned int> blockID = make_pair(0, i);
+            BlockInfo *newBlock = new BlockInfo(blockID, memarea.min+(i*memarea.blockSize), memarea.min+((i+1)*memarea.blockSize-1), 
+                                              memarea.blockCount+cntAddPages, 0, strNodeId); // spatialResult=0
+            vecBlockInfo.push_back(newBlock);
+          }
+          analysisReturn= getAccessCount(vecInstAddr,   memarea,  coreNumber , vecBlockInfo );
+          if(analysisReturn ==-1) {
+            printf("No analysis done\n");
+            return -1;
+          }
+          pageTotalAccess.clear(); 
+          for(i = 0; i< memarea.blockCount; i++){
+            BlockInfo *curBlock = vecBlockInfo.at(i);
+            curBlock->printBlockAccess(); 
+            pageTotalAccess.push_back(curBlock->getTotalAccess());
+          }
+          // HOT-INSN zoom - if there's no hot-contiguous CHILD, get 2 top access CHILDREN with NON-HOT holes
+          findHotPage(memarea, 4, sampleRud, pageTotalAccess,thresholdTotAccess, &zoomin, hotpage, zoomPageList);
+          while(!zoomPageList.empty()) {
+     				thisMemblock = zoomPageList.front();
+ 				    zoomPageList.pop_front();
+      			spatialRegionList.push_back(thisMemblock); // Final-Regions-of-Interest
+    	      minRegionAddr = thisMemblock.min;
+         	  maxRegionAddr = thisMemblock.max;
+            printf("add Spatial set min-max %08lx-%08lx \n", minRegionAddr, maxRegionAddr);
+            setRegionAddr.push_back(make_pair(minRegionAddr, maxRegionAddr));
+            mapMinAddrToID[minRegionAddr] = thisMemblock.strID;
+          }
+        }
+      }
+    }
+    /*---------------------------- HOT-INSN addition ----------------------------------*/
+    
+    sort(setRegionAddr.begin(), setRegionAddr.end());
+    for(uint32_t k=0; k<setRegionAddr.size(); k++) {
+      //printf("main Spatial set min-max %d %08lx-%08lx \n", k, setRegionAddr[k].first, setRegionAddr[k].second);
       for (itrRegion=spatialRegionList.begin(); itrRegion != spatialRegionList.end(); ++itrRegion){
  	      thisMemblock = *itrRegion; 
-        if( thisMemblock.blockSize == spatiallastlvlBlockSize) {
-            printf(" Spatial set min-max  %08lx-%08lx \n", thisMemblock.min, thisMemblock.max);
+        if( (thisMemblock.blockSize == spatiallastlvlBlockSize) 
+              || (thisMemblock.strID.find("HotIns") != std::string::npos))  // HOT-INSN addition
+          {
+            //printf(" Spatial set min-max  %08lx-%08lx \n", thisMemblock.min, thisMemblock.max);
           if (thisMemblock.min == setRegionAddr[k].first && thisMemblock.max == setRegionAddr[k].second) {
         	  finalRegionList.push_back(thisMemblock);
-            printf("final Spatial set min-max %d %08lx-%08lx \n", k, thisMemblock.min, thisMemblock.max);
+            //printf("final Spatial set min-max %d %08lx-%08lx \n", k, thisMemblock.min, thisMemblock.max);
           }
         }
       }
     }
     spatialRegionList.clear();
-
+    // Final-Regions-of-Interest
+    // STEP 0-b Get instructions that for corresponsing load addresses in the region
     for (itrRegion=finalRegionList.begin(); itrRegion != finalRegionList.end(); ++itrRegion){
  	    thisMemblock = *itrRegion; 
       insnMemArea.max = thisMemblock.max;
 	   	insnMemArea.min = thisMemblock.min;
        printf("--insn  : Find instructions for %s in memRange ", memoryfile);
-       printf(" %08lx-%08lx\n",thisMemblock.min,thisMemblock.max);
+       printf(" %08lx-%08lx %s \n",thisMemblock.min,thisMemblock.max, (thisMemblock.strID).c_str());
        //--insn  : Find instructions for ../MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1.trace.final in memRange 56122007b08a-56122007f089
-       spatialOutInsnFile << " --insn  : Find instructions in " << memoryfile << " for memRange " << hex<< insnMemArea.min << "-" << insnMemArea.max << " ID " << thisMemblock.strID << endl;
+       spatialOutInsnFile << " --insn  : Find instructions in " << memoryfile << " for memRange " << hex<< insnMemArea.min << "-" 
+                          << insnMemArea.max << " ID " << thisMemblock.strID << endl;
         getInstInRange(&spatialOutInsnFile, vecInstAddr,insnMemArea);
     }
     // STEP 1 - Calculate spatial affinity at data object (inter-region) level
@@ -945,6 +1188,7 @@ int main(int argc, char ** argv){
       printf("Error in updateTraceRegion\n");
       return -1;
     }
+    printf("Trace updated with updateTraceRegion \n");
     
     memarea.min = setRegionAddr[0].first;
     memarea.max = setRegionAddr[(setRegionAddr.size()-1)].second;
@@ -997,6 +1241,8 @@ int main(int argc, char ** argv){
          curBlock->printBlockSpatialInterval(spatialOutFile,zoomLastLvlPageWidth, false);
     }
     spatialOutFile << endl;
+
+    // STEP 1 - Calculate spatial affinity at data object (inter-region) level
     // END - STEP 1 
     // STEP 2 -  Intra-region spatial affinity - affinity at cache-line level
     // STEP 2 -  Zoom into objects to find OS page sized hot blocks
@@ -1053,7 +1299,6 @@ int main(int argc, char ** argv){
     uint8_t parentIndex=0;
     for (itrRegion=finalRegionList.begin(); itrRegion != finalRegionList.end(); ++itrRegion){
       thisMemblock = *itrRegion;
-      //printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx parent %s Id %s \n", thisMemblock.level, thisMemblock.blockSize, thisMemblock.blockCount, thisMemblock.min, thisMemblock.max, thisMemblock.strParentID.c_str(), thisMemblock.strID.c_str());
       printf(" in spatial last %d size %ld count %d memarea.min %08lx memarea.max %08lx parent %s Id %s \n", thisMemblock.level, thisMemblock.blockSize, thisMemblock.blockCount, thisMemblock.min, thisMemblock.max, thisMemblock.strParentID.c_str(), thisMemblock.strID.c_str());
         vecParentChild[regionCnt].push_back(make_pair(thisMemblock.min, thisMemblock.max));
         mapParentIndex[(thisMemblock.strID.c_str())] = regionCnt;
@@ -1133,7 +1378,7 @@ int main(int argc, char ** argv){
       ptrTopAccessLine = (mapAddrHotLine[vecAccessCount.at(cntVecAccess).second]);
       insnMemArea.max = ptrTopAccessLine.lowAddr+cacheLineWidth;
 	   	insnMemArea.min = ptrTopAccessLine.lowAddr;
-      spatialOutInsnFile << " --insn  : Find instructions in " << memoryfile << " for memRange " << hex<< insnMemArea.min << "-" << insnMemArea.max << " ID " << thisMemblock.strID << endl;
+      spatialOutInsnFile << " --insn  : Find instructions in " << memoryfile << " for memRange " << hex<< insnMemArea.min << "-" << insnMemArea.max << " ID hotline" << endl;
         getInstInRange(&spatialOutInsnFile, vecInstAddr,insnMemArea);
     }
 

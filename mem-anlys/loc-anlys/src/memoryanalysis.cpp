@@ -123,8 +123,8 @@ Get IP for data addresses in memarea
 void getInstInRange(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,MemArea memarea)
 {
 	uint64_t loadAddr =0;  
-  std::map<uint64_t,uint32_t> insMap;
-  std::map<uint64_t,uint32_t>::iterator it;
+  std::unordered_map<uint64_t,uint32_t> insMap;
+  std::unordered_map<uint64_t,uint32_t>::iterator it;
   uint64_t insPtrAddr;
   TraceLine *ptrTraceLine;
   for (uint32_t itr=0; itr<vecInstAddr.size(); itr++){
@@ -156,6 +156,89 @@ void getInstInRange(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,Mem
   for (itr=sortInstr.begin(); itr!=sortInstr.end(); itr++)
     printf("%lx\\|", itr->second);
   printf("\n");
+}
+
+void getRegionforInst(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,uint64_t loadInst, vector<std::pair<uint64_t,uint64_t>>& vecInstRegion)
+{
+  TraceLine *ptrTraceLine;
+  uint64_t regLowAddr =0;
+  uint64_t regHighAddr =0;
+  uint64_t insPtrAddr;
+	uint64_t loadAddr =0;  
+  for (uint32_t itr=0; itr<vecInstAddr.size(); itr++){
+      ptrTraceLine=vecInstAddr.at(itr);
+        insPtrAddr=ptrTraceLine->getInsPtAddr();  
+        if(loadInst == insPtrAddr) {
+          loadAddr = ptrTraceLine->getLoadAddr();
+          if(( regLowAddr == 0) && (regHighAddr ==0)) {
+            regLowAddr  = loadAddr;
+            regHighAddr = loadAddr;
+          } else {
+              if ( loadAddr < regLowAddr) regLowAddr = loadAddr;
+              if ( loadAddr > regHighAddr) regHighAddr = loadAddr;
+          }
+        }
+  }
+  printf(" inst %lx loadInst , low %lx high %lx\n", loadInst, regLowAddr, regHighAddr);
+  vecInstRegion.push_back(make_pair(regLowAddr, regHighAddr));
+}
+
+void getTopInst(vector<TraceLine *>& vecInstAddr,vector<std::pair<uint64_t,uint32_t>>& vecInstAccessCount) 
+{
+  TraceLine *ptrTraceLine;
+  uint64_t insPtrAddr;
+  std::unordered_map<uint64_t,uint32_t> insMap;
+  std::unordered_map<uint64_t,uint32_t>::iterator it;
+  uint32_t curSampleId, prevSampleId; 
+  uint32_t numInsn=0;
+  prevSampleId = vecInstAddr.at(0)->getSampleId();
+  curSampleId = vecInstAddr.at(0)->getSampleId();
+  for (uint32_t itr=0; itr<vecInstAddr.size(); itr++){
+    numInsn++;
+    ptrTraceLine=vecInstAddr.at(itr);
+    insPtrAddr=ptrTraceLine->getInsPtAddr();  
+    curSampleId = ptrTraceLine->getSampleId();
+    if ( curSampleId == prevSampleId) {
+      if(insMap.find(insPtrAddr)!=insMap.end())
+        (insMap.find(insPtrAddr)->second)++;
+      else
+       insMap[insPtrAddr]=1;
+    } else {
+      for(it = insMap.begin(); it != insMap.end();) {
+        if((it->second) <= (0.01)*numInsn) {
+          it = insMap.erase(it);
+        } else {
+          it++;
+        }    
+      }
+      if(insMap.find(insPtrAddr)!=insMap.end())
+        (insMap.find(insPtrAddr)->second)++;
+      else
+       insMap[insPtrAddr]=1;
+    }
+    prevSampleId = curSampleId ;
+  }
+  for(it = insMap.begin(); it != insMap.end();) {
+    if((it->second) <= (0.02)*numInsn) {
+      it = insMap.erase(it);
+    } else {
+      it++;
+    }    
+  }
+  vector <pair<uint32_t,uint64_t>> sortInstr;
+  vector <pair<uint32_t,uint64_t>>::iterator itr;
+  for (it=insMap.begin(); it!=insMap.end(); it++){
+    //printf("%ld\t0x%lx \n", it->second, it->first);
+    sortInstr.push_back(make_pair(it->second, it->first));
+  }
+  sort(sortInstr.begin(), sortInstr.end(),greater<>()); 
+  for (itr=sortInstr.begin(); itr!=sortInstr.end(); itr++){
+      printf("%u\t0x%lx \n", itr->first, itr->second);
+  }
+  size_t maxInsnCnt = sortInstr.size()> 10 ? 10 : sortInstr.size();
+  for (size_t itrVec=0; itrVec< maxInsnCnt; itrVec++) {
+   vecInstAccessCount.push_back(make_pair(sortInstr.at(itrVec).second, sortInstr.at(itrVec).first)); 
+  }
 }
 
 /* Update trace wih region Id based on load address
@@ -273,6 +356,7 @@ int getTopAccessCountLines(vector<TraceLine *>& vecInstAddr,   Memblock memRegio
       }
     }
     std::sort(totalAccess.begin(), totalAccess.end(), greater<>());
+    printf(" in getTopAccessCountLines\n");
     for(int i=0; i<10; i++) {
       printf("value %d  %08lx \n", totalAccess.at(i).first, totalAccess.at(i).second);
       if(totalAccess.at(i).first != 0) {

@@ -11,6 +11,7 @@
 #include <list>
 #include <vector>
 #include <map>
+#include <boost/icl/interval_set.hpp>
 
 using namespace std;
 

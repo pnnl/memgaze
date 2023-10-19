@@ -12,7 +12,9 @@
 int readTrace(string filename, int *intTotalTraceLine,  vector<TraceLine *>& vecInstAddr, uint32_t *windowMin, uint32_t *windowMax, 
                             double *windowAvg, uint64_t * max, uint64_t * min) ;
 void getInstInRange(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,MemArea memarea) ;
+void getRegionforInst(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,uint64_t loadInst, vector<std::pair<uint64_t,uint64_t>>& vecInstRegion) ;
 
+void getTopInst(vector<TraceLine *>& vecInstAddr,vector<std::pair<uint64_t,uint32_t>>& vecInstAccessCount);
 /*  Get access count only - NO RUD analysis */
 int getAccessCount(vector<TraceLine *>& vecInstAddr,  MemArea memarea,  int coreNumber , vector<BlockInfo *>& vecBlockInfo );
 

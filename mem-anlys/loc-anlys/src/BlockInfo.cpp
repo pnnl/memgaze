@@ -92,7 +92,7 @@ using namespace std;
 
   void BlockInfo::printBlockRUD(){
     if(totalAccess != 0){
-      printf("Page %d: area %08lx-%08lx, Access %d ", blockID.second, addrMin, addrMax, totalAccess);
+      printf("Pg %d: adr %08lx-%08lx Access %d ", blockID.second, addrMin, addrMax, totalAccess);
       if (totalAccess != 1 ){
         //printf("average RUD - %f, ", avgRUD);
         printf("smpl-avg RUD %f", sampleAvgRUD);
@@ -103,7 +103,7 @@ using namespace std;
 
   void BlockInfo::printBlockAccess(){
     if(totalAccess != 0){
-      printf("Page %d: area %08lx-%08lx, Access %d \n", blockID.second, addrMin, addrMax, totalAccess);
+      printf("Pg %d: adr %08lx-%08lx Access %d \n", blockID.second, addrMin, addrMax, totalAccess);
     }
   }
 
@@ -111,8 +111,8 @@ using namespace std;
     unsigned int j=0;
     vector <pair<uint32_t, class SpatialRUD*>>::iterator itrSpRUD;
     if(totalAccess != 0 && lifetime !=0){
-      printf("*** Page %d: area %08lx-%08lx  Lifetime %d Access %d \n", blockID.second, addrMin, addrMax, lifetime, totalAccess);
-      outFile << "*** ID " << strBlockId<< " Page "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<< std::dec <<" Lifetime "<< lifetime 
+      printf("*** Pg %d: adr %08lx-%08lx Lifetime %d Access %d \n", blockID.second, addrMin, addrMax, lifetime, totalAccess);
+      outFile << "*** ID " << strBlockId<< " Pg "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<< std::dec <<" Lifetime "<< lifetime 
               <<" Access " << totalAccess << " Block_count " << std::dec<< ((addrMax-addrMin)+1)/blockWidth << " Spatial_Density " ;
 
       vector<pair<double, uint32_t>> vecDensity;
@@ -166,7 +166,7 @@ using namespace std;
       outFile << " Self "<< std::fixed << std::setprecision(2)  << blockID.second <<","<< selfSpatialDensity ; 
       outFile<<endl;
     
-      outFile << "Page "<< std::dec << blockID.second << " Spatial Ratio ";
+      outFile << "Pg "<< std::dec << blockID.second << " Spatial Ratio ";
       for(j=0; j<vecSpatialResult.size(); j++) { 
          if(((vecSpatialResult[j].second)->spatialAccess!=0)) 
           outFile << std::fixed << std::setprecision(3) << vecSpatialResult[j].first <<","<<(double)(((vecSpatialResult[j].second)->spatialTotalDistance)/(vecSpatialResult[j].second)->spatialAccess)/lifetime<<" ";
@@ -177,16 +177,16 @@ using namespace std;
       int printDebug =0;
       if(printDebug){
         //printf("lifetime %d\n", lifetime); 
-        printf("Page %d spatial Next ", blockID.second);
+        printf("Pg %d spatial Next ", blockID.second);
         for(j=0; j<vecSpatialResult.size(); j++) 
          if(((vecSpatialResult[j].second)->spatialNext!=0)) printf("%d,%d ",vecSpatialResult[j].first, (vecSpatialResult[j].second)->spatialNext); 
-        printf("\nPage %d spatial Distance ", blockID.second);
+        printf("\nPg %d spatial Distance ", blockID.second);
         for(j=0; j<vecSpatialResult.size(); j++) 
          if(((vecSpatialResult[j].second)->spatialTotalDistance!=0)) printf("%d,%d ",vecSpatialResult[j].first, (vecSpatialResult[j].second)->spatialTotalDistance); 
-        printf("\nPage %d spatial Access ", blockID.second);
+        printf("\nPg %d spatial Access ", blockID.second);
         for(j=0; j<vecSpatialResult.size(); j++) 
          if(((vecSpatialResult[j].second)->spatialAccess!=0)) printf("%d,%d ",vecSpatialResult[j].first, (vecSpatialResult[j].second)->spatialAccess); 
-        printf("\nPage %d spatial Middle ", blockID.second);
+        printf("\nPg %d spatial Middle ", blockID.second);
         for(j=0; j<vecSpatialResult.size(); j++) 
          if(((vecSpatialResult[j].second)->spatialAccessTotalMid!=0)) printf("%d,%d ",vecSpatialResult[j].first, (vecSpatialResult[j].second)->spatialAccessTotalMid); 
         printf("\n");
@@ -198,8 +198,8 @@ using namespace std;
     unsigned int j=0;
     vector <pair<uint32_t, class SpatialRUD*>>::iterator itrSpRUD;
     if(totalAccess != 0 && lifetime !=0){
-      printf("=== Page %d: area %08lx-%08lx  Lifetime %d Access %d \n", blockID.second, addrMin, addrMax, lifetime, totalAccess);
-      outFile << "=== ID " << strBlockId<< " Page "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<< std::dec <<" Lifetime "<< lifetime 
+      printf("=== Pg %d: adr %08lx-%08lx Lifetime %d Access %d \n", blockID.second, addrMin, addrMax, lifetime, totalAccess);
+      outFile << "=== ID " << strBlockId<< " Pg "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<< std::dec <<" Lifetime "<< lifetime 
               <<" Access " << totalAccess << " Block_count " << std::dec<< ((addrMax-addrMin)+1)/blockWidth << " Spatial_Prob " ;
 
       uint32_t vecIndex=0;
@@ -229,8 +229,8 @@ using namespace std;
     unsigned int j=0;
     vector <pair<uint32_t, class SpatialRUD*>>::iterator itrSpRUD;
     if(totalAccess != 0 && lifetime !=0){
-      printf("--- Page %d: area %08lx-%08lx  Lifetime %d Access %d \n", blockID.second, addrMin, addrMax, lifetime, totalAccess);
-      outFile << "--- ID " << strBlockId<< " Page "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<< std::dec <<" Lifetime "<< lifetime 
+      printf("--- Pg %d: adr %08lx-%08lx Lifetime %d Access %d \n", blockID.second, addrMin, addrMax, lifetime, totalAccess);
+      outFile << "--- ID " << strBlockId<< " Pg "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<< std::dec <<" Lifetime "<< lifetime 
               <<" Access " << totalAccess << " Block_count " << std::dec<< ((addrMax-addrMin)+1)/blockWidth << " Spatial_Interval " ;
 
       uint32_t vecIndex=0;
@@ -260,8 +260,8 @@ using namespace std;
     unsigned int j=0;
     vector <pair<uint32_t, class SpatialRUD*>>::iterator itrSpRUD;
     if(totalAccess != 0 && lifetime !=0){
-      printf("+++ Page %d: area %08lx-%08lx  Lifetime %d Access %d \n", blockID.second, addrMin, addrMax, lifetime, totalAccess);
-      outFile << "+++ ID " << strBlockId << " Page "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<< std::dec <<" Lifetime "<< lifetime 
+      printf("+++ Pg %d: adr %08lx-%08lx Lifetime %d Access %d \n", blockID.second, addrMin, addrMax, lifetime, totalAccess);
+      outFile << "+++ ID " << strBlockId << " Pg "<< std::dec << blockID.second << " : area "<<hex<<addrMin<<"-"<<addrMax<< std::dec <<" Lifetime "<< lifetime 
               <<" Access " << totalAccess << " Block_count " << std::dec<< ((addrMax-addrMin)+1)/blockWidth << " Spatial_Next " ;
       
       uint32_t vecIndex=0;
@@ -301,7 +301,7 @@ using namespace std;
 }
   
   void BlockInfo::printBlockInfo(){
-    printf("*** Page ID %d Area %08lx-%08lx level %d block num %d  Access %d RUD avg %lf lifetime %d sampleAvgRUD %f \n "
+    printf("*** Pg ID %d Area %08lx-%08lx level %d block num %d  Access %d RUD avg %lf lifetime %d sampleAvgRUD %f \n "
                , blockID.second, addrMin, addrMax, blockID.first, blockID.second, totalAccess, avgRUD, lifetime, sampleAvgRUD);
   }
 
