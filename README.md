@@ -40,8 +40,8 @@ vs. access patterns.
 **Contributors**:
   - Ozgur Kilic (Now BNL)
   - Nathan R. Tallent (PNNL) ([www](https://hpc.pnnl.gov/people/tallent)), ([www](https://www.pnnl.gov/people/nathan-tallent))
-  - Andrés Marquez (PNNL)
   - Yasodha Suriyakumar (Portland State University)
+  - Andrés Marquez (PNNL)
   - Onur Cankur (University of Maryland)
   - Chenhao Xie (PNNL)
   - Stephane Eranian (Google)
