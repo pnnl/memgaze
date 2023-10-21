@@ -7,6 +7,9 @@ MemGaze
 **Home**:
   - https://github.com/pnnl/memgaze
 
+  - [Performance Lab for EXtreme Computing and daTa](https://github.com/perflab-exact)
+
+
 **About**: As memory systems are the primary bottleneck in many
 workloads, effective hardware/software co-design requires a detailed
 understanding of memory behavior. Unfortunately, current analysis of
@@ -31,13 +34,12 @@ vs. access patterns.
 
 
 **Contacts**: (_firstname_._lastname_@pnnl.gov)
-  - Nathan R. Tallent
-  - Ozgur Kilic
+  - Nathan R. Tallent ([www](https://hpc.pnnl.gov/people/tallent)), ([www](https://www.pnnl.gov/people/nathan-tallent))
 
 
 **Contributors**:
-  - Ozgur Kilic (PNNL)
-  - Nathan R. Tallent (PNNL)
+  - Ozgur Kilic (Now BNL)
+  - Nathan R. Tallent (PNNL) ([www](https://hpc.pnnl.gov/people/tallent)), ([www](https://www.pnnl.gov/people/nathan-tallent))
   - Andrés Marquez (PNNL)
   - Yasodha Suriyakumar (Portland State University)
   - Onur Cankur (University of Maryland)
