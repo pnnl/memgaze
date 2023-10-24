@@ -1,4 +1,4 @@
-arar#include "memoryanalysis.h"
+#include "memoryanalysis.h"
 #include "memorymodeling.h"
 #include "hyperloglog.hpp"
 
@@ -147,6 +147,9 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
 	  	  } else {
 	  		  break;
 	  	  }
+        //XSBench HACK for k-0 separate regions - doesnt work
+        //if((double)zoominaccess>=(double)zoomThreshold*totalAccessParent)
+        //  break; 
 	    }
       //if(zoominaccess!=0) printf(" i = %d, wide = %d, zoominaccess %d , totalAccessParent %d \n", i, wide, zoominaccess, totalAccessParent);
       //Added to keep parents separate at the 'root+1' level
@@ -989,7 +992,7 @@ int main(int argc, char ** argv){
   if(spatialResult == 1)
   {
     printf("Spatial Analysis START \n");
-    /*---------------------------- HOT-INSN addition ----------------------------------*/
+    /*---------------------------- HOT-INSN addition START ----------------------------------*/
     // STEP 0-a add rgions if the accesses are sparse, but the instruction is HOT 
     vector<std::pair<uint64_t,uint32_t>> vecInstAccessCount;
     vector<std::pair<uint64_t,uint64_t>> vecInstRegion;
@@ -1026,7 +1029,7 @@ int main(int argc, char ** argv){
       printf(" First HOT-INSN Interval region  %08lx - %08lx \n", vecInstRegion.at(cntHotInsn).first, vecInstRegion.at(cntHotInsn).second);
     }
     //getRegionforInst(&spatialOutInsnFile, vecInstAddr,2106708); // Alpaca trials
-    /*---------------------------- HOT-INSN addition ----------------------------------*/
+    /*---------------------------- HOT-INSN addition END ----------------------------------*/
 
     setRegionAddr.clear();
     MemArea insnMemArea; 
@@ -1057,7 +1060,25 @@ int main(int argc, char ** argv){
       printf("main Spatial set min-max %d %08lx-%08lx \n", k, setRegionAddr[k].first, setRegionAddr[k].second);
     }
 
-    /*---------------------------- HOT-INSN addition ----------------------------------*/
+    /* 
+    //XSBEnch hack event k-0 - START
+    vecInstRegion.clear();
+    setRegionAddr.clear();
+    spatialRegionList.clear();
+    vecInstRegion.push_back(make_pair(stoull("55eb7038bf93",0,16), stoull("55eb7038ff92",0,16)));
+    vecInstRegion.push_back(make_pair(stoull("7fa6e3aa5cf3",0,16), stoull("7fa6e3aa5d33",0,16)));
+    vecInstRegion.push_back(make_pair(stoull("7fa6e3aa7cb3",0,16), stoull("7fa6e8b85cb2",0,16)));
+    //setRegionAddr.push_back(make_pair(stoull("55eb7038bf93",0,16), stoull("55eb7038ff92",0,16)));
+    //setRegionAddr.push_back(make_pair(stoull("7fa6e3aa5cf3",0,16), stoull("7fa6e3aa5d33",0,16)));
+    //setRegionAddr.push_back(make_pair(stoull("7fa6e3aa7cb3",0,16), stoull("7fa6e8b85cb2",0,16)));
+    //7fa6e3aa5cf3-7fa6e3aa5d33
+    //7fa6e3aa7cb3-7fa6e8b85cb2
+
+    //XSBEnch hack - END
+
+    */
+
+    /*---------------------------- HOT-INSN addition START ----------------------------------*/
     // START - for-DEBUG
     insnRegSet.clear();
     for (size_t cntVecInsn=0; cntVecInsn < vecInstRegion.size(); cntVecInsn++)  {
@@ -1145,7 +1166,7 @@ int main(int argc, char ** argv){
         }
       }
     }
-    /*---------------------------- HOT-INSN addition ----------------------------------*/
+    /*---------------------------- HOT-INSN addition END ----------------------------------*/
     
     sort(setRegionAddr.begin(), setRegionAddr.end());
     for(uint32_t k=0; k<setRegionAddr.size(); k++) {

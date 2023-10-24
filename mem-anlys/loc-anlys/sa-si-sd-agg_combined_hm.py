@@ -261,7 +261,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
         df_intra_obj_sample_SP.set_index('reg-page-blk')
         df_intra_obj_sample_SP.sort_index(inplace=True)
+        # Arrange heatmap by access
         df_intra_obj_sample_SP.sort_values(by=['Access'],ascending=False,inplace=True)
+
         print('after sample - ', df_intra_obj_sample_SP.shape)
         #print('after sample blocks - ', df_intra_obj_sample_SP['reg-page-blk'])
         #print('after sample acccess - ', df_intra_obj_sample_SP['Access'])
@@ -360,7 +362,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
        # To show all three in tandem
         # Get rows with more SA entries - non zero SA will result in  SI and maybe SD
         #print(df_SP_SI_SD['reg-page-blk'])
-        print('columns: line 329',  df_SP_SI_SD.columns.to_list())
+        logger.info("Columns line")
+        print('columns: ',  df_SP_SI_SD.columns.to_list())
         cols_df_SP_SI_SD = df_SP_SI_SD.columns.to_list()
         if (flNormalize == True):
             print ('Normalize true SD max ', normSDMax, ' SP ', normSPMax)
@@ -566,14 +569,27 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             ax_3 = fig.add_subplot(gsright[0, 1])
             gsleft_ax_0 = sns.heatmap(df_hm_SD, cmap='mako_r',cbar=True, cbar_kws={"pad":0.02}, annot=False,ax=gsleft_ax_0,vmin=0.02,vmax=1.0)
             gsleft_ax_0.axvline(x=0, color='k',linewidth=1)
+            gsleft_ax_0.axhline(y=0, color='k',linewidth=1)
+            gsleft_ax_0.axhline(y=df_hm_SD.shape[0], color='k',linewidth=1)
+            gsleft_ax_0.axvline(x=df_hm_SD.shape[1], color='k',linewidth=1)
+
+
             gsleft_ax_0.set_facecolor('white')
             gsleft_ax_1 = sns.heatmap(df_hm_SP, cmap='mako_r',cbar=True, cbar_kws={"pad":0.02}, annot=False,ax=gsleft_ax_1,vmin=0.02, vmax=1.0)
             gsleft_ax_1.axvline(x=0, color='k',linewidth=1)
+            gsleft_ax_1.axhline(y=0, color='k',linewidth=1)
+            gsleft_ax_1.axhline(y=df_hm_SP.shape[0], color='k',linewidth=1)
+            gsleft_ax_1.axvline(x=df_hm_SP.shape[1], color='k',linewidth=1)
+
             gsleft_ax_1.set_facecolor('white')
             vmin=0
             vmax=20
             gsleft_ax_2 = sns.heatmap(df_hm_SI, cmap='mako',cbar=True, cbar_kws={"pad":0.02}, annot=False,ax=gsleft_ax_2,vmin=vmin, vmax=vmax)
             gsleft_ax_2.axvline(x=0, color='k',linewidth=1)
+            gsleft_ax_2.axhline(y=0, color='k',linewidth=1)
+            gsleft_ax_2.axhline(y=df_hm_SI.shape[0], color='k',linewidth=1)
+            gsleft_ax_2.axvline(x=df_hm_SI.shape[1], color='k',linewidth=1)
+
             gsleft_ax_2.set_facecolor('white')
             gsleft_ax_0.set_ylabel("SD",fontsize=16,style='italic')
             gsleft_ax_1.set_ylabel("SA",fontsize=16,style='italic')
@@ -775,11 +791,34 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
 
 
-flWeight=False
+flWeight=True
 f_avg1=None
 mainPath='/Users/suri836/Projects/spatial_rud/'
 
-if (1):
+if(1):
+    flWeight = True
+    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',7,strMetric='SD-SP-SI', \
+             listCombineReg=['0-A0000000', '1-A0000010','2-A0000011','3-A0000012','4-A0000013'], flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',7,strMetric='SD-SP-SI', \
+             listCombineReg=['5-HotIns-11', '6-HotIns-12'], flWeighted=flWeight,affinityOption=3)
+
+    #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000/spatial.txt',2,strMetric='SD-SP-SI', \
+    #         flWeighted=flWeight,affinityOption=3)
+    #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-sel/chat-trace-b16384-p5000000/spatial.txt',3,strMetric='SD-SP-SI', \
+    #         flWeighted=flWeight,affinityOption=3)
+    #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-sel/chat-trace-b16384-p4000000/spatial.txt',3,strMetric='SD-SP-SI', \
+    #         flWeighted=flWeight,affinityOption=3)
+    #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-sel/chat-trace-b32768-p4000000/spatial.txt',5,strMetric='SD-SP-SI', \
+    #         flWeighted=flWeight,affinityOption=3)
+    #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/alpaca-O2/chat-trace-b32768-p6000000-questions/spatial.txt',6,strMetric='SD-SP-SI', \
+    #         listCombineReg=['0-A0000000', '1-A0000010','2-A0000011','3-A0000012','4-A0000013'], flWeighted=flWeight,affinityOption=3)
+    #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/alpaca-O2/chat-trace-b32768-p6000000-story/spatial.txt',7,strMetric='SD-SP-SI', \
+    #         listCombineReg=['0-A0000000', '1-A0000100','2-A0000101','3-A0000102','4-A0000103','5-A0000104'], flWeighted=flWeight,affinityOption=3)
+    #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/alpaca-O2/chat-trace-b32768-p6000000-story-noseed/spatial.txt',9,strMetric='SD-SP-SI', \
+    #         listCombineReg=['0-A0000000', '1-A0000010','2-A0000011','3-A0000012','4-A0000013','5-A0000014'], flWeighted=flWeight,affinityOption=3)
+
+
+if (0): #Unused
     intraObjectPlot('XSB-NoInl-rd-HIST',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-noinline/XSBench-memgaze-trace-b16384-p4000000-hist/spatial.txt', 9, strMetric='SD-SP-SI', \
         listCombineReg=['1-B0000000','2-B0010000','3-B0020000','4-B0030000','5-B0040000','6-B0050000','7-B0060000'] ,flWeighted=flWeight,affinityOption=3)
     intraObjectPlot('XSB-NoInl-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-noinline/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 2, strMetric='SD-SP-SI', \
@@ -787,14 +826,30 @@ if (1):
     intraObjectPlot('XSB-NoInl-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-noinline/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 9, strMetric='SD-SP-SI', \
         listCombineReg=['1-B0000000','2-B0010000','3-B0020000','4-B0030000','5-B0040000','6-B0050000','7-B0060000'] ,flWeighted=flWeight,affinityOption=3)
 
+if (0): #Unused
+    intraObjectPlot('XSB-AOS-rd-HIST',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-code-change/XSBench-memgaze-trace-b16384-p4000000-hist/spatial.txt', 9, strMetric='SD-SP-SI', \
+        listCombineReg=['2-B0000','3-B0010','4-B0020','5-B0030','6-B0040','7-B0050','8-B0060'] ,flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSB-AOS-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-code-change/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 9, strMetric='SD-SP-SI', \
+        listCombineReg=['2-B0000','3-B0010','4-B0020','5-B0030','6-B0040','7-B0050','8-B0060'] ,flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSB-AOS-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-code-change/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 3, strMetric='SD-SP-SI', \
+        flWeighted=flWeight,affinityOption=3)
+
 if (0):
-    # NOT SO USEFUL - they all show same behavior
-    intraObjectPlot('XSB-rd-HIST',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-hist/spatial.txt', 4, strMetric='SD-SP-SI', \
-        listCombineReg=['2-B0000001','3-B0000002'], flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 1, strMetric='SD-SP-SI', \
+    intraObjectPlot('XSB-rd-HIST',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-hist/spatial.txt', 2, strMetric='SD-SP-SI', \
+         flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/hot_insn-force/spatial.txt', 4, strMetric='SD-SP-SI', \
           flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 5, strMetric='SD-SP-SI', \
-        listCombineReg=['9-C0000000','10-C0000001','11-C0000002'], flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 3, strMetric='SD-SP-SI', \
+         flWeighted=flWeight,affinityOption=3)
+
+
+if (0): # Separate source code 391 line - doesnt add any value
+    intraObjectPlot('XSB-rd-HIST',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b8192-p6000000-hist/spatial.txt', 2, strMetric='SD-SP-SI', \
+         flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b8192-p6000000-event-k-0/spatial.txt', 3, strMetric='SD-SP-SI', \
+          flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b8192-p6000000-event-k-1/spatial.txt', 4, strMetric='SD-SP-SI', \
+         listCombineReg=['2-C0000000','3-C0000001','4-C0000002'], flWeighted=flWeight,affinityOption=3)
 
 if(0):
     intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD-SP-SI', \
@@ -830,37 +885,6 @@ if(0):
                     strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
     intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
                     strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
-
-if(0):
-    flWeight = True
-    intraObjectPlot('Alpaca-ld-st',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-ld-st/chat-trace-b16384-p5000000/spatial.txt',6,strMetric='SD-SP-SI', \
-             flWeighted=flWeight,affinityOption=3)
-
-if(0):
-    flWeight = True
-    intraObjectPlot('Alpaca-512-5p',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000-anlys-512-5p/spatial.txt',4,strMetric='SD-SP-SI', \
-             flWeighted=flWeight,affinityOption=3)
-if(0):
-    intraObjectPlot('Alpaca-1024-10p',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000-anlys-1024-10p/spatial.txt',3,strMetric='SD-SP-SI', \
-             flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('Alpaca-seq-512-5p',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000-t-1-anlys-512-5p/spatial.txt',3,strMetric='SD-SP-SI', \
-             flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('Alpaca-seq-1024-10p',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000-t-1-anlys-1024-10p/spatial.txt',3,strMetric='SD-SP-SI', \
-             flWeighted=flWeight,affinityOption=3)
-
-if(0):
-    flWeight = False
-    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000/spatial.txt',3,strMetric='SD-SP-SI', \
-             flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('Alpaca-seq',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000-t-1/spatial.txt',3,strMetric='SD-SP-SI', \
-             flWeighted=flWeight,affinityOption=3)
-
-
-if(0):
-    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000/spatial.txt',3,strMetric='SD-SP-SI', \
-             flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('Alpaca-seq',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000-t-1/spatial.txt',3,strMetric='SD-SP-SI', \
-             flWeighted=flWeight,affinityOption=3)
 
 if( 1 == 0):
     intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight)
