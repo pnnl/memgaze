@@ -185,6 +185,7 @@ def getMetricColumnsLineRegion(regionId, numRegions):
             metricColumns[521+i] = 'r-'+str(i)
     metricColumns[521+numRegions]='Non-hot'
     metricColumns[521+numRegions+1]='Stack'
+    #metricColumns[521+1]='Stack'
     return metricColumns
 
 def getRearrangeColumns(listColNames):

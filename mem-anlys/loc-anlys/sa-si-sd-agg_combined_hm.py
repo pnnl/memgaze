@@ -289,6 +289,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             plot_SP_col=getPageColListPageRegion(plot_SP_col)
         elif(flagHotLines ==1):
             plot_SP_col=getPageColListLineRegion(plot_SP_col)
+        plot_SP_col=[item for item in plot_SP_col if 'r-' not in item]
+        print('before get \n', plot_SP_col)
 
         list_SP_SI_SD=[[None]*(3*len(plot_SP_col)+2) for i in range(len(list_xlabel))]
 
@@ -526,11 +528,25 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     df_SP_SI_SD.drop(negSelfColsItem, axis=1, inplace=True)
                     cols_df_SI.remove(negSelfColsItem)
 
+        #Fill in hot lines with self data
+        pattern = re.compile('SD-.*-.*-.*')
+        listAffinityLines=list(filter(pattern.match, cols_df_SD))
+        for i in range(0,len(listAffinityLines)):
+            listAffinityLines[i] = listAffinityLines[i].replace('SD-','')
+        print('hot lines in affinity', listAffinityLines)
+        print(df_SP_SI_SD.columns)
+        
+        print(df_SP_SI_SD['SD-self'])
+        for i in range(0,len(listAffinityLines)):
+            print(df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SD-self'].values)
+            df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SD-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SD-self']
+            df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SP-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SP-self']
+            df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SI-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SI-self']
+
         if (len(cols_df_SP) > 0 and len(cols_df_SI) >0 and len(cols_df_SD)>0):
             df_intra_obj_sample_hm_SP=df_SP_SI_SD[cols_df_SP]
             df_intra_obj_sample_hm_SI=df_SP_SI_SD[cols_df_SI]
             df_intra_obj_sample_hm_SD=df_SP_SI_SD[cols_df_SD]
-
             df_intra_obj_sample_hm_SP.apply(pd.to_numeric)
             df_hm_SP=np.empty([num_sample,len(cols_df_SP)])
             df_hm_SP=df_intra_obj_sample_hm_SP.to_numpy()
@@ -601,11 +617,6 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             affRegionColor='dodgerblue'
             hotLineInRegionColor='indianred'
             refRegionColor='black'
-            pattern = re.compile('SD-.*-.*-.*')
-            listAffinityLines=list(filter(pattern.match, cols_df_SD))
-            for i in range(0,len(listAffinityLines)):
-                listAffinityLines[i] = listAffinityLines[i].replace('SD-','')
-            print('hot lines in affinity', listAffinityLines)
             refRgionNamelist = regionIdNumName.replace(' ','').split('&')
             refRegionList=[]
             print(refRgionNamelist)
@@ -795,12 +806,17 @@ flWeight=True
 f_avg1=None
 mainPath='/Users/suri836/Projects/spatial_rud/'
 
-if(1):
+if(0):
     flWeight = True
-    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',7,strMetric='SD-SP-SI', \
-             listCombineReg=['0-A0000000', '1-A0000010','2-A0000011','3-A0000012','4-A0000013'], flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',7,strMetric='SD-SP-SI', \
-             listCombineReg=['5-HotIns-11', '6-HotIns-12'], flWeighted=flWeight,affinityOption=3)
+    #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',7,strMetric='SD-SP-SI', \
+    #         listCombineReg=['0-A0000000', '1-A0000010','2-A0000011','3-A0000012','4-A0000013'], flWeighted=flWeight,affinityOption=3)
+    #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',3,strMetric='SD-SP-SI', \
+    #         listCombineReg=['5-HotIns-11', '6-HotIns-12'], flWeighted=flWeight,affinityOption=3)
+    #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-story-copy/spatial.txt',3,strMetric='SD-SP-SI', \
+    #         listCombineReg=['6-HotIns-11', '7-HotIns-12'], flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-story-noseed-copy/spatial.txt',3,strMetric='SD-SP-SI', \
+             listCombineReg=['6-HotIns-11', '7-HotIns-12'], flWeighted=flWeight,affinityOption=3)
+
 
     #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000/spatial.txt',2,strMetric='SD-SP-SI', \
     #         flWeighted=flWeight,affinityOption=3)
@@ -834,10 +850,10 @@ if (0): #Unused
     intraObjectPlot('XSB-AOS-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-code-change/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 3, strMetric='SD-SP-SI', \
         flWeighted=flWeight,affinityOption=3)
 
-if (0):
-    intraObjectPlot('XSB-rd-HIST',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-hist/spatial.txt', 2, strMetric='SD-SP-SI', \
-         flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/hot_insn-force/spatial.txt', 4, strMetric='SD-SP-SI', \
+if (1):
+    #intraObjectPlot('XSB-rd-HIST',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-hist/spatial.txt', 2, strMetric='SD-SP-SI', \
+    #     flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/hot_insn-force-1/spatial.txt', 4, strMetric='SD-SP-SI', \
           flWeighted=flWeight,affinityOption=3)
     intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 3, strMetric='SD-SP-SI', \
          flWeighted=flWeight,affinityOption=3)

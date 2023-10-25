@@ -199,14 +199,14 @@ def callPlot(plotApp):
     colSelect=0
     appName=''
     sampleSize=0
-    strMetricType='SP'
+    strMetricType='SD'
 
     if (plotApp.lower()=='ubench'):
         #filename='/Users/suri836/Projects/spatial_rud/ubench_simple_vector/sel_func/vec_gpp_exe-memgaze-trace-b8192-p40000/spatial_inter.txt'
         filename='/Users/suri836/Projects/spatial_rud/ubench_simple_array/paper_data/arr_exe-memgaze-trace-b16384-p250000/spatial_inter.txt'
         appName='ubench-array'
     elif(plotApp.lower()=='alpaca'):
-        filename='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/alpaca/mg-alpaca-sel/chat-trace-b32768-p4000000/spatial_inter.txt'
+        filename='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial_inter.txt'
         appName='Alpaca'
     elif(plotApp.lower()=='minivite-v3'):
         filename='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/hot_lines/v3_spatial_inter_sp_si_sd.txt'
