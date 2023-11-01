@@ -11,12 +11,13 @@
         # STEP 3c-1 - Dataframe has all three metrics, so divide by 3 for access count reporting
         # STEP 3d - drop columns with "all" NaN values
         # STEP 3e - Sample dataframe for 150 rows based on access count as the weight
-
+        # STEP 4 - Visual to numeric value for SI, SD, SP
+        # STEP 5a - Fill in hot lines with self data
+        # STEP 5b - Proceed to plot
 
 import pandas as pd
 import numpy as np
 import seaborn as sns
-
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import re
@@ -25,13 +26,11 @@ import os
 import copy
 import matplotlib as mpl
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
-
 import logging
 
 logging.basicConfig(format='%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
     datefmt='%Y-%m-%d:%H:%M:%S',
     level=logging.INFO)
-
 logger = logging.getLogger(__name__)
 
 
@@ -42,7 +41,7 @@ from fileToDataframe import get_intra_obj,getFileColumnNames,getMetricColumns,ge
 from fileToDataframe import getFileColumnNamesPageRegion,getMetricColumnsPageRegion,getPageColListPageRegion
 from fileToDataframe import getFileColumnNamesLineRegion,getMetricColumnsLineRegion,getPageColListLineRegion
 
-# Works for spatial denity, Spatial Probability and Proximity
+# Works for spatial denity, Spatial Anticipation and Interval
 def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeighted=None,numExtraPages:int=None,affinityOption:int=None):
     flagPhysicalPages = 0
     flagHotPages =0
@@ -176,7 +175,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             list_col_names =getFileColumnNamesLineRegion (strFileName, numRegionInFile)
         #print(list_col_names)
         df_intra_obj=pd.DataFrame(data_list_intra_obj,columns=list_col_names)
-        print('columns ', df_intra_obj.columns.to_list())
+        #print('columns ', df_intra_obj.columns.to_list())
+        logger.info('original columns')
         #print(df_intra_obj[['Address', 'reg-page-blk','p-2','p-1','self','p+1','p+2']])
 
         # STEP 3c-0 - Process data frame to get access, lifetime totals
@@ -233,10 +233,10 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # STEP 3d - drop columns with "all" NaN values
         # DROP - columns with no values
         #print(df_intra_obj[['reg_page_id', 'reg-page-blk', 'Access', 'Type', 'Stack']])
-        print('before replace drop - ', df_intra_obj.shape, df_intra_obj.columns.to_list())
+        print('before replace drop - ', df_intra_obj.shape)#, df_intra_obj.columns.to_list())
         df_intra_obj_drop=df_intra_obj.dropna(axis=1,how='all')
 
-        print('after replace drop - ', df_intra_obj.shape, df_intra_obj.columns.to_list())
+        print('after replace drop - ', df_intra_obj.shape)#, df_intra_obj.columns.to_list())
 
         self_aft_drop=df_intra_obj_drop['self'].to_list()
 
@@ -290,15 +290,17 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         elif(flagHotLines ==1):
             plot_SP_col=getPageColListLineRegion(plot_SP_col)
         plot_SP_col=[item for item in plot_SP_col if 'r-' not in item]
-        print('before get \n', plot_SP_col)
+        #print('before get \n', plot_SP_col)
+        logger.info("before normalize ")
 
-        list_SP_SI_SD=[[None]*(3*len(plot_SP_col)+2) for i in range(len(list_xlabel))]
+        list_SP_SI_SD=[[None]*(3*len(plot_SP_col)+3) for i in range(len(list_xlabel))]
 
-        list_col_names=['reg-page-blk','reg-page']
+        list_col_names=['reg-page-blk','reg-page','Access']
         for blkCnt in range(0,len(list_xlabel)):
             blkid= list_xlabel[blkCnt]
             list_SP_SI_SD[blkCnt][0]=blkid
             list_SP_SI_SD[blkCnt][1]=blkid[0:blkid.rfind('-')]
+            list_SP_SI_SD[blkCnt][2]=df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'].item()
             weight_multiplier = 1.0
             if (flWeighted == True):
                 #print('blk ', blkid, ' access ', df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'].item(), ' accessSumBlocks ', accessSumBlocks)
@@ -327,21 +329,21 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     #print(plotCol)
                     if resultSP.size > 0 :
                         #print(resultSP.values[0], weight_multiplier, round((resultSP.values[0]* weight_multiplier),2))
-                        list_SP_SI_SD[blkCnt][plotCnt*3+2]=round((resultSP.values[0]* weight_multiplier),2)
+                        list_SP_SI_SD[blkCnt][plotCnt*3+3]=round((resultSP.values[0]* weight_multiplier),2)
                     if resultSI.size >0:
-                        list_SP_SI_SD[blkCnt][plotCnt*3+3]=resultSI.values[0]
+                        list_SP_SI_SD[blkCnt][plotCnt*3+4]=resultSI.values[0]
                     if resultSD.size >0:
                         #print(plotCol,  resultSP.values[0], weight_multiplier, round((resultSP.values[0]* weight_multiplier),2))
-                        list_SP_SI_SD[blkCnt][plotCnt*3+4]=round(resultSD.values[0]* weight_multiplier,2)
+                        list_SP_SI_SD[blkCnt][plotCnt*3+5]=round(resultSD.values[0]* weight_multiplier,2)
                     #if (weight_multiplier > 1.0 and resultSP.size > 0 and resultSI.size >0 and resultSD.size >0):
                     #    print( 'SP ', list_SP_SI_SD[blkCnt][plotCnt*3+1], ' SI ', list_SP_SI_SD[blkCnt][plotCnt*3+2], ' SD ', list_SP_SI_SD[blkCnt][plotCnt*3+3])
-                    if ((list_SP_SI_SD[blkCnt][plotCnt*3+2] > 1.0) or (list_SP_SI_SD[blkCnt][plotCnt*3+4]> 1.0)):
-                        #print('greater than 1 - column name ', plotCol, ' SA ',list_SP_SI_SD[blkCnt][plotCnt*3+1], ' SD ',  list_SP_SI_SD[blkCnt][plotCnt*3+3])
+                    if ((list_SP_SI_SD[blkCnt][plotCnt*3+3] > 1.0) or (list_SP_SI_SD[blkCnt][plotCnt*3+5]> 1.0)):
+                        #print('greater than 1 - column name ', plotCol, ' SP ',list_SP_SI_SD[blkCnt][plotCnt*3+1], ' SD ',  list_SP_SI_SD[blkCnt][plotCnt*3+3])
                         arRegPageIndex = arRegPages.index(blkid[0:blkid.rfind('-')])
-                        if (normSDMax[arRegPageIndex] < list_SP_SI_SD[blkCnt][plotCnt*3+4]):
-                            normSDMax[arRegPageIndex] = list_SP_SI_SD[blkCnt][plotCnt*3+4]
-                        if( normSPMax[arRegPageIndex] < list_SP_SI_SD[blkCnt][plotCnt*3+2]):
-                            normSPMax[arRegPageIndex] = list_SP_SI_SD[blkCnt][plotCnt*3+2]
+                        if (normSDMax[arRegPageIndex] < list_SP_SI_SD[blkCnt][plotCnt*3+5]):
+                            normSDMax[arRegPageIndex] = list_SP_SI_SD[blkCnt][plotCnt*3+5]
+                        if( normSPMax[arRegPageIndex] < list_SP_SI_SD[blkCnt][plotCnt*3+3]):
+                            normSPMax[arRegPageIndex] = list_SP_SI_SD[blkCnt][plotCnt*3+3]
                         flNormalize = True
 
         #print(list_SP_SI)
@@ -354,18 +356,17 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print(normSPMax, normSDMax)
         #print(list_col_names)
         #pattern=re.compile('.*p.*[0-9]')
-        #print('line 305', list(filter(pattern.match, list_col_names)))
-
+        #print('line 357', list(filter(pattern.match, list_col_names)))
         df_SP_SI_SD=pd.DataFrame(list_SP_SI_SD,columns=list_col_names)
         #print('before drop  \n' , df_SP_SI_SD[['reg-page-blk', 'SD-self', 'SP-self', 'SI-Stack', 'SD-Stack']])
 
         df_SP_SI_SD=df_SP_SI_SD.dropna(axis=1, how='all')
-        #print('line 358', list(filter(pattern.match, df_SP_SI_SD.columns.to_list())))
-       # To show all three in tandem
-        # Get rows with more SA entries - non zero SA will result in  SI and maybe SD
+        #print('line 358', df_SP_SI_SD.columns.to_list())
+        # To show all three in tandem
+        # Get rows with more SP entries - non zero SP will result in SI and maybe SD
         #print(df_SP_SI_SD['reg-page-blk'])
         logger.info("Columns line")
-        print('columns: ',  df_SP_SI_SD.columns.to_list())
+        #print('columns: ',  df_SP_SI_SD.columns.to_list())
         cols_df_SP_SI_SD = df_SP_SI_SD.columns.to_list()
         if (flNormalize == True):
             print ('Normalize true SD max ', normSDMax, ' SP ', normSPMax)
@@ -402,8 +403,6 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             SDthreshold =0.005
             SDcount = 1
 
-        #print(df_SP_SI_SD[['SD-self+1','SD-self+2']])
-
         for col_orig_name in cols_df_orig:
             str_col_orig_name = str(col_orig_name)
             #print('column name', str_col_orig_name)#, df_SP_SI_SD[col_orig_name])
@@ -419,7 +418,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 cols_df_SI.append(col_SI_name)
                 cols_df_SD.append(col_SD_name)
 
-
+        # Make visualization look better
         # Add columns so that self is not the only one shown
         if(len(cols_df_SP)<15):
             if (flagPhysicalPages ==1):
@@ -528,21 +527,136 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     df_SP_SI_SD.drop(negSelfColsItem, axis=1, inplace=True)
                     cols_df_SI.remove(negSelfColsItem)
 
-        #Fill in hot lines with self data
+        # STEP 4 - Visual to numeric value for SI, SD, SP
+        # Visual to numeric value for SI, SD, SP - find hot reference blocks and hot affinity blocks
+        pattern = re.compile('SD-.*-.*')
+        listAffinityLines=list(filter(pattern.match, cols_df_SD))
+        for i in range(0,len(listAffinityLines)):
+            listAffinityLines[i] = listAffinityLines[i].replace('SD-','')
+        logger.info("HOT lines in affinity")
+        print('hot lines in affinity', listAffinityLines)
+
+        # Trial 1 - find hot reference blocks
+        #print(df_SP_SI_SD['Access'].sum())
+        #sumAccessRefBlocks = df_SP_SI_SD['Access'].sum()
+        #val = pd.Index(df_SP_SI_SD.Access.cumsum()).get_loc(int((0.9*sumAccessRefBlocks)), 'nearest', tolerance=int(0.05*sumAccessRefBlocks))
+        #print(val)
+        #df_SP_SI_SD.at[val,'Access']
+        #print(df_SP_SI_SD.at[val,'Access'])
+
+        # Trial 2 - find hot reference blocks - use range as in the heatmap for block accesses
+        #print(df_SP_SI_SD['Access'])
+        hotRefMaxAccess=df_SP_SI_SD['Access'].max()
+        hotRefMinAccess=df_SP_SI_SD['Access'].min()
+        refRange=hotRefMaxAccess-hotRefMinAccess
+        #print((df_SP_SI_SD['Access']-hotRefMinAccess)/refRange)
+        df_SP_SI_SD['Hot-Access']=(df_SP_SI_SD['Access']-hotRefMinAccess)/refRange
+        # ROWS - hot reference blocks
+        list_hot_ref_blocks=df_SP_SI_SD[df_SP_SI_SD['Hot-Access'] > 0.1]['reg-page-blk'].to_list()
+        logger.info("HOT lines in reference")
+        print(list_hot_ref_blocks)
+
+        # COLUMNS - hot affinity blocks
+        listHotAffColumns=['reg-page-blk','Access','Hot-Access']
+        for i in range(0,len(listAffinityLines)):
+            listHotAffColumns.append('SD-'+listAffinityLines[i])
+            listHotAffColumns.append('SP-'+listAffinityLines[i])
+            listHotAffColumns.append('SI-'+listAffinityLines[i])
+        listHotAffColumns.append('SD-self')
+        listHotAffColumns.append('SP-self')
+        listHotAffColumns.append('SI-self')
+        df_hot_SP_SI_SD=df_SP_SI_SD[df_SP_SI_SD['Hot-Access'] > 0.1][listHotAffColumns].copy()
+        #print(df_hot_SP_SI_SD.columns)
+        #print(df_hot_SP_SI_SD[['reg-page-blk','Access']])
+
+        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' hot DF size ',df_hot_SP_SI_SD.shape )
+        df_hot_SP_SI_SD.dropna(axis=1, how='all')
+
+        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' hot DF size',df_hot_SP_SI_SD.shape )
+        pattern = re.compile('SP-.*-.*-.*')
+        hot_SP_cols=list(filter(pattern.match, df_hot_SP_SI_SD.columns))
+        #print(hot_SP_cols)
+        #print(df_hot_SP_SI_SD[hot_SP_cols]>0.25)
+        hot_SP_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SP_cols] >= 0.1].count().sum()
+        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP 10% blocks ', hot_SP_count)
+        hot_SP_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SP_cols] >= 0.25].count().sum()
+        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP 25% blocks ', hot_SP_count)
+        hot_SP_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SP_cols] >= 0.50].count().sum()
+        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP 50% blocks ', hot_SP_count)
+        hot_SP_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SP_cols] >= 0.75].count().sum()
+        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP 75% blocks ', hot_SP_count)
+
+        pattern = re.compile('SD-.*-.*-.*')
+        hot_SD_cols=list(filter(pattern.match, df_hot_SP_SI_SD.columns))
+        #print(df_hot_SP_SI_SD[hot_SD_cols])
+        hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.05].count().sum()
+        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 5% blocks ', hot_SD_count)
+        hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.1].count().sum()
+        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 10% blocks ', hot_SD_count)
+        hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.25].count().sum()
+        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 25% blocks ', hot_SD_count)
+        hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.50].count().sum()
+        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 50% blocks ', hot_SD_count)
+        hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.75].count().sum()
+        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 75% blocks ', hot_SD_count)
+
+        strSecondQuartile='SI-SP-25-50'
+        strThirdQuartile='SI-SP-50-75'
+        strFourthQuartile='SI-SP-75-100'
+
+        for i in range(0,len(listAffinityLines)):
+            df_hot_SP_SI_SD[strSecondQuartile+listAffinityLines[i]]=np.NaN
+            df_hot_SP_SI_SD[strThirdQuartile+listAffinityLines[i]]=np.NaN
+            df_hot_SP_SI_SD[strFourthQuartile+listAffinityLines[i]]=np.NaN
+
+        for index, row in df_hot_SP_SI_SD.iterrows():
+            for i in range(0,len(listAffinityLines)):
+                #print(row['SP-'+listAffinityLines[i]])#, df_hot_SP_SI_SD['SP-'+listAffinityLines[i]])
+                if(row['SP-'+listAffinityLines[i]] >= 0.25 and row['SP-'+listAffinityLines[i]] < 0.5):
+                    #print('yes > 0.25 ',row['SP-'+listAffinityLines[i]], row['SI-'+listAffinityLines[i]])
+                    df_hot_SP_SI_SD.loc[index,strSecondQuartile+listAffinityLines[i]] = row['SI-'+listAffinityLines[i]]
+                if(row['SP-'+listAffinityLines[i]] >= 0.50 and row['SP-'+listAffinityLines[i]] < 0.75):
+                    #print('yes > 0.5 ',row['SP-'+listAffinityLines[i]])
+                    df_hot_SP_SI_SD.loc[index,strThirdQuartile+listAffinityLines[i]] = row['SI-'+listAffinityLines[i]]
+                if(row['SP-'+listAffinityLines[i]] >= 0.75 ):
+                    #print('yes > 0.5 ',row['SP-'+listAffinityLines[i]])
+                    df_hot_SP_SI_SD.loc[index,strFourthQuartile+listAffinityLines[i]] = row['SI-'+listAffinityLines[i]]
+
+        for strQuartile in [strSecondQuartile, strThirdQuartile, strFourthQuartile]:
+            hot_SI_cols=[]
+            for i in range(0,len(listAffinityLines)):
+                hot_SI_cols.append(strQuartile+listAffinityLines[i])
+
+            hot_SP_count=df_hot_SP_SI_SD[hot_SI_cols].count().sum()
+            #print ('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' ', strQuartile, ' ',  hot_SP_count )
+            hot_SI_values=df_hot_SP_SI_SD[hot_SI_cols].to_numpy()
+            if(( not np.isnan(hot_SI_values).all()) and hot_SI_values.size !=0):
+                #print(hot_SI_values)
+                print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' ', strQuartile, ' blocks ', hot_SP_count, ' SI-min ', np.nanmin(hot_SI_values), ' SI-max ', np.nanmax(hot_SI_values))
+
+
+
+        #print(df_hot_SP_SI_SD.columns)
+        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP-self-mean ', df_hot_SP_SI_SD['SP-self'].mean())
+        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD-self-mean ', df_hot_SP_SI_SD['SD-self'].mean())
+        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SI-self-mean ', df_hot_SP_SI_SD['SI-self'].mean())
+
+
+        # STEP 5a - Fill in hot lines with self data
         pattern = re.compile('SD-.*-.*-.*')
         listAffinityLines=list(filter(pattern.match, cols_df_SD))
         for i in range(0,len(listAffinityLines)):
             listAffinityLines[i] = listAffinityLines[i].replace('SD-','')
-        print('hot lines in affinity', listAffinityLines)
-        print(df_SP_SI_SD.columns)
-        
-        print(df_SP_SI_SD['SD-self'])
+        #logger.info("HOT lines in affinity")
+        #print('hot lines in affinity', listAffinityLines)
+        # Repeat 'self' values in hot lines in affinity - otherwise, there is a diagonal hole in heatmap
         for i in range(0,len(listAffinityLines)):
-            print(df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SD-self'].values)
+            #print(df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SD-self'].values)
             df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SD-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SD-self']
             df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SP-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SP-self']
             df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SI-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SI-self']
 
+        # STEP 5b - Proceed to plot
         if (len(cols_df_SP) > 0 and len(cols_df_SI) >0 and len(cols_df_SD)>0):
             df_intra_obj_sample_hm_SP=df_SP_SI_SD[cols_df_SP]
             df_intra_obj_sample_hm_SI=df_SP_SI_SD[cols_df_SI]
@@ -567,7 +681,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             df_hm_SD=df_intra_obj_sample_hm_SD.to_numpy()
             df_hm_SD=df_hm_SD.astype('float64')
             df_hm_SD=df_hm_SD.transpose()
-            print('df_hm_SP shape', df_hm_SP.shape)
+            print('df_hm_SD shape', df_hm_SD.shape)
 
             fig = plt.figure(constrained_layout=True, figsize=(15, 12))
             gs = gridspec.GridSpec(1, 2, figure=fig,width_ratios=[12,3])
@@ -599,7 +713,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
             gsleft_ax_1.set_facecolor('white')
             vmin=0
-            vmax=20
+            vmax=64
             gsleft_ax_2 = sns.heatmap(df_hm_SI, cmap='mako',cbar=True, cbar_kws={"pad":0.02}, annot=False,ax=gsleft_ax_2,vmin=vmin, vmax=vmax)
             gsleft_ax_2.axvline(x=0, color='k',linewidth=1)
             gsleft_ax_2.axhline(y=0, color='k',linewidth=1)
@@ -619,9 +733,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             refRegionColor='black'
             refRgionNamelist = regionIdNumName.replace(' ','').split('&')
             refRegionList=[]
-            print(refRgionNamelist)
+            #print(refRgionNamelist)
             for item in refRgionNamelist:
-                print('region id', item.split('-')[0])
+                #print('region id', item.split('-')[0])
                 refRegionList.append(item.split('-')[0])
 
             gsleft_ax_0.invert_yaxis()
@@ -630,7 +744,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             fig_ylabel=[]
             logger.info("SD labels")
             print('SD App ', strApp, 'len', len(cols_df_SD),' cols ',cols_df_SD)
-            print('len ', len(list_y_ticks),' list_y ', list_y_ticks)
+            #print('len ', len(list_y_ticks),' list_y ', list_y_ticks)
             for y_label in list_y_ticks:
                 if ('self' in cols_df_SD[int(y_label.get_text())]):
                     fig_ylabel.append(cols_df_SD[int(y_label.get_text())][7:])
@@ -664,7 +778,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             #gsleft_ax_1.set_yticks(range(len(cols_df_SP)))
             list_y_ticks=gsleft_ax_1.get_yticklabels()
             fig_ylabel=[]
-            #print('SA App ', strApp, ' list_y ', list_y_ticks, ' len ', len(list_y_ticks))
+            #print('SP App ', strApp, ' list_y ', list_y_ticks, ' len ', len(list_y_ticks))
             for y_label in list_y_ticks:
                 if ('self' in cols_df_SP[int(y_label.get_text())]):
                     fig_ylabel.append(cols_df_SP[int(y_label.get_text())][7:])
@@ -747,7 +861,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 print('accessBlockCacheLinePercent ', accessBlockCacheLinePercent)
                 formatted_text = (np.asarray(["{0:,d} \n ({1:d}%)".format(spValue,srValue) for spValue, srValue \
                                       in zip(accessBlockCacheLine.flatten(), accessBlockCacheLinePercent.flatten())])).reshape(len(accessBlockCacheLine),1)
-                print(formatted_text)
+                #print(formatted_text)
                 sns.heatmap(accessBlockCacheLine,cmap='Blues',cbar=False, annot=formatted_text, fmt="", annot_kws = {'size':12}, ax=ax_2)#,linecolor='black',linewidths=1)
             else:
                 sns.heatmap(accessBlockCacheLine, cmap='Blues', cbar=False,annot=True, fmt=',d', annot_kws = {'size':12},  ax=ax_2)#,linecolor='black',linewidths=1)
@@ -806,7 +920,7 @@ flWeight=True
 f_avg1=None
 mainPath='/Users/suri836/Projects/spatial_rud/'
 
-if(0):
+if(1):
     flWeight = True
     #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',7,strMetric='SD-SP-SI', \
     #         listCombineReg=['0-A0000000', '1-A0000010','2-A0000011','3-A0000012','4-A0000013'], flWeighted=flWeight,affinityOption=3)
@@ -850,7 +964,7 @@ if (0): #Unused
     intraObjectPlot('XSB-AOS-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-code-change/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 3, strMetric='SD-SP-SI', \
         flWeighted=flWeight,affinityOption=3)
 
-if (1):
+if (0):
     #intraObjectPlot('XSB-rd-HIST',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-hist/spatial.txt', 2, strMetric='SD-SP-SI', \
     #     flWeighted=flWeight,affinityOption=3)
     intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/hot_insn-force-1/spatial.txt', 4, strMetric='SD-SP-SI', \
