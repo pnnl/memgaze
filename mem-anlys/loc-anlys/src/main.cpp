@@ -147,18 +147,15 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
 	  	  } else {
 	  		  break;
 	  	  }
-        //XSBench HACK for k-0 separate regions - doesnt work
-        //if((double)zoominaccess>=(double)zoomThreshold*totalAccessParent)
-        //  break; 
 	    }
       //if(zoominaccess!=0) printf(" i = %d, wide = %d, zoominaccess %d , totalAccessParent %d \n", i, wide, zoominaccess, totalAccessParent);
       //Added to keep parents separate at the 'root+1' level
       //Access in Thread heap gets obscured by the stack access - so do not aggregate pages to region
       // Issues with smaller region traces - example gemm tile vs reorder
-      // SIZE hack - FIX
+      // SIZE - FIX
       if( (curPage.level == (lvlConstBlockSize-1))) {
           // Issues with smaller region traces - example gemm tile vs reorder
-          // SIZE hack - FIX
+          // SIZE - FIX
           if( (memarea.blockSize) <= levelOneSize ) {
             flCombineFirstLevel = true;
             uint32_t levelSize = 1;
@@ -212,7 +209,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
          printf(" Not zooming in stack region min = %08lx max = %08lx blockSize = %ld level =%d \n",  hotpage.min,hotpage.max, hotpage.blockSize, hotpage.level);
         }
       }
-      // SIZE hack - FIX
+      // SIZE - FIX
       if( flCombineFirstLevel == true)  {
         i = i+wide;
       }
@@ -1060,23 +1057,19 @@ int main(int argc, char ** argv){
       printf("main Spatial set min-max %d %08lx-%08lx \n", k, setRegionAddr[k].first, setRegionAddr[k].second);
     }
 
-    /* 
-    //XSBEnch hack event k-0 - START
-    vecInstRegion.clear();
-    setRegionAddr.clear();
-    spatialRegionList.clear();
-    vecInstRegion.push_back(make_pair(stoull("55eb7038bf93",0,16), stoull("55eb7038ff92",0,16)));
-    vecInstRegion.push_back(make_pair(stoull("7fa6e3aa5cf3",0,16), stoull("7fa6e3aa5d33",0,16)));
-    vecInstRegion.push_back(make_pair(stoull("7fa6e3aa7cb3",0,16), stoull("7fa6e8b85cb2",0,16)));
+    //XSBEnch trial event k-0 - START
+    //vecInstRegion.clear();
+    //setRegionAddr.clear();
+    //spatialRegionList.clear();
+    //vecInstRegion.push_back(make_pair(stoull("55eb7038bf93",0,16), stoull("55eb7038ff92",0,16)));
+    //vecInstRegion.push_back(make_pair(stoull("7fa6e3aa5cf3",0,16), stoull("7fa6e3aa5d33",0,16)));
+    //vecInstRegion.push_back(make_pair(stoull("7fa6e3aa7cb3",0,16), stoull("7fa6e8b85cb2",0,16)));
     //setRegionAddr.push_back(make_pair(stoull("55eb7038bf93",0,16), stoull("55eb7038ff92",0,16)));
     //setRegionAddr.push_back(make_pair(stoull("7fa6e3aa5cf3",0,16), stoull("7fa6e3aa5d33",0,16)));
     //setRegionAddr.push_back(make_pair(stoull("7fa6e3aa7cb3",0,16), stoull("7fa6e8b85cb2",0,16)));
-    //7fa6e3aa5cf3-7fa6e3aa5d33
-    //7fa6e3aa7cb3-7fa6e8b85cb2
 
-    //XSBEnch hack - END
+    //XSBEnch trial - END
 
-    */
 
     /*---------------------------- HOT-INSN addition START ----------------------------------*/
     // START - for-DEBUG
@@ -1347,11 +1340,11 @@ int main(int argc, char ** argv){
     for (itrRegion=finalRegionList.begin(); itrRegion != finalRegionList.end(); ++itrRegion){
       thisMemblock = *itrRegion;
       parentIndex = mapParentIndex.find(thisMemblock.strID.c_str())->second;
-      if( thisMemblock.blockSize == spatiallastlvlBlockSize) {
+      if(( thisMemblock.blockSize == spatiallastlvlBlockSize) || (thisMemblock.strID.find("HotIns") != std::string::npos)) {
         parentIndex = mapParentIndex.find(thisMemblock.strID.c_str())->second;
         vecParentFamily = vecParentChild[parentIndex];
-        //printf(" in spatial 2.6 last %d size %ld count %d memarea.min %08lx memarea.max %08lx parent %s Id %s \n", thisMemblock.level, 
-        //        thisMemblock.blockSize, thisMemblock.blockCount, thisMemblock.min, thisMemblock.max, thisMemblock.strParentID.c_str(), thisMemblock.strID.c_str());
+        printf(" in spatial STEP2.6 last %d size %ld count %d memarea.min %08lx memarea.max %08lx parent %s Id %s \n", thisMemblock.level, 
+                thisMemblock.blockSize, thisMemblock.blockCount, thisMemblock.min, thisMemblock.max, thisMemblock.strParentID.c_str(), thisMemblock.strID.c_str());
         int accessReturn = getTopAccessCountLines(vecInstAddr, thisMemblock, vecParentFamily, vecLineInfo , OSPageSize, cacheLineWidth,cntRegion);
         if(accessReturn !=0) {
           printf("Error - failed in getTopAccessCountLines\n");
