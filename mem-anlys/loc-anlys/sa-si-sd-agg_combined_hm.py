@@ -567,12 +567,18 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         listHotAffColumns.append('SI-self')
         df_hot_SP_SI_SD=df_SP_SI_SD[df_SP_SI_SD['Hot-Access'] > 0.1][listHotAffColumns].copy()
         #print(df_hot_SP_SI_SD.columns)
-        #print(df_hot_SP_SI_SD[['reg-page-blk','Access']])
+        print(df_hot_SP_SI_SD)
 
         print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' hot DF size ',df_hot_SP_SI_SD.shape )
-        df_hot_SP_SI_SD.dropna(axis=1, how='all')
-
+        df_hot_SP_SI_SD=df_hot_SP_SI_SD.dropna(axis=1, how='all')
         print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' hot DF size',df_hot_SP_SI_SD.shape )
+        pattern = re.compile('SD-.*-.*')
+        cntBlocksinHotBox = df_hot_SP_SI_SD.shape[0] *((df_hot_SP_SI_SD.shape[1]-3)/3)
+
+        listAffinityLines=list(filter(pattern.match, df_hot_SP_SI_SD.columns))
+        for i in range(0,len(listAffinityLines)):
+            listAffinityLines[i] = listAffinityLines[i].replace('SD-','')
+
         pattern = re.compile('SP-.*-.*-.*')
         hot_SP_cols=list(filter(pattern.match, df_hot_SP_SI_SD.columns))
         #print(hot_SP_cols)
@@ -600,41 +606,67 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.75].count().sum()
         print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 75% blocks ', hot_SD_count)
 
+        strFirstQuartile='SI-SP-10-25'
         strSecondQuartile='SI-SP-25-50'
         strThirdQuartile='SI-SP-50-75'
         strFourthQuartile='SI-SP-75-100'
 
-        for i in range(0,len(listAffinityLines)):
-            df_hot_SP_SI_SD[strSecondQuartile+listAffinityLines[i]]=np.NaN
-            df_hot_SP_SI_SD[strThirdQuartile+listAffinityLines[i]]=np.NaN
-            df_hot_SP_SI_SD[strFourthQuartile+listAffinityLines[i]]=np.NaN
-
-        for index, row in df_hot_SP_SI_SD.iterrows():
+        # Trial 1 for SA-SI combined metric - filter based on SA
+        flGetSIforSA=0
+        if (flGetSIforSA):
             for i in range(0,len(listAffinityLines)):
-                #print(row['SP-'+listAffinityLines[i]])#, df_hot_SP_SI_SD['SP-'+listAffinityLines[i]])
-                if(row['SP-'+listAffinityLines[i]] >= 0.25 and row['SP-'+listAffinityLines[i]] < 0.5):
+                df_hot_SP_SI_SD[strFirstQuartile+listAffinityLines[i]]=np.NaN
+                df_hot_SP_SI_SD[strSecondQuartile+listAffinityLines[i]]=np.NaN
+                df_hot_SP_SI_SD[strThirdQuartile+listAffinityLines[i]]=np.NaN
+                df_hot_SP_SI_SD[strFourthQuartile+listAffinityLines[i]]=np.NaN
+            for index, row in df_hot_SP_SI_SD.iterrows():
+                for i in range(0,len(listAffinityLines)):
+                    #print(row['SP-'+listAffinityLines[i]])#, df_hot_SP_SI_SD['SP-'+listAffinityLines[i]])
+                    if(row['SP-'+listAffinityLines[i]] >= 0.10 and row['SP-'+listAffinityLines[i]] < 0.25):
                     #print('yes > 0.25 ',row['SP-'+listAffinityLines[i]], row['SI-'+listAffinityLines[i]])
-                    df_hot_SP_SI_SD.loc[index,strSecondQuartile+listAffinityLines[i]] = row['SI-'+listAffinityLines[i]]
-                if(row['SP-'+listAffinityLines[i]] >= 0.50 and row['SP-'+listAffinityLines[i]] < 0.75):
-                    #print('yes > 0.5 ',row['SP-'+listAffinityLines[i]])
-                    df_hot_SP_SI_SD.loc[index,strThirdQuartile+listAffinityLines[i]] = row['SI-'+listAffinityLines[i]]
-                if(row['SP-'+listAffinityLines[i]] >= 0.75 ):
-                    #print('yes > 0.5 ',row['SP-'+listAffinityLines[i]])
-                    df_hot_SP_SI_SD.loc[index,strFourthQuartile+listAffinityLines[i]] = row['SI-'+listAffinityLines[i]]
+                        df_hot_SP_SI_SD.loc[index,strFirstQuartile+listAffinityLines[i]] = row['SI-'+listAffinityLines[i]]
+                    if(row['SP-'+listAffinityLines[i]] >= 0.25 and row['SP-'+listAffinityLines[i]] < 0.5):
+                        #print('yes > 0.25 ',row['SP-'+listAffinityLines[i]], row['SI-'+listAffinityLines[i]])
+                        df_hot_SP_SI_SD.loc[index,strSecondQuartile+listAffinityLines[i]] = row['SI-'+listAffinityLines[i]]
+                    if(row['SP-'+listAffinityLines[i]] >= 0.50 and row['SP-'+listAffinityLines[i]] < 0.75):
+                        #print('yes > 0.5 ',row['SP-'+listAffinityLines[i]])
+                        df_hot_SP_SI_SD.loc[index,strThirdQuartile+listAffinityLines[i]] = row['SI-'+listAffinityLines[i]]
+                    if(row['SP-'+listAffinityLines[i]] >= 0.75 ):
+                        #print('yes > 0.5 ',row['SP-'+listAffinityLines[i]])
+                        df_hot_SP_SI_SD.loc[index,strFourthQuartile+listAffinityLines[i]] = row['SI-'+listAffinityLines[i]]
 
-        for strQuartile in [strSecondQuartile, strThirdQuartile, strFourthQuartile]:
-            hot_SI_cols=[]
-            for i in range(0,len(listAffinityLines)):
-                hot_SI_cols.append(strQuartile+listAffinityLines[i])
+            for strQuartile in [strFirstQuartile, strSecondQuartile, strThirdQuartile, strFourthQuartile]:
+                hot_SI_cols=[]
+                for i in range(0,len(listAffinityLines)):
+                    hot_SI_cols.append(strQuartile+listAffinityLines[i])
 
-            hot_SP_count=df_hot_SP_SI_SD[hot_SI_cols].count().sum()
-            #print ('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' ', strQuartile, ' ',  hot_SP_count )
-            hot_SI_values=df_hot_SP_SI_SD[hot_SI_cols].to_numpy()
-            if(( not np.isnan(hot_SI_values).all()) and hot_SI_values.size !=0):
-                #print(hot_SI_values)
-                print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' ', strQuartile, ' blocks ', hot_SP_count, ' SI-min ', np.nanmin(hot_SI_values), ' SI-max ', np.nanmax(hot_SI_values))
+                hot_SP_count=df_hot_SP_SI_SD[hot_SI_cols].count().sum()
+                #print ('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' ', strQuartile, ' ',  hot_SP_count )
+                hot_SI_values=df_hot_SP_SI_SD[hot_SI_cols].to_numpy()
+                if(( not np.isnan(hot_SI_values).all()) and hot_SI_values.size !=0):
+                    #print(hot_SI_values)
+                    print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' ', strQuartile, ' blocks ', hot_SP_count, ' SI-min ', np.nanmin(hot_SI_values), ' SI-max ', np.nanmax(hot_SI_values))
 
+        # Trial 2 for SA-SI combined metric - filter based on SI
+        flGetSAforSI=1
+        if (flGetSAforSI):
+            listSAbins = [0] * 10
+            for index, row in df_hot_SP_SI_SD.iterrows():
+                for i in range(0,len(listAffinityLines)):
+                    #print(row['SP-'+listAffinityLines[i]])#, df_hot_SP_SI_SD['SP-'+listAffinityLines[i]])
+                    if(row['SI-'+listAffinityLines[i]] <= 63 ):
+                        cmpSAvalue = row['SP-'+listAffinityLines[i]]
+                    else:
+                        valSIPenalty = (row['SI-'+listAffinityLines[i]]% 63)+1
+                        cmpSAvalue = row['SP-'+listAffinityLines[i]] /valSIPenalty
+                    for i in range (0, len(listSAbins)):
+                        if( (i * 0.1) >= cmpSAvalue and cmpSAvalue < ((i+1) * 0.1)):
+                            listSAbins[i] +=1
+                            break
 
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' listSAbins ', listSAbins)
+            listPercentSAbins = [int(float(x) * 100/ cntBlocksinHotBox) for x in listSAbins]
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SAbins ', listPercentSAbins)
 
         #print(df_hot_SP_SI_SD.columns)
         print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP-self-mean ', df_hot_SP_SI_SD['SP-self'].mean())
@@ -928,8 +960,8 @@ if(1):
     #         listCombineReg=['5-HotIns-11', '6-HotIns-12'], flWeighted=flWeight,affinityOption=3)
     #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-story-copy/spatial.txt',3,strMetric='SD-SP-SI', \
     #         listCombineReg=['6-HotIns-11', '7-HotIns-12'], flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-story-noseed-copy/spatial.txt',3,strMetric='SD-SP-SI', \
-             listCombineReg=['6-HotIns-11', '7-HotIns-12'], flWeighted=flWeight,affinityOption=3)
+    #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-story-noseed-copy/spatial.txt',3,strMetric='SD-SP-SI', \
+    #         listCombineReg=['6-HotIns-11', '7-HotIns-12'], flWeighted=flWeight,affinityOption=3)
 
 
     #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000/spatial.txt',2,strMetric='SD-SP-SI', \
@@ -964,12 +996,12 @@ if (0): #Unused
     intraObjectPlot('XSB-AOS-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-code-change/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 3, strMetric='SD-SP-SI', \
         flWeighted=flWeight,affinityOption=3)
 
-if (0):
+if (1):
     #intraObjectPlot('XSB-rd-HIST',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-hist/spatial.txt', 2, strMetric='SD-SP-SI', \
     #     flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/hot_insn-force-1/spatial.txt', 4, strMetric='SD-SP-SI', \
+    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/hot_insn-force-1/spatial.txt', 1, strMetric='SD-SP-SI', \
           flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 3, strMetric='SD-SP-SI', \
+    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 1, strMetric='SD-SP-SI', \
          flWeighted=flWeight,affinityOption=3)
 
 
