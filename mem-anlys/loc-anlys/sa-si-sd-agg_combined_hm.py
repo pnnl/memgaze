@@ -567,53 +567,60 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         listHotAffColumns.append('SI-self')
         df_hot_SP_SI_SD=df_SP_SI_SD[df_SP_SI_SD['Hot-Access'] > 0.1][listHotAffColumns].copy()
         #print(df_hot_SP_SI_SD.columns)
-        print(df_hot_SP_SI_SD)
+        #print(df_hot_SP_SI_SD)
 
         print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' hot DF size ',df_hot_SP_SI_SD.shape )
         df_hot_SP_SI_SD=df_hot_SP_SI_SD.dropna(axis=1, how='all')
         print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' hot DF size',df_hot_SP_SI_SD.shape )
-        pattern = re.compile('SD-.*-.*')
-        cntBlocksinHotBox = df_hot_SP_SI_SD.shape[0] *((df_hot_SP_SI_SD.shape[1]-3)/3)
 
+        pattern = re.compile('SD-.*')
+        cntBlocksinHotBox = df_hot_SP_SI_SD.shape[0] *((df_hot_SP_SI_SD.shape[1]-3)/3)
         listAffinityLines=list(filter(pattern.match, df_hot_SP_SI_SD.columns))
         for i in range(0,len(listAffinityLines)):
             listAffinityLines[i] = listAffinityLines[i].replace('SD-','')
 
-        pattern = re.compile('SP-.*-.*-.*')
-        hot_SP_cols=list(filter(pattern.match, df_hot_SP_SI_SD.columns))
-        #print(hot_SP_cols)
-        #print(df_hot_SP_SI_SD[hot_SP_cols]>0.25)
-        hot_SP_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SP_cols] >= 0.1].count().sum()
-        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP 10% blocks ', hot_SP_count)
-        hot_SP_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SP_cols] >= 0.25].count().sum()
-        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP 25% blocks ', hot_SP_count)
-        hot_SP_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SP_cols] >= 0.50].count().sum()
-        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP 50% blocks ', hot_SP_count)
-        hot_SP_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SP_cols] >= 0.75].count().sum()
-        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP 75% blocks ', hot_SP_count)
-
-        pattern = re.compile('SD-.*-.*-.*')
-        hot_SD_cols=list(filter(pattern.match, df_hot_SP_SI_SD.columns))
-        #print(df_hot_SP_SI_SD[hot_SD_cols])
-        hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.05].count().sum()
-        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 5% blocks ', hot_SD_count)
-        hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.1].count().sum()
-        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 10% blocks ', hot_SD_count)
-        hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.25].count().sum()
-        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 25% blocks ', hot_SD_count)
-        hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.50].count().sum()
-        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 50% blocks ', hot_SD_count)
-        hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.75].count().sum()
-        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 75% blocks ', hot_SD_count)
-
-        strFirstQuartile='SI-SP-10-25'
-        strSecondQuartile='SI-SP-25-50'
-        strThirdQuartile='SI-SP-50-75'
-        strFourthQuartile='SI-SP-75-100'
-
+        #print(df_hot_SP_SI_SD['reg-page-blk'])
+        listHotRefLines = df_hot_SP_SI_SD['reg-page-blk'].to_list()
+        #print (listHotRefLines)
+        #print(listAffinityLines)
+        # Cannot count self affinity twice - so number of hot blocks in bounded box is less than the size of rectangle
+        listSelfHotAffLines = [x for x in listAffinityLines if x in listHotRefLines]
+        print ('listSelfHotAffLines ', listSelfHotAffLines)
         # Trial 1 for SA-SI combined metric - filter based on SA
         flGetSIforSA=0
         if (flGetSIforSA):
+            pattern = re.compile('SP-.*-.*-.*')
+            hot_SP_cols=list(filter(pattern.match, df_hot_SP_SI_SD.columns))
+            #print(hot_SP_cols)
+            #print(df_hot_SP_SI_SD[hot_SP_cols]>0.25)
+            hot_SP_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SP_cols] >= 0.1].count().sum()
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP 10% blocks ', hot_SP_count)
+            hot_SP_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SP_cols] >= 0.25].count().sum()
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP 25% blocks ', hot_SP_count)
+            hot_SP_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SP_cols] >= 0.50].count().sum()
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP 50% blocks ', hot_SP_count)
+            hot_SP_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SP_cols] >= 0.75].count().sum()
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP 75% blocks ', hot_SP_count)
+
+            pattern = re.compile('SD-.*-.*-.*')
+            hot_SD_cols=list(filter(pattern.match, df_hot_SP_SI_SD.columns))
+            #print(df_hot_SP_SI_SD[hot_SD_cols])
+            hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.05].count().sum()
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 5% blocks ', hot_SD_count)
+            hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.1].count().sum()
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 10% blocks ', hot_SD_count)
+            hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.25].count().sum()
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 25% blocks ', hot_SD_count)
+            hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.50].count().sum()
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 50% blocks ', hot_SD_count)
+            hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.75].count().sum()
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 75% blocks ', hot_SD_count)
+
+            strFirstQuartile='SI-SP-10-25'
+            strSecondQuartile='SI-SP-25-50'
+            strThirdQuartile='SI-SP-50-75'
+            strFourthQuartile='SI-SP-75-100'
+
             for i in range(0,len(listAffinityLines)):
                 df_hot_SP_SI_SD[strFirstQuartile+listAffinityLines[i]]=np.NaN
                 df_hot_SP_SI_SD[strSecondQuartile+listAffinityLines[i]]=np.NaN
@@ -647,31 +654,57 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     #print(hot_SI_values)
                     print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' ', strQuartile, ' blocks ', hot_SP_count, ' SI-min ', np.nanmin(hot_SI_values), ' SI-max ', np.nanmax(hot_SI_values))
 
+        print(' Hot affinity lines ', listAffinityLines)
         # Trial 2 for SA-SI combined metric - filter based on SI
         flGetSAforSI=1
         if (flGetSAforSI):
-            listSAbins = [0] * 10
+            listSAbins = [0] * 20
+            listSDbins = [0] * 2
             for index, row in df_hot_SP_SI_SD.iterrows():
                 for i in range(0,len(listAffinityLines)):
                     #print(row['SP-'+listAffinityLines[i]])#, df_hot_SP_SI_SD['SP-'+listAffinityLines[i]])
                     if(row['SI-'+listAffinityLines[i]] <= 63 ):
                         cmpSAvalue = row['SP-'+listAffinityLines[i]]
+                        cmpSDvalue = row['SD-'+listAffinityLines[i]]
                     else:
                         valSIPenalty = (row['SI-'+listAffinityLines[i]]% 63)+1
                         cmpSAvalue = row['SP-'+listAffinityLines[i]] /valSIPenalty
+                        cmpSDvalue = row['SD-'+listAffinityLines[i]] /valSIPenalty
+                    #print( 'cmpSAvalue ', cmpSAvalue, ' cntSA ' , cntSA)
+                    #if(np.isnan(cmpSAvalue)):
+                    #    print('listAffinityLines[i] ', listAffinityLines[i], row)
+                    #cntSA += 1
                     for i in range (0, len(listSAbins)):
-                        if( (i * 0.1) >= cmpSAvalue and cmpSAvalue < ((i+1) * 0.1)):
+                        #print(' before value ', cmpSAvalue, ' bin ', i)
+                        if( ((i * 0.05) <= float(cmpSAvalue)) and (float(cmpSAvalue) < ((i+1) * 0.05))):
                             listSAbins[i] +=1
+                            #print('in if value ', cmpSAvalue, ' bin ', i)
                             break
+                    if (~np.isnan(cmpSDvalue) and cmpSDvalue!=0):
+                        if(cmpSDvalue < 0.05) :
+                            listSDbins[0] +=1
+                        else:
+                            listSDbins[1] +=1
 
+
+            listPercentSAbins = [(float(x) * 100/ (cntBlocksinHotBox-(len(listSelfHotAffLines)))) for x in listSAbins]
+            listPercentSDbins = [(float(x) * 100/ (cntBlocksinHotBox-(len(listSelfHotAffLines)))) for x in listSDbins]
+            listPercentSAbins =  [ round(elem,2) for elem in listPercentSAbins ]
+            listPercentSDbins =  [ round(elem,2) for elem in listPercentSDbins ]
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' listSAbins ', listSAbins)
-            listPercentSAbins = [int(float(x) * 100/ cntBlocksinHotBox) for x in listSAbins]
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' sumSAbins ', sum(listSAbins))
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SAbins ', listPercentSAbins)
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SAbins bad ', sum(listPercentSAbins[:5]))
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SAbins good ', sum(listPercentSAbins[5:]))
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' listSDbins ', listSDbins)
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SDbins ', listPercentSDbins)
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SDbins bad ', listPercentSDbins[0])
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SDbins good ', listPercentSDbins[1])
 
         #print(df_hot_SP_SI_SD.columns)
-        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP-self-mean ', df_hot_SP_SI_SD['SP-self'].mean())
-        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD-self-mean ', df_hot_SP_SI_SD['SD-self'].mean())
-        print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SI-self-mean ', df_hot_SP_SI_SD['SI-self'].mean())
+        #print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP-self-mean ', df_hot_SP_SI_SD['SP-self'].mean())
+        #print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD-self-mean ', df_hot_SP_SI_SD['SD-self'].mean())
+        #print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SI-self-mean ', df_hot_SP_SI_SD['SI-self'].mean())
 
 
         # STEP 5a - Fill in hot lines with self data
