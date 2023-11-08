@@ -176,8 +176,8 @@ def readFile(inFile, outFile,appName):
                   objFile_C = ''
                   varVersion = 'xs: '
                 if (appName == 'xsbench-read'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading/memgaze-xs-read/XSBench-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading/memgaze-xs-read/obj_XSBench'
+                  logFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-noflto/memgaze-xs-read/obj_XSBench'
                   objFile_C = ''
                   varVersion = 'xs: '
                 if (appName == 'xsbench-sel'): 
@@ -323,15 +323,25 @@ def readFile(inFile, outFile,appName):
                   traceIns = int(str(varInst), 16)
                   dyninstBase = int(str(1000), 16)
                   logInst = traceIns - dyninstBase
-                  print ('1 ', traceIns, dyninstBase, logInst )
+                  #print ('1 ', traceIns, dyninstBase, logInst )
                   varInstgr=hex(logInst)
-                  print ('2 ', logInst, varInstgr)
+                  #print ('2 ', logInst, varInstgr)
                 command = 'grep '+varInstgr+' '+logFile
                 strMapping =''
+                strSpillCode=''
                 try:
                   strMapping = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT,universal_newlines=True)
                 except subprocess.CalledProcessError as grepexc:
                   print("log file error code ", command, grepexc.returncode, grepexc.output)
+                  # count for spill code entries - always located before 11 bytes
+                  newVarInstgr = int(str(varInstgr), 16)- 11 
+                  varInstgr=hex(newVarInstgr)
+                  command = 'grep '+varInstgr+' '+logFile
+                  strSpillCode='**'
+                  try:
+                    strMapping = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT,universal_newlines=True)
+                  except subprocess.CalledProcessError as grepexc:
+                    print("log file error code ", command, grepexc.returncode, grepexc.output)
                 if (strMapping !=''):
                   strMapping = str(strMapping.strip())
                   if('\n' in strMapping):
@@ -392,7 +402,7 @@ def readFile(inFile, outFile,appName):
                             #print("ELSE", key)
                             fnStartIP = dictFnIdentify[key]
                             fnName = dictFnMap[fnStartIP]
-                  writeLine = varVersion+' '+data[0]+ ' '+varInstgr+' '+ grData[5] + ' '+fnStartIP+ ' '+fnName+' '+ strResult+' \n'
+                  writeLine = varVersion+' '+data[0]+ ' '+varInstgr+' '+ strSpillCode + grData[5] + ' '+fnStartIP+ ' '+fnName+' '+ strResult+' \n'
             if(processLine ==0):
               f_out.write(fileLine)
             else:
