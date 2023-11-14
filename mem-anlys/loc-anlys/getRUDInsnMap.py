@@ -176,13 +176,13 @@ def readFile(inFile, outFile,appName):
                   objFile_C = ''
                   varVersion = 'xs: '
                 if (appName == 'xsbench-read'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-noflto/memgaze-xs-read/obj_XSBench'
+                  logFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading/memgaze-xs-read-copy/XSBench-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading/memgaze-xs-read-copy/obj_XSBench'
                   objFile_C = ''
                   varVersion = 'xs: '
                 if (appName == 'xsbench-sel'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading/memgaze-xs-sel/XSBench-sel-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading/memgaze-xs-sel/obj_XSBench'
+                  logFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-sel-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/obj_XSBench'
                   objFile_C = ''
                   varVersion = 'xs: '
                 if (appName == 'gemm'): 
