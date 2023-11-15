@@ -5,9 +5,9 @@ import subprocess
 import argparse
 import string
 
-numDebug =0
+numDebug =1
 def genGrepCmd(strPerfFile, strTraceFile):
-print('Running match for ', strPerfFile , ' ' , strTraceFile)
+  print('Running match for ', strPerfFile , ' ' , strTraceFile)
   strInstBin =''
   command =''
   strTraceCnt=''
@@ -39,8 +39,10 @@ print('Running match for ', strPerfFile , ' ' , strTraceFile)
             if (numDebug):
               print(strInstBin)
             if (strInstBin != ''):
-              command = 'grep -c '+ strBinanlys+ ' ' + strTraceFile + ' | cut -d " " -f 1 '
-              #print(command)
+              strInstBin = strInstBin.strip('\n')
+              command = 'grep -c '+ strInstBin + ' ' + strTraceFile 
+              if (numDebug):
+                print(command)
               try:
                 strTraceCnt= subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT,universal_newlines=True)
               except subprocess.CalledProcessError as grepexc:
@@ -51,6 +53,6 @@ print('Running match for ', strPerfFile , ' ' , strTraceFile)
               if (strTraceCnt != ''):              
                 print(perLoad , data[4], strBinanlys, strTraceCnt, (float(strTraceCnt)/numTotalTrace)*100)
   f.close()
-genGrepCmd('./hist_cache_loads.txt', './XSBench-memgaze-trace-b16384-p4000000-hist/XSBench-memgaze.trace')
-genGrepCmd('./event_k-0_loads.txt', './XSBench-memgaze-trace-b16384-p4000000-event-k-0/XSBench-memgaze.trace')
-genGrepCmd('./event_k-1_loads.txt', './XSBench-memgaze-trace-b16384-p4000000-event-k-1/XSBench-memgaze.trace')
+genGrepCmd('./hist_loads_gridinit.txt', './XSBench-memgaze-trace-b8192-p5000000-hist-gridinit/XSBench-memgaze.trace')
+#genGrepCmd('./event_k-0_loads_gridinit.txt', './XSBench-memgaze-trace-b8192-p5000000-event-k-0-gridinit/XSBench-memgaze.trace')
+#genGrepCmd('./event_k-1_loads_gridinit.txt', './XSBench-memgaze-trace-b8192-p5000000-event-k-1-gridinit/XSBench-memgaze.trace')
