@@ -116,7 +116,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         regionIdNum= regionIdNumName[:regionIdNumName.index('-')]
         print('regionIdName ', regionIdName, 'regionIdNumName ', regionIdNumName, regionIdNum)
         data_list_intra_obj=[]
-
+        #print(df_inter_data['Reg_Num-Name'])
         # STEP 3a - Combine regions if there are any - incremental heatmaps are written out as of March 2, 2023
         if(listCombineReg != None and regionIdNumName in listCombineReg):
             #print('Not None', regionIdNumName)
@@ -692,8 +692,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             print(listSDbins)
             listPercentSAbins = [(float(x) * 100/ (cntBlocksinHotBox-(len(listSelfHotAffLines)))) for x in listSAbins]
             listPercentSDbins = [(float(x) * 100/ (cntBlocksinHotBox-(len(listSelfHotAffLines)))) for x in listSDbins]
-            listPercentSAbins =  [ round(elem,0) for elem in listPercentSAbins ]
-            listPercentSDbins =  [ round(elem,0) for elem in listPercentSDbins ]
+            listPercentSAbins =  [ round(elem) for elem in listPercentSAbins ]
+            listPercentSDbins =  [ round(elem) for elem in listPercentSDbins ]
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' listSAbins ', listSAbins)
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' sumSAbins ', sum(listSAbins))
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SAbins ', listPercentSAbins)
@@ -1040,14 +1040,14 @@ if (0): # Instrumentation - NOP stops
     intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 1, strMetric='SD-SP-SI', \
          flWeighted=flWeight,affinityOption=3)
 
-if (0):
+if (1):
     intraObjectPlot('XSB-rd-EVENT_k0', \
-        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-1/XSBench-memgaze-trace-b8192-p4000000-event-k-0/spatial.txt', 1, strMetric='SD-SP-SI', \
-        flWeighted=flWeight,affinityOption=3)
+        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-0/hot-insn/spatial.txt', 10, strMetric='SD-SP-SI', \
+        listCombineReg=['8-B0060001', '9-B0060002'],flWeighted=flWeight,affinityOption=3)
     intraObjectPlot('XSB-rd-EVENT_OPT_k1', \
-        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-1/XSBench-memgaze-trace-b8192-p4000000-event-k-1/spatial.txt', \
-        2, strMetric='SD-SP-SI', \
-        listCombineReg=['0-A0000000','1-A0000001'], flWeighted=flWeight,affinityOption=3)
+        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-1/hot-insn/spatial.txt', \
+        9, strMetric='SD-SP-SI', \
+        listCombineReg=['7-HotIns-02','8-HotIns-01'], flWeighted=flWeight,affinityOption=3)
 
 if (0): # useless
     intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 3, strMetric='SD-SP-SI', \
@@ -1064,7 +1064,7 @@ if (0): # Separate source code 391 line - doesnt add any value
     intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b8192-p6000000-event-k-1/spatial.txt', 4, strMetric='SD-SP-SI', \
          listCombineReg=['2-C0000000','3-C0000001','4-C0000002'], flWeighted=flWeight,affinityOption=3)
 
-if(1):
+if(0):
     intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD-SP-SI', \
                  flWeighted=flWeight,affinityOption=3)
     intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/hot_lines/v2_spatial_det.txt',3,strMetric='SD-SP-SI', \
