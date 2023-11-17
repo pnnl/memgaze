@@ -10,7 +10,7 @@
 //Data stored as <IP addr core initialtime\n>
 // Core is not processed in RUD or spatial correlational analysis
 int readTrace(string filename, int *intTotalTraceLine,  vector<TraceLine *>& vecInstAddr, uint32_t *windowMin, uint32_t *windowMax, 
-                            double *windowAvg, uint64_t * max, uint64_t * min) ;
+                            double *windowAvg, uint64_t * max, uint64_t * min, uint32_t * totalSamples) ;
 void getInstInRange(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,MemArea memarea) ;
 void getRegionforInst(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,uint64_t loadInst, vector<std::pair<uint64_t,uint64_t>>& vecInstRegion) ;
 
