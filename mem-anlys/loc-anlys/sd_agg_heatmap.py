@@ -251,7 +251,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             #print('before weight \n ' , df_intra_obj[['reg-page-blk', 'Access', 'self', 'self+1', 'self-255']])
             normSDMax=np.ones(len(arRegPages))
             list_DF_Intra_obj = df_intra_obj.values.tolist()
-            newlist = [x for x in list_DF_Intra_obj[2] if pd.isnull(x) == False]
+            #print(list_DF_Intra_obj)
+            #newlist = [x for x in list_DF_Intra_obj[2] if pd.isnull(x) == False]
             #print(newlist)
             for i in range (0, len(list_DF_Intra_obj)):
                 regPageId = list_DF_Intra_obj[i][0]
@@ -575,7 +576,7 @@ numExtraPages=64
 
 #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b8192-p5000000/spatial.txt',3,strMetric='SD', \
 #            flWeight=flWeight,affinityOption=3)
-if(1):
+if(0):
     f_avg1=open(mainPath+'spatial_pages_exp/miniVite/hot_lines/sd_avg_log.txt','w')
     intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD', \
              flWeight=flWeight,affinityOption=3,f_avg=f_avg1,flPlot=False)
@@ -592,6 +593,17 @@ if(1):
   #          listCombineReg=['1-A0000010','4-A0002000'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
   #  intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SD', \
   #          listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
+    f_avg1.close()
+
+if (1):
+    f_avg1=open(mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/sd_avg_log.txt','w')
+    intraObjectPlot('XSB-rd-EVENT_k0', \
+        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-0/hot-insn/spatial.txt', 10, strMetric='SD', \
+        listCombineReg=['8-B0060001', '9-B0060002'],flWeight=flWeight,affinityOption=3,f_avg=f_avg1,flPlot=False)
+    intraObjectPlot('XSB-rd-EVENT_OPT_k1', \
+        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-1/hot-insn/spatial.txt', \
+        9, strMetric='SD', \
+        listCombineReg=['7-HotIns-02','8-HotIns-01'], flWeight=flWeight,affinityOption=3,f_avg=f_avg1,flPlot=False)
     f_avg1.close()
 
 if(0):
