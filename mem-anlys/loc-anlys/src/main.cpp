@@ -713,6 +713,7 @@ int main(int argc, char ** argv){
 	}
   //check the memory area for the first time
 	uint32_t totalAccess = 0;
+	uint32_t totalSamples = 0;
   std::cout << "Application: " << memoryfile << "\n";
 	printf("Reading trace with load address in range min %lx max %lx \n", traceMin, traceMax);
   uint32_t windowMin;
@@ -721,7 +722,7 @@ int main(int argc, char ** argv){
   windowMin=0; 
   windowMax=0;
   windowAvg=0.0;
-  int readReturn = readTrace(memoryfile, &intTotalTraceLine, vecInstAddr, &windowMin, &windowMax, &windowAvg, &traceMax, &traceMin);
+  int readReturn = readTrace(memoryfile, &intTotalTraceLine, vecInstAddr, &windowMin, &windowMax, &windowAvg, &traceMax, &traceMin, &totalSamples);
   if(readReturn == -1) {
     printf("Error in readTrace \n");
     return -1;
@@ -742,6 +743,7 @@ int main(int argc, char ** argv){
   printf( "Number of lines in trace %d number of lines with valid addresses %ld total access %d \n", 
           intTotalTraceLine, vecInstAddr.size(), totalAccess);
 	printf("Data from Trace load address min %lx max %lx \n", traceMin, traceMax);
+  printf("number of samples in trace %d \n", totalSamples);
   printf("Sample sizes in trace min %d max %d average %f \n", windowMin, windowMax, windowAvg);
   printf("Using Zoom perrcent value %lf\n", zoomThreshold); 
 	printf("Using heap address range to max of %lx \n", heapAddrEnd);
@@ -1000,6 +1002,10 @@ int main(int argc, char ** argv){
       printf("HOT INSN %08lx count %d\n", vecInstAccessCount.at(cntHotInsn).first, vecInstAccessCount.at(cntHotInsn).second);
       getRegionforInst(&spatialOutInsnFile, vecInstAddr,vecInstAccessCount.at(cntHotInsn).first, vecInstRegion);
     }
+
+    //XSBench get region for 1011be
+    //getRegionforInst(&spatialOutInsnFile, vecInstAddr,1053118, vecInstRegion);
+
     sort(vecInstRegion.begin(), vecInstRegion.end());
     for (size_t cntHotInsn=0; cntHotInsn < vecInstRegion.size(); cntHotInsn++)  {
       printf(" HOT INSN region  %08lx - %08lx \n", vecInstRegion.at(cntHotInsn).first, vecInstRegion.at(cntHotInsn).second);
@@ -1061,12 +1067,14 @@ int main(int argc, char ** argv){
     //vecInstRegion.clear();
     //setRegionAddr.clear();
     //spatialRegionList.clear();
-    //vecInstRegion.push_back(make_pair(stoull("55eb7038bf93",0,16), stoull("55eb7038ff92",0,16)));
-    //vecInstRegion.push_back(make_pair(stoull("7fa6e3aa5cf3",0,16), stoull("7fa6e3aa5d33",0,16)));
-    //vecInstRegion.push_back(make_pair(stoull("7fa6e3aa7cb3",0,16), stoull("7fa6e8b85cb2",0,16)));
-    //setRegionAddr.push_back(make_pair(stoull("55eb7038bf93",0,16), stoull("55eb7038ff92",0,16)));
-    //setRegionAddr.push_back(make_pair(stoull("7fa6e3aa5cf3",0,16), stoull("7fa6e3aa5d33",0,16)));
-    //setRegionAddr.push_back(make_pair(stoull("7fa6e3aa7cb3",0,16), stoull("7fa6e8b85cb2",0,16)));
+    //HOT-INSN add closed REGION set min-max 7f01775255eb-7f01796d95ea
+
+    //vecInstRegion.push_back(make_pair(stoull("556bed66d704",0,16), stoull("556bed67d703",0,16)));
+    //vecInstRegion.push_back(make_pair(stoull("7f017249d5eb",0,16), stoull("7f0174ca55ea",0,16)));
+    //vecInstRegion.push_back(make_pair(stoull("7f01754a7010",0,16), stoull("7f017f64e0e6",0,16)));
+    //setRegionAddr.push_back(make_pair(stoull("556bed66d704",0,16), stoull("556bed67d703",0,16)));
+    //setRegionAddr.push_back(make_pair(stoull("7f017249d5eb",0,16), stoull("7f0174ca55ea",0,16)));
+    //setRegionAddr.push_back(make_pair(stoull("7f01754a7010",0,16), stoull("7f017f64e0e6",0,16)));
 
     //XSBEnch trial - END
 

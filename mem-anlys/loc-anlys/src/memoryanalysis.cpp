@@ -16,7 +16,7 @@ int printProgress =1;
 //Data stored as <IP addr core initialtime\n>
 // Core is not processed in RUD or spatial correlational analysis
 int readTrace(string filename, int *intTotalTraceLine,  vector<TraceLine *>& vecInstAddr, uint32_t *windowMin, uint32_t *windowMax, 
-                            double *windowAvg, uint64_t * max, uint64_t * min)
+                            double *windowAvg, uint64_t * max, uint64_t * min, uint32_t * totalSamples)
 {
 	// File pointer 
   fstream fin; 
@@ -44,6 +44,7 @@ int readTrace(string filename, int *intTotalTraceLine,  vector<TraceLine *>& vec
   TraceLine *ptrTraceLine;
   uint64_t addrLowThreshold = *min; 
   uint64_t addrHighThreshold = *max; 
+  bool flFirstLine = true;
   *min = UINT64_MAX;
   *max = 0;
 
@@ -82,10 +83,11 @@ int readTrace(string filename, int *intTotalTraceLine,  vector<TraceLine *>& vec
           instTime= stoull(inittime);
         	getline(s,sampleIdStr,' ');
           sampleId= stoull(sampleIdStr);
-          if ( (curSampleId ==0) && (prevSampleId ==0)) {
-             curSampleId=sampleId;
+          if ( (curSampleId ==0) && (prevSampleId ==0)  &&(flFirstLine)) {
+            curSampleId=sampleId;
             prevSampleId=sampleId;
             numSamples++;
+            flFirstLine = false;
           }
           curSampleId=sampleId;
           if ( curSampleId != prevSampleId) {
@@ -114,6 +116,7 @@ int readTrace(string filename, int *intTotalTraceLine,  vector<TraceLine *>& vec
       } 
     }
   }
+  *totalSamples = numSamples;
   return 0;
 }
 
@@ -160,6 +163,7 @@ void getInstInRange(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,Mem
 
 void getRegionforInst(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,uint64_t loadInst, vector<std::pair<uint64_t,uint64_t>>& vecInstRegion)
 {
+  printf("getRegionforInst  inst %lx ", loadInst);
   TraceLine *ptrTraceLine;
   uint64_t regLowAddr =0;
   uint64_t regHighAddr =0;
@@ -179,7 +183,7 @@ void getRegionforInst(std::ofstream *outFile, vector<TraceLine *>& vecInstAddr,u
           }
         }
   }
-  printf(" inst %lx loadInst , low %lx high %lx\n", loadInst, regLowAddr, regHighAddr);
+  printf("getRegionforInst  inst %lx loadInst , low %lx high %lx\n", loadInst, regLowAddr, regHighAddr);
   vecInstRegion.push_back(make_pair(regLowAddr, regHighAddr));
 }
 
@@ -233,7 +237,7 @@ void getTopInst(vector<TraceLine *>& vecInstAddr,vector<std::pair<uint64_t,uint3
   }
   sort(sortInstr.begin(), sortInstr.end(),greater<>()); 
   for (itr=sortInstr.begin(); itr!=sortInstr.end(); itr++){
-      printf("%u\t0x%lx \n", itr->first, itr->second);
+      printf("getTopInst 2percent %u\t0x%lx \n", itr->first, itr->second);
   }
   size_t maxInsnCnt = sortInstr.size()> 10 ? 10 : sortInstr.size();
   for (size_t itrVec=0; itrVec< maxInsnCnt; itrVec++) {
