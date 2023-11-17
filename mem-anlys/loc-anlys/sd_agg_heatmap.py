@@ -291,14 +291,19 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print('self columns ',df_intra_obj_sort.iloc[0,5:(516)] )
         blkAccessPercent =0
         sumBlkAccess =0
+        hotRefMaxAccess=df_intra_obj_sort['Access'].max()
+        hotRefMinAccess=df_intra_obj_sort['Access'].min()
+        refRange=hotRefMaxAccess-hotRefMinAccess
+        #print((df_SP_SI_SD['Access']-hotRefMinAccess)/refRange)
         if (strMetric == 'SD'):
             for df_id in range (0, len(df_intra_obj_sort)):
-                blkAccessPercent = float(sumBlkAccess / sumAccess)
-                if(blkAccessPercent <= 1.0 ):
+                #blkAccessPercent = float(sumBlkAccess / sumAccess)
+                #if(blkAccessPercent <= 1.0 ):
                     #print(' % ' , blkAccessPercent)
-                    blk_id=df_intra_obj_sort.iloc[df_id,1]
-                    blk_access = df_intra_obj_sort.iloc[df_id,2]
-                    sumBlkAccess += blk_access
+                blk_id=df_intra_obj_sort.iloc[df_id,1]
+                blk_access = df_intra_obj_sort.iloc[df_id,2]
+                if( (blk_access - hotRefMinAccess) / refRange > 0.1):
+                    #sumBlkAccess += blk_access
                     #print(blk_id, blk_access)
                     df_row=pd.to_numeric(df_intra_obj_sort.iloc[df_id,5:(516)]).squeeze()
                     first_index=df_row.first_valid_index()
@@ -313,7 +318,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     else:
                         last_value=int(''.join(filter(str.isdigit, last_index)))
                     valid_range=first_value+last_value+1
-                    print(blk_id, blk_access, first_index, last_index, valid_range)
+                    #print(blk_id, blk_access, first_index, last_index, valid_range)
 
                     list_SD_range_gap.append([blk_id,blk_access, first_value,last_value,valid_range, df_row.count() ])
 
@@ -588,6 +593,9 @@ if(1):
     #         flWeight=False,affinityOption=3,f_avg=f_avg1,flPlot=False)
     #intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SD', \
     #        listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1,flPlot=False)
+    intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/hot_lines/v2_spatial_det.txt',3,strMetric='SD', \
+            listCombineReg=['1-A0000010','4-A0002000'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
+
     intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SD', \
             listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1,flPlot=False)
 
@@ -595,7 +603,7 @@ if(1):
   #          listCombineReg=['1-A0000010','4-A0002000'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
   #  intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SD', \
   #          listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
-    f_avg1.close()
+    #f_avg1.close()
 
 if (0):
     f_avg1=None
