@@ -252,8 +252,6 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             normSDMax=np.ones(len(arRegPages))
             list_DF_Intra_obj = df_intra_obj.values.tolist()
             #print(list_DF_Intra_obj)
-            #newlist = [x for x in list_DF_Intra_obj[2] if pd.isnull(x) == False]
-            #print(newlist)
             for i in range (0, len(list_DF_Intra_obj)):
                 regPageId = list_DF_Intra_obj[i][0]
                 regPageBlkId = list_DF_Intra_obj[i][1]
@@ -282,7 +280,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # STEP 3e - Range and Count mean, standard deviation to understand the original spread of heatmap
         # STEP 3e - Range and Count mean, calculate before sampling
         # START Lexi-BFS - experiment #3 - SD range & gap analysis
-        print('dataframe length', len(df_intra_obj))
+        print('dataframe row count', len(df_intra_obj))
         #print(df_intra_obj['Access'])
         df_intra_obj_sort=df_intra_obj.sort_values(by=['Access'],ascending=False)
         sumAccess = df_intra_obj_sort['Access'].sum()
@@ -296,15 +294,16 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         if (strMetric == 'SD'):
             for df_id in range (0, len(df_intra_obj_sort)):
                 blkAccessPercent = float(sumBlkAccess / sumAccess)
-                if(blkAccessPercent <= 0.9 ):
-                    print(' % ' , blkAccessPercent)
+                if(blkAccessPercent <= 1.0 ):
+                    #print(' % ' , blkAccessPercent)
                     blk_id=df_intra_obj_sort.iloc[df_id,1]
                     blk_access = df_intra_obj_sort.iloc[df_id,2]
                     sumBlkAccess += blk_access
-                    print(blk_id, blk_access)
+                    #print(blk_id, blk_access)
                     df_row=pd.to_numeric(df_intra_obj_sort.iloc[df_id,5:(516)]).squeeze()
                     first_index=df_row.first_valid_index()
                     last_index=df_row.last_valid_index()
+
                     if ( first_index == 'self'):
                         first_value=0
                     else:
@@ -314,6 +313,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     else:
                         last_value=int(''.join(filter(str.isdigit, last_index)))
                     valid_range=first_value+last_value+1
+                    print(blk_id, blk_access, first_index, last_index, valid_range)
+
                     list_SD_range_gap.append([blk_id,blk_access, first_value,last_value,valid_range, df_row.count() ])
 
             #print(list_SD_range_gap)
@@ -570,24 +571,25 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
 
 
-flWeight = True
+flWeight = False
 mainPath='/Users/suri836/Projects/spatial_rud/'
 numExtraPages=64
 
 #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b8192-p5000000/spatial.txt',3,strMetric='SD', \
 #            flWeight=flWeight,affinityOption=3)
-if(0):
-    f_avg1=open(mainPath+'spatial_pages_exp/miniVite/hot_lines/sd_avg_log.txt','w')
+if(1):
+    f_avg1=None
+    #f_avg1=open(mainPath+'spatial_pages_exp/miniVite/hot_lines/sd_avg_log_new.txt','w')
     intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD', \
              flWeight=flWeight,affinityOption=3,f_avg=f_avg1,flPlot=False)
-    intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SP', \
-             flWeight=flWeight,affinityOption=3,f_avg=f_avg1,flPlot=False)
-    intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SI', \
-             flWeight=False,affinityOption=3,f_avg=f_avg1,flPlot=False)
-    intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SP', \
+    #intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SP', \
+    #         flWeight=flWeight,affinityOption=3,f_avg=f_avg1,flPlot=False)
+    #intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SI', \
+    #         flWeight=False,affinityOption=3,f_avg=f_avg1,flPlot=False)
+    #intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SD', \
+    #        listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1,flPlot=False)
+    intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SD', \
             listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1,flPlot=False)
-    intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SI', \
-            listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=False,affinityOption=3,f_avg=f_avg1,flPlot=False)
 
   #  intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/hot_lines/v2_spatial_det.txt',3,strMetric='SD', \
   #          listCombineReg=['1-A0000010','4-A0002000'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
@@ -595,8 +597,9 @@ if(0):
   #          listCombineReg=['1-A0000001','5-A0001200'] ,flWeight=flWeight,affinityOption=3,f_avg=f_avg1)
     f_avg1.close()
 
-if (1):
-    f_avg1=open(mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/sd_avg_log.txt','w')
+if (0):
+    f_avg1=None
+    #f_avg1=open(mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/sd_avg_log.txt','w')
     intraObjectPlot('XSB-rd-EVENT_k0', \
         mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-0/hot-insn/spatial.txt', 10, strMetric='SD', \
         listCombineReg=['8-B0060001', '9-B0060002'],flWeight=flWeight,affinityOption=3,f_avg=f_avg1,flPlot=False)
@@ -604,7 +607,7 @@ if (1):
         mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-1/hot-insn/spatial.txt', \
         9, strMetric='SD', \
         listCombineReg=['7-HotIns-02','8-HotIns-01'], flWeight=flWeight,affinityOption=3,f_avg=f_avg1,flPlot=False)
-    f_avg1.close()
+    #f_avg1.close()
 
 if(0):
     f_avg1=open(mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/sd_avg_log.txt','w')
