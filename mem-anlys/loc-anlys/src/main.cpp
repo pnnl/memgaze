@@ -978,7 +978,6 @@ int main(int argc, char ** argv){
 		} else
 				 done = 1;
 	} // END WHILE
-	zoomInFile_det.close(); 
 
   // START - affinity analysis
   // Steps
@@ -1004,7 +1003,7 @@ int main(int argc, char ** argv){
     }
 
     //XSBench get region for 1011be
-    //getRegionforInst(&spatialOutInsnFile, vecInstAddr,1053118, vecInstRegion);
+    getRegionforInst(&spatialOutInsnFile, vecInstAddr,1053118, vecInstRegion);
 
     sort(vecInstRegion.begin(), vecInstRegion.end());
     for (size_t cntHotInsn=0; cntHotInsn < vecInstRegion.size(); cntHotInsn++)  {
@@ -1163,6 +1162,27 @@ int main(int argc, char ** argv){
             printf("add Spatial set min-max %08lx-%08lx \n", minRegionAddr, maxRegionAddr);
             setRegionAddr.push_back(make_pair(minRegionAddr, maxRegionAddr));
             mapMinAddrToID[minRegionAddr] = thisMemblock.strID;
+            // Get RUD metrics for HOT-INSN regions
+            memarea.max = maxRegionAddr;
+            memarea.min = minRegionAddr;
+            memarea.blockSize = cacheLineWidth;
+            memarea.blockCount =  ceil((memarea.max - memarea.min)/(double)memarea.blockSize);
+            vecBlockInfo.clear();
+            for(i = 0; i< memarea.blockCount; i++){
+              pair<unsigned int, unsigned int> blockID = make_pair(0, i);
+              BlockInfo *newBlock = new BlockInfo(blockID, memarea.min+(i*memarea.blockSize), memarea.min+((i+1)*memarea.blockSize-1), 
+                                              memarea.blockCount+cntAddPages, 0, strNodeId); // spatialResult=0
+              vecBlockInfo.push_back(newBlock);
+            }
+            printf("HOT-INSN RUD Spatial set min-max %08lx-%08lx \n", minRegionAddr, maxRegionAddr);
+	  	      analysisReturn=spatialAnalysis( vecInstAddr, memarea, coreNumber, 0, vecBlockInfo, setRegionAddr, memIncludePages,
+                                  vecParentFamily, vecTopAccessLineAddr,1); //spatialResult =0
+
+            for(i = 0; i< memarea.blockCount; i++){
+              BlockInfo *curBlock = vecBlockInfo.at(i);
+              curBlock->printBlockRUD();
+            } 
+            writeReturn=writeZoomFile( memarea, thisMemblock, vecBlockInfo, zoomInFile_det, &thresholdTotAccess, zoominTimes , 2);
           }
         }
       }
@@ -1502,6 +1522,7 @@ int main(int argc, char ** argv){
     // END - STEP 3
     spatialOutFile.close();
   }
+	zoomInFile_det.close(); 
 
   }// END Analysis and top-down zoom functionality	
   /******************************************************/
