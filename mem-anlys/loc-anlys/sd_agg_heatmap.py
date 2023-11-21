@@ -391,7 +391,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
             get_col_list=df_intra_obj_sample_hm.columns.to_list()
             print('before drop', get_col_list)
-            print('before drop self \n', df_intra_obj_sample_hm['self'])
+            #print('before drop self \n', df_intra_obj_sample_hm['self'])
             df_intra_obj_drop=df_intra_obj_sample_hm.dropna(axis=1,how='all')
             get_col_list=df_intra_obj_drop.columns.to_list()
             print('after drop', get_col_list)

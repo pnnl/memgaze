@@ -659,8 +659,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # Trial 2 for SA-SI combined metric - penalty based on SI
         flGetSAforSI=1
         if (flGetSAforSI):
-            listSAbins = [0] * 20
-            listSDbins = [0] * 20
+            numBins = 40
+            listSAbins = [0] * numBins
+            listSDbins = [0] * numBins
+            binRange = float(1/numBins)
+
             for index, row in df_hot_SP_SI_SD.iterrows():
                 for i in range(0,len(listAffinityLines)):
                     #print(row['SP-'+listAffinityLines[i]])#, df_hot_SP_SI_SD['SP-'+listAffinityLines[i]])
@@ -677,16 +680,17 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     #cntSA += 1
                     for i in range (0, len(listSAbins)):
                         #print(' before value ', cmpSAvalue, ' bin ', i)
-                        if( ((i * 0.05) <= float(cmpSAvalue)) and (float(cmpSAvalue) < ((i+1) * 0.05))):
+                        if( ((i * binRange) <= float(cmpSAvalue)) and (float(cmpSAvalue) < ((i+1) * binRange))):
                             listSAbins[i] +=1
                             #print('in if value ', cmpSAvalue, ' bin ', i)
                             break
                     for i in range (0, len(listSDbins)):
                         if (~np.isnan(cmpSDvalue)):
-                            if( ((i * 0.0125) <= float(cmpSDvalue)) and (float(cmpSDvalue) < ((i+1) * 0.0125))):
+                            if( ((i * binRange) <= float(cmpSDvalue)) and (float(cmpSDvalue) < ((i+1) * binRange))):
                                 listSDbins[i] +=1
-                    if((~np.isnan(cmpSDvalue)) and 0.25 < float(cmpSDvalue)):
-                        listSDbins[19] +=1
+                    # For range from 0-0.25
+                    #if((~np.isnan(cmpSDvalue)) and 0.25 < float(cmpSDvalue)):
+                    #    listSDbins[19] +=1
 
             print(listSAbins)
             print(listSDbins)
@@ -1044,10 +1048,10 @@ if (1):
     intraObjectPlot('XSB-rd-EVENT_k0', \
         mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-0/hot-insn/spatial.txt', 10, strMetric='SD-SP-SI', \
         listCombineReg=['8-B0060001', '9-B0060002'],flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSB-rd-EVENT_OPT_k1', \
-        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-1/hot-insn/spatial.txt', \
-        9, strMetric='SD-SP-SI', \
-        listCombineReg=['7-HotIns-02','8-HotIns-01'], flWeighted=flWeight,affinityOption=3)
+    #intraObjectPlot('XSB-rd-EVENT_OPT_k1', \
+    #    mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-1/hot-insn/spatial.txt', \
+    #    9, strMetric='SD-SP-SI', \
+    #    listCombineReg=['7-HotIns-02','8-HotIns-01'], flWeighted=flWeight,affinityOption=3)
 
 if (0): # useless
     intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 3, strMetric='SD-SP-SI', \
