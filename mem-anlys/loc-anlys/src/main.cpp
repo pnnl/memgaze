@@ -1003,7 +1003,7 @@ int main(int argc, char ** argv){
     }
 
     //XSBench get region for 1011be
-    getRegionforInst(&spatialOutInsnFile, vecInstAddr,1053118, vecInstRegion);
+    //getRegionforInst(&spatialOutInsnFile, vecInstAddr,1053118, vecInstRegion);
 
     sort(vecInstRegion.begin(), vecInstRegion.end());
     for (size_t cntHotInsn=0; cntHotInsn < vecInstRegion.size(); cntHotInsn++)  {
