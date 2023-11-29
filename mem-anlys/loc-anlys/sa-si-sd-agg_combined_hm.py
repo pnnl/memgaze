@@ -529,13 +529,15 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
         # STEP 4 - Visual to numeric value for SI, SD, SP
         # Visual to numeric value for SI, SD, SP - find hot reference blocks and hot affinity blocks
-        pattern = re.compile('SD-.*-.*')
+        pattern = re.compile('SD-.*-.*-.*')
         listAffinityLines=list(filter(pattern.match, cols_df_SD))
         for i in range(0,len(listAffinityLines)):
             listAffinityLines[i] = listAffinityLines[i].replace('SD-','')
         logger.info("HOT lines in affinity")
         print('hot lines in affinity', listAffinityLines)
-
+        pattern = re.compile('self.*')
+        listSelfLines = list(filter(pattern.match, listAffinityLines))
+        print(' listSelfLines ' , listSelfLines)
         # Trial 1 - find hot reference blocks
         #print(df_SP_SI_SD['Access'].sum())
         #sumAccessRefBlocks = df_SP_SI_SD['Access'].sum()
@@ -554,10 +556,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # ROWS - hot reference blocks
         list_hot_ref_blocks=df_SP_SI_SD[df_SP_SI_SD['Hot-Access'] > 0.1]['reg-page-blk'].to_list()
         logger.info("HOT lines in reference")
-        print(list_hot_ref_blocks)
+        print('list_hot_ref_blocks ', list_hot_ref_blocks)
 
         # COLUMNS - hot affinity blocks
         listHotAffColumns=['reg-page-blk','Access','Hot-Access']
+
         for i in range(0,len(listAffinityLines)):
             listHotAffColumns.append('SD-'+listAffinityLines[i])
             listHotAffColumns.append('SP-'+listAffinityLines[i])
@@ -578,6 +581,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         listAffinityLines=list(filter(pattern.match, df_hot_SP_SI_SD.columns))
         for i in range(0,len(listAffinityLines)):
             listAffinityLines[i] = listAffinityLines[i].replace('SD-','')
+        print('df_hot_SP_SI_SD.columns match ', listAffinityLines)
 
         #print(df_hot_SP_SI_SD['reg-page-blk'])
         listHotRefLines = df_hot_SP_SI_SD['reg-page-blk'].to_list()
@@ -654,12 +658,13 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     #print(hot_SI_values)
                     print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' ', strQuartile, ' blocks ', hot_SP_count, ' SI-min ', np.nanmin(hot_SI_values), ' SI-max ', np.nanmax(hot_SI_values))
 
-        print(' Hot affinity lines ', listAffinityLines)
+        print(' Hot affinity lines 1 ', listAffinityLines)
+
         #print(df_hot_SP_SI_SD.columns)
         # Trial 2 for SA-SI combined metric - penalty based on SI
         flGetSAforSI=1
         if (flGetSAforSI):
-            numBins = 40
+            numBins = 100
             listSAbins = [0] * numBins
             listSDbins = [0] * numBins
             binRange = float(1/numBins)
@@ -1046,12 +1051,12 @@ if (0): # Instrumentation - NOP stops
 
 if (1):
     intraObjectPlot('XSB-rd-EVENT_k0', \
-        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-0/hot-insn/spatial.txt', 10, strMetric='SD-SP-SI', \
+        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-0/hot-insn-rud/spatial.txt', 10, strMetric='SD-SP-SI', \
         listCombineReg=['8-B0060001', '9-B0060002'],flWeighted=flWeight,affinityOption=3)
-    #intraObjectPlot('XSB-rd-EVENT_OPT_k1', \
-    #    mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-1/hot-insn/spatial.txt', \
-    #    9, strMetric='SD-SP-SI', \
-    #    listCombineReg=['7-HotIns-02','8-HotIns-01'], flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSB-rd-EVENT_OPT_k1', \
+        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-1/hot-insn-rud/spatial.txt', \
+        9, strMetric='SD-SP-SI', \
+        listCombineReg=['7-HotIns-02','8-HotIns-01'], flWeighted=flWeight,affinityOption=3)
 
 if (0): # useless
     intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 3, strMetric='SD-SP-SI', \
