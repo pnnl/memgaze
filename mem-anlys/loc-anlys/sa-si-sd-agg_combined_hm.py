@@ -573,6 +573,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print(df_hot_SP_SI_SD)
 
         print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' hot DF size ',df_hot_SP_SI_SD.shape )
+        print(df_hot_SP_SI_SD['reg-page-blk'])
         #df_hot_SP_SI_SD=df_hot_SP_SI_SD.dropna(axis=1, how='all')
         print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' hot DF size',df_hot_SP_SI_SD.shape )
 
@@ -1049,7 +1050,7 @@ if (0): # Instrumentation - NOP stops
     intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 1, strMetric='SD-SP-SI', \
          flWeighted=flWeight,affinityOption=3)
 
-if (1):
+if (0):
     intraObjectPlot('XSB-rd-EVENT_k0', \
         mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-0/hot-insn-rud/spatial.txt', 10, strMetric='SD-SP-SI', \
         listCombineReg=['8-B0060001', '9-B0060002'],flWeighted=flWeight,affinityOption=3)
