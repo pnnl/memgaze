@@ -32,6 +32,8 @@ logging.basicConfig(format='%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)
     datefmt='%Y-%m-%d:%H:%M:%S',
     level=logging.INFO)
 logger = logging.getLogger(__name__)
+logger.propagate = False
+
 
 
 sns.color_palette("light:#5A9", as_cmap=True)
@@ -97,13 +99,20 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
     #print(df_inter_data)
     df_inter_data_sample=df_inter_data.nlargest(n=numRegion,  columns=['Access count'])
     arRegionId = df_inter_data_sample['Reg_Num-Name'].values.flatten().tolist()
-    print(arRegionId)
+    print('orig arRegionId ', arRegionId)
+
+    flagAllRefLines=0
+    if('ALL' in listCombineReg):
+        listCombineReg.remove('ALL')
+        listCombineReg.extend(x for x in  arRegionId)
+        flagAllRefLines=1
+        print ('ALL listCombineReg ', listCombineReg)
+
     # STEP 2a - Add combine regions to the list
     if (listCombineReg != None):
         arRegionId.extend(x for x in listCombineReg if x not in arRegionId)
     arRegionId.sort()
-    print(arRegionId)
-
+    print('added from listCombineReg -> arRegionId and sorted', arRegionId)
     data_list_combine_Reg =[]
     flagProcessCombine=0
     combineCount=0
@@ -112,6 +121,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
     for j in range(0, len(arRegionId)):
         regionIdNumName=arRegionId[j]
         regionIdNumName_copy=arRegionId[j]
+        print('regionIdNumName ', regionIdNumName)
         regionIdName =regionIdNumName[regionIdNumName.index('-')+1:]
         regionIdNum= regionIdNumName[:regionIdNumName.index('-')]
         print('regionIdName ', regionIdName, 'regionIdNumName ', regionIdNumName, regionIdNum)
@@ -226,7 +236,6 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
         df_intra_obj = df_intra_obj[colRearrangeList]
         #print('after rearrange ', df_intra_obj.columns.to_list())
-
         df_intra_obj.set_index('reg-page-blk')
         df_intra_obj.sort_index(inplace=True)
         self_bef_drop=df_intra_obj['self'].to_list()
@@ -235,11 +244,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print(df_intra_obj[['reg_page_id', 'reg-page-blk', 'Access', 'Type', 'Stack']])
         print('before replace drop - ', df_intra_obj.shape)#, df_intra_obj.columns.to_list())
         df_intra_obj_drop=df_intra_obj.dropna(axis=1,how='all')
-
         print('after replace drop - ', df_intra_obj.shape)#, df_intra_obj.columns.to_list())
-
         self_aft_drop=df_intra_obj_drop['self'].to_list()
-
         if(self_bef_drop == self_aft_drop):
             print(" After drop equal ")
         else:
@@ -554,7 +560,10 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print((df_SP_SI_SD['Access']-hotRefMinAccess)/refRange)
         df_SP_SI_SD['Hot-Access']=(df_SP_SI_SD['Access']-hotRefMinAccess)/refRange
         # ROWS - hot reference blocks
-        list_hot_ref_blocks=df_SP_SI_SD[df_SP_SI_SD['Hot-Access'] > 0.1]['reg-page-blk'].to_list()
+        if( flagAllRefLines ==1):
+            list_hot_ref_blocks=df_SP_SI_SD[df_SP_SI_SD['Hot-Access'] > 0]['reg-page-blk'].to_list()
+        else:
+            list_hot_ref_blocks=df_SP_SI_SD[df_SP_SI_SD['Hot-Access'] > 0.02]['reg-page-blk'].to_list()
         logger.info("HOT lines in reference")
         print('list_hot_ref_blocks ', list_hot_ref_blocks)
 
@@ -568,12 +577,17 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         listHotAffColumns.append('SD-self')
         listHotAffColumns.append('SP-self')
         listHotAffColumns.append('SI-self')
-        df_hot_SP_SI_SD=df_SP_SI_SD[df_SP_SI_SD['Hot-Access'] > 0.1][listHotAffColumns].copy()
+        if( flagAllRefLines ==1):
+             df_hot_SP_SI_SD=df_SP_SI_SD[listHotAffColumns].copy()
+        else:
+            df_hot_SP_SI_SD=df_SP_SI_SD[df_SP_SI_SD['Hot-Access'] > 0.02][listHotAffColumns].copy()
+
         #print(df_hot_SP_SI_SD.columns)
         #print(df_hot_SP_SI_SD)
 
         print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' hot DF size ',df_hot_SP_SI_SD.shape )
-        print(df_hot_SP_SI_SD['reg-page-blk'])
+        print('df_hot_SP_SI_SD rows ', df_hot_SP_SI_SD['reg-page-blk'].tolist())
+        print('df_hot_SP_SI_SD columns ' , df_hot_SP_SI_SD.columns)
         #df_hot_SP_SI_SD=df_hot_SP_SI_SD.dropna(axis=1, how='all')
         print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' hot DF size',df_hot_SP_SI_SD.shape )
 
@@ -582,7 +596,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         listAffinityLines=list(filter(pattern.match, df_hot_SP_SI_SD.columns))
         for i in range(0,len(listAffinityLines)):
             listAffinityLines[i] = listAffinityLines[i].replace('SD-','')
-        print('df_hot_SP_SI_SD.columns match ', listAffinityLines)
+        print('df_hot_SP_SI_SD.columns match listAffinityLines ', listAffinityLines)
 
         #print(df_hot_SP_SI_SD['reg-page-blk'])
         listHotRefLines = df_hot_SP_SI_SD['reg-page-blk'].to_list()
@@ -593,7 +607,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         print ('listSelfHotAffLines ', listSelfHotAffLines)
         # Trial 1 for SA-SI combined metric - filter based on SA
         flGetSIforSA=0
-        if (flGetSIforSA):
+        if (0):
             pattern = re.compile('SP-.*-.*-.*')
             hot_SP_cols=list(filter(pattern.match, df_hot_SP_SI_SD.columns))
             #print(hot_SP_cols)
@@ -660,10 +674,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' ', strQuartile, ' blocks ', hot_SP_count, ' SI-min ', np.nanmin(hot_SI_values), ' SI-max ', np.nanmax(hot_SI_values))
 
         print(' Hot affinity lines 1 ', listAffinityLines)
-
         #print(df_hot_SP_SI_SD.columns)
         # Trial 2 for SA-SI combined metric - penalty based on SI
         flGetSAforSI=1
+        cntSABlocksinHotBox =0
+        cntSDBlocksinHotBox =0
         if (flGetSAforSI):
             numBins = 100
             listSAbins = [0] * numBins
@@ -680,6 +695,10 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                         valSIPenalty = (row['SI-'+listAffinityLines[i]]% 63)+1
                         cmpSAvalue = row['SP-'+listAffinityLines[i]] /valSIPenalty
                         cmpSDvalue = row['SD-'+listAffinityLines[i]] /valSIPenalty
+                    if(~np.isnan(cmpSAvalue)):
+                        cntSABlocksinHotBox = cntSABlocksinHotBox+1
+                    if(~np.isnan(cmpSDvalue)):
+                        cntSDBlocksinHotBox = cntSDBlocksinHotBox +1
                     #print( 'cmpSAvalue ', cmpSAvalue, ' cntSA ' , cntSA)
                     #if(np.isnan(cmpSAvalue)):
                     #    print('listAffinityLines[i] ', listAffinityLines[i], row)
@@ -698,21 +717,25 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     #if((~np.isnan(cmpSDvalue)) and 0.25 < float(cmpSDvalue)):
                     #    listSDbins[19] +=1
 
-            print(listSAbins)
-            print(listSDbins)
-            listPercentSAbins = [(float(x) * 100/ (cntBlocksinHotBox-(len(listSelfHotAffLines)))) for x in listSAbins]
-            listPercentSDbins = [(float(x) * 100/ (cntBlocksinHotBox-(len(listSelfHotAffLines)))) for x in listSDbins]
+            print('listSAbins ', listSAbins)
+            print('listSDbins ', listSDbins)
+            print('cntBlocksinHotBox ', cntBlocksinHotBox)
+            print('cntBSAlocksinHotBox ', cntSABlocksinHotBox)
+            print('cntSDBlocksinHotBox ', cntSDBlocksinHotBox)
+            listPercentSAbins = [(float(x) * 100/ (cntSABlocksinHotBox-(len(listSelfHotAffLines)))) for x in listSAbins]
+            listPercentSDbins = [(float(x) * 100/ (cntSDBlocksinHotBox-(len(listSelfHotAffLines)))) for x in listSDbins]
             listPercentSAbins =  [ round(elem) for elem in listPercentSAbins ]
             listPercentSDbins =  [ round(elem) for elem in listPercentSDbins ]
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' listSAbins ', listSAbins)
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' sumSAbins ', sum(listSAbins))
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SAbins ', listPercentSAbins)
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SAbins bad ', sum(listPercentSAbins[:5]))
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SAbins good ', sum(listPercentSAbins[5:]))
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SAbins bad ', sum(listPercentSAbins[:25]))
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SAbins good ', sum(listPercentSAbins[25:]))
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' listSDbins ', listSDbins)
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' sumSDbins ', sum(listSDbins))
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SDbins ', listPercentSDbins)
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SDbins bad ', sum(listPercentSDbins[:2]))
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SDbins good ', sum(listPercentSDbins[2:]))
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SDbins bad ', sum(listPercentSDbins[:5]))
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SDbins good ', sum(listPercentSDbins[5:]))
 
         #print(df_hot_SP_SI_SD.columns)
         #print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP-self-mean ', df_hot_SP_SI_SD['SP-self'].mean())
@@ -1052,18 +1075,34 @@ if (0): # Instrumentation - NOP stops
 
 if (0):
     intraObjectPlot('XSB-rd-EVENT_k0', \
-        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-0/hot-insn-rud/spatial.txt', 10, strMetric='SD-SP-SI', \
+        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-0/hot-insn-rud/spatial.txt', 4, strMetric='SD-SP-SI', \
         listCombineReg=['8-B0060001', '9-B0060002'],flWeighted=flWeight,affinityOption=3)
+        #listCombineReg=['ALL'],flWeighted=flWeight,affinityOption=3)
     intraObjectPlot('XSB-rd-EVENT_OPT_k1', \
         mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-1/hot-insn-rud/spatial.txt', \
-        9, strMetric='SD-SP-SI', \
+        4, strMetric='SD-SP-SI', \
         listCombineReg=['7-HotIns-02','8-HotIns-01'], flWeighted=flWeight,affinityOption=3)
+        #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
 
-if (0): # useless
-    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 3, strMetric='SD-SP-SI', \
-         listCombineReg=['4-HotIns-11', '5-HotIns-12'], flWeighted=flWeight,affinityOption=3)
+if (1):
+    intraObjectPlot('XSB-rd-EVENT_k0', \
+        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 10, strMetric='SD-SP-SI', \
+        #listCombineReg=['8-B0060001', '9-B0060002'],flWeighted=flWeight,affinityOption=3)
+        listCombineReg=['ALL'],flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSB-rd-EVENT_OPT_k1', \
+        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', \
+        9, strMetric='SD-SP-SI', \
+        #listCombineReg=['7-HotIns-02','8-HotIns-01'], flWeighted=flWeight,affinityOption=3)
+        listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
+
+if (0): # still useless # latest try for all regions combined
+    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 6, strMetric='SD-SP-SI', \
+    listCombineReg=['4-HotIns-11', '5-HotIns-12'], flWeighted=flWeight,affinityOption=3)
+    #listCombineReg=['0-A0000000', '4-HotIns-11', '5-HotIns-12'], flWeighted=flWeight,affinityOption=3)
+    #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
     intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 3, strMetric='SD-SP-SI', \
-         listCombineReg=['1-B0000000','2-B0000001'], flWeighted=flWeight,affinityOption=3)
+    listCombineReg=['1-B0000000','2-B0000001'], flWeighted=flWeight,affinityOption=3)
+    #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
 
 
 if (0): # Separate source code 391 line - doesnt add any value

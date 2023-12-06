@@ -84,7 +84,7 @@ def plot_bar(strFileName,strMetric,dictValues ):
         ax.axvline(x=(5-(width)),  linewidth=1, linestyle='dashed', color='black')
     else:
         ax.axvline(x=(5-(width)),  linewidth=1, linestyle='dashed', color='black')
-    ax.legend(loc='upper left')#,ncol=len(dictValues.keys()))
+    ax.legend(loc='best')#,ncol=len(dictValues.keys()))
     ax.set_ylabel('Percentage of block pairs')
     ax.set_xlabel("Composite $\it{SI}$-$\it{"+strMetric+ "}$")
     ax.xaxis.set_tick_params(rotation=45)
@@ -210,12 +210,12 @@ def read_file_df(strFileName, strMetric,listValues):
                 listValues.append(listLine)
      print(listValues)
 
-strFileName='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/hot_lines/composite-SI-SA-SI-SD.txt'
-dictSABins ={}
-if (1):
-    read_file_dict(strFileName, 'SA', dictSABins)
-    print('dictSABins ', dictSABins)
-    plot_bar(strFileName, 'SA', dictSABins)
+if (0):
+    strFileName='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/hot_lines/composite-SI-SA-SI-SD.txt'
+    dictSABins ={}
+    #read_file_dict(strFileName, 'SA', dictSABins)
+    #print('dictSABins ', dictSABins)
+    #plot_bar(strFileName, 'SA', dictSABins)
     dictSABins ={}
     read_file_cum_dict(strFileName, 'SA', dictSABins)
     print('dictSABins ', dictSABins)
@@ -224,8 +224,6 @@ if (1):
     #read_file_cum_dict(strFileName, 'SA', dictSABins)
     #print('dictSABins CUM ', dictSABins)
     #plot_lines(strFileName, 'SA', dictSABins)
-
-if(1):
     dictSDBins ={}
     read_file_cum_dict(strFileName, 'SD', dictSDBins)
     print('dictSDBins ', dictSDBins)
@@ -244,10 +242,33 @@ if(0):
 if(0):
     strFileName='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/composite-SI-SA-SI-SD.txt'
     dictSABins ={}
-    read_file_dict(strFileName, 'SA', dictSABins)
+    read_file_cum_dict(strFileName, 'SA', dictSABins)
     print('dictSABins ', dictSABins)
     plot_bar(strFileName, 'SA', dictSABins)
     dictSDBins ={}
-    read_file_dict(strFileName, 'SD', dictSDBins)
+    read_file_cum_dict(strFileName, 'SD', dictSDBins)
+    print('dictSDBins ', dictSDBins)
+    plot_bar(strFileName,'SD', dictSDBins)
+
+if(1):
+    strFileName='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/composite-SI-SA-SI-SD_all_regions.txt'
+    dictSABins ={}
+    read_file_cum_dict(strFileName, 'SA', dictSABins)
+    print('dictSABins ', dictSABins)
+    plot_bar(strFileName, 'SA', dictSABins)
+    dictSDBins ={}
+    read_file_cum_dict(strFileName, 'SD', dictSDBins)
+    print('dictSDBins ', dictSDBins)
+    plot_bar(strFileName,'SD', dictSDBins)
+
+
+if(0):
+    strFileName='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/composite-SI-SA-SI-SD.txt'
+    dictSABins ={}
+    read_file_cum_dict(strFileName, 'SA', dictSABins)
+    print('dictSABins ', dictSABins)
+    plot_bar(strFileName, 'SA', dictSABins)
+    dictSDBins ={}
+    read_file_cum_dict(strFileName, 'SD', dictSDBins)
     print('dictSDBins ', dictSDBins)
     plot_bar(strFileName,'SD', dictSDBins)
