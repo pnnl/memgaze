@@ -44,7 +44,8 @@ from fileToDataframe import getFileColumnNamesPageRegion,getMetricColumnsPageReg
 from fileToDataframe import getFileColumnNamesLineRegion,getMetricColumnsLineRegion,getPageColListLineRegion
 
 # Works for spatial denity, Spatial Anticipation and Interval
-def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeighted=None,numExtraPages:int=None,affinityOption:int=None):
+def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeighted=None,numExtraPages:int=None,affinityOption:int=None,flPlot=None):
+    print('flWeighted ', flWeighted)
     flagPhysicalPages = 0
     flagHotPages =0
     flagHotLines = 0
@@ -102,7 +103,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
     print('orig arRegionId ', arRegionId)
 
     flagAllRefLines=0
-    if('ALL' in listCombineReg):
+    if(listCombineReg != None and 'ALL' in listCombineReg):
         listCombineReg.remove('ALL')
         listCombineReg.extend(x for x in  arRegionId)
         flagAllRefLines=1
@@ -298,7 +299,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         plot_SP_col=[item for item in plot_SP_col if 'r-' not in item]
         #print('before get \n', plot_SP_col)
         logger.info("before normalize ")
-
+        #print(' before normalize  ' , df_intra_obj_SP[['reg-page-blk', 'Access', 'self']])
         list_SP_SI_SD=[[None]*(3*len(plot_SP_col)+3) for i in range(len(list_xlabel))]
 
         list_col_names=['reg-page-blk','reg-page','Access']
@@ -319,7 +320,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 # Weight by the page's total access
                 weight_multiplier = ( df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'].item() *100 )/ (weightRegPageAccess)
                 #if (weight_multiplier > 1.0):
-                    #print('blk ', blkid, ' access ', df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'].item(), ' accessSumBlocks ', accessSumBlocks)
+                    #print('blk ', blkid, ' access ', df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'].item(), ' accessSumBlocks ', weightRegPageAccess)
                     #print('weight_multiplier ', weight_multiplier)
             else:
                 weight_multiplier = 1.0
@@ -334,7 +335,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     resultSD = df_intra_obj_SD[condSD][plotCol]
                     #print(plotCol)
                     if resultSP.size > 0 :
-                        #print(resultSP.values[0], weight_multiplier, round((resultSP.values[0]* weight_multiplier),2))
+                        #if(not(np.isnan(resultSP.values[0]))):
+                            #print(resultSP.values[0], weight_multiplier, round((resultSP.values[0]* weight_multiplier),2))
                         list_SP_SI_SD[blkCnt][plotCnt*3+3]=round((resultSP.values[0]* weight_multiplier),2)
                     if resultSI.size >0:
                         list_SP_SI_SD[blkCnt][plotCnt*3+4]=resultSI.values[0]
@@ -389,7 +391,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 for col_SP_name in cols_df_SP:
                     df_SP_SI_SD.loc[df_SP_SI_SD['reg-page'] == regPageId, [col_SP_name]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page'] == regPageId, [col_SP_name]].div(normSPMax[regPageIndex])
                 regPageIndex = regPageIndex+1
-            #print('after normalize  ' , df_SP_SI_SD[['reg-page-blk', 'SD-self', 'SP-self']])
+            #print('after normalize  ' , df_SP_SI_SD[['reg-page-blk', 'Access', 'SD-self', 'SP-self']])
         cols_df_SI=[]
         cols_df_SP=[]
         cols_df_SD=[]
@@ -511,8 +513,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         if(len(negSelfCols)>10 ):
             print ('***** More negative cols', negSelfCols)
             for negSelfColsItem in negSelfCols:
-                #print('more negative negSelfColsItem ', negSelfColsItem, 'count ', np.sum(df_SP_SI_SD[negSelfColsItem]>=SDthreshold) )
-                df_SP_SI_SD.drop(negSelfColsItem, axis=1, inplace=True)
+                if((negSelfColsItem)in df_SP_SI_SD):
+                    #print('more negative negSelfColsItem ', negSelfColsItem, 'count ', np.sum(df_SP_SI_SD[negSelfColsItem]>=SDthreshold) )
+                    df_SP_SI_SD.drop(negSelfColsItem, axis=1, inplace=True)
                 cols_df_SD.remove(negSelfColsItem)
 
             pattern = re.compile('SP-self-\d\d.*')
@@ -521,7 +524,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 print ('***** More negative cols', negSelfCols)
                 for negSelfColsItem in negSelfCols:
                     #print('more negative negSelfColsItem ', negSelfColsItem, 'count ', np.sum(df_SP_SI_SD[negSelfColsItem]>=SDthreshold) )
-                    df_SP_SI_SD.drop(negSelfColsItem, axis=1, inplace=True)
+                    if((negSelfColsItem)in df_SP_SI_SD):
+                        df_SP_SI_SD.drop(negSelfColsItem, axis=1, inplace=True)
                     cols_df_SP.remove(negSelfColsItem)
 
             pattern = re.compile('SI-self-\d\d.*')
@@ -529,14 +533,27 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             if(len(negSelfCols)>10 ):
                 print ('***** More negative cols', negSelfCols)
                 for negSelfColsItem in negSelfCols:
+                    if((negSelfColsItem)in df_SP_SI_SD):
                     #print('more negative negSelfColsItem ', negSelfColsItem, 'count ', np.sum(df_SP_SI_SD[negSelfColsItem]>=SDthreshold) )
-                    df_SP_SI_SD.drop(negSelfColsItem, axis=1, inplace=True)
+                        df_SP_SI_SD.drop(negSelfColsItem, axis=1, inplace=True)
                     cols_df_SI.remove(negSelfColsItem)
 
         # STEP 4 - Visual to numeric value for SI, SD, SP
         # Visual to numeric value for SI, SD, SP - find hot reference blocks and hot affinity blocks
+        # HOT blocks - hot lines and self-1, self, self+1, self+2 ??
         pattern = re.compile('SD-.*-.*-.*')
+        #pattern = re.compile('SD-.*')
         listAffinityLines=list(filter(pattern.match, cols_df_SD))
+        listAffinityLines.append('SD-self')
+        #Adding more to the box is not helpful as it adds non-hot lines
+        if (0):
+            if('SD-self-1' in cols_df_SD):
+                listAffinityLines.append('SD-self-1')
+            if('SD-self+1' in cols_df_SD):
+                listAffinityLines.append('SD-self+1')
+            if('SD-self+1' in cols_df_SD):
+                listAffinityLines.append('SD-self+2')
+
         for i in range(0,len(listAffinityLines)):
             listAffinityLines[i] = listAffinityLines[i].replace('SD-','')
         logger.info("HOT lines in affinity")
@@ -563,7 +580,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         if( flagAllRefLines ==1):
             list_hot_ref_blocks=df_SP_SI_SD[df_SP_SI_SD['Hot-Access'] > 0]['reg-page-blk'].to_list()
         else:
-            list_hot_ref_blocks=df_SP_SI_SD[df_SP_SI_SD['Hot-Access'] > 0.02]['reg-page-blk'].to_list()
+            list_hot_ref_blocks=df_SP_SI_SD[df_SP_SI_SD['Hot-Access'] > 0.1]['reg-page-blk'].to_list()
         logger.info("HOT lines in reference")
         print('list_hot_ref_blocks ', list_hot_ref_blocks)
 
@@ -574,37 +591,43 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             listHotAffColumns.append('SD-'+listAffinityLines[i])
             listHotAffColumns.append('SP-'+listAffinityLines[i])
             listHotAffColumns.append('SI-'+listAffinityLines[i])
-        listHotAffColumns.append('SD-self')
-        listHotAffColumns.append('SP-self')
-        listHotAffColumns.append('SI-self')
+        #listHotAffColumns.append('SD-self')
+        #listHotAffColumns.append('SP-self')
+        #listHotAffColumns.append('SI-self')
         if( flagAllRefLines ==1):
              df_hot_SP_SI_SD=df_SP_SI_SD[listHotAffColumns].copy()
         else:
-            df_hot_SP_SI_SD=df_SP_SI_SD[df_SP_SI_SD['Hot-Access'] > 0.02][listHotAffColumns].copy()
+            df_hot_SP_SI_SD=df_SP_SI_SD[df_SP_SI_SD['Hot-Access'] > 0.1][listHotAffColumns].copy()
 
         #print(df_hot_SP_SI_SD.columns)
         #print(df_hot_SP_SI_SD)
 
         print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' hot DF size ',df_hot_SP_SI_SD.shape )
         print('df_hot_SP_SI_SD rows ', df_hot_SP_SI_SD['reg-page-blk'].tolist())
-        print('df_hot_SP_SI_SD columns ' , df_hot_SP_SI_SD.columns)
+        print('df_hot_SP_SI_SD columns ' , df_hot_SP_SI_SD.columns.tolist())
         #df_hot_SP_SI_SD=df_hot_SP_SI_SD.dropna(axis=1, how='all')
         print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' hot DF size',df_hot_SP_SI_SD.shape )
+
+        # Cannot count self affinity twice - so number of hot blocks in bounded box is less than the size of rectangle
+        listHotRefLines = df_hot_SP_SI_SD['reg-page-blk'].to_list()
+        listSelfHotAffLines = [x for x in listAffinityLines if x in listHotRefLines]
+        print ('listSelfHotAffLines ', listSelfHotAffLines)
 
         pattern = re.compile('SD-.*')
         cntBlocksinHotBox = df_hot_SP_SI_SD.shape[0] *((df_hot_SP_SI_SD.shape[1]-3)/3)
         listAffinityLines=list(filter(pattern.match, df_hot_SP_SI_SD.columns))
         for i in range(0,len(listAffinityLines)):
             listAffinityLines[i] = listAffinityLines[i].replace('SD-','')
+        if('Stack' in listAffinityLines):
+            listAffinityLines.remove('Stack')
         print('df_hot_SP_SI_SD.columns match listAffinityLines ', listAffinityLines)
-
+        #df_SP_SI_SD.loc[df_SP_SI_SD['reg-page'] == regPageId, [col_SD_name]]
+        #print(df_hot_SP_SI_SD.loc[df_hot_SP_SI_SD['reg-page-blk'] == '1-1-116',['SP-self','SP-self+2','SP-1-1-116','SP-1-1-118']])
+        #print(df_hot_SP_SI_SD.loc[df_hot_SP_SI_SD['reg-page-blk'] == '1-1-118',['SP-self','SP-self-2','SP-1-1-116','SP-1-1-118']])
         #print(df_hot_SP_SI_SD['reg-page-blk'])
-        listHotRefLines = df_hot_SP_SI_SD['reg-page-blk'].to_list()
-        #print (listHotRefLines)
+        #listHotRefLines = df_hot_SP_SI_SD['reg-page-blk'].to_list()
+        #print ('listHotRefLines ', listHotRefLines)
         #print(listAffinityLines)
-        # Cannot count self affinity twice - so number of hot blocks in bounded box is less than the size of rectangle
-        listSelfHotAffLines = [x for x in listAffinityLines if x in listHotRefLines]
-        print ('listSelfHotAffLines ', listSelfHotAffLines)
         # Trial 1 for SA-SI combined metric - filter based on SA
         flGetSIforSA=0
         if (0):
@@ -687,6 +710,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
             for index, row in df_hot_SP_SI_SD.iterrows():
                 for i in range(0,len(listAffinityLines)):
+                    cmpSAvalue=np.NaN
+                    cmpSDvalue=np.NaN
                     #print(row['SP-'+listAffinityLines[i]])#, df_hot_SP_SI_SD['SP-'+listAffinityLines[i]])
                     if((~np.isnan(row['SI-'+listAffinityLines[i]])) and row['SI-'+listAffinityLines[i]] <= 63 ):
                         cmpSAvalue = row['SP-'+listAffinityLines[i]]
@@ -703,39 +728,53 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     #if(np.isnan(cmpSAvalue)):
                     #    print('listAffinityLines[i] ', listAffinityLines[i], row)
                     #cntSA += 1
+                    listSAindex=np.NaN
+                    listSDindex=np.NaN
                     for i in range (0, len(listSAbins)):
-                        #print(' before value ', cmpSAvalue, ' bin ', i)
-                        if( ((i * binRange) <= float(cmpSAvalue)) and (float(cmpSAvalue) < ((i+1) * binRange))):
-                            listSAbins[i] +=1
-                            #print('in if value ', cmpSAvalue, ' bin ', i)
-                            break
+                        if(~np.isnan(cmpSAvalue)):
+                            if( ((i * binRange) <= float(cmpSAvalue)) and (float(cmpSAvalue) < ((i+1) * binRange))):
+                                listSAindex = i
+                                break
                     for i in range (0, len(listSDbins)):
                         if (~np.isnan(cmpSDvalue)):
                             if( ((i * binRange) <= float(cmpSDvalue)) and (float(cmpSDvalue) < ((i+1) * binRange))):
-                                listSDbins[i] +=1
+                                listSDindex = i
+                                break
+                    if(~np.isnan(listSAindex)):
+                        listSAbins[listSAindex] +=1
+                    if(~np.isnan(listSDindex)):
+                        listSDbins[listSDindex] +=1
+                    print(' SA ', cmpSAvalue, ' bin ', listSAindex, ' SD ', cmpSDvalue, ' bin ', listSDindex)
+
                     # For range from 0-0.25
                     #if((~np.isnan(cmpSDvalue)) and 0.25 < float(cmpSDvalue)):
                     #    listSDbins[19] +=1
 
-            print('listSAbins ', listSAbins)
-            print('listSDbins ', listSDbins)
-            print('cntBlocksinHotBox ', cntBlocksinHotBox)
-            print('cntBSAlocksinHotBox ', cntSABlocksinHotBox)
-            print('cntSDBlocksinHotBox ', cntSDBlocksinHotBox)
-            listPercentSAbins = [(float(x) * 100/ (cntSABlocksinHotBox-(len(listSelfHotAffLines)))) for x in listSAbins]
-            listPercentSDbins = [(float(x) * 100/ (cntSDBlocksinHotBox-(len(listSelfHotAffLines)))) for x in listSDbins]
-            listPercentSAbins =  [ round(elem) for elem in listPercentSAbins ]
-            listPercentSDbins =  [ round(elem) for elem in listPercentSDbins ]
+            #print('listSAbins ', listSAbins)
+            #print('listSDbins ', listSDbins)
+            print('cnt BlocksinHotBox ', cntBlocksinHotBox)
+            print('cnt BlocksinHotBox without hot ref', (cntBlocksinHotBox-len(listSelfHotAffLines)))
+            print('cnt SA BlocksinHotBox ', cntSABlocksinHotBox)
+            print('cnt SD BlocksinHotBox ', cntSDBlocksinHotBox)
+
+            if(flagAllRefLines ==1 ):
+                listPercentSAbins = [(float(x) * 100/ (cntSABlocksinHotBox)) for x in listSAbins]
+                listPercentSDbins = [(float(x) * 100/ (cntSDBlocksinHotBox)) for x in listSDbins]
+            else:
+                listPercentSAbins = [(float(x) * 100/ (cntBlocksinHotBox-len(listSelfHotAffLines))) for x in listSAbins]
+                listPercentSDbins = [(float(x) * 100/ (cntBlocksinHotBox-len(listSelfHotAffLines))) for x in listSDbins]
+
+            listPercentSAbins =  [ round(elem,1) for elem in listPercentSAbins ]
+            listPercentSDbins =  [ round(elem,1) for elem in listPercentSDbins ]
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' listSAbins ', listSAbins)
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' sumSAbins ', sum(listSAbins))
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SAbins ', listPercentSAbins)
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SAbins bad ', sum(listPercentSAbins[:25]))
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SAbins good ', sum(listPercentSAbins[25:]))
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, '  SAbins  sumSAbins ', sum(listSAbins), ' bad ', sum(listSAbins[:25]) , ' good ', sum(listSAbins[25:]))
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, '  SAbins % sum ', sum(listPercentSAbins), ' bad ', sum(listPercentSAbins[:25]) , ' good ', sum(listPercentSAbins[25:]))
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' listSDbins ', listSDbins)
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' sumSDbins ', sum(listSDbins))
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, '  SDbins sumSDbins ', sum(listSDbins), ' bad ', sum(listSDbins[:5]) , ' good ', sum(listSDbins[5:]))
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, '  SDbins % sum ', sum(listPercentSDbins), ' bad ', sum(listPercentSDbins[:5]) , ' good ', sum(listPercentSDbins[5:]))
+            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SAbins ', listPercentSAbins)
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SDbins ', listPercentSDbins)
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SDbins bad ', sum(listPercentSDbins[:5]))
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SDbins good ', sum(listPercentSDbins[5:]))
+
 
         #print(df_hot_SP_SI_SD.columns)
         #print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP-self-mean ', df_hot_SP_SI_SD['SP-self'].mean())
@@ -743,7 +782,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SI-self-mean ', df_hot_SP_SI_SD['SI-self'].mean())
 
 
-        # STEP 5a - Fill in hot lines with self data
+        # STEP 5a - Fill in hot lines with self data - for visualization only
         pattern = re.compile('SD-.*-.*-.*')
         listAffinityLines=list(filter(pattern.match, cols_df_SD))
         for i in range(0,len(listAffinityLines)):
@@ -758,7 +797,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SI-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SI-self']
 
         # STEP 5b - Proceed to plot
-        if (len(cols_df_SP) > 0 and len(cols_df_SI) >0 and len(cols_df_SD)>0):
+        if ((flPlot == True) and len(cols_df_SP) > 0 and len(cols_df_SI) >0 and len(cols_df_SD)>0):
             df_intra_obj_sample_hm_SP=df_SP_SI_SD[cols_df_SP]
             df_intra_obj_sample_hm_SI=df_SP_SI_SD[cols_df_SI]
             df_intra_obj_sample_hm_SD=df_SP_SI_SD[cols_df_SD]
@@ -1017,12 +1056,13 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
 
 
-flWeight=True
+flWeight=False
 f_avg1=None
 mainPath='/Users/suri836/Projects/spatial_rud/'
+flPlot=True
 
-if(1):
-    flWeight = True
+if(0):
+    flWeight=True
     #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',7,strMetric='SD-SP-SI', \
     #         listCombineReg=['0-A0000000', '1-A0000010','2-A0000011','3-A0000012','4-A0000013'], flWeighted=flWeight,affinityOption=3)
     #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',3,strMetric='SD-SP-SI', \
@@ -1031,8 +1071,6 @@ if(1):
     #         listCombineReg=['6-HotIns-11', '7-HotIns-12'], flWeighted=flWeight,affinityOption=3)
     #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-story-noseed-copy/spatial.txt',3,strMetric='SD-SP-SI', \
     #         listCombineReg=['6-HotIns-11', '7-HotIns-12'], flWeighted=flWeight,affinityOption=3)
-
-
     #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000/spatial.txt',2,strMetric='SD-SP-SI', \
     #         flWeighted=flWeight,affinityOption=3)
     #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-sel/chat-trace-b16384-p5000000/spatial.txt',3,strMetric='SD-SP-SI', \
@@ -1084,16 +1122,16 @@ if (0):
         listCombineReg=['7-HotIns-02','8-HotIns-01'], flWeighted=flWeight,affinityOption=3)
         #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
 
-if (1):
+if (0): # works for all combined regions composite plot
     intraObjectPlot('XSB-rd-EVENT_k0', \
         mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 10, strMetric='SD-SP-SI', \
         #listCombineReg=['8-B0060001', '9-B0060002'],flWeighted=flWeight,affinityOption=3)
-        listCombineReg=['ALL'],flWeighted=flWeight,affinityOption=3)
+        listCombineReg=['ALL'],flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('XSB-rd-EVENT_OPT_k1', \
         mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', \
         9, strMetric='SD-SP-SI', \
         #listCombineReg=['7-HotIns-02','8-HotIns-01'], flWeighted=flWeight,affinityOption=3)
-        listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
+        listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 if (0): # still useless # latest try for all regions combined
     intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 6, strMetric='SD-SP-SI', \
@@ -1113,13 +1151,13 @@ if (0): # Separate source code 391 line - doesnt add any value
     intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b8192-p6000000-event-k-1/spatial.txt', 4, strMetric='SD-SP-SI', \
          listCombineReg=['2-C0000000','3-C0000001','4-C0000002'], flWeighted=flWeight,affinityOption=3)
 
-if(0):
+if(1):
     intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD-SP-SI', \
-                 flWeighted=flWeight,affinityOption=3)
+                 flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/hot_lines/v2_spatial_det.txt',3,strMetric='SD-SP-SI', \
-                listCombineReg=['1-A0000010','4-A0002000'] ,flWeighted=flWeight,affinityOption=3)
+                listCombineReg=['1-A0000010','4-A0002000'] ,flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/hot_lines/v3_spatial_det.txt',3,strMetric='SD-SP-SI', \
-                listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight,affinityOption=3)
+                listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 if ( 1 == 0):
     intraObjectPlot('ResNet', mainPath+'spatial_pages_exp/Darknet/resnet152_single/hot_lines/spatial.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
