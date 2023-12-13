@@ -1,5 +1,8 @@
 # Create intra-region SP and SI combined heatmap for selected blocks
 # Only self, self+1 and ... self-* non-significant for SP & SI
+    # STEP 0 - Add hot lines affinity to fill heatmap for hot cluster
+    #        - repeat data from 'self', 'self+', 'self-' to respective hotlines
+    #        - in application. It is not reported by location analysis (C code).
     # STEP 1 - Read spatial.txt and write inter-region file
     # STEP 2 - Get region ID's from inter-region file
     # STEP 2a - Add combine regions to the list
@@ -42,6 +45,7 @@ sns.set()
 from fileToDataframe import get_intra_obj,getFileColumnNames,getMetricColumns,getRearrangeColumns,getPageColList
 from fileToDataframe import getFileColumnNamesPageRegion,getMetricColumnsPageRegion,getPageColListPageRegion
 from fileToDataframe import getFileColumnNamesLineRegion,getMetricColumnsLineRegion,getPageColListLineRegion
+from fileToDataframe import add_hot_lines
 
 # Works for spatial denity, Spatial Anticipation and Interval
 def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeighted=None,numExtraPages:int=None,affinityOption:int=None,flPlot=None):
@@ -55,6 +59,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         flagHotPages = 1
     elif (affinityOption == 3):
         flagHotLines = 1
+
+    #STEP 0 - Add hot lines affinity to fill heatmap
+    strOutFile = strFileName+'hot_lines'
+    add_hot_lines (strFileName, strOutFile)
+    strFileName = strOutFile
     # STEP 1 - Read spatial.txt and write inter-region file
     strPath=strFileName[0:strFileName.rindex('/')]
     if('SP-SI' in strMetric  ):
@@ -297,7 +306,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         elif(flagHotLines ==1):
             plot_SP_col=getPageColListLineRegion(plot_SP_col)
         plot_SP_col=[item for item in plot_SP_col if 'r-' not in item]
-        #print('before get \n', plot_SP_col)
+        #print('before normalize \n', plot_SP_col)
         logger.info("before normalize ")
         #print(' before normalize  ' , df_intra_obj_SP[['reg-page-blk', 'Access', 'self']])
         list_SP_SI_SD=[[None]*(3*len(plot_SP_col)+3) for i in range(len(list_xlabel))]
@@ -307,6 +316,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             blkid= list_xlabel[blkCnt]
             list_SP_SI_SD[blkCnt][0]=blkid
             list_SP_SI_SD[blkCnt][1]=blkid[0:blkid.rfind('-')]
+            #print(blkid, df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'])
             list_SP_SI_SD[blkCnt][2]=df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'].item()
             weight_multiplier = 1.0
             if (flWeighted == True):
@@ -314,10 +324,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 #print('Before weight ', df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'].item())
                 weightRegPageAccess = (df_reg_pages[(df_reg_pages['reg-page'] == blkid[0:blkid.rfind('-')])]['Access'].item())
                 #print(blkid, arRegPageAccessIndex, weightRegPageAccess)
-                # Makes everything closer to zero
-                # Shouldnt the weight be based on the page access as all the metrics are calculated within the page
+                # WEIGHT by REGION - Makes everything closer to zero
                 #weight_multiplier = ( df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'].item() *100 )/ (accessSumBlocks)
-                # Weight by the page's total access
+                # Shouldnt the weight be based on the page access as all the metrics are calculated within the page
+                # WEIGHT by PAGE's total access - introduces more importance to lines in minimal number of pages
+                # INCORRECT - SHOULD NOT BE USED
                 weight_multiplier = ( df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'].item() *100 )/ (weightRegPageAccess)
                 #if (weight_multiplier > 1.0):
                     #print('blk ', blkid, ' access ', df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'].item(), ' accessSumBlocks ', weightRegPageAccess)
@@ -345,14 +356,17 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                         list_SP_SI_SD[blkCnt][plotCnt*3+5]=round(resultSD.values[0]* weight_multiplier,2)
                     #if (weight_multiplier > 1.0 and resultSP.size > 0 and resultSI.size >0 and resultSD.size >0):
                     #    print( 'SP ', list_SP_SI_SD[blkCnt][plotCnt*3+1], ' SI ', list_SP_SI_SD[blkCnt][plotCnt*3+2], ' SD ', list_SP_SI_SD[blkCnt][plotCnt*3+3])
-                    if ((list_SP_SI_SD[blkCnt][plotCnt*3+3] > 1.0) or (list_SP_SI_SD[blkCnt][plotCnt*3+5]> 1.0)):
-                        #print('greater than 1 - column name ', plotCol, ' SP ',list_SP_SI_SD[blkCnt][plotCnt*3+1], ' SD ',  list_SP_SI_SD[blkCnt][plotCnt*3+3])
-                        arRegPageIndex = arRegPages.index(blkid[0:blkid.rfind('-')])
-                        if (normSDMax[arRegPageIndex] < list_SP_SI_SD[blkCnt][plotCnt*3+5]):
-                            normSDMax[arRegPageIndex] = list_SP_SI_SD[blkCnt][plotCnt*3+5]
+                    #print ((list_SP_SI_SD[blkCnt][plotCnt*3+3] ), (list_SP_SI_SD[blkCnt][plotCnt*3+5]))
+                    arRegPageIndex = arRegPages.index(blkid[0:blkid.rfind('-')])
+                    if ((list_SP_SI_SD[blkCnt][plotCnt*3+3]  is not None) and (list_SP_SI_SD[blkCnt][plotCnt*3+3] > 1.0)):
                         if( normSPMax[arRegPageIndex] < list_SP_SI_SD[blkCnt][plotCnt*3+3]):
                             normSPMax[arRegPageIndex] = list_SP_SI_SD[blkCnt][plotCnt*3+3]
-                        flNormalize = True
+                            flNormalize = True
+                    if ((list_SP_SI_SD[blkCnt][plotCnt*3+5] is not None) and (list_SP_SI_SD[blkCnt][plotCnt*3+5]> 1.0)):
+                        #print('greater than 1 - column name ', plotCol, ' SP ',list_SP_SI_SD[blkCnt][plotCnt*3+1], ' SD ',  list_SP_SI_SD[blkCnt][plotCnt*3+3])
+                        if (normSDMax[arRegPageIndex] < list_SP_SI_SD[blkCnt][plotCnt*3+5]):
+                            normSDMax[arRegPageIndex] = list_SP_SI_SD[blkCnt][plotCnt*3+5]
+                            flNormalize = True
 
         #print(list_SP_SI)
         #print('line 352', plot_SP_col)
@@ -591,9 +605,6 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             listHotAffColumns.append('SD-'+listAffinityLines[i])
             listHotAffColumns.append('SP-'+listAffinityLines[i])
             listHotAffColumns.append('SI-'+listAffinityLines[i])
-        #listHotAffColumns.append('SD-self')
-        #listHotAffColumns.append('SP-self')
-        #listHotAffColumns.append('SI-self')
         if( flagAllRefLines ==1):
              df_hot_SP_SI_SD=df_SP_SI_SD[listHotAffColumns].copy()
         else:
@@ -724,10 +735,6 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                         cntSABlocksinHotBox = cntSABlocksinHotBox+1
                     if(~np.isnan(cmpSDvalue)):
                         cntSDBlocksinHotBox = cntSDBlocksinHotBox +1
-                    #print( 'cmpSAvalue ', cmpSAvalue, ' cntSA ' , cntSA)
-                    #if(np.isnan(cmpSAvalue)):
-                    #    print('listAffinityLines[i] ', listAffinityLines[i], row)
-                    #cntSA += 1
                     listSAindex=np.NaN
                     listSDindex=np.NaN
                     for i in range (0, len(listSAbins)):
@@ -745,10 +752,6 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     if(~np.isnan(listSDindex)):
                         listSDbins[listSDindex] +=1
                     print(' SA ', cmpSAvalue, ' bin ', listSAindex, ' SD ', cmpSDvalue, ' bin ', listSDindex)
-
-                    # For range from 0-0.25
-                    #if((~np.isnan(cmpSDvalue)) and 0.25 < float(cmpSDvalue)):
-                    #    listSDbins[19] +=1
 
             #print('listSAbins ', listSAbins)
             #print('listSDbins ', listSDbins)
@@ -775,26 +778,26 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SAbins ', listPercentSAbins)
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SDbins ', listPercentSDbins)
 
-
         #print(df_hot_SP_SI_SD.columns)
         #print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP-self-mean ', df_hot_SP_SI_SD['SP-self'].mean())
         #print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD-self-mean ', df_hot_SP_SI_SD['SD-self'].mean())
         #print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SI-self-mean ', df_hot_SP_SI_SD['SI-self'].mean())
 
-
-        # STEP 5a - Fill in hot lines with self data - for visualization only
         pattern = re.compile('SD-.*-.*-.*')
         listAffinityLines=list(filter(pattern.match, cols_df_SD))
         for i in range(0,len(listAffinityLines)):
             listAffinityLines[i] = listAffinityLines[i].replace('SD-','')
-        #logger.info("HOT lines in affinity")
+        logger.info("HOT lines in affinity")
         #print('hot lines in affinity', listAffinityLines)
+
+        # STEP 5a - Fill in hot lines with self data - for visualization only
         # Repeat 'self' values in hot lines in affinity - otherwise, there is a diagonal hole in heatmap
-        for i in range(0,len(listAffinityLines)):
+        # Should be taken care by fill in STEP 0 - add_hot_lines
+        #for i in range(0,len(listAffinityLines)):
             #print(df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SD-self'].values)
-            df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SD-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SD-self']
-            df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SP-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SP-self']
-            df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SI-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SI-self']
+            #df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SD-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SD-self']
+            #df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SP-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SP-self']
+            #df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SI-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SI-self']
 
         # STEP 5b - Proceed to plot
         if ((flPlot == True) and len(cols_df_SP) > 0 and len(cols_df_SI) >0 and len(cols_df_SD)>0):
@@ -1045,7 +1048,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             #ax_2.set_title('Access: Blocks', loc='right')
             ax_2.set_title('Blocks')
             ax_3.set_title('Pages')
-            fileNameLastSeg = '_hm_order.pdf'
+            fileNameLastSeg = '_hm_order_fill.pdf'
             if (flWeighted == True):
                 fileNameLastSeg = '_hm_order_Wgt.pdf'
             imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+fileNameLastSeg
