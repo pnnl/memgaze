@@ -15,7 +15,7 @@
         # STEP 3d - drop columns with "all" NaN values
         # STEP 3e - Sample dataframe for 150 rows based on access count as the weight
         # STEP 4 - Visual to numeric value for SI, SD, SP
-        # STEP 5a - Fill in hot lines with self data
+        # STEP 5a - Fill in hot lines with self data - not necessary after STEP 0
         # STEP 5b - Proceed to plot
 
 import pandas as pd
@@ -59,9 +59,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         flagHotPages = 1
     elif (affinityOption == 3):
         flagHotLines = 1
-
-    #STEP 0 - Add hot lines affinity to fill heatmap
-    strOutFile = strFileName+'hot_lines'
+composite
+    # STEP 0 - Add hot lines affinity to fill heatmap
+    strOutFile = strFileName+'_hot_lines'
     add_hot_lines (strFileName, strOutFile)
     strFileName = strOutFile
     # STEP 1 - Read spatial.txt and write inter-region file
@@ -253,6 +253,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # DROP - columns with no values
         #print(df_intra_obj[['reg_page_id', 'reg-page-blk', 'Access', 'Type', 'Stack']])
         print('before replace drop - ', df_intra_obj.shape)#, df_intra_obj.columns.to_list())
+        #csvFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+'-df.csv'
+        #df_intra_obj.to_csv(csvFileName)
         df_intra_obj_drop=df_intra_obj.dropna(axis=1,how='all')
         print('after replace drop - ', df_intra_obj.shape)#, df_intra_obj.columns.to_list())
         self_aft_drop=df_intra_obj_drop['self'].to_list()
@@ -601,6 +603,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         # COLUMNS - hot affinity blocks
         listHotAffColumns=['reg-page-blk','Access','Hot-Access']
 
+
         for i in range(0,len(listAffinityLines)):
             listHotAffColumns.append('SD-'+listAffinityLines[i])
             listHotAffColumns.append('SP-'+listAffinityLines[i])
@@ -792,12 +795,30 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
 
         # STEP 5a - Fill in hot lines with self data - for visualization only
         # Repeat 'self' values in hot lines in affinity - otherwise, there is a diagonal hole in heatmap
-        # Should be taken care by fill in STEP 0 - add_hot_lines
+        # Completed by fill in STEP 0 - add_hot_lines
         #for i in range(0,len(listAffinityLines)):
             #print(df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SD-self'].values)
             #df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SD-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SD-self']
             #df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SP-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SP-self']
             #df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SI-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SI-self']
+
+        csvFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+'-df.csv'
+        dfAllCols=df_SP_SI_SD.columns.to_list()
+        pattern=re.compile("S.*-")
+        removeCols=list(filter(pattern.match, dfAllCols))
+        csvColList=[]
+        if(len(removeCols)!=0):
+            subList = [x for x in dfAllCols if x not in removeCols]
+        csvColList.extend(subList)
+        print('csvColList ', csvColList)
+        hmAffLines=[]
+        hmAffLines.extend(cols_df_SP)
+        hmAffLines.extend(cols_df_SI)
+        hmAffLines.extend(cols_df_SD)
+        print('hmAffLines ', hmAffLines)
+        csvColList.extend(hmAffLines)
+        df_hot_SP_SI_SD_csv=df_SP_SI_SD[csvColList]
+        df_hot_SP_SI_SD_csv.to_csv(csvFileName)
 
         # STEP 5b - Proceed to plot
         if ((flPlot == True) and len(cols_df_SP) > 0 and len(cols_df_SI) >0 and len(cols_df_SD)>0):

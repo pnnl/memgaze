@@ -180,7 +180,7 @@ def plot_bar(strFileName,strMetric,dictValues ):
     ax.xaxis.set_tick_params(rotation=45)
 
     strPath=strFileName[0:strFileName.rindex('/')]
-    imageFileName=strPath+'/composite-SI-'+strMetric+'-all_hm_no_weight.pdf'
+    imageFileName=strPath+'/composite-SI-'+strMetric+'-all_hm_no_weight_fill.pdf'
     print(imageFileName)
     #plt.show()
     plt.savefig(imageFileName, bbox_inches='tight')
@@ -188,7 +188,7 @@ def plot_bar(strFileName,strMetric,dictValues ):
 
 strFileName=''
 if (1):
-    strFileName='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/hot_lines/composite-SI-SA-SI-SD.txt_no_weight'
+    strFileName='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/hot_lines/composite-SI-SA-SI-SD.txt_no_weight_fill'
 if(0):
     strFileName='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/composite-SI-SA-SI-SD.txt_no_weight'
 
