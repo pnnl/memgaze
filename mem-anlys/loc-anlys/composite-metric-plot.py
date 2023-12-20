@@ -4,30 +4,33 @@ import pandas as pd
 import seaborn as sns
 import re
 
+SI_good=63
 def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
+    # Three ways to choose hot ref blocks
+        # intHotRef = 0 - Option 1 - 90% in range Hot-Access - DEFAULT
+        # intHotRef = 1 - Option 2 - 90% of total access
+        # intHotRef = 2 - Option 3 - ALL blocks - all reference blocks for whole application
+    # Two ways to choose hot affinity blocks
+        # intHotAff = 0 - Option 1 - only hot lines and self
+        # intHotAff = 1 - Option 2 - only hot lines and self, self-1, self+1, self+2 - DEFAULT
+        # intHotAff = 2 - Option 3 - all heatmap rows
+
     if(intHotRef==None):
         intHotRef =0
     if(intHotAff==None):
-        intHotAff =0
+        intHotAff =1
     df_local=pd.read_csv(strFileName)
     df_local.insert(0,'Variant',strApp)
-    print(df_local.shape)
+    #print(df_local.shape)
     df_local.drop('Unnamed: 0',inplace=True,axis=1)
     df_local.sort_values(by=['Access'],ascending=False,inplace=True)
-    print(df_local.shape)
-    # Two ways to choose hot ref blocks
-    # Option 1 - 90% in range Hot-Access - intHotRef =0
-    # Option 2 - 90% of total access = intHotRef =1
-    print(df_local['Access'].sum())
+    #print(df_local['Access'].sum())
     sumAccessRefBlocks = df_local['Access'].sum()
     val = pd.Index(df_local.Access.cumsum()).get_loc(int((0.9*sumAccessRefBlocks)), 'nearest', tolerance=int(0.05*sumAccessRefBlocks))
-    print(val)
-    print(df_local.at[val,'Access'])
+    #print(val)
+    print(' All lines above access count ' , df_local.at[val,'Access'])
     accessThreshold=df_local.at[val,'Access']
 
-    # Two ways to choose hot affinity blocks
-    # Option 1 - only hot lines and self
-    # Option 2 - entire heat map rows
     dfCols = df_local.columns.to_list()
     listAffinityLines=[]
     if (intHotAff==0):
@@ -42,7 +45,7 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
         listAffinityLines.append('SD-self+1')
         listAffinityLines.append('SD-self+2')
     if (intHotAff==2):
-        pattern = re.compile('SD-.*') # option 1
+        pattern = re.compile('SD-.*')
         listAffinityLines=list(filter(pattern.match, dfCols))
 
     #print(dfCols)
@@ -80,9 +83,10 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
                 print (strApp , 'Not incluidng self for ', regPageBlock, listAffinityLines[i])
                 flInclude=False
 
-            if( (flInclude==True ) and \
-                        ((intHotRef == 1 and row['Access']>= accessThreshold)  or \
-                            (intHotRef == 0 and row['Hot-Access']>= 0.1))):
+            if((flInclude==True ) and \
+                        ((intHotRef == 0 and row['Hot-Access']>= 0.1) \
+                                     or (intHotRef == 1 and row['Access']>= accessThreshold)  or \
+                                        (intHotRef == 2 ))):
                 if(~np.isnan(row['SI-'+listAffinityLines[i]])) and (row['SI-'+listAffinityLines[i]]):
                     blkSIValue = row['SI-'+listAffinityLines[i]]
                 if(~np.isnan(row['SD-'+listAffinityLines[i]])) and (row['SD-'+listAffinityLines[i]]):
@@ -91,7 +95,7 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
                     blkSAValue = row['SP-'+listAffinityLines[i]]
                 if (not(np.isnan(blkSIValue))):
                     #print (regPageblocks[i],dfCols[j],blkSDValue, blkSIValue, blkSAValue, valSIPenalty)
-                    valSIBin = int(blkSIValue /63) +1
+                    valSIBin = int(blkSIValue /SI_good) +1
                     if(valSIBin > 10):
                         valSIBin = 10
                     valSIDiscount = float((10-valSIBin+1)/10)
@@ -107,71 +111,96 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
 
 def plot_app(strApp, optionHotRef, optionHotAff):
     strFileName=''
+    strPath='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/'
     dfForPlot= pd.DataFrame(columns=['Variant', 'reg-page-blk', 'SD', 'SA'])
     if(strApp.lower()=='minivite'):
-        strFileName='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/hot_lines/miniVite-v1-1-A0000001-SD-SP-SI-df.csv'
+        strFileName='miniVite/hot_lines/miniVite-v1-1-A0000001-SD-SP-SI-df.csv'
         strAppVar='miniVite-v1'
+        strFileName=strPath+strFileName
         read_file_df(strFileName, optionHotRef,optionHotAff , strAppVar,dfForPlot)
         print(dfForPlot.shape)
 
-        strFileName='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/hot_lines/miniVite-v2-1-A0000010-4-A0002000-SD-SP-SI-df.csv'
+        strFileName='miniVite/hot_lines/miniVite-v2-1-A0000010-4-A0002000-SD-SP-SI-df.csv'
         strAppVar='miniVite-v2'
+        strFileName=strPath+strFileName
         read_file_df(strFileName, optionHotRef,optionHotAff , strAppVar,dfForPlot)
         print(dfForPlot.shape)
 
-        strFileName='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/hot_lines/miniVite-v3-1-A0000001-5-A0001200-SD-SP-SI-df.csv'
+        strFileName='miniVite/hot_lines/miniVite-v3-1-A0000001-5-A0001200-SD-SP-SI-df.csv'
         strAppVar='miniVite-v3'
+        strFileName=strPath+strFileName
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
         print(dfForPlot.shape)
 
-        print(dfForPlot)
-        print(" V1 ", (dfForPlot[dfForPlot["Variant"] =="miniVite-v1" ] ['SA'] >=0.25).sum())
-        print(" V2 ", (dfForPlot[dfForPlot["Variant"] =="miniVite-v2" ] ['SA'] >=0.25).sum())
-        print(" V3 ", (dfForPlot[dfForPlot["Variant"] =="miniVite-v3" ] ['SA'] >=0.25).sum())
+    if(strApp.lower()=='xsb'):
+        strFileName='XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/XSB-rd-EVENT_OPT_k1-0-A0000000-1-B0000000-SD-SP-SI-df.csv'
+        strAppVar='XSBench-event-k1'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
+        print(dfForPlot.shape)
 
-        print(" V1 ", (dfForPlot[dfForPlot["Variant"] =="miniVite-v1" ] ['SD'] >=0.05).sum())
-        print(" V2 ", (dfForPlot[dfForPlot["Variant"] =="miniVite-v2" ] ['SD'] >=0.05).sum())
-        print(" V3 ", (dfForPlot[dfForPlot["Variant"] =="miniVite-v3" ] ['SD'] >=0.05).sum())
+        strFileName='XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/XSB-rd-EVENT_k0-0-A0000000-1-B0000000-2-B0010000-3-B0020000-4-B0030000-5-B0040000-6-B0050000-7-B0060000-SD-SP-SI-df.csv'
+        strAppVar='XSBench-event-k0'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
+        print(dfForPlot.shape)
+        strFileName=strPath+'XSBench/openmp-threading-noinline/memgaze-xs-read/'
 
-        binArray=[0.01,0.02,0.03,0.04,0.05,0.1,0.2,0.4,0.6,0.8,1.0]
-        listDarkPalette=['#0343df','#650021','#3f9b0b']
+    print(dfForPlot)
+    dfForPlot.sort_values(by='Variant', ascending=True, inplace=True)
+    arrVariants=list(set(dfForPlot["Variant"].to_list()))
+    print(arrVariants)
+    for i in range(len(arrVariants)):
+        print(arrVariants[i], " SA all ",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['SA'] >0 ).sum())
+        print(arrVariants[i], " SA good ",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['SA'] >=0.25).sum())
+        print(arrVariants[i], " SD all ",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['SD'] >0 ).sum())
+        print(arrVariants[i], " SD ",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['SD'] >=0.05).sum())
 
-        strMetric="SD"
-        p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge", aspect=2,alpha=1,facet_kws=dict(legend_out=False))#,stat="percent")# col="App")
-        p.set(xlabel="$\it{"+strMetric+"}^{*}$")
-        p.set(ylabel="Count of block pairs")
-        sns.move_legend(p,"upper center",ncol=3,bbox_to_anchor=(.55, .95))
-        p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
-        strPath=strFileName[0:strFileName.rindex('/')]
-        imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
-        print(imageFileName)
-        plt.savefig(imageFileName, bbox_inches='tight')
+    binArray=[0.01,0.02,0.03,0.04,0.05,0.1,0.2,0.4,0.6,0.8,1.0]
+    listDarkPalette=['#0343df','#650021','#3f9b0b']
 
-        strMetric="SA"
-        p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", aspect=2,alpha=1,facet_kws=dict(legend_out=False))# col="App")
-        #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", aspect=2,kde=True,palette=listDarkPalette,alpha=1,facet_kws=dict(legend_out=False))# col="App")
-        p.set(xlabel="$\it{"+strMetric+"}^{*}$")
-        p.set(ylabel="Count of block pairs")
-        p.set(xticks=np.arange(0,1.05,0.05))
-        p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
-        sns.move_legend(p,"upper center",ncol=3,bbox_to_anchor=(.55, .95))
-        p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
-        strPath=strFileName[0:strFileName.rindex('/')]
-        imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
-        print(imageFileName)
-        plt.savefig(imageFileName, bbox_inches='tight')
+    strMetric="SD"
+    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  aspect=2, alpha=1,facet_kws=dict(legend_out=False))#,stat="percent")# col="App")
+    p.set(xlabel="$\it{"+strMetric+"}^{*}$")
+    p.set(ylabel="Count of block pairs")
+    sns.move_legend(p,"upper center",ncol=len(arrVariants),bbox_to_anchor=(.55, .95))
+    p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
+    p.map(plt.axvline, x=0.05, color='black', dashes=(2, 1), zorder=0,linewidth=2)
+    #ax.axvline(x='0.05', ymin=ymin, ymax=ymax, linewidth=1, color='black')
 
-        #p.set(xlabel="$\it{SI}$-$\it{"+strMetric+ "}$")
-        #sns.displot(dfForPlot, x="SA", hue="Variant", bins=100,  multiple="dodge", aspect=2)# col="Variant")
-        #sns.displot(dfForPlot, x="SA", hue="Variant", bins=binArray,  multiple="dodge", aspect=2)# col="Variant")
-        #sns.displot(dfForPlot, x="SA", hue="Variant", bins=100,  col="Variant",legend=False)
-        #plt.show()
+    strPath=strFileName[0:strFileName.rindex('/')]
+    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-percent.pdf'
+    print(imageFileName)
+    plt.savefig(imageFileName, bbox_inches='tight')
+
+    strMetric="SA"
+    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge",   aspect=2, alpha=1,facet_kws=dict(legend_out=False))# col="App")
+    #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", aspect=2,kde=True,palette=listDarkPalette,alpha=1,facet_kws=dict(legend_out=False))# col="App")
+    p.set(xlabel="$\it{"+strMetric+"}^{*}$")
+    p.set(ylabel="Count of block pairs")
+    p.set(xticks=np.arange(0,1.05,0.05))
+    p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
+    sns.move_legend(p,"upper center",ncol=len(arrVariants),bbox_to_anchor=(.55, .95))
+    p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
+    p.map(plt.axvline, x=0.25, color='black', dashes=(2, 1), zorder=0,linewidth=2)
+    strPath=strFileName[0:strFileName.rindex('/')]
+    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-percent.pdf'
+    print(imageFileName)
+    plt.savefig(imageFileName, bbox_inches='tight')
+
+    #p.set(xlabel="$\it{SI}$-$\it{"+strMetric+ "}$")
+    #sns.displot(dfForPlot, x="SA", hue="Variant", bins=100,  multiple="dodge", aspect=2)# col="Variant")
+    #sns.displot(dfForPlot, x="SA", hue="Variant", bins=binArray,  multiple="dodge", aspect=2)# col="Variant")
+    #sns.displot(dfForPlot, x="SA", hue="Variant", bins=100,  col="Variant",legend=False)
+    #plt.show()
 
 #def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
 #def plot_app(strApp, optionHotRef, optionHotAff)
 #plot_app('miniVite', 0, 0)
-plot_app('miniVite', 0, 1)
-#plot_app('miniVite', 0, 2)
+#plot_app('miniVite', 0, 1)
 #plot_app('miniVite', 1, 0)
 #plot_app('miniVite', 1, 1)
 #plot_app('miniVite', 1, 2)
+plot_app('xsb', 2, 1)
+plot_app('xsb', 2, 2)
+

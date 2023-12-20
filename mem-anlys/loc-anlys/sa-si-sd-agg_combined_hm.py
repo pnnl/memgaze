@@ -59,7 +59,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         flagHotPages = 1
     elif (affinityOption == 3):
         flagHotLines = 1
-composite
+
     # STEP 0 - Add hot lines affinity to fill heatmap
     strOutFile = strFileName+'_hot_lines'
     add_hot_lines (strFileName, strOutFile)
@@ -1146,16 +1146,6 @@ if (0):
         listCombineReg=['7-HotIns-02','8-HotIns-01'], flWeighted=flWeight,affinityOption=3)
         #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
 
-if (0): # works for all combined regions composite plot
-    intraObjectPlot('XSB-rd-EVENT_k0', \
-        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 10, strMetric='SD-SP-SI', \
-        #listCombineReg=['8-B0060001', '9-B0060002'],flWeighted=flWeight,affinityOption=3)
-        listCombineReg=['ALL'],flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
-    intraObjectPlot('XSB-rd-EVENT_OPT_k1', \
-        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', \
-        9, strMetric='SD-SP-SI', \
-        #listCombineReg=['7-HotIns-02','8-HotIns-01'], flWeighted=flWeight,affinityOption=3)
-        listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 if (0): # still useless # latest try for all regions combined
     intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 6, strMetric='SD-SP-SI', \
@@ -1175,7 +1165,18 @@ if (0): # Separate source code 391 line - doesnt add any value
     intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b8192-p6000000-event-k-1/spatial.txt', 4, strMetric='SD-SP-SI', \
          listCombineReg=['2-C0000000','3-C0000001','4-C0000002'], flWeighted=flWeight,affinityOption=3)
 
-if(1):
+if (1): # works for all combined regions composite plot
+    intraObjectPlot('XSB-rd-EVENT_k0', \
+        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 10, strMetric='SD-SP-SI', \
+        #listCombineReg=['8-B0060001', '9-B0060002'],flWeighted=flWeight,affinityOption=3)
+        listCombineReg=['ALL'],flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    intraObjectPlot('XSB-rd-EVENT_OPT_k1', \
+        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', \
+        9, strMetric='SD-SP-SI', \
+        #listCombineReg=['7-HotIns-02','8-HotIns-01'], flWeighted=flWeight,affinityOption=3)
+        listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+
+if(0):
     intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD-SP-SI', \
                  flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/hot_lines/v2_spatial_det.txt',3,strMetric='SD-SP-SI', \
