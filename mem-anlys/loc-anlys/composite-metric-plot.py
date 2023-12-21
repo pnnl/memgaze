@@ -27,9 +27,13 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
     #print(df_local['Access'].sum())
     sumAccessRefBlocks = df_local['Access'].sum()
     val = pd.Index(df_local.Access.cumsum()).get_loc(int((0.9*sumAccessRefBlocks)), 'nearest', tolerance=int(0.05*sumAccessRefBlocks))
+
     #print(val)
-    print(' All lines above access count ' , df_local.at[val,'Access'])
     accessThreshold=df_local.at[val,'Access']
+    print(' All lines above access count ' , accessThreshold)
+    #accessThreshold=round((0.05*sumAccessRefBlocks),0)
+    #print(' All lines above access count ' , accessThreshold)
+
 
     dfCols = df_local.columns.to_list()
     listAffinityLines=[]
@@ -49,8 +53,17 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
         listAffinityLines=list(filter(pattern.match, dfCols))
 
     #print(dfCols)
+    print('Columns in df_local ', df_local.columns.to_list())
+    pattern = re.compile('SD-.*')
+    dfSDCols =  list(filter(pattern.match, df_local.columns.to_list()))
+    for item in listAffinityLines:
+        if (not (item in dfSDCols)):
+            print( 'item ', item, dfSDCols)
+            listAffinityLines.remove(item)
+
     for i in range(0,len(listAffinityLines)):
         listAffinityLines[i] = listAffinityLines[i].replace('SD-','')
+
     print('hot lines in affinity', listAffinityLines)
     pattern = re.compile('self.*')
     listSelfAffLines = list(filter(pattern.match, listAffinityLines))
@@ -87,11 +100,11 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
                         ((intHotRef == 0 and row['Hot-Access']>= 0.1) \
                                      or (intHotRef == 1 and row['Access']>= accessThreshold)  or \
                                         (intHotRef == 2 ))):
-                if(~np.isnan(row['SI-'+listAffinityLines[i]])) and (row['SI-'+listAffinityLines[i]]):
+                if((row['SI-'+listAffinityLines[i]])) and (~np.isnan(row['SI-'+listAffinityLines[i]])):
                     blkSIValue = row['SI-'+listAffinityLines[i]]
-                if(~np.isnan(row['SD-'+listAffinityLines[i]])) and (row['SD-'+listAffinityLines[i]]):
+                if((row['SD-'+listAffinityLines[i]])) and (~np.isnan(row['SD-'+listAffinityLines[i]])):
                     blkSDValue = row['SD-'+listAffinityLines[i]]
-                if(~np.isnan(row['SP-'+listAffinityLines[i]])) and (row['SP-'+listAffinityLines[i]]):
+                if((row['SP-'+listAffinityLines[i]])) and (~np.isnan(row['SP-'+listAffinityLines[i]])):
                     blkSAValue = row['SP-'+listAffinityLines[i]]
                 if (not(np.isnan(blkSIValue))):
                     #print (regPageblocks[i],dfCols[j],blkSDValue, blkSIValue, blkSAValue, valSIPenalty)
@@ -132,7 +145,7 @@ def plot_app(strApp, optionHotRef, optionHotAff):
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
         print(dfForPlot.shape)
 
-    if(strApp.lower()=='xsb'):
+    if(strApp.lower()=='xsb-noinline'):
         strFileName='XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/XSB-rd-EVENT_OPT_k1-0-A0000000-1-B0000000-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k1'
         strFileName=strPath+strFileName
@@ -145,6 +158,21 @@ def plot_app(strApp, optionHotRef, optionHotAff):
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
         print(dfForPlot.shape)
         strFileName=strPath+'XSBench/openmp-threading-noinline/memgaze-xs-read/'
+
+    if(strApp.lower()=='xsb-noflto'):
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p3000000-event-k-0/XSB-rd-EVENT_k0-0-A0000000-1-B0000000-2-B0000001-3-B0000002-4-B0000003-5-B0000004-6-B1000000-7-HotIns-11-8-HotIns-12-SD-SP-SI-df.csv'
+        strAppVar='XSBench-event-k0'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
+        print(dfForPlot.shape)
+
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p3000000-event-k-1/XSB-rd-EVENT_OPT_k1-0-A0000000-1-B0000000-2-B0000001-3-B0000002-SD-SP-SI-df.csv'
+        strAppVar='XSBench-event-k1'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
+        print(dfForPlot.shape)
+        strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read/'
+
 
     print(dfForPlot)
     dfForPlot.sort_values(by='Variant', ascending=True, inplace=True)
@@ -160,31 +188,34 @@ def plot_app(strApp, optionHotRef, optionHotAff):
     listDarkPalette=['#0343df','#650021','#3f9b0b']
 
     strMetric="SD"
-    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  aspect=2, alpha=1,facet_kws=dict(legend_out=False))#,stat="percent")# col="App")
+    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+    #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  stat='percent', common_norm=False, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
     p.set(xlabel="$\it{"+strMetric+"}^{*}$")
     p.set(ylabel="Count of block pairs")
-    sns.move_legend(p,"upper center",ncol=len(arrVariants),bbox_to_anchor=(.55, .95))
+    sns.move_legend(p,"upper center",ncol=len(arrVariants),bbox_to_anchor=(.55, .85))
     p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
-    p.map(plt.axvline, x=0.05, color='black', dashes=(2, 1), zorder=0,linewidth=2)
+    #p.map(plt.axvline, x=0.05, color='black', dashes=(2, 1), zorder=0,linewidth=2)
     #ax.axvline(x='0.05', ymin=ymin, ymax=ymax, linewidth=1, color='black')
 
     strPath=strFileName[0:strFileName.rindex('/')]
-    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-percent.pdf'
+    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
     print(imageFileName)
     plt.savefig(imageFileName, bbox_inches='tight')
 
     strMetric="SA"
-    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge",   aspect=2, alpha=1,facet_kws=dict(legend_out=False))# col="App")
-    #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", aspect=2,kde=True,palette=listDarkPalette,alpha=1,facet_kws=dict(legend_out=False))# col="App")
+    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", aspect=2, alpha=1,facet_kws=dict(legend_out=False))# col="App")
+    #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", stat='percent', common_norm=False,  aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+
+    #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", aspect=2,kde=True,palette=listDarkPalette,alpha=1,facet_kws=dict(legend_out=False))
     p.set(xlabel="$\it{"+strMetric+"}^{*}$")
     p.set(ylabel="Count of block pairs")
     p.set(xticks=np.arange(0,1.05,0.05))
     p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
-    sns.move_legend(p,"upper center",ncol=len(arrVariants),bbox_to_anchor=(.55, .95))
+    sns.move_legend(p,"upper center",ncol=len(arrVariants),bbox_to_anchor=(.55, .85))
     p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
-    p.map(plt.axvline, x=0.25, color='black', dashes=(2, 1), zorder=0,linewidth=2)
+    #p.map(plt.axvline, x=0.25, color='black', dashes=(2, 1), zorder=0,linewidth=2)
     strPath=strFileName[0:strFileName.rindex('/')]
-    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-percent.pdf'
+    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
     print(imageFileName)
     plt.savefig(imageFileName, bbox_inches='tight')
 
@@ -197,10 +228,14 @@ def plot_app(strApp, optionHotRef, optionHotAff):
 #def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
 #def plot_app(strApp, optionHotRef, optionHotAff)
 #plot_app('miniVite', 0, 0)
-#plot_app('miniVite', 0, 1)
+#plot_app('miniVite', 0, 1) # used
+#plot_app('miniVite', 0, 2) # used
 #plot_app('miniVite', 1, 0)
-#plot_app('miniVite', 1, 1)
+plot_app('miniVite', 1, 1)
 #plot_app('miniVite', 1, 2)
-plot_app('xsb', 2, 1)
-plot_app('xsb', 2, 2)
+#plot_app('xsb-noflto', 2, 2) # used
+#plot_app('xsb-noinline', 2, 1) # used
+#plot_app('xsb-noinline', 2, 2)
+
+#plot_app('xsb-noflto', 2, 1) # unused
 

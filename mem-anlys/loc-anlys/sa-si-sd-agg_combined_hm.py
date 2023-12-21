@@ -754,7 +754,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                         listSAbins[listSAindex] +=1
                     if(~np.isnan(listSDindex)):
                         listSDbins[listSDindex] +=1
-                    print(' SA ', cmpSAvalue, ' bin ', listSAindex, ' SD ', cmpSDvalue, ' bin ', listSDindex)
+                    #print(' SA ', cmpSAvalue, ' bin ', listSAindex, ' SD ', cmpSDvalue, ' bin ', listSDindex)
 
             #print('listSAbins ', listSAbins)
             #print('listSDbins ', listSDbins)
@@ -1050,7 +1050,16 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             annot = np.char.add(rndAccess.astype(str), 'K')
             sns.heatmap(rndAccess, cmap=custom_blue, cbar=False,annot=annot, fmt='', annot_kws = {'size':12},  ax=ax_3)
             ax_3.set_xticks([0])
-            ax_3.set_yticklabels(arRegPages, rotation='horizontal', wrap=True )
+
+            print(len(rndAccess))
+            print(len(arRegPages))
+            list_y_ticks=ax_3.get_yticklabels()
+            fig_ylabel=[]
+            for y_label in list_y_ticks:
+                    fig_ylabel.append(arRegPages[int(y_label.get_text())])
+            # TOO long - for all regions
+            #ax_3.set_yticklabels(arRegPages, rotation='horizontal', wrap=True )
+            ax_3.set_yticklabels(fig_ylabel, rotation='horizontal', wrap=True )
             ax_3.yaxis.set_ticks_position('right')
 
 
@@ -1147,16 +1156,6 @@ if (0):
         #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
 
 
-if (0): # still useless # latest try for all regions combined
-    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 6, strMetric='SD-SP-SI', \
-    listCombineReg=['4-HotIns-11', '5-HotIns-12'], flWeighted=flWeight,affinityOption=3)
-    #listCombineReg=['0-A0000000', '4-HotIns-11', '5-HotIns-12'], flWeighted=flWeight,affinityOption=3)
-    #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 3, strMetric='SD-SP-SI', \
-    listCombineReg=['1-B0000000','2-B0000001'], flWeighted=flWeight,affinityOption=3)
-    #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
-
-
 if (0): # Separate source code 391 line - doesnt add any value
     intraObjectPlot('XSB-rd-HIST',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b8192-p6000000-hist/spatial.txt', 2, strMetric='SD-SP-SI', \
          flWeighted=flWeight,affinityOption=3)
@@ -1165,15 +1164,28 @@ if (0): # Separate source code 391 line - doesnt add any value
     intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b8192-p6000000-event-k-1/spatial.txt', 4, strMetric='SD-SP-SI', \
          listCombineReg=['2-C0000000','3-C0000001','4-C0000002'], flWeighted=flWeight,affinityOption=3)
 
-if (1): # works for all combined regions composite plot
+if (0): # still useless for composite # latest try for all regions combined # Dec 20
+    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 6, strMetric='SD-SP-SI', \
+    #listCombineReg=['4-HotIns-11', '5-HotIns-12'], flWeighted=flWeight,affinityOption=3)
+    #listCombineReg=['0-A0000000', '4-HotIns-11', '5-HotIns-12'], flWeighted=flWeight,affinityOption=3)
+    listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 3, strMetric='SD-SP-SI', \
+    #listCombineReg=['1-B0000000','2-B0000001'], flWeighted=flWeight,affinityOption=3)
+    listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
+
+if (0): # still useless for composite # latest try for all regions combined # Dec 20
+    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p3000000-event-k-0/spatial.txt', 9, strMetric='SD-SP-SI', \
+    listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p3000000-event-k-1/spatial.txt', 4, strMetric='SD-SP-SI', \
+    listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+
+if (0): # works for all combined regions composite plot - Dec 20
     intraObjectPlot('XSB-rd-EVENT_k0', \
         mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 10, strMetric='SD-SP-SI', \
-        #listCombineReg=['8-B0060001', '9-B0060002'],flWeighted=flWeight,affinityOption=3)
         listCombineReg=['ALL'],flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('XSB-rd-EVENT_OPT_k1', \
         mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', \
         9, strMetric='SD-SP-SI', \
-        #listCombineReg=['7-HotIns-02','8-HotIns-01'], flWeighted=flWeight,affinityOption=3)
         listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 if(0):
@@ -1185,31 +1197,31 @@ if(0):
                 listCombineReg=['1-A0000001','5-A0001200'] ,flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 if ( 1 == 0):
-    intraObjectPlot('ResNet', mainPath+'spatial_pages_exp/Darknet/resnet152_single/hot_lines/spatial.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+    intraObjectPlot('ResNet', mainPath+'spatial_pages_exp/Darknet/resnet152_single/hot_lines/spatial.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('AlexNet',mainPath+'spatial_pages_exp/Darknet/alexnet_single/hot_lines/spatial.txt',5, \
-                    listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+                    listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
-if(0):
+if(1):
     intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',\
-                    flWeighted=flWeight,affinityOption=3)
+                    flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('HiParTi - COO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/coo_u_0/spatial.txt',3,f_avg=f_avg1,\
-                    listCombineReg=['1-A0000010','2-A0000020'], strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3)
+                    listCombineReg=['1-A0000010','2-A0000020'], strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('HiParTi - COO-Reduce',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/coo_u_1/spatial.txt', \
-                    2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'],f_avg=f_avg1, strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3)
+                    2,listCombineReg=['0-A0000000', '1-A1000000', '2-A2000000','3-A2000010'],f_avg=f_avg1, strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('HiParTi - HiCOO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_0/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', \
-                    flWeighted=flWeight,affinityOption=3)
+                    flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_1/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', \
-                    flWeighted=flWeight,affinityOption=3)
+                    flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 if(0):
     intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
-                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
-                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
-                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('HiParTI-HiCOO-Random', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
-                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3)
+                    strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 if( 1 == 0):
     intraObjectPlot('miniVite-v1',mainPath+'minivite_detailed_look/inter-region/v1_spatial_det.txt',1,strMetric='SD-SP-SI',flWeighted=flWeight)

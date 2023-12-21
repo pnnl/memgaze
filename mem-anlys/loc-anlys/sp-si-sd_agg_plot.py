@@ -368,7 +368,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         plt.savefig(imageFileName, bbox_inches='tight')
         plt.close()
 
-flWeight=True
+flWeight=False
 mainPath='/Users/suri836/Projects/spatial_rud/'
 
 # Not very useful plots for Minivite, heatmap shows interesting information
