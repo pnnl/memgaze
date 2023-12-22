@@ -151,8 +151,8 @@ def readFile(inFile, outFile,appName):
                   objFile_C = ''
                   varVersion = 'mt-re-sel: '
                 if (appName == 'mini-v1'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/v1-mg-ld/miniVite-v1-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/v1-mg-ld/obj_v1'
+                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld/miniVite-v1-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld/obj_v1'
                   objFile_C = ''
                   varVersion = 'm-v1: '
                 if (appName == 'mini-v2'): 
@@ -200,20 +200,36 @@ def readFile(inFile, outFile,appName):
                   objFile = '/home/suri836/Projects/run_memgaze/spatial_ubench/vec_store_large_check_linemap/line_map/obj_vec_gpp'
                   objFile_C = ''
                   varVersion = 'vsl: '
-                if (variantFile == '../MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1.trace.final'):
+                if (variantFile == '../MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1.trace.final' ):
                   logFile = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1*.log'
                   objFile = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_obj_nuke_line' 
                   objFile_C = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_obj_C' 
                   varVersion = 'V1: '
-                if (variantFile == '../MiniVite_O3_v2_nf_func_8k_P5M_n300k/miniVite_O3-v2.trace.final'):
+                if (variantFile == '../MiniVite_O3_v2_nf_func_8k_P5M_n300k/miniVite_O3-v2.trace.final' ):
                   logFile = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v2_nf_func_8k_P5M_n300k/miniVite_O3-v2*.log'
                   objFile = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v2_nf_func_8k_P5M_n300k/miniVite_O3-v2_obj_nuke_line' 
                   objFile_C = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v2_nf_func_8k_P5M_n300k/miniVite_O3-v2_obj_C' 
                   varVersion = 'V2: '
-                if (variantFile == '../MiniVite_O3_v3_nf_func_8k_P5M_n300k/miniVite_O3-v3.trace.final'):
+                if (variantFile == '../MiniVite_O3_v3_nf_func_8k_P5M_n300k/miniVite_O3-v3.trace.final' ):
                   logFile = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v3_nf_func_8k_P5M_n300k/miniVite_O3-v3*.log'
                   objFile = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v3_nf_func_8k_P5M_n300k/miniVite_O3-v3_obj_nuke_line' 
                   objFile_C = '/files0/suri836/RUD_Zoom/minivite_create_filtered/MiniVite_O3_v3_nf_func_8k_P5M_n300k/miniVite_O3-v3_obj_C' 
+                  varVersion = 'V3: '
+                if ( appName == 'nuke-mini-v1'):
+                  #/home/suri836/Projects/run_memgaze/spatial_pages_exp/miniVite
+                  logFile = '/home/suri836/Projects/run_memgaze/spatial_pages_exp/miniVite/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1*.log'
+                  objFile = '/home/suri836/Projects/run_memgaze/spatial_pages_exp/miniVite/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_obj_nuke_line' 
+                  objFile_C = '/home/suri836/Projects/run_memgaze/spatial_pages_exp/miniVite/MiniVite_O3_v1_nf_func_8k_P5M_n300k/miniVite_O3-v1_obj_C' 
+                  varVersion = 'V1: '
+                if ( appName == 'nuke-mini-v2'):
+                  logFile = '/home/suri836/Projects/run_memgaze/spatial_pages_exp/miniVite/MiniVite_O3_v2_nf_func_8k_P5M_n300k/miniVite_O3-v2*.log'
+                  objFile = '/home/suri836/Projects/run_memgaze/spatial_pages_exp/miniVite/MiniVite_O3_v2_nf_func_8k_P5M_n300k/miniVite_O3-v2_obj_nuke_line' 
+                  objFile_C = '/home/suri836/Projects/run_memgaze/spatial_pages_exp/miniVite/MiniVite_O3_v2_nf_func_8k_P5M_n300k/miniVite_O3-v2_obj_C' 
+                  varVersion = 'V2: '
+                if ( appName == 'nuke-mini-v3'):
+                  logFile = '/home/suri836/Projects/run_memgaze/spatial_pages_exp/miniVite/MiniVite_O3_v3_nf_func_8k_P5M_n300k/miniVite_O3-v3*.log'
+                  objFile = '/home/suri836/Projects/run_memgaze/spatial_pages_exp/miniVite/MiniVite_O3_v3_nf_func_8k_P5M_n300k/miniVite_O3-v3_obj_nuke_line' 
+                  objFile_C = '/home/suri836/Projects/run_memgaze/spatial_pages_exp/miniVite/MiniVite_O3_v3_nf_func_8k_P5M_n300k/miniVite_O3-v3_obj_C' 
                   varVersion = 'V3: '
                 if (variantFile == '/files0/suri836/RUD_Zoom/alexnet_10/darknet_s8192_p1000000.trace.final' or \
                     variantFile == '/files0/suri836/RUD_Zoom/alexnet_single/darknet_s8192_p1000000.trace.final' or \
@@ -352,8 +368,13 @@ def readFile(inFile, outFile,appName):
                         strMapping = strCorrectMap
                   #print(strMapping)
                   grData=strMapping.split(' ')
-                  #print (varInst, grData[5])
-                  command = 'grep ' + grData[5] + ': '+objFile
+                  grepInsn=''
+                  print (varInst, grData)
+                  if (len(grData) >=5):
+                    grepInsn = grData[5]
+                  else:
+                    grepInsn = grData[0]
+                  command = 'grep ' + grepInsn + ': '+objFile
                   strBinLine =''
                   try:
                     strBinLine = subprocess.check_output(command, shell=True)
@@ -365,7 +386,7 @@ def readFile(inFile, outFile,appName):
                     strBinLine1 = strBinLine1[2:]
                     #print(strBinLine1)
                     if(objFile_C != ''):
-                      command = 'grep ' + grData[5] + ': '+objFile_C
+                      command = 'grep ' + grepInsn +': '+objFile_C
                       strBinLine_C =''
                       try:
                         strBinLine_C = subprocess.check_output(command, shell=True)
@@ -373,8 +394,8 @@ def readFile(inFile, outFile,appName):
                         print("objFile_C error code ", strMapping, command, grepexc.returncode, grepexc.output)
                       strBinLine_C = str(strBinLine.strip())
                       if(strBinLine != strBinLine_C):
-                        print ('Error ' , varVersion, varInst, grData[5], strBinLine, strBinLine_C)
-                    command = 'grep -B 10 '+grData[5]+': '+objFile +' | grep \/'
+                        print ('Error ' , varVersion, varInst, grepInsn, strBinLine, strBinLine_C)
+                      command = 'grep -B 10 '+grepInsn+': '+objFile +' | grep \/'
                     strResult=''
                     try:
                       strResult = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT,universal_newlines=True)
@@ -396,13 +417,13 @@ def readFile(inFile, outFile,appName):
                     fnStartIP=''
                     for key in sorted(dictFnIdentify):
                         #print( 'key ', int(key), "int(grData[5],16)", int(grData[5],16), "int(grData[5],16)) < int(key)", ((int(grData[5],16)) < int(key)))
-                        if ((int(grData[5],16)) < key):
+                        if ((int(grepInsn,16)) < key):
                             continue
                         else:
                             #print("ELSE", key)
                             fnStartIP = dictFnIdentify[key]
                             fnName = dictFnMap[fnStartIP]
-                  writeLine = varVersion+' '+data[0]+ ' '+varInstgr+' '+ strSpillCode + grData[5] + ' '+fnStartIP+ ' '+fnName+' '+ strResult+' \n'
+                  writeLine = varVersion+' '+data[0]+ ' '+varInstgr+' '+ strSpillCode + grepInsn + ' '+fnStartIP+ ' '+fnName+' '+ strResult+' \n'
             if(processLine ==0):
               f_out.write(fileLine)
             else:

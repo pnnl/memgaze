@@ -68,7 +68,8 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
     pattern = re.compile('self.*')
     listSelfAffLines = list(filter(pattern.match, listAffinityLines))
     print(' listSelfAffLines ' , listSelfAffLines)
-
+    listHotRefLines = df_local[df_local['Hot-Access'] >0.1]['reg-page-blk'].to_list()
+    print('listHotRefLines ', listHotRefLines)
     for index, row in df_local.iterrows():
         for i in range(0,len(listAffinityLines)):
             flInclude=True
@@ -89,11 +90,11 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
             checkAffBlock = regPage + str(intAffBlock)
             #print(checkAffBlock)
             if(checkAffBlock in listAffinityLines):
-                print ( strApp , ' Not incluidng contig block for ', regPageBlock, listAffinityLines[i], checkAffBlock)
+                #print ( strApp , ' Not incluidng contig block for ', regPageBlock, listAffinityLines[i], checkAffBlock)
                 flInclude=False
 
             if(regPageBlock in listAffinityLines and listAffinityLines[i] =='self'):
-                print (strApp , 'Not incluidng self for ', regPageBlock, listAffinityLines[i])
+                #print (strApp , 'Not incluidng self for ', regPageBlock, listAffinityLines[i])
                 flInclude=False
 
             if((flInclude==True ) and \
@@ -145,6 +146,32 @@ def plot_app(strApp, optionHotRef, optionHotAff):
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
         print(dfForPlot.shape)
 
+    if(strApp.lower() == 'hicoo-tensor'):
+        strFileName='HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-Lexi-0-B0000000-SD-SP-SI-df.csv'
+        strAppVar='Lexi'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
+        print(dfForPlot.shape)
+
+        strFileName='HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-BFS-0-B0000000-SD-SP-SI-df.csv'
+        strAppVar='BFS'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
+        print(dfForPlot.shape)
+
+        strFileName='HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-0-B0000000-SD-SP-SI-df.csv'
+        strAppVar='Default'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
+        print(dfForPlot.shape)
+
+        strFileName='HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-Random-0-B0000000-SD-SP-SI-df.csv'
+        strAppVar='Random'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
+        print(dfForPlot.shape)
+        strFileName=strPath+'HICOO-tensor/'
+
     if(strApp.lower()=='xsb-noinline'):
         strFileName='XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/XSB-rd-EVENT_OPT_k1-0-A0000000-1-B0000000-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k1'
@@ -174,7 +201,7 @@ def plot_app(strApp, optionHotRef, optionHotAff):
         strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read/'
 
 
-    print(dfForPlot)
+    #print(dfForPlot)
     dfForPlot.sort_values(by='Variant', ascending=True, inplace=True)
     arrVariants=list(set(dfForPlot["Variant"].to_list()))
     print(arrVariants)
@@ -182,40 +209,40 @@ def plot_app(strApp, optionHotRef, optionHotAff):
         print(arrVariants[i], " SA all ",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['SA'] >0 ).sum())
         print(arrVariants[i], " SA good ",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['SA'] >=0.25).sum())
         print(arrVariants[i], " SD all ",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['SD'] >0 ).sum())
-        print(arrVariants[i], " SD ",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['SD'] >=0.05).sum())
+        print(arrVariants[i], " SD good",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['SD'] >=0.05).sum())
 
     binArray=[0.01,0.02,0.03,0.04,0.05,0.1,0.2,0.4,0.6,0.8,1.0]
     listDarkPalette=['#0343df','#650021','#3f9b0b']
 
     strMetric="SD"
-    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  stat='percent', common_norm=False,  aspect=2, alpha=1,facet_kws=dict(legend_out=False))
     #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  stat='percent', common_norm=False, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
     p.set(xlabel="$\it{"+strMetric+"}^{*}$")
-    p.set(ylabel="Count of block pairs")
+    p.set(ylabel="Percentage of block pairs")
     sns.move_legend(p,"upper center",ncol=len(arrVariants),bbox_to_anchor=(.55, .85))
     p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
-    #p.map(plt.axvline, x=0.05, color='black', dashes=(2, 1), zorder=0,linewidth=2)
+    #p.map(plt.axvline, x=0.045, color='black', linewidth=1)
     #ax.axvline(x='0.05', ymin=ymin, ymax=ymax, linewidth=1, color='black')
 
     strPath=strFileName[0:strFileName.rindex('/')]
-    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
+    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-perc.pdf'
     print(imageFileName)
     plt.savefig(imageFileName, bbox_inches='tight')
 
     strMetric="SA"
-    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", aspect=2, alpha=1,facet_kws=dict(legend_out=False))# col="App")
+    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", stat='percent', common_norm=False, aspect=2, alpha=1,facet_kws=dict(legend_out=False))# col="App")
     #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", stat='percent', common_norm=False,  aspect=2, alpha=1,facet_kws=dict(legend_out=False))
 
     #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", aspect=2,kde=True,palette=listDarkPalette,alpha=1,facet_kws=dict(legend_out=False))
     p.set(xlabel="$\it{"+strMetric+"}^{*}$")
-    p.set(ylabel="Count of block pairs")
+    p.set(ylabel="Percentage of block pairs")
     p.set(xticks=np.arange(0,1.05,0.05))
     p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
     sns.move_legend(p,"upper center",ncol=len(arrVariants),bbox_to_anchor=(.55, .85))
     p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
-    #p.map(plt.axvline, x=0.25, color='black', dashes=(2, 1), zorder=0,linewidth=2)
+    #p.map(plt.axvline, x=0.225, color='black', linewidth=1)
     strPath=strFileName[0:strFileName.rindex('/')]
-    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
+    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-perc.pdf'
     print(imageFileName)
     plt.savefig(imageFileName, bbox_inches='tight')
 
@@ -229,13 +256,13 @@ def plot_app(strApp, optionHotRef, optionHotAff):
 #def plot_app(strApp, optionHotRef, optionHotAff)
 #plot_app('miniVite', 0, 0)
 #plot_app('miniVite', 0, 1) # used
-#plot_app('miniVite', 0, 2) # used
+plot_app('miniVite', 0, 2) # used - all hm - more blocks
 #plot_app('miniVite', 1, 0)
-plot_app('miniVite', 1, 1)
+#plot_app('miniVite', 1, 1)
 #plot_app('miniVite', 1, 2)
 #plot_app('xsb-noflto', 2, 2) # used
 #plot_app('xsb-noinline', 2, 1) # used
 #plot_app('xsb-noinline', 2, 2)
-
 #plot_app('xsb-noflto', 2, 1) # unused
-
+#plot_app('hicoo-tensor',0,2)
+#plot_app('hicoo-tensor',0,1)

@@ -181,10 +181,10 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             print('***** after regionIdNumName ', regionIdNumName, 'list data_list_intra_obj length', len(data_list_intra_obj), 'list data_list_combine_Reg', len(data_list_combine_Reg))
 
         if((listCombineReg != None) and (regionIdNumName_copy in listCombineReg) and (combineCount < len(listCombineReg))):
-            print(" should break out of loop")
+            print("  should break out of loop combineCount ", combineCount)
             continue
         else:
-            print("Proceed to plot")
+            print("Proceed to plot combineCount ", combineCount)
         # STEP 3b - Convert list to data frame
         #print(data_list_intra_obj)
         if (flagPhysicalPages== 1):
@@ -275,7 +275,21 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         print ('SP shape ', df_intra_obj[(df_intra_obj['Type'] == 'SP')].shape)
         if (df_intra_obj[(df_intra_obj['Type'] == 'SP')].shape[0] < num_sample):
             num_sample = df_intra_obj[(df_intra_obj['Type'] == 'SP')].shape[0]
-        df_intra_obj_sample_SP=df_intra_obj[(df_intra_obj['Type'] == 'SP')].nlargest(num_sample, 'Access')
+        if(flagAllRefLines):
+            # FOR each region - find line with largest accesses - only shows two regions - not ALL
+            df_intra_obj_sample_SP=df_intra_obj[(df_intra_obj['Type'] == 'SP')]
+            #df_intra_obj_sample_SP['reg']=df_intra_obj_sample_SP.loc[df_intra_obj_sample_SP['reg_page_id'][0:(df_intra_obj_sample_SP['reg_page_id'].index('-'))]]
+            df_intra_obj_sample_SP['reg'] = df_intra_obj_sample_SP.reg_page_id.apply(lambda x: x[0:x.index('-')])
+            cntForRegion = round(num_sample/combineCount,0)
+            print('cntForRegion ', cntForRegion)
+            #print(df_intra_obj_sample_SP[df_intra_obj_sample_SP.groupby('reg')['Access'].rank(ascending=False) <= cntForRegion])
+            df_intra_obj_sample_SP=df_intra_obj_sample_SP[df_intra_obj_sample_SP.groupby('reg')['Access'].rank(ascending=False) <= cntForRegion]
+            df_intra_obj_sample_SP = df_intra_obj_sample_SP.head(num_sample)
+
+        else:
+            df_intra_obj_sample_SP=df_intra_obj[(df_intra_obj['Type'] == 'SP')].nlargest(num_sample, 'Access')
+
+        print('after sample - ', df_intra_obj_sample_SP)
 
         df_intra_obj_sample_SP.set_index('reg-page-blk')
         df_intra_obj_sample_SP.sort_index(inplace=True)
@@ -643,76 +657,12 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #print ('listHotRefLines ', listHotRefLines)
         #print(listAffinityLines)
         # Trial 1 for SA-SI combined metric - filter based on SA
-        flGetSIforSA=0
-        if (0):
-            pattern = re.compile('SP-.*-.*-.*')
-            hot_SP_cols=list(filter(pattern.match, df_hot_SP_SI_SD.columns))
-            #print(hot_SP_cols)
-            #print(df_hot_SP_SI_SD[hot_SP_cols]>0.25)
-            hot_SP_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SP_cols] >= 0.1].count().sum()
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP 10% blocks ', hot_SP_count)
-            hot_SP_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SP_cols] >= 0.25].count().sum()
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP 25% blocks ', hot_SP_count)
-            hot_SP_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SP_cols] >= 0.50].count().sum()
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP 50% blocks ', hot_SP_count)
-            hot_SP_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SP_cols] >= 0.75].count().sum()
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP 75% blocks ', hot_SP_count)
-
-            pattern = re.compile('SD-.*-.*-.*')
-            hot_SD_cols=list(filter(pattern.match, df_hot_SP_SI_SD.columns))
-            #print(df_hot_SP_SI_SD[hot_SD_cols])
-            hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.05].count().sum()
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 5% blocks ', hot_SD_count)
-            hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.1].count().sum()
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 10% blocks ', hot_SD_count)
-            hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.25].count().sum()
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 25% blocks ', hot_SD_count)
-            hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.50].count().sum()
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 50% blocks ', hot_SD_count)
-            hot_SD_count=df_hot_SP_SI_SD[df_hot_SP_SI_SD[hot_SD_cols] >= 0.75].count().sum()
-            print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD 75% blocks ', hot_SD_count)
-
-            strFirstQuartile='SI-SP-10-25'
-            strSecondQuartile='SI-SP-25-50'
-            strThirdQuartile='SI-SP-50-75'
-            strFourthQuartile='SI-SP-75-100'
-
-            for i in range(0,len(listAffinityLines)):
-                df_hot_SP_SI_SD[strFirstQuartile+listAffinityLines[i]]=np.NaN
-                df_hot_SP_SI_SD[strSecondQuartile+listAffinityLines[i]]=np.NaN
-                df_hot_SP_SI_SD[strThirdQuartile+listAffinityLines[i]]=np.NaN
-                df_hot_SP_SI_SD[strFourthQuartile+listAffinityLines[i]]=np.NaN
-            for index, row in df_hot_SP_SI_SD.iterrows():
-                for i in range(0,len(listAffinityLines)):
-                    #print(row['SP-'+listAffinityLines[i]])#, df_hot_SP_SI_SD['SP-'+listAffinityLines[i]])
-                    if(row['SP-'+listAffinityLines[i]] >= 0.10 and row['SP-'+listAffinityLines[i]] < 0.25):
-                    #print('yes > 0.25 ',row['SP-'+listAffinityLines[i]], row['SI-'+listAffinityLines[i]])
-                        df_hot_SP_SI_SD.loc[index,strFirstQuartile+listAffinityLines[i]] = row['SI-'+listAffinityLines[i]]
-                    if(row['SP-'+listAffinityLines[i]] >= 0.25 and row['SP-'+listAffinityLines[i]] < 0.5):
-                        #print('yes > 0.25 ',row['SP-'+listAffinityLines[i]], row['SI-'+listAffinityLines[i]])
-                        df_hot_SP_SI_SD.loc[index,strSecondQuartile+listAffinityLines[i]] = row['SI-'+listAffinityLines[i]]
-                    if(row['SP-'+listAffinityLines[i]] >= 0.50 and row['SP-'+listAffinityLines[i]] < 0.75):
-                        #print('yes > 0.5 ',row['SP-'+listAffinityLines[i]])
-                        df_hot_SP_SI_SD.loc[index,strThirdQuartile+listAffinityLines[i]] = row['SI-'+listAffinityLines[i]]
-                    if(row['SP-'+listAffinityLines[i]] >= 0.75 ):
-                        #print('yes > 0.5 ',row['SP-'+listAffinityLines[i]])
-                        df_hot_SP_SI_SD.loc[index,strFourthQuartile+listAffinityLines[i]] = row['SI-'+listAffinityLines[i]]
-
-            for strQuartile in [strFirstQuartile, strSecondQuartile, strThirdQuartile, strFourthQuartile]:
-                hot_SI_cols=[]
-                for i in range(0,len(listAffinityLines)):
-                    hot_SI_cols.append(strQuartile+listAffinityLines[i])
-
-                hot_SP_count=df_hot_SP_SI_SD[hot_SI_cols].count().sum()
-                #print ('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' ', strQuartile, ' ',  hot_SP_count )
-                hot_SI_values=df_hot_SP_SI_SD[hot_SI_cols].to_numpy()
-                if(( not np.isnan(hot_SI_values).all()) and hot_SI_values.size !=0):
-                    #print(hot_SI_values)
-                    print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' ', strQuartile, ' blocks ', hot_SP_count, ' SI-min ', np.nanmin(hot_SI_values), ' SI-max ', np.nanmax(hot_SI_values))
+        # Code section removed on Dec 21, 2023
 
         print(' Hot affinity lines 1 ', listAffinityLines)
         #print(df_hot_SP_SI_SD.columns)
         # Trial 2 for SA-SI combined metric - penalty based on SI
+        # Not used - csv written and read by composite-metric-plot.py
         flGetSAforSI=1
         cntSABlocksinHotBox =0
         cntSDBlocksinHotBox =0
@@ -780,11 +730,6 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, '  SDbins % sum ', sum(listPercentSDbins), ' bad ', sum(listPercentSDbins[:5]) , ' good ', sum(listPercentSDbins[5:]))
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SAbins ', listPercentSAbins)
             print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' % SDbins ', listPercentSDbins)
-
-        #print(df_hot_SP_SI_SD.columns)
-        #print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SP-self-mean ', df_hot_SP_SI_SD['SP-self'].mean())
-        #print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SD-self-mean ', df_hot_SP_SI_SD['SD-self'].mean())
-        #print('--- Info --- App', strApp, ' Reg ', regionIdNumName, ' SI-self-mean ', df_hot_SP_SI_SD['SI-self'].mean())
 
         pattern = re.compile('SD-.*-.*-.*')
         listAffinityLines=list(filter(pattern.match, cols_df_SD))
@@ -1173,7 +1118,7 @@ if (0): # still useless for composite # latest try for all regions combined # De
     #listCombineReg=['1-B0000000','2-B0000001'], flWeighted=flWeight,affinityOption=3)
     listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
 
-if (0): # still useless for composite # latest try for all regions combined # Dec 20
+if (1): # still useless for composite # latest try for all regions combined # Dec 20
     intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p3000000-event-k-0/spatial.txt', 9, strMetric='SD-SP-SI', \
     listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p3000000-event-k-1/spatial.txt', 4, strMetric='SD-SP-SI', \
@@ -1201,7 +1146,7 @@ if ( 1 == 0):
     intraObjectPlot('AlexNet',mainPath+'spatial_pages_exp/Darknet/alexnet_single/hot_lines/spatial.txt',5, \
                     listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
-if(1):
+if(0):
     intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',\
                     flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('HiParTi - COO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/coo_u_0/spatial.txt',3,f_avg=f_avg1,\
