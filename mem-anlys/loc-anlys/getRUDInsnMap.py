@@ -370,7 +370,7 @@ def readFile(inFile, outFile,appName):
                   grData=strMapping.split(' ')
                   grepInsn=''
                   print (varInst, grData)
-                  if (len(grData) >=5):
+                  if (len(grData) >5):
                     grepInsn = grData[5]
                   else:
                     grepInsn = grData[0]

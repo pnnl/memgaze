@@ -73,6 +73,7 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
     for index, row in df_local.iterrows():
         for i in range(0,len(listAffinityLines)):
             flInclude=True
+            flIncludeSA = True
             blkSDValue=np.NaN
             blkSIValue=np.NaN
             blkSAValue=np.NaN
@@ -97,6 +98,11 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
                 #print (strApp , 'Not incluidng self for ', regPageBlock, listAffinityLines[i])
                 flInclude=False
 
+            if(regPageBlock == listAffinityLines[i] ):
+                #print (strApp , 'Not incluidng self for ', regPageBlock, listAffinityLines[i])
+                print(regPageBlock, 'self self ',  listAffinityLines[i])
+                flIncludeSA=False
+
             if((flInclude==True ) and \
                         ((intHotRef == 0 and row['Hot-Access']>= 0.1) \
                                      or (intHotRef == 1 and row['Access']>= accessThreshold)  or \
@@ -114,11 +120,16 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
                         valSIBin = 10
                     valSIDiscount = float((10-valSIBin+1)/10)
                     df_local.loc[df_local['reg-page-blk'] == regPageBlock, ['SD-'+listAffinityLines[i]]] = round((blkSDValue * valSIDiscount),3)
+
                     df_local.loc[df_local['reg-page-blk'] == regPageBlock, ['SP-'+listAffinityLines[i]]] = round((blkSAValue * valSIDiscount),3)
+
                     #print (regPageBlock, 'SI ', blkSIValue, blkSDValue, blkSAValue, 'BIN - ', valSIBin, valSIDiscount, \
                            #df_local[(df_local['reg-page-blk'] == regPageBlock)]['SD-'+listAffinityLines[i]].item(), \
                            #df_local[(df_local['reg-page-blk'] == regPageBlock)]['SP-'+listAffinityLines[i]].item() )
-                    dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,round((blkSDValue * valSIDiscount),3),round((blkSAValue * valSIDiscount),3)]
+                    if(flIncludeSA == True):
+                        dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,round((blkSDValue * valSIDiscount),3),round((blkSAValue * valSIDiscount),3)]
+                    else:
+                        dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,round((blkSDValue * valSIDiscount),3),np.nan]
 
     print(dfForPlot.shape)
     #print(dfForPlot)
@@ -215,24 +226,28 @@ def plot_app(strApp, optionHotRef, optionHotAff):
     listDarkPalette=['#0343df','#650021','#3f9b0b']
 
     strMetric="SD"
-    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  stat='percent', common_norm=False,  aspect=2, alpha=1,facet_kws=dict(legend_out=False))
-    #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  stat='percent', common_norm=False, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  stat='percent', \
+                    common_norm=False,  aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+    #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  stat='percent', common_norm=False, \
+    #                   kde=True, kde_kws={'bw_adjust':1.0}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+
     p.set(xlabel="$\it{"+strMetric+"}^{*}$")
     p.set(ylabel="Percentage of block pairs")
     sns.move_legend(p,"upper center",ncol=len(arrVariants),bbox_to_anchor=(.55, .85))
     p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
     #p.map(plt.axvline, x=0.045, color='black', linewidth=1)
     #ax.axvline(x='0.05', ymin=ymin, ymax=ymax, linewidth=1, color='black')
-
     strPath=strFileName[0:strFileName.rindex('/')]
-    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-perc.pdf'
+    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-perc-noself.pdf'
     print(imageFileName)
     plt.savefig(imageFileName, bbox_inches='tight')
 
     strMetric="SA"
-    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", stat='percent', common_norm=False, aspect=2, alpha=1,facet_kws=dict(legend_out=False))# col="App")
+    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", stat='percent', \
+                    common_norm=False, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+    #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", stat='percent', common_norm=False, \
+    #                kde=True, kde_kws={'bw_adjust':1.0}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))# col="App")
     #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", stat='percent', common_norm=False,  aspect=2, alpha=1,facet_kws=dict(legend_out=False))
-
     #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", aspect=2,kde=True,palette=listDarkPalette,alpha=1,facet_kws=dict(legend_out=False))
     p.set(xlabel="$\it{"+strMetric+"}^{*}$")
     p.set(ylabel="Percentage of block pairs")
@@ -242,7 +257,7 @@ def plot_app(strApp, optionHotRef, optionHotAff):
     p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
     #p.map(plt.axvline, x=0.225, color='black', linewidth=1)
     strPath=strFileName[0:strFileName.rindex('/')]
-    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-perc.pdf'
+    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-perc-noself.pdf'
     print(imageFileName)
     plt.savefig(imageFileName, bbox_inches='tight')
 

@@ -1118,7 +1118,7 @@ if (0): # still useless for composite # latest try for all regions combined # De
     #listCombineReg=['1-B0000000','2-B0000001'], flWeighted=flWeight,affinityOption=3)
     listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
 
-if (1): # still useless for composite # latest try for all regions combined # Dec 20
+if (0):  # latest try for all regions combined # Dec 27
     intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p3000000-event-k-0/spatial.txt', 9, strMetric='SD-SP-SI', \
     listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p3000000-event-k-1/spatial.txt', 4, strMetric='SD-SP-SI', \
@@ -1132,6 +1132,15 @@ if (0): # works for all combined regions composite plot - Dec 20
         mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', \
         9, strMetric='SD-SP-SI', \
         listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+
+
+if(0): #Data from bignuke runs
+    intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v1-memgaze-trace-b16384-p5000000/spatial.txt',4,strMetric='SD-SP-SI', \
+                 listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v2-memgaze-trace-b16384-p5000000/spatial.txt',3,strMetric='SD-SP-SI', \
+                listCombineReg=['ALL'] ,flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v3-memgaze-trace-b16384-p5000000/spatial.txt',7,strMetric='SD-SP-SI', \
+                listCombineReg=['ALL'],flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 if(0):
     intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD-SP-SI', \
