@@ -31,7 +31,10 @@ cp -p  /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-matrix/4096-s
 cp -p  /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_1/HiParTi-HiCOO-Schedule-2-B0010000-SD-SP-SI_hm_order_fill.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTi-HiCOO-Schedule-matrix-B-2-SA.pdf
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_1/HiParTi-HiCOO-Schedule-1-B0000000-SD-SP-SI_hm_order_fill.pdf  /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTi-HiCOO-Schedule-matrix-C-1-SA.pdf
 
-# HiParTI - HICOO - SA
+# HiParTI - matrix - composite SD
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/composite-SI-SD_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTi-matrix-composite-SD.pdf
+
+# HiParTI - HICOO - tensor - SA
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-BFS-0-B0000000-SD-SP-SI_hm_order_fill.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-Reorder-BFS-0-SA.pdf
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-Lexi-0-B0000000-SD-SP-SI_hm_order_fill.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-Reorder-Lexi-0-SA.pdf
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-0-B0000000-SD-SP-SI_hm_order_fill.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-Reorder-None-0-SA.pdf

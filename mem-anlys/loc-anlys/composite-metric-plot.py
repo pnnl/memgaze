@@ -5,9 +5,7 @@ import seaborn as sns
 import re
 import matplotlib.patches as mpatches
 plt.rcParams['font.family'] = 'monospace'
-plt.rcParams.update({
-    "text.usetex": True,
-})
+#plt.rcParams.update({"text.usetex": True,})
 
 SI_good=63
 def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
@@ -181,7 +179,7 @@ def plot_app(strApp, optionHotRef, optionHotAff):
         print(dfForPlot.shape)
         strFileName=strPath+'miniVite/bignuke_run/mini-memgaze-ld/'
 
-    if(strApp == 'HiParTI-H{\small I}COO MTTKRP'):
+    if(strApp == 'HiParTI-HiCOO tensor MTTKRP'):
         strFileName='HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-Lexi-0-B0000000-SD-SP-SI-df.csv'
         strAppVar='Lexi'
         strFileName=strPath+strFileName
@@ -206,6 +204,34 @@ def plot_app(strApp, optionHotRef, optionHotAff):
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
         print(dfForPlot.shape)
         strFileName=strPath+'HICOO-tensor/'
+
+    if(strApp == 'HiParTI-matrix'):
+        strFileName='HICOO-matrix/4096-same-iter/hot_lines/csr/HiParTi-CSR-0-A0000000-SD-SP-SI-df.csv'
+        strAppVar='CSR'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
+
+        strFileName='HICOO-matrix/4096-same-iter/hot_lines/coo_u_0/HiParTi-COO-0-A0000000-SD-SP-SI-df.csv'
+        strAppVar='COO'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
+
+        strFileName='HICOO-matrix/4096-same-iter/hot_lines/coo_u_1/HiParTi-COO-Reduce-4-A3000000-SD-SP-SI-df.csv'
+        strAppVar='COO-Reduce'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
+
+        strFileName='HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_0/HiParTi-HiCOO-0-A0000000-SD-SP-SI-df.csv'
+        strAppVar='HiCOO'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
+
+        strFileName='HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_1/HiParTi-HiCOO-Schedule-2-B0010000-SD-SP-SI-df.csv'
+        strAppVar='HiCOO-Schedule'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
+
+        strFileName=strPath+'HICOO-matrix/4096-same-iter/hot_lines/'
 
     if(strApp.lower()=='xsb-noinline'):
         strFileName='XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/XSB-rd-EVENT_OPT_k1-0-A0000000-1-B0000000-SD-SP-SI-df.csv'
@@ -258,8 +284,13 @@ def plot_app(strApp, optionHotRef, optionHotAff):
     dictSD={}
 
     for i in range(len(arrVariants)):
-        for strMetric in ['SA', 'SD']:
-            dfArea = dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] [strMetric]
+        for strMetric in ['SD', 'SA']:
+            dfVariant = dfForPlot[dfForPlot["Variant"] ==arrVariants[i]]
+            print(arrVariants[i], strMetric, dfVariant.shape)
+
+            dfArea=dfVariant[strMetric].dropna()
+            print(arrVariants[i], strMetric, dfArea.shape)
+            #print(dfArea)
             numBlockPairs= dfArea.shape[0]
             #sns.kdeplot(dfArea, linewidth=2, fill=True)
             ax = sns.kdeplot(dfArea)
@@ -307,7 +338,7 @@ def plot_app(strApp, optionHotRef, optionHotAff):
     new_title = str(leg.get_title().get_text()).rjust(15) + ' - Num. of block pairs'
     leg.set_title(new_title)
     for t in leg.texts:
-        t.set_text(str(t.get_text()).ljust(12) + '- '+ dictSA[t.get_text()][0].rjust(8))
+        t.set_text(str(t.get_text()).ljust(14) + '- '+ dictSA[t.get_text()][0].rjust(8))
         t.set_ha('right')
     p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
     #p.map(plt.axvline, x=0.045, color='black', linewidth=1)
@@ -327,7 +358,7 @@ def plot_app(strApp, optionHotRef, optionHotAff):
     new_title = str(leg.get_title().get_text()).rjust(15) + ' - Num. of block pairs'
     leg.set_title(new_title)
     for t in leg.texts:
-        t.set_text(str(t.get_text()).ljust(12) + '- '+ dictSD[t.get_text()][0].rjust(8))
+        t.set_text(str(t.get_text()).ljust(14) + '- '+ dictSD[t.get_text()][0].rjust(8))
         t.set_ha('right')
     p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
     strPath=strFileName[0:strFileName.rindex('/')]
@@ -350,7 +381,7 @@ def plot_app(strApp, optionHotRef, optionHotAff):
     new_title = str(leg.get_title().get_text()).rjust(15) + ' - Num. of block pairs'
     leg.set_title(new_title)
     for t in leg.texts:
-        t.set_text(str(t.get_text()).ljust(12) + '- '+ dictSA[t.get_text()][0].rjust(8))
+        t.set_text(str(t.get_text()).ljust(14) + '- '+ dictSA[t.get_text()][0].rjust(8))
         t.set_ha('right')
     #p.fig.text(0.8, 0.7, strSAText,  ha='left', verticalalignment='top',bbox=dict(boxstyle="round",facecolor='none', edgecolor='grey',alpha=0.5))
     p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
@@ -371,7 +402,7 @@ def plot_app(strApp, optionHotRef, optionHotAff):
     new_title = str(leg.get_title().get_text()).rjust(15) + ' - Num. of block pairs'
     leg.set_title(new_title)
     for t in leg.texts:
-        t.set_text(str(t.get_text()).ljust(12) + '- '+ dictSA[t.get_text()][0].rjust(8))
+        t.set_text(str(t.get_text()).ljust(14) + '- '+ dictSA[t.get_text()][0].rjust(8))
         t.set_ha('right')
     p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
     strPath=strFileName[0:strFileName.rindex('/')]
@@ -399,4 +430,6 @@ def plot_app(strApp, optionHotRef, optionHotAff):
 
 #Data for paper
 plot_app('miniVite',0,2) # used - all hm - more blocks
-plot_app('HiParTI-H{\small I}COO MTTKRP',0,2)
+plot_app('HiParTI-HiCOO tensor MTTKRP',0,2)
+plot_app('HiParTI-matrix',0,2)
+
