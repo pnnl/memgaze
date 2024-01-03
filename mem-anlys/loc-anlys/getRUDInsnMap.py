@@ -370,7 +370,7 @@ def readFile(inFile, outFile,appName):
                   grData=strMapping.split(' ')
                   grepInsn=''
                   print (varInst, grData)
-                  if (len(grData) >5):
+                  if (len(grData) >=5):
                     grepInsn = grData[5]
                   else:
                     grepInsn = grData[0]
@@ -395,7 +395,7 @@ def readFile(inFile, outFile,appName):
                       strBinLine_C = str(strBinLine.strip())
                       if(strBinLine != strBinLine_C):
                         print ('Error ' , varVersion, varInst, grepInsn, strBinLine, strBinLine_C)
-                      command = 'grep -B 10 '+grepInsn+': '+objFile +' | grep \/'
+                    command = 'grep -B 10 '+grepInsn+': '+objFile +' | grep \/'
                     strResult=''
                     try:
                       strResult = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT,universal_newlines=True)

@@ -1134,13 +1134,13 @@ if (0): # works for all combined regions composite plot - Dec 20
         listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 
-if(0): #Data from bignuke runs
-    intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v1-memgaze-trace-b16384-p5000000/spatial.txt',4,strMetric='SD-SP-SI', \
-                 listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
-    intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v2-memgaze-trace-b16384-p5000000/spatial.txt',3,strMetric='SD-SP-SI', \
-                listCombineReg=['ALL'] ,flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
-    intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v3-memgaze-trace-b16384-p5000000/spatial.txt',7,strMetric='SD-SP-SI', \
-                listCombineReg=['ALL'],flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+if(1): #Data from bignuke runs
+    intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v1-memgaze-trace-b16384-p5000000-anlys/spatial.txt',4,strMetric='SD-SP-SI', \
+                 listCombineReg=['1-A0001000','2-B0000000','3-B1100000'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v2-memgaze-trace-b16384-p5000000-anlys/spatial.txt',3,strMetric='SD-SP-SI', \
+                listCombineReg=['2-A0002000','3-B0000000','4-B1000000'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    intraObjectPlot('miniVite-v3',mainPath+'spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v3-memgaze-trace-b16384-p5000000-anlys/spatial.txt',7,strMetric='SD-SP-SI', \
+                listCombineReg=['4-A0002000','5-B0000000','6-B1100000'],flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 if(0):
     intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/hot_lines/v1_spatial_det.txt',1,strMetric='SD-SP-SI', \

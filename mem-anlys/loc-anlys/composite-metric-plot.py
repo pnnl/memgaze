@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import re
+import matplotlib.patches as mpatches
+plt.rcParams['font.family'] = 'monospace'
 
 SI_good=63
 def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
@@ -120,9 +122,7 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
                         valSIBin = 10
                     valSIDiscount = float((10-valSIBin+1)/10)
                     df_local.loc[df_local['reg-page-blk'] == regPageBlock, ['SD-'+listAffinityLines[i]]] = round((blkSDValue * valSIDiscount),3)
-
                     df_local.loc[df_local['reg-page-blk'] == regPageBlock, ['SP-'+listAffinityLines[i]]] = round((blkSAValue * valSIDiscount),3)
-
                     #print (regPageBlock, 'SI ', blkSIValue, blkSDValue, blkSAValue, 'BIN - ', valSIBin, valSIDiscount, \
                            #df_local[(df_local['reg-page-blk'] == regPageBlock)]['SD-'+listAffinityLines[i]].item(), \
                            #df_local[(df_local['reg-page-blk'] == regPageBlock)]['SP-'+listAffinityLines[i]].item() )
@@ -130,15 +130,16 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
                         dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,round((blkSDValue * valSIDiscount),3),round((blkSAValue * valSIDiscount),3)]
                     else:
                         dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,round((blkSDValue * valSIDiscount),3),np.nan]
-
     print(dfForPlot.shape)
     #print(dfForPlot)
+    dfForPlot.to_csv('/Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v3-memgaze-trace-b16384-p5000000-anlys/plot_df.csv')
 
 def plot_app(strApp, optionHotRef, optionHotAff):
     strFileName=''
     strPath='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/'
     dfForPlot= pd.DataFrame(columns=['Variant', 'reg-page-blk', 'SD', 'SA'])
-    if(strApp.lower()=='minivite'):
+
+    if(strApp.lower()=='minivite-nuke'):
         strFileName='miniVite/hot_lines/miniVite-v1-1-A0000001-SD-SP-SI-df.csv'
         strAppVar='miniVite-v1'
         strFileName=strPath+strFileName
@@ -156,6 +157,26 @@ def plot_app(strApp, optionHotRef, optionHotAff):
         strFileName=strPath+strFileName
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
         print(dfForPlot.shape)
+
+    if(strApp.lower()=='minivite'):
+        strFileName='miniVite/bignuke_run/mini-memgaze-ld/miniVite-v1-memgaze-trace-b16384-p5000000-anlys/miniVite-v1-1-A0001000-2-B0000000-3-B1100000-SD-SP-SI-df.csv'
+        strAppVar='miniVite-v1'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName, optionHotRef,optionHotAff , strAppVar,dfForPlot)
+        print(dfForPlot.shape)
+
+        strFileName='miniVite/bignuke_run/mini-memgaze-ld/miniVite-v2-memgaze-trace-b16384-p5000000-anlys/miniVite-v2-2-A0002000-3-B0000000-4-B1000000-SD-SP-SI-df.csv'
+        strAppVar='miniVite-v2'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName, optionHotRef,optionHotAff , strAppVar,dfForPlot)
+        print(dfForPlot.shape)
+
+        strFileName='miniVite/bignuke_run/mini-memgaze-ld/miniVite-v3-memgaze-trace-b16384-p5000000-anlys/miniVite-v3-4-A0002000-5-B0000000-6-B1100000-SD-SP-SI-df.csv'
+        strAppVar='miniVite-v3'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot)
+        print(dfForPlot.shape)
+        strFileName=strPath+'miniVite/bignuke_run/mini-memgaze-ld/'
 
     if(strApp.lower() == 'hicoo-tensor'):
         strFileName='HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-Lexi-0-B0000000-SD-SP-SI-df.csv'
@@ -215,6 +236,7 @@ def plot_app(strApp, optionHotRef, optionHotAff):
     #print(dfForPlot)
     dfForPlot.sort_values(by='Variant', ascending=True, inplace=True)
     arrVariants=list(set(dfForPlot["Variant"].to_list()))
+    arrVariants.sort()
     print(arrVariants)
     for i in range(len(arrVariants)):
         print(arrVariants[i], " SA all ",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['SA'] >0 ).sum())
@@ -225,39 +247,132 @@ def plot_app(strApp, optionHotRef, optionHotAff):
     binArray=[0.01,0.02,0.03,0.04,0.05,0.1,0.2,0.4,0.6,0.8,1.0]
     listDarkPalette=['#0343df','#650021','#3f9b0b']
 
+    # Area under good region
+    #strSDText='Variant'.center(12) +' - Number of - Good (%)\n' + 'block pairs'.center(40)+' \n'
+    strSDText='Variant'.center(18) +'- '+'Num. of block pairs'.center(22)+'\n' #' - Good (%) \n'
+    strSAText='Variant'.center(18) +'- '+'Num. of block pairs'.center(22)+'\n' #' - Good (%) \n'
+    dictSA={}
+    dictSD={}
+
+    for i in range(len(arrVariants)):
+        for strMetric in ['SA', 'SD']:
+            dfArea = dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] [strMetric]
+            numBlockPairs= dfArea.shape[0]
+            #sns.kdeplot(dfArea, linewidth=2, fill=True)
+            ax = sns.kdeplot(dfArea)
+            # Get all the lines used to draw density curve
+            kde_lines = ax.get_lines()[-1]
+            kde_x, kde_y = kde_lines.get_data()
+            low_limit =0
+            if (strMetric == 'SA'):
+                low_limit=0.25
+            if(strMetric == 'SD'):
+                low_limit = 0.05
+            mask = (kde_x >= low_limit)
+            filled_x, filled_y = kde_x[mask], kde_y[mask]
+            area = np.trapz(filled_y, filled_x)
+            print(strApp , 'variant ', arrVariants[i], ' number of block pairs ', numBlockPairs,  'metric ', strMetric, area)
+            if (strMetric == 'SA'):
+                strSAText = strSAText + arrVariants[i].center(15) + '- ' + str(numBlockPairs).center(22) + '\n' #'- ' + str(round(area*100,1)) + '\n'
+                dictSA[arrVariants[i]]=[str(numBlockPairs),str(round(area*100,1))]
+            if(strMetric == 'SD'):
+                strSDText = strSDText + arrVariants[i].center(15) + '- ' + str(numBlockPairs).center(22) + '\n' #'- ' + str(round(area*100,1)) + '\n'
+                dictSD[arrVariants[i]]=[str(numBlockPairs),str(round(area*100,1))]
+
+
+    strSAText=strSAText.strip('\n')
+    strSDText=strSDText.strip('\n')
+    print('SA \n', strSAText)
+    print('SD \n' ,strSDText)
+
+    print(dictSA)
+    print(dictSD)
+
+
+    # Plots
     strMetric="SD"
-    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  stat='percent', \
-                    common_norm=False,  aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",   \
+                      kde=True, kde_kws={'bw_adjust':0.2}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
     #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  stat='percent', common_norm=False, \
     #                   kde=True, kde_kws={'bw_adjust':1.0}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
-
     p.set(xlabel="$\it{"+strMetric+"}^{*}$")
-    p.set(ylabel="Percentage of block pairs")
-    sns.move_legend(p,"upper center",ncol=len(arrVariants),bbox_to_anchor=(.55, .85))
+    p.set(ylabel="Number of block pairs")
+    sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
+    leg = p.axes.flat[0].get_legend()
+    if leg is None: leg = p._legend
+    print(leg.get_title().get_text())
+    new_title = str(leg.get_title().get_text()).rjust(15) + ' - Num. of block pairs'
+    leg.set_title(new_title)
+    for t in leg.texts:
+        t.set_text(str(t.get_text()).ljust(12) + '- '+ dictSA[t.get_text()][0].rjust(8))
+        t.set_ha('right')
     p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
     #p.map(plt.axvline, x=0.045, color='black', linewidth=1)
     #ax.axvline(x='0.05', ymin=ymin, ymax=ymax, linewidth=1, color='black')
+    strPath=strFileName[0:strFileName.rindex('/')]
+    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-perc.pdf'
+    print(imageFileName)
+    plt.savefig(imageFileName, bbox_inches='tight')
+
+    p = sns.displot(dfForPlot, x=strMetric,  kind="kde", hue="Variant", bw_adjust=0.2, common_norm=False, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+    p.set(xlabel="$\it{"+strMetric+"}^{*}$")
+    p.set(ylabel="Density")
+    sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
+    leg = p.axes.flat[0].get_legend()
+    if leg is None: leg = p._legend
+    print(leg.get_title().get_text())
+    new_title = str(leg.get_title().get_text()).rjust(15) + ' - Num. of block pairs'
+    leg.set_title(new_title)
+    for t in leg.texts:
+        t.set_text(str(t.get_text()).ljust(12) + '- '+ dictSD[t.get_text()][0].rjust(8))
+        t.set_ha('right')
+    p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
+    strPath=strFileName[0:strFileName.rindex('/')]
+    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-perc-kde.pdf'
+    print(imageFileName)
+    plt.savefig(imageFileName, bbox_inches='tight')
+
+
+    strMetric="SA"
+    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge",  stat='percent',common_norm=False,\
+                    kde=True, kde_kws={'bw_adjust':0.2}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+    p.set(xlabel="$\it{"+strMetric+"}^{*}$")
+    p.set(ylabel="Number of block pairs")
+    p.set(xticks=np.arange(0,1.05,0.05))
+    p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
+    sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
+    leg = p.axes.flat[0].get_legend()
+    if leg is None: leg = p._legend
+    print(leg.get_title().get_text())
+    new_title = str(leg.get_title().get_text()).rjust(15) + ' - Num. of block pairs'
+    leg.set_title(new_title)
+    for t in leg.texts:
+        t.set_text(str(t.get_text()).ljust(12) + '- '+ dictSA[t.get_text()][0].rjust(8))
+        t.set_ha('right')
+    #p.fig.text(0.8, 0.7, strSAText,  ha='left', verticalalignment='top',bbox=dict(boxstyle="round",facecolor='none', edgecolor='grey',alpha=0.5))
+    p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
+    #p.map(plt.axvline, x=0.225, color='black', linewidth=1)
     strPath=strFileName[0:strFileName.rindex('/')]
     imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-perc-noself.pdf'
     print(imageFileName)
     plt.savefig(imageFileName, bbox_inches='tight')
 
-    strMetric="SA"
-    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", stat='percent', \
-                    common_norm=False, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
-    #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", stat='percent', common_norm=False, \
-    #                kde=True, kde_kws={'bw_adjust':1.0}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))# col="App")
-    #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", stat='percent', common_norm=False,  aspect=2, alpha=1,facet_kws=dict(legend_out=False))
-    #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", aspect=2,kde=True,palette=listDarkPalette,alpha=1,facet_kws=dict(legend_out=False))
+    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", kind="kde", bw_adjust=0.2,  common_norm=False, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
     p.set(xlabel="$\it{"+strMetric+"}^{*}$")
-    p.set(ylabel="Percentage of block pairs")
     p.set(xticks=np.arange(0,1.05,0.05))
     p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
-    sns.move_legend(p,"upper center",ncol=len(arrVariants),bbox_to_anchor=(.55, .85))
+    sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
+    leg = p.axes.flat[0].get_legend()
+    if leg is None: leg = p._legend
+    print(leg.get_title().get_text())
+    new_title = str(leg.get_title().get_text()).rjust(15) + ' - Num. of block pairs'
+    leg.set_title(new_title)
+    for t in leg.texts:
+        t.set_text(str(t.get_text()).ljust(12) + '- '+ dictSA[t.get_text()][0].rjust(8))
+        t.set_ha('right')
     p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
-    #p.map(plt.axvline, x=0.225, color='black', linewidth=1)
     strPath=strFileName[0:strFileName.rindex('/')]
-    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-perc-noself.pdf'
+    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-perc-noself-kde.pdf'
     print(imageFileName)
     plt.savefig(imageFileName, bbox_inches='tight')
 
@@ -269,15 +384,12 @@ def plot_app(strApp, optionHotRef, optionHotAff):
 
 #def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
 #def plot_app(strApp, optionHotRef, optionHotAff)
-#plot_app('miniVite', 0, 0)
-#plot_app('miniVite', 0, 1) # used
-plot_app('miniVite', 0, 2) # used - all hm - more blocks
-#plot_app('miniVite', 1, 0)
-#plot_app('miniVite', 1, 1)
-#plot_app('miniVite', 1, 2)
+#plot_app('miniVite-nuke', 0, 0)
+#plot_app('miniVite-nuke', 0, 2) # used - all hm - more blocks
+plot_app('miniVite',0,2) # used - all hm - more blocks
 #plot_app('xsb-noflto', 2, 2) # used
 #plot_app('xsb-noinline', 2, 1) # used
 #plot_app('xsb-noinline', 2, 2)
 #plot_app('xsb-noflto', 2, 1) # unused
-#plot_app('hicoo-tensor',0,2)
+plot_app('hicoo-tensor',0,2)
 #plot_app('hicoo-tensor',0,1)
