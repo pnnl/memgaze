@@ -170,7 +170,7 @@ void findHotPage( MemArea memarea, int zoomOption, vector<double> Rud,
         }
       }  
       // 0.001 multiplier at level 1 - used for including heap address range at 'root+1' level 
-      if(((curPage.level == (lvlConstBlockSize-1)) && ((double)zoominaccess>=(double)0.001*totalAccessParent)) ||
+      if(((curPage.level <= (lvlConstBlockSize)) && ((double)zoominaccess>=(double)0.001*totalAccessParent)) ||
       // Using 1000 - to include all heap regions
       //if(((curPage.level == (lvlConstBlockSize-1)) && ((double)zoominaccess>=1000)) ||
        ((curPage.level >= lvlConstBlockSize) && ((double)zoominaccess>=(double)zoomThreshold*totalAccessParent)))
@@ -1420,6 +1420,7 @@ int main(int argc, char ** argv){
       ptrTopAccessLine = (mapAddrHotLine[vecAccessCount.at(cntVecAccess).second]);
       insnMemArea.max = ptrTopAccessLine.lowAddr+cacheLineWidth;
 	   	insnMemArea.min = ptrTopAccessLine.lowAddr;
+      //printf(" after spatial 2.6a %d addr %08lx \n", vecAccessCount.at(cntVecAccess).first, vecAccessCount.at(cntVecAccess).second); 
       spatialOutInsnFile << " --insn  : Find instructions in " << memoryfile << " for memRange " << hex<< insnMemArea.min << "-" << insnMemArea.max << " ID hotline" << endl;
         getInstInRange(&spatialOutInsnFile, vecInstAddr,insnMemArea);
     }

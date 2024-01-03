@@ -291,12 +291,12 @@ def plot_app(strApp, optionHotRef, optionHotAff):
 
     # Plots
     strMetric="SD"
-    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",   \
+    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  stat='percent', common_norm=False, \
                       kde=True, kde_kws={'bw_adjust':0.2}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
     #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  stat='percent', common_norm=False, \
     #                   kde=True, kde_kws={'bw_adjust':1.0}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
     p.set(xlabel="$\it{"+strMetric+"}^{*}$")
-    p.set(ylabel="Number of block pairs")
+    p.set(ylabel="Percentage of block pairs")
     sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
     leg = p.axes.flat[0].get_legend()
     if leg is None: leg = p._legend
@@ -328,7 +328,7 @@ def plot_app(strApp, optionHotRef, optionHotAff):
         t.set_ha('right')
     p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
     strPath=strFileName[0:strFileName.rindex('/')]
-    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-perc-kde.pdf'
+    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
     print(imageFileName)
     plt.savefig(imageFileName, bbox_inches='tight')
 
@@ -372,7 +372,7 @@ def plot_app(strApp, optionHotRef, optionHotAff):
         t.set_ha('right')
     p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
     strPath=strFileName[0:strFileName.rindex('/')]
-    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-perc-noself-kde.pdf'
+    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
     print(imageFileName)
     plt.savefig(imageFileName, bbox_inches='tight')
 
@@ -384,12 +384,16 @@ def plot_app(strApp, optionHotRef, optionHotAff):
 
 #def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
 #def plot_app(strApp, optionHotRef, optionHotAff)
+
 #plot_app('miniVite-nuke', 0, 0)
 #plot_app('miniVite-nuke', 0, 2) # used - all hm - more blocks
-plot_app('miniVite',0,2) # used - all hm - more blocks
 #plot_app('xsb-noflto', 2, 2) # used
 #plot_app('xsb-noinline', 2, 1) # used
 #plot_app('xsb-noinline', 2, 2)
 #plot_app('xsb-noflto', 2, 1) # unused
-plot_app('hicoo-tensor',0,2)
+
 #plot_app('hicoo-tensor',0,1)
+
+#Data for paper
+#plot_app('miniVite',0,2) # used - all hm - more blocks
+plot_app('hicoo-tensor',0,2)

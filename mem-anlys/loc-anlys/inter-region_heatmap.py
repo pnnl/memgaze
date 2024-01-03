@@ -92,10 +92,12 @@ def spatialPlot(filename, strApp,strMetricType, colSelect=None, sampleSize=None)
     #print('after loop')
     print(df1.columns.to_list())
     print ('before sort' , df1['RegName'],df1['RegionId'])
-    if(strApp.lower()=='minivite-v3'):
+    if(strApp.lower()=='minivite-v3-nuke'):
         obj_list = ['graph_0','map_0','others','comm','graph_1','map_1']
     elif(strApp=='ubench-array'):
         obj_list = ['E','D','C','B','A']
+    elif(strApp.lower()=='minivite-v3'):
+        obj_list=['graph','comm','others_0','others_1','map_0','map_1','map_2']
     else:
         obj_list = df1['RegName'].to_list()
     df1['Obj_name'] = obj_list
@@ -199,7 +201,7 @@ def callPlot(plotApp):
     colSelect=0
     appName=''
     sampleSize=0
-    strMetricType='SD'
+    strMetricType='SP'
 
     if (plotApp.lower()=='ubench'):
         #filename='/Users/suri836/Projects/spatial_rud/ubench_simple_vector/sel_func/vec_gpp_exe-memgaze-trace-b8192-p40000/spatial_inter.txt'
@@ -208,8 +210,11 @@ def callPlot(plotApp):
     elif(plotApp.lower()=='alpaca'):
         filename='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial_inter.txt'
         appName='Alpaca'
-    elif(plotApp.lower()=='minivite-v3'):
+    elif(plotApp.lower()=='minivite-v3-nuke'):
         filename='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/hot_lines/v3_spatial_inter_sp_si_sd.txt'
+        appName='minivite-v3'
+    elif(plotApp.lower()=='minivite-v3'): # data from bignuke - arabic.bin graph
+        filename='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v3-memgaze-trace-b16384-p5000000-anlys/v3_spatial_inter_sp_si_sd.txt'
         appName='minivite-v3'
     elif(plotApp.lower()=='minivite-v2'):
         filename='/Users/suri836/Projects/spatial_rud/minivite_detailed_look/spatial_clean/v2_inter_sd.txt'
@@ -237,7 +242,7 @@ def callPlot(plotApp):
 #callPlot('Minivite-v2')
 #callPlot('Minivite-v1')
 #Paper plots
-#callPlot('miniVite-v3')
-callPlot('Alpaca')
+callPlot('miniVite-v3')
+#callPlot('Alpaca')
 
 
