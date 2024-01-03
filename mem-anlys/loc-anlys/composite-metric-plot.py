@@ -5,6 +5,9 @@ import seaborn as sns
 import re
 import matplotlib.patches as mpatches
 plt.rcParams['font.family'] = 'monospace'
+plt.rcParams.update({
+    "text.usetex": True,
+})
 
 SI_good=63
 def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
@@ -178,7 +181,7 @@ def plot_app(strApp, optionHotRef, optionHotAff):
         print(dfForPlot.shape)
         strFileName=strPath+'miniVite/bignuke_run/mini-memgaze-ld/'
 
-    if(strApp.lower() == 'hicoo-tensor'):
+    if(strApp == 'HiParTI-H{\small I}COO MTTKRP'):
         strFileName='HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-Lexi-0-B0000000-SD-SP-SI-df.csv'
         strAppVar='Lexi'
         strFileName=strPath+strFileName
@@ -316,7 +319,7 @@ def plot_app(strApp, optionHotRef, optionHotAff):
 
     p = sns.displot(dfForPlot, x=strMetric,  kind="kde", hue="Variant", bw_adjust=0.2, common_norm=False, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
     p.set(xlabel="$\it{"+strMetric+"}^{*}$")
-    p.set(ylabel="Density")
+    #p.set(ylabel="Density")
     sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
     leg = p.axes.flat[0].get_legend()
     if leg is None: leg = p._legend
@@ -337,7 +340,7 @@ def plot_app(strApp, optionHotRef, optionHotAff):
     p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge",  stat='percent',common_norm=False,\
                     kde=True, kde_kws={'bw_adjust':0.2}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
     p.set(xlabel="$\it{"+strMetric+"}^{*}$")
-    p.set(ylabel="Number of block pairs")
+    p.set(ylabel="Percentage of block pairs")
     p.set(xticks=np.arange(0,1.05,0.05))
     p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
     sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
@@ -359,8 +362,8 @@ def plot_app(strApp, optionHotRef, optionHotAff):
 
     p = sns.displot(dfForPlot, x=strMetric, hue="Variant", kind="kde", bw_adjust=0.2,  common_norm=False, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
     p.set(xlabel="$\it{"+strMetric+"}^{*}$")
-    p.set(xticks=np.arange(0,1.05,0.05))
-    p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
+    #p.set(xticks=np.arange(0,1.05,0.05))
+    #p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
     sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
     leg = p.axes.flat[0].get_legend()
     if leg is None: leg = p._legend
@@ -395,5 +398,5 @@ def plot_app(strApp, optionHotRef, optionHotAff):
 #plot_app('hicoo-tensor',0,1)
 
 #Data for paper
-#plot_app('miniVite',0,2) # used - all hm - more blocks
-plot_app('hicoo-tensor',0,2)
+plot_app('miniVite',0,2) # used - all hm - more blocks
+plot_app('HiParTI-H{\small I}COO MTTKRP',0,2)

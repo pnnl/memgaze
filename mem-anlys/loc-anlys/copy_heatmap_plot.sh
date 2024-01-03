@@ -40,3 +40,7 @@ cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/mttsel-
 # HiParTI - HICOO - row signal plots
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-BFS-0-B0000000-SP-SI-SD_plot.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-Reorder-BFS-0-B0000000-SP-SI-SD-W_plot.pdf
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-Lexi-0-B0000000-SP-SI-SD_plot.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-Reorder-Lexi-0-B0000000-SP-SI-SD-W_plot.pdf
+
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/composite-SI-SA_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-composite-SA.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/composite-SI-SD_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-composite-SD.pdf
+
