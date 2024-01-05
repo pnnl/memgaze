@@ -714,11 +714,13 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             print('cnt SD BlocksinHotBox ', cntSDBlocksinHotBox)
 
             if(flagAllRefLines ==1 ):
-                listPercentSAbins = [(float(x) * 100/ (cntSABlocksinHotBox)) for x in listSAbins]
-                listPercentSDbins = [(float(x) * 100/ (cntSDBlocksinHotBox)) for x in listSDbins]
+                if(cntBlocksinHotBox !=0):
+                    listPercentSAbins = [(float(x) * 100/ (cntSABlocksinHotBox)) for x in listSAbins]
+                    listPercentSDbins = [(float(x) * 100/ (cntSDBlocksinHotBox)) for x in listSDbins]
             else:
-                listPercentSAbins = [(float(x) * 100/ (cntBlocksinHotBox-len(listSelfHotAffLines))) for x in listSAbins]
-                listPercentSDbins = [(float(x) * 100/ (cntBlocksinHotBox-len(listSelfHotAffLines))) for x in listSDbins]
+                if(cntBlocksinHotBox !=0):
+                    listPercentSAbins = [(float(x) * 100/ (cntBlocksinHotBox-len(listSelfHotAffLines))) for x in listSAbins]
+                    listPercentSDbins = [(float(x) * 100/ (cntBlocksinHotBox-len(listSelfHotAffLines))) for x in listSDbins]
 
             listPercentSAbins =  [ round(elem,1) for elem in listPercentSAbins ]
             listPercentSDbins =  [ round(elem,1) for elem in listPercentSDbins ]
@@ -763,6 +765,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         print('hmAffLines ', hmAffLines)
         csvColList.extend(hmAffLines)
         df_hot_SP_SI_SD_csv=df_SP_SI_SD[csvColList]
+        df_hot_SP_SI_SD_csv['TotalAccess']=arRegionAccess
+        df_hot_SP_SI_SD_csv['PageAccess']=accessSumBlocks
         df_hot_SP_SI_SD_csv.to_csv(csvFileName)
 
         # STEP 5b - Proceed to plot
@@ -1111,18 +1115,19 @@ if (0): # Separate source code 391 line - doesnt add any value
 
 if (0): # still useless for composite # latest try for all regions combined # Dec 20
     intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 6, strMetric='SD-SP-SI', \
-    #listCombineReg=['4-HotIns-11', '5-HotIns-12'], flWeighted=flWeight,affinityOption=3)
-    #listCombineReg=['0-A0000000', '4-HotIns-11', '5-HotIns-12'], flWeighted=flWeight,affinityOption=3)
-    listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
+    listCombineReg=['4-HotIns-11', '5-HotIns-12'], flWeighted=flWeight,affinityOption=3)
+    #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
     intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 3, strMetric='SD-SP-SI', \
-    #listCombineReg=['1-B0000000','2-B0000001'], flWeighted=flWeight,affinityOption=3)
-    listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
+    listCombineReg=['1-B0000000','2-B0000001','3-B0000002'], flWeighted=flWeight,affinityOption=3)
+    #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
 
 if (0):  # latest try for all regions combined # Dec 27
-    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p3000000-event-k-0/spatial.txt', 9, strMetric='SD-SP-SI', \
-    listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
-    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p3000000-event-k-1/spatial.txt', 4, strMetric='SD-SP-SI', \
-    listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b32768-p5000000-event-k-0/spatial.txt', 7, strMetric='SD-SP-SI', \
+    #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    listCombineReg=['5-HotIns-11', '6-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b32768-p5000000-event-k-1/spatial.txt', 9, strMetric='SD-SP-SI', \
+    #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    listCombineReg=['5-C0000000','6-C0000001','7-C0000002','8-C0000010'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 if (0): # works for all combined regions composite plot - Dec 20
     intraObjectPlot('XSB-rd-EVENT_k0', \
@@ -1134,7 +1139,7 @@ if (0): # works for all combined regions composite plot - Dec 20
         listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 
-if(0): #Data from bignuke runs
+if(1): #Data from bignuke runs
     intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v1-memgaze-trace-b16384-p5000000-anlys/spatial.txt',4,strMetric='SD-SP-SI', \
                  listCombineReg=['1-A0001000','2-B0000000','3-B1100000'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v2-memgaze-trace-b16384-p5000000-anlys/spatial.txt',3,strMetric='SD-SP-SI', \
@@ -1155,7 +1160,7 @@ if ( 1 == 0):
     intraObjectPlot('AlexNet',mainPath+'spatial_pages_exp/Darknet/alexnet_single/hot_lines/spatial.txt',5, \
                     listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
-if(1):
+if(0):
     intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',\
                     flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('HiParTi - COO',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/coo_u_0/spatial.txt',3,f_avg=f_avg1,\
@@ -1167,7 +1172,7 @@ if(1):
     intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_1/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', \
                     flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
-if(0):
+if(1):
     intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
                     strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\

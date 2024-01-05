@@ -176,8 +176,8 @@ def readFile(inFile, outFile,appName):
                   objFile_C = ''
                   varVersion = 'xs: '
                 if (appName == 'xsbench-read'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading-noinline/memgaze-xs-read/obj_XSBench'
+                  logFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-noflto/memgaze-xs-read/obj_XSBench'
                   objFile_C = ''
                   varVersion = 'xs: '
                 if (appName == 'xsbench-sel'): 
@@ -333,7 +333,7 @@ def readFile(inFile, outFile,appName):
                   varInst = data[1]
                 else:
                   varInst = data[2]
-                print ('file ', varInst)
+                print ('varInst ', varInst)
                 varInstgr=varInst[2:]
                 if (appName == 'vec_store'): 
                   traceIns = int(str(varInst), 16)
@@ -369,7 +369,7 @@ def readFile(inFile, outFile,appName):
                   #print(strMapping)
                   grData=strMapping.split(' ')
                   grepInsn=''
-                  print (varInst, grData)
+                  #print (varInst, grData)
                   if (len(grData) >=5):
                     grepInsn = grData[5]
                   else:
