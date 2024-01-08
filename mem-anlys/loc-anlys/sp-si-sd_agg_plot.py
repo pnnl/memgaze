@@ -29,7 +29,7 @@ sns.color_palette("light:#5A9", as_cmap=True)
 sns.set()
 
 # Works for spatial denity, Spatial Probability and Proximity
-def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeight=None,numExtraPages:int=0,affinityOption:int=None):
+def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,listCombineReg=None,flWeight=None,numExtraPages:int=0,affinityOption:int=None,flAccessWeight:bool=False):
     flagPhysicalPages = 0
     flagHotPages =0
     flagHotLines = 0
@@ -240,13 +240,13 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         flNormalize=False
         normSDMax=np.ones(len(arRegPages))
         normSPMax = np.ones(len(arRegPages))
-        list_SP_SI_SD=[[None]*(3*len(plot_SP_col)+2) for i in range(len(list_xlabel))]
+        list_SP_SI_SD=[[None]*(3*len(plot_SP_col)+3) for i in range(len(list_xlabel))]
         #[[0]*5 for i in range(5)]
         for blkCnt in range(0,len(list_xlabel)):
             blkid= list_xlabel[blkCnt]
             list_SP_SI_SD[blkCnt][0]=blkid
             list_SP_SI_SD[blkCnt][1]=blkid[0:blkid.rfind('-')]
-
+            list_SP_SI_SD[blkCnt][2]=df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'].item()
             if (flWeight == True):
                 weightRegPageAccess = df_reg_pages[(df_reg_pages['reg-page'] == blkid[0:blkid.rfind('-')])]['Access'].values[0]
                 #print(df_intra_obj_SP[(df_intra_obj_SP['reg-page-blk'] == blkid)]['Access'].item(), weightRegPageAccess)
@@ -264,22 +264,22 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     resultSD = df_intra_obj_SD[condSD][plotCol]
                     if resultSP.size > 0:
                         #print(blkid, plotCol, resultSP.values[0], resultSI.values[0])
-                        list_SP_SI_SD[blkCnt][plotCnt*3+2]=round(resultSP.values[0] * weight_multiplier,2)
+                        list_SP_SI_SD[blkCnt][plotCnt*3+3]=round(resultSP.values[0] * weight_multiplier,2)
                     if resultSI.size >0:
-                        list_SP_SI_SD[blkCnt][plotCnt*3+3]=resultSI.values[0]
+                        list_SP_SI_SD[blkCnt][plotCnt*3+4]=resultSI.values[0]
                     if resultSD.size >0:
-                        list_SP_SI_SD[blkCnt][plotCnt*3+4]=round(resultSD.values[0] * weight_multiplier,2)
+                        list_SP_SI_SD[blkCnt][plotCnt*3+5]=round(resultSD.values[0] * weight_multiplier,2)
                     arRegPageIndex = arRegPages.index(blkid[0:blkid.rfind('-')])
-                    if (isinstance(list_SP_SI_SD[blkCnt][plotCnt*3+2], float) and (list_SP_SI_SD[blkCnt][plotCnt*3+2] > 1.0)  ):
-                        if( normSPMax[arRegPageIndex] < list_SP_SI_SD[blkCnt][plotCnt*3+2]):
-                            normSPMax[arRegPageIndex] = list_SP_SI_SD[blkCnt][plotCnt*3+2]
+                    if (isinstance(list_SP_SI_SD[blkCnt][plotCnt*3+3], float) and (list_SP_SI_SD[blkCnt][plotCnt*3+3] > 1.0)  ):
+                        if( normSPMax[arRegPageIndex] < list_SP_SI_SD[blkCnt][plotCnt*3+3]):
+                            normSPMax[arRegPageIndex] = list_SP_SI_SD[blkCnt][plotCnt*3+3]
                             flNormalize = True
-                    if (isinstance(list_SP_SI_SD[blkCnt][plotCnt*3+4], float) and (list_SP_SI_SD[blkCnt][plotCnt*3+4]> 1.0)):
-                        if (normSDMax[arRegPageIndex] < list_SP_SI_SD[blkCnt][plotCnt*3+4]):
-                            normSDMax[arRegPageIndex] = list_SP_SI_SD[blkCnt][plotCnt*3+4]
+                    if (isinstance(list_SP_SI_SD[blkCnt][plotCnt*3+5], float) and (list_SP_SI_SD[blkCnt][plotCnt*3+5]> 1.0)):
+                        if (normSDMax[arRegPageIndex] < list_SP_SI_SD[blkCnt][plotCnt*3+5]):
+                            normSDMax[arRegPageIndex] = list_SP_SI_SD[blkCnt][plotCnt*3+5]
                             flNormalize = True
         #print(list_SP_SI)
-        list_col_names=['reg-page-blk', 'reg-page']
+        list_col_names=['reg-page-blk', 'reg-page','Access']
         for plotCol in plot_SP_col:
             list_col_names.append('SP-'+plotCol)
             list_col_names.append('SI-'+plotCol)
@@ -306,6 +306,58 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 regPageIndex = regPageIndex+1
             print('after normalize  ' , df_SP_SI_SD[['reg-page-blk', 'SD-self', 'SP-self']])
 
+        # Composite SD and SA - include SI discount
+        SI_good=63
+        for index, row in df_SP_SI_SD.iterrows():
+            for i in range(0,len(plot_SP_col)):
+                blkSDValue=np.NaN
+                blkSIValue=np.NaN
+                blkSAValue=np.NaN
+                regPageBlock= row['reg-page-blk']
+                if((row['SI-'+plot_SP_col[i]])) and (~np.isnan(row['SI-'+plot_SP_col[i]])):
+                    blkSIValue = row['SI-'+plot_SP_col[i]]
+                if((row['SD-'+plot_SP_col[i]])) and (~np.isnan(row['SD-'+plot_SP_col[i]])):
+                    blkSDValue = row['SD-'+plot_SP_col[i]]
+                if((row['SP-'+plot_SP_col[i]])) and (~np.isnan(row['SP-'+plot_SP_col[i]])):
+                    blkSAValue = row['SP-'+plot_SP_col[i]]
+                if (not(np.isnan(blkSIValue))):
+                    valSIBin = int(blkSIValue /SI_good) +1
+                    if(valSIBin > 10):
+                        valSIBin = 10
+                    valSIDiscount = float((10-valSIBin+1)/10)
+                    if(blkSIValue >=63):
+                    #print(row[['reg-page-blk', 'SI-'+plot_SP_col[i], 'SP-'+plot_SP_col[i], 'SD-'+plot_SP_col[i]]])
+                        print(df_SP_SI_SD.loc[index,'reg-page-blk'],"SI ", df_SP_SI_SD.loc[index,'SI-'+plot_SP_col[i]], " SD ", \
+                              df_SP_SI_SD.loc[index,'SD-'+plot_SP_col[i]]," SA ",df_SP_SI_SD.loc[index,'SP-'+plot_SP_col[i]])
+                    df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == regPageBlock, 'SD-'+plot_SP_col[i]] = round((blkSDValue * valSIDiscount),3)
+                    df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == regPageBlock, 'SP-'+plot_SP_col[i]] = round((blkSAValue * valSIDiscount),3)
+                    #df_local.loc[df_local['reg-page-blk'] == regPageBlock, ['SD-'+listAffinityLines[i]]]
+                    #print(regPageBlock,plot_SP_col)
+                    if(blkSIValue >=63):
+                        #print(row[['reg-page-blk', 'SI-'+plot_SP_col[i], 'SP-'+plot_SP_col[i], 'SD-'+plot_SP_col[i]]])
+                        print(" Change ", df_SP_SI_SD.loc[index,'reg-page-blk'], "SD " ,df_SP_SI_SD.loc[index,'SD-'+plot_SP_col[i]], " SA ",df_SP_SI_SD.loc[index,'SP-'+plot_SP_col[i]])
+                        #print(df_SP_SI_SD.loc[index,'SI-'+plot_SP_col[i]])
+                    #df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == regPageBlock, ['SP-'+plot_SP_col[i]]] = round((blkSAValue * valSIDiscount),3)
+
+
+        # Add weighting based on Access - hotness
+        if (flAccessWeight == True):
+            hotRefMaxAccess=df_SP_SI_SD['Access'].max()
+            hotRefMinAccess=df_SP_SI_SD['Access'].min()
+            refRange=hotRefMaxAccess-hotRefMinAccess
+            #print((df_SP_SI_SD['Access']-hotRefMinAccess)/refRange)
+            df_SP_SI_SD['Hot-Access']=(df_SP_SI_SD['Access']-hotRefMinAccess)/refRange
+            for index, row in df_SP_SI_SD.iterrows():
+                for i in range(0,len(plot_SP_col)):
+                    regPageBlock= row['reg-page-blk']
+                    if((row['SD-'+plot_SP_col[i]])) and (~np.isnan(row['SD-'+plot_SP_col[i]])):
+                        blkSDValue = row['SD-'+plot_SP_col[i]]
+                    if((row['SP-'+plot_SP_col[i]])) and (~np.isnan(row['SP-'+plot_SP_col[i]])):
+                        blkSAValue = row['SP-'+plot_SP_col[i]]
+                    df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == regPageBlock, 'SD-'+plot_SP_col[i]] = round((blkSDValue * row['Hot-Access']),3)
+                    df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == regPageBlock, 'SP-'+plot_SP_col[i]] = round((blkSAValue * row['Hot-Access']),3)
+
+
         fig, ax_plots = plt.subplots(nrows=len(plot_SP_col)+1, ncols=1,constrained_layout=True, figsize=(15, 10))
         SP_color='tab:orange'
         SD_color='green'
@@ -313,10 +365,10 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         for i, ax in enumerate(ax_plots.reshape(-1)[:len(plot_SP_col)]):
             #ax.set_title('Spatial affinity for '+ plot_SP_col[i])
             ax.set_xticks([])
-            ax.set_yticks([0, 0.25,0.5, 0.75, 1.0])
-            ax.set_yticklabels([0, 0.25,0.5, 0.75, 1.0], fontsize=12)
+            ax.set_yticks([0, 0.125,0.25, 0.375, 0.5])
+            ax.set_yticklabels([0, 0.125,0.25, 0.375, 0.5], fontsize=12)
             #ax.set_yticklabels([0, 0.125,0.25, 0.625, 0.75], fontsize=12)
-            ax.set_ylim(-0.25, 1.0)
+            ax.set_ylim(-0.25, 0.5)
             ax.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SP-'+plot_SP_col[i]], color=SP_color,label='SP')
             ax.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SD-'+plot_SP_col[i]], color=SD_color,label='SD')
             ax.tick_params(axis='y', labelcolor='black')
@@ -328,15 +380,15 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             #xmin, xmax = ax.get_xlim()
             #ax.hlines(y=0.25, xmin=xmin, xmax=xmax, linewidth=1, color='black')
             # Instantiate a second axes that shares the same x-axis
-            ax2 = ax.twinx()
-            ax2.set_ylabel('SI', fontsize='16' ,style='italic',color=SI_color)
-            ax2.set_ylim(0,200)
-            ax2.set_yticks([0,40,80,120,160,200])
-            ax2.set_yticklabels([0,40,80,120,160,200],fontsize=12)
+            #ax2 = ax.twinx()
+            #ax2.set_ylabel('SI', fontsize='16' ,style='italic',color=SI_color)
+            #ax2.set_ylim(0,200)
+            #ax2.set_yticks([0,40,80,120,160,200])
+            #ax2.set_yticklabels([0,40,80,120,160,200],fontsize=12)
 
-            ax2.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SI-'+plot_SP_col[i]], color=SI_color,label='SI')
-            ax2.tick_params(axis='y', labelcolor=SI_color)
-            ax2.text(0.01, 0.80, plot_SP_col[i][4:], color='black', size='16', rotation = 'horizontal', transform=ax.transAxes)
+            #ax2.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SI-'+plot_SP_col[i]], color=SI_color,label='SI')
+            #ax2.tick_params(axis='y', labelcolor=SI_color)
+            ax.text(0.01, 0.80, plot_SP_col[i][4:], color='black', size='16', rotation = 'horizontal', transform=ax.transAxes)
 
         ax=ax_plots.reshape(-1)[len(plot_SP_col)]
         ax.plot(df_SP_SI_SD['reg-page-blk'], df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SP')]['Access'], color='tab:gray',label='Access')
@@ -359,7 +411,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         strTitle = 'Access: Region - ' + strArRegionAccess + ', Pages - '+ strAccessSumBlocks +' ('+ ("{0:.1f}".format((accessSumBlocks/arRegionAccess)*100))+'%)'
 
         plt.suptitle(strTitle)
-        fileNameLastSeg = '_plot.pdf'
+        fileNameLastSeg = '_plot-no-SI.pdf'
+        if(flAccessWeight == True):
+            fileNameLastSeg = '_plot-no-SI-wi.pdf'
         if (flWeight == True):
             fileNameLastSeg = '_plot_Wgt.pdf'
         imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+fileNameLastSeg

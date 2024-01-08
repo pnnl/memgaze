@@ -1121,7 +1121,7 @@ if (0): # still useless for composite # latest try for all regions combined # De
     listCombineReg=['1-B0000000','2-B0000001','3-B0000002'], flWeighted=flWeight,affinityOption=3)
     #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
 
-if (0):  # latest try for all regions combined # Dec 27
+if (1):  # latest try for all regions combined # Dec 27
     intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b32768-p5000000-event-k-0/spatial.txt', 7, strMetric='SD-SP-SI', \
     #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     listCombineReg=['5-HotIns-11', '6-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
@@ -1139,7 +1139,7 @@ if (0): # works for all combined regions composite plot - Dec 20
         listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 
-if(1): #Data from bignuke runs
+if(0): #Data from bignuke runs
     intraObjectPlot('miniVite-v1',mainPath+'spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v1-memgaze-trace-b16384-p5000000-anlys/spatial.txt',4,strMetric='SD-SP-SI', \
                  listCombineReg=['1-A0001000','2-B0000000','3-B1100000'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('miniVite-v2',mainPath+'spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v2-memgaze-trace-b16384-p5000000-anlys/spatial.txt',3,strMetric='SD-SP-SI', \
@@ -1172,7 +1172,7 @@ if(0):
     intraObjectPlot('HiParTi - HiCOO-Schedule',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_1/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI', \
                     flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
-if(1):
+if(0):
     intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
                     strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
