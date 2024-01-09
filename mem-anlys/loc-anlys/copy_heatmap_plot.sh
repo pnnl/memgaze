@@ -6,8 +6,8 @@ cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/bignuke_run
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v3-memgaze-trace-b16384-p5000000-anlys/minivite-v3-inter-sp.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/minivite-v3-inter-sp.pdf
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v3-memgaze-trace-b16384-p5000000-anlys/minivite-v3-inter-sd.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/minivite-v3-inter-sd.pdf
 
-cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/composite-SI-SA_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/minivite-comp-SA.pdf
-cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/composite-SI-SD_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/minivite-comp-SD.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/composite-SI-SA_ref-0_aff-2-displot-wgt.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/minivite-comp-SA.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/composite-SI-SD_ref-0_aff-2-displot-wgt.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/minivite-comp-SD.pdf
 
 # Darknet
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/Darknet/alexnet_single/hot_lines/AlexNet-4-B0000000-SD-SP-SI_hm_order_fill.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/Darknet-AlexNet-matrix-B-4-SA.pdf
@@ -41,9 +41,10 @@ cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/mttsel-
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-Random-0-B0000000-SD-SP-SI_hm_order_fill.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-Reorder-Random-0-SA.pdf
 
 # HiParTI - HICOO - row signal plots
-cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-BFS-0-B0000000-SP-SI-SD_plot.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-Reorder-BFS-0-B0000000-SP-SI-SD-W_plot.pdf
-cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-Lexi-0-B0000000-SP-SI-SD_plot.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-Reorder-Lexi-0-B0000000-SP-SI-SD-W_plot.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-BFS-0-B0000000-SP-SI-SD_plot-no-SI.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-Reorder-BFS-0-B0000000-SP-SI-SD-W_plot.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-Lexi-0-B0000000-SP-SI-SD_plot-no-SI.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-Reorder-Lexi-0-B0000000-SP-SI-SD-W_plot.pdf
 
-cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/composite-SI-SA_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-composite-SA.pdf
-cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/composite-SI-SD_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-composite-SD.pdf
 
+# XSBench
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/composite-SI-SD_ref-2_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-composite-SD.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/composite-SI-SA_ref-2_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-composite-SA.pdf
