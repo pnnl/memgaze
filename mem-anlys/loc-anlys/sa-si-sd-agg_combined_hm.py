@@ -1121,13 +1121,22 @@ if (0): # still useless for composite # latest try for all regions combined # De
     listCombineReg=['1-B0000000','2-B0000001','3-B0000002'], flWeighted=flWeight,affinityOption=3)
     #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
 
-if (1):  # latest try for all regions combined # Dec 27
+if (0):  # latest try for all regions combined # Dec 27
     intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b32768-p5000000-event-k-0/spatial.txt', 7, strMetric='SD-SP-SI', \
     #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     listCombineReg=['5-HotIns-11', '6-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b32768-p5000000-event-k-1/spatial.txt', 9, strMetric='SD-SP-SI', \
     #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     listCombineReg=['5-C0000000','6-C0000001','7-C0000002','8-C0000010'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+
+if (1):  # Jan 8
+    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/spatial.txt', 6, strMetric='SD-SP-SI', \
+    #listCombineReg=['4-HotIns-11', '5-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    listCombineReg=[ '2-B0000001','3-B0000002'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    #listCombineReg=['0-A0000000', '2-B0000001','3-B0000002','4-HotIns-11', '5-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    #intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1-anlys/spatial.txt', 16, strMetric='SD-SP-SI', \
+    #listCombineReg=['14-B2000000','15-B2000001'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    #listCombineReg=['0-A0000000','12-B0001000','14-B2000000','15-B2000001'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 if (0): # works for all combined regions composite plot - Dec 20
     intraObjectPlot('XSB-rd-EVENT_k0', \

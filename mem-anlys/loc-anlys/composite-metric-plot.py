@@ -17,6 +17,7 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
         # intHotAff = 0 - Option 0 - only hot lines and self
         # intHotAff = 1 - Option 1 - only hot lines and self, self-1, self+1, self+2 - DEFAULT
         # intHotAff = 2 - Option 2 - all heatmap rows
+        # intHotAff = 3 - Option 3 - only hot lines and (self-1, self, self+1, self+2) for SA, (self-1, self+1, self ) for SD
 
     if(intHotRef==None):
         intHotRef =0
@@ -48,7 +49,7 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
         pattern = re.compile('SD-.*-.*-.*')
         listAffinityLines=list(filter(pattern.match, dfCols))
         listAffinityLines.append('SD-self')
-    if (intHotAff==1):
+    if (intHotAff==1 or intHotAff==3):
         pattern = re.compile('SD-.*-.*-.*')
         listAffinityLines=list(filter(pattern.match, dfCols))
         listAffinityLines.append('SD-self')
@@ -58,8 +59,6 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
     if (intHotAff==2):
         pattern = re.compile('SD-.*')
         listAffinityLines=list(filter(pattern.match, dfCols))
-
-
 
     #print(dfCols)
     #print('Columns in df_local ', df_local.columns.to_list())
@@ -73,12 +72,12 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
     for i in range(0,len(listAffinityLines)):
         listAffinityLines[i] = listAffinityLines[i].replace('SD-','')
 
+    #Include only hot lines from the region
     if(0):
         print('hot lines in affinity before region', listAffinityLines)
         for x in listAffinityLines:
             if((len(x.split('-')) >=3) and (not x[0] in listRefRegions)):
                 listAffinityLines.remove(x)
-
     print('hot lines in affinity', listAffinityLines)
 
     pattern = re.compile('self.*')
@@ -118,18 +117,18 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
                 intAffBlock=int(curBlock) + int(contigLocation[1:])
             checkAffBlock = regPage + str(intAffBlock)
             #print(checkAffBlock)
+            # check for hot line in contiguous locations
             if(checkAffBlock in listAffinityLines):
                 #print ( strApp , ' Not incluidng contig block for ', regPageBlock, listAffinityLines[i], checkAffBlock)
                 flInclude=False
+            # check for hot line in self location - otherwise it'll be counted twice
             if(regPageBlock in listAffinityLines and listAffinityLines[i] =='self'):
-                #print (strApp , 'Not incluidng self for ', regPageBlock, listAffinityLines[i])
                 flInclude=False
+            # not include 'SELF' for SA
             if(regPageBlock == listAffinityLines[i] ):
-                #print (strApp , 'Not incluidng self for ', regPageBlock, listAffinityLines[i])
-                #print(regPageBlock, 'self self ',  listAffinityLines[i])
                 flIncludeSA=False
-            #if(not(listAffinityLines[i] in ['self', 'self-1', 'self+1'] or len(listAffinityLines[i].split('-'))>=3)):
-                #flIncludeSD=False
+            if((intHotAff==3) and (not(listAffinityLines[i] in ['self', 'self-1', 'self+1'] or len(listAffinityLines[i].split('-'))>=3))):
+                flIncludeSD=False
             if((flInclude==True ) and \
                         #((intHotRef == 0 and (row['Hot-Access']>= 0.1 and (row['Access']/row['TotalAccess'] >= 0.0025))) \
                             ((intHotRef == 0 and  (row['Hot-Access']>= 0.1)) \
@@ -169,7 +168,7 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
     #print(dfForPlot)
     #dfForPlot.to_csv('/Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v3-memgaze-trace-b16384-p5000000-anlys/plot_df.csv')
 
-def plot_app(strApp, optionHotRef, optionHotAff):
+def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
     strFileName=''
     strPath='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/'
     dfForPlot= pd.DataFrame(columns=['Variant', 'reg-page-blk','Access','HotLineWeight', 'SD', 'SA', 'HotAccessWeight'])
@@ -282,7 +281,7 @@ def plot_app(strApp, optionHotRef, optionHotAff):
         print(dfForPlot.shape)
         strFileName=strPath+'XSBench/openmp-threading-noinline/memgaze-xs-read/'
 
-    if(strApp.lower()=='xsb-noflto'):
+    if(strApp.lower()=='xsb-noflto-all'):
         strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p3000000-event-k-0/XSB-rd-EVENT_k0-0-A0000000-1-B0000000-2-B0000001-3-B0000002-4-B0000003-5-B0000004-6-B1000000-7-HotIns-11-8-HotIns-12-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k0'
         strFileName=strPath+strFileName
@@ -295,10 +294,52 @@ def plot_app(strApp, optionHotRef, optionHotAff):
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
         print(dfForPlot.shape)
         strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read/'
-    #print(dfForPlot)
 
-    print(dfForPlot.head(5))
-    print(dfForPlot.tail(5))
+    if(strApp.lower()=='xsb-noflto-other-grid'):
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/XSB-rd-EVENT_k0-4-HotIns-11-5-HotIns-12-SD-SP-SI-df.csv'
+        strAppVar='XSBench-event-k0'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        print(dfForPlot.shape)
+
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1-anlys/XSB-rd-EVENT_OPT_k1-14-B2000000-15-B2000001-SD-SP-SI-df.csv'
+        strAppVar='XSBench-event-k1'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        print(dfForPlot.shape)
+        strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read/'
+
+    if(strApp.lower()=='xsb-noflto-mat-energy'):
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/XSB-rd-EVENT_k0-0-A0000000-SD-SP-SI-df.csv'
+        strAppVar='XSBench-event-k0'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        print(dfForPlot.shape)
+
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1-anlys/XSB-rd-EVENT_OPT_k1-0-A0000000-SD-SP-SI-df.csv'
+        strAppVar='XSBench-event-k1'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        print(dfForPlot.shape)
+        strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read/'
+
+    if(strApp.lower()=='xsb-noflto-grid-index'):
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/XSB-rd-EVENT_k0-2-B0000001-3-B0000002-SD-SP-SI-df.csv'
+        strAppVar='XSBench-event-k0'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        print(dfForPlot.shape)
+
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1-anlys/XSB-rd-EVENT_OPT_k1-12-B0001000-SD-SP-SI-df.csv'
+        strAppVar='XSBench-event-k1'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        print(dfForPlot.shape)
+        strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read/'
+
+    #print(dfForPlot)
+    #print(dfForPlot.head(5))
+    #print(dfForPlot.tail(5))
 
     if(0):
         arrVariants=list(set(dfForPlot["Variant"].to_list()))
@@ -314,20 +355,21 @@ def plot_app(strApp, optionHotRef, optionHotAff):
     dfForPlot['ScoreSA'] = (dfForPlot.SA * dfForPlot.HotLineWeight).where(dfForPlot.SA >= 0.25)
     dfForPlot['ScoreSD'] = (dfForPlot.SD * dfForPlot.HotLineWeight).where(dfForPlot.SD >= 0.05)
     for i in range(len(arrVariants)):
-        print(strApp, "ref - ", str(optionHotRef)," ",arrVariants[i], " *** Region weight - SD score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSD'] ).sum()*dictVarAccess[arrVariants[i]][2])
-        print(strApp, "ref - ", str(optionHotRef)," ",arrVariants[i], " *** Region weight - SA score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSA'] ).sum()*dictVarAccess[arrVariants[i]][2])
+        print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " *** Region weight - SA score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSA'] ).sum()*dictVarAccess[arrVariants[i]][2])
+        print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff), " " ,arrVariants[i], " *** Region weight - SD score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSD'] ).sum()*dictVarAccess[arrVariants[i]][2])
     for i in range(len(arrVariants)):
-        print(strApp, "ref - ", str(optionHotRef)," ",arrVariants[i], " Hot - SD score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSD'] ).sum())#*dictVarAccess[arrVariants[i]][2])
-        print(strApp, "ref - ", str(optionHotRef)," ",arrVariants[i], " Hot - SA score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSA'] ).sum())#*dictVarAccess[arrVariants[i]][2])
+        print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " Hot - SA score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSA'] ).sum())#*dictVarAccess[arrVariants[i]][2])
+        print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " Hot - SD score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSD'] ).sum())#*dictVarAccess[arrVariants[i]][2])
 
     dfForPlot['ScoreSA'] = (dfForPlot.SA * dfForPlot.HotLineWeight)
     dfForPlot['ScoreSD'] = (dfForPlot.SD * dfForPlot.HotLineWeight)
     for i in range(len(arrVariants)):
-        print(strApp, "ref - ", str(optionHotRef)," ",arrVariants[i], " --- No filter Region weight - SD score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSD'] ).sum()*dictVarAccess[arrVariants[i]][2])
-        print(strApp, "ref - ", str(optionHotRef)," ",arrVariants[i], " --- No filter Region weight - SA score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSA'] ).sum()*dictVarAccess[arrVariants[i]][2])
+        print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " --- No filter Region weight - SA score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSA'] ).sum()*dictVarAccess[arrVariants[i]][2])
+        print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " --- No filter Region weight - SD score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSD'] ).sum()*dictVarAccess[arrVariants[i]][2])
+
     for i in range(len(arrVariants)):
-        print(strApp, "ref - ", str(optionHotRef)," ",arrVariants[i], " No filter Hot - SD score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSD'] ).sum())#*dictVarAccess[arrVariants[i]][2])
-        print(strApp, "ref - ", str(optionHotRef)," ",arrVariants[i], " No filter Hot - SA score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSA'] ).sum())#*dictVarAccess[arrVariants[i]][2])
+        print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " No filter Hot - SA score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSA'] ).sum())#*dictVarAccess[arrVariants[i]][2])
+        print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " No filter Hot - SD score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSD'] ).sum())#*dictVarAccess[arrVariants[i]][2])
 
     binArray=[0.01,0.02,0.03,0.04,0.05,0.1,0.2,0.4,0.6,0.8,1.0]
     listDarkPalette=['#0343df','#650021','#3f9b0b']
@@ -339,38 +381,38 @@ def plot_app(strApp, optionHotRef, optionHotAff):
     dictSA={}
     dictSD={}
 
-    for i in range(len(arrVariants)):
-        for strMetric in ['SD', 'SA']:
-            dfVariant = dfForPlot[dfForPlot["Variant"] ==arrVariants[i]]
-            dfArea=dfVariant[strMetric].dropna()
-            #print(arrVariants[i], strMetric, dfArea.shape)
-            #print(dfArea)
-            numBlockPairs= dfArea.shape[0]
-            #sns.kdeplot(dfArea, linewidth=2, fill=True)
-            ax = sns.kdeplot(dfArea)
-            # Get all the lines used to draw density curve
-            kde_lines = ax.get_lines()[-1]
-            kde_x, kde_y = kde_lines.get_data()
-            low_limit =0
-            if (strMetric == 'SA'):
-                low_limit=0.25
-            if(strMetric == 'SD'):
-                low_limit = 0.05
-            mask = (kde_x >= low_limit)
-            filled_x, filled_y = kde_x[mask], kde_y[mask]
-            area = np.trapz(filled_y, filled_x)
-            #print('filled_x \n' , filled_x)
-            #print('filled_y \n', filled_y)
+    # Trial (Area under the curve)
+    if (0):
+        for i in range(len(arrVariants)):
+            for strMetric in ['SD', 'SA']:
+                dfVariant = dfForPlot[dfForPlot["Variant"] ==arrVariants[i]]
+                dfArea=dfVariant[strMetric].dropna()
+                #print(arrVariants[i], strMetric, dfArea.shape)
+                #print(dfArea)
+                numBlockPairs= dfArea.shape[0]
+                #sns.kdeplot(dfArea, linewidth=2, fill=True)
+                ax = sns.kdeplot(dfArea)
+                # Get all the lines used to draw density curve
+                kde_lines = ax.get_lines()[-1]
+                kde_x, kde_y = kde_lines.get_data()
+                low_limit =0
+                if (strMetric == 'SA'):
+                    low_limit=0.25
+                if(strMetric == 'SD'):
+                    low_limit = 0.05
+                mask = (kde_x >= low_limit)
+                filled_x, filled_y = kde_x[mask], kde_y[mask]
+                area = np.trapz(filled_y, filled_x)
+                #print('filled_x \n' , filled_x)
+                #print('filled_y \n', filled_y)
+                #print(strApp , 'variant ', arrVariants[i], ' number of block pairs ', numBlockPairs,  'metric ', strMetric, area)
+                if (strMetric == 'SA'):
+                    strSAText = strSAText + arrVariants[i].center(15) + '- ' + str(numBlockPairs).center(22) + '\n' #'- ' + str(round(area*100,1)) + '\n'
+                    dictSA[arrVariants[i]]=[str(numBlockPairs),str(round(area*100,1))]
+                if(strMetric == 'SD'):
+                    strSDText = strSDText + arrVariants[i].center(15) + '- ' + str(numBlockPairs).center(22) + '\n' #'- ' + str(round(area*100,1)) + '\n'
+                    dictSD[arrVariants[i]]=[str(numBlockPairs),str(round(area*100,1))]
 
-            #print(strApp , 'variant ', arrVariants[i], ' number of block pairs ', numBlockPairs,  'metric ', strMetric, area)
-            if (strMetric == 'SA'):
-                strSAText = strSAText + arrVariants[i].center(15) + '- ' + str(numBlockPairs).center(22) + '\n' #'- ' + str(round(area*100,1)) + '\n'
-                dictSA[arrVariants[i]]=[str(numBlockPairs),str(round(area*100,1))]
-            if(strMetric == 'SD'):
-                strSDText = strSDText + arrVariants[i].center(15) + '- ' + str(numBlockPairs).center(22) + '\n' #'- ' + str(round(area*100,1)) + '\n'
-                dictSD[arrVariants[i]]=[str(numBlockPairs),str(round(area*100,1))]
-
-    if(0):
         strSAText=strSAText.strip('\n')
         strSDText=strSDText.strip('\n')
         print('SA \n', strSAText)
@@ -379,119 +421,120 @@ def plot_app(strApp, optionHotRef, optionHotAff):
         print(dictSD)
         print(dfForPlot[["Variant", "HotAccessWeight"]])
 
-    # Plots
-    strMetric="SD"
-    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  \
-                      kde=False, kde_kws={'bw_adjust':0.15,  'clip':(0.02,1.0)}, weights="HotAccessWeight", aspect=2, alpha=1,facet_kws=dict(legend_out=False))
-    #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  stat='percent', common_norm=False, \
-    #                  kde=True, kde_kws={'bw_adjust':0.2}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
-    p.set(xlabel="$\it{"+strMetric+"}^{*}$")
-    p.set(ylabel="Number of block pairs")
-    p.axes.flat[0].set_xlim(0.0,)
-    if(strApp=='miniVite'):
-        p.axes.flat[0].set_ylim(0,20)
-    sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
-    if(0):
-        leg = p.axes.flat[0].get_legend()
-        if leg is None: leg = p._legend
-        #print(leg.get_title().get_text())
-        strTitle= str(leg.get_title().get_text()).center(20) + 'Hot ref. blocks'.center(15)+'Num. of'.center(15)+'Block pairs with'.rjust(15)+'\n' \
-                    +str(' ').center(20) + 'access(%)'.center(15)+'block pairs'.center(15)+"$\it{"+strMetric+"}^{*}$ >= 0.05".center(15)
-        new_title = str(leg.get_title().get_text()).center(28) + 'Hot Access(%)'.ljust(15)+'Num. block pairs'.center(15)+'Above 0.05'.rjust(15)
-        leg.set_title(strTitle)
-        for t in leg.texts:
-            t.set_text(str(t.get_text()).ljust(14) +  str(round((dictVarAccess[t.get_text()][1]*100/dictVarAccess[t.get_text()][0]),2)).center(15) \
-                       + dictSD[t.get_text()][0].center(15)+ str(round(float(dictSD[t.get_text()][1])*float(dictSD[t.get_text()][0])/100)).center(15))
-            t.set_ha('right')
-    p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
-    #p.map(plt.axvline, x=0.045, color='black', linewidth=1)
-    #ax.axvline(x='0.05', ymin=ymin, ymax=ymax, linewidth=1, color='black')
-    p.map(plt.axvline, x=0.05, color='black', linewidth=1,linestyle='--')
-    strPath=strFileName[0:strFileName.rindex('/')]
-    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-wgt.pdf'
-    print(imageFileName)
-    plt.savefig(imageFileName, bbox_inches='tight')
+    if(flPlot == True):
+        # Plots
+        strMetric="SD"
+        p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  \
+                          kde=False, kde_kws={'bw_adjust':0.15,  'clip':(0.02,1.0)}, weights="HotAccessWeight", aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+        #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  stat='percent', common_norm=False, \
+        #                  kde=True, kde_kws={'bw_adjust':0.2}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+        p.set(xlabel="$\it{"+strMetric+"}^{*}$")
+        p.set(ylabel="Number of block pairs")
+        p.axes.flat[0].set_xlim(0.0,)
+        if(strApp=='miniVite'):
+            p.axes.flat[0].set_ylim(0,20)
+        sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
+        if(0):
+            leg = p.axes.flat[0].get_legend()
+            if leg is None: leg = p._legend
+            #print(leg.get_title().get_text())
+            strTitle= str(leg.get_title().get_text()).center(20) + 'Hot ref. blocks'.center(15)+'Num. of'.center(15)+'Block pairs with'.rjust(15)+'\n' \
+                        +str(' ').center(20) + 'access(%)'.center(15)+'block pairs'.center(15)+"$\it{"+strMetric+"}^{*}$ >= 0.05".center(15)
+            new_title = str(leg.get_title().get_text()).center(28) + 'Hot Access(%)'.ljust(15)+'Num. block pairs'.center(15)+'Above 0.05'.rjust(15)
+            leg.set_title(strTitle)
+            for t in leg.texts:
+                t.set_text(str(t.get_text()).ljust(14) +  str(round((dictVarAccess[t.get_text()][1]*100/dictVarAccess[t.get_text()][0]),2)).center(15) \
+                           + dictSD[t.get_text()][0].center(15)+ str(round(float(dictSD[t.get_text()][1])*float(dictSD[t.get_text()][0])/100)).center(15))
+                t.set_ha('right')
+        p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
+        #p.map(plt.axvline, x=0.045, color='black', linewidth=1)
+        #ax.axvline(x='0.05', ymin=ymin, ymax=ymax, linewidth=1, color='black')
+        p.map(plt.axvline, x=0.05, color='black', linewidth=1,linestyle='--')
+        strPath=strFileName[0:strFileName.rindex('/')]
+        imageFileName=strPath+'/'+strApp+'-composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-wgt.pdf'
+        print(imageFileName)
+        plt.savefig(imageFileName, bbox_inches='tight')
 
-    p = sns.displot(dfForPlot, x=strMetric,  kind="kde", hue="Variant", bw_adjust=0.15, clip=(0.02,1.0), common_norm=False, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
-    p.set(xlabel="$\it{"+strMetric+"}^{*}$")
-    #p.set(ylabel="Density")
-    sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
-    p.map(plt.axvline, x=0.05, color='black', linewidth=1,linestyle='--')
-    if(0):
-        leg = p.axes.flat[0].get_legend()
-        if leg is None: leg = p._legend
-        #print(leg.get_title().get_text())
-        strTitle= str(leg.get_title().get_text()).center(20) + 'Hot ref. blocks'.center(15)+'Num. of'.center(15)+'Block pairs with'.rjust(15)+'\n' \
-                    +str(' ').center(20) + 'access(%)'.center(15)+'block pairs'.center(15)+"$\it{"+strMetric+"}^{*}$ >= 0.05".center(15)
-        new_title = str(leg.get_title().get_text()).center(28) + 'Hot Access(%)'.ljust(15)+'Num. block pairs'.center(15)+'Above 0.05'.rjust(15)
-        leg.set_title(strTitle)
-        for t in leg.texts:
-            t.set_text(str(t.get_text()).ljust(14) +  str(round((dictVarAccess[t.get_text()][1]*100/dictVarAccess[t.get_text()][0]),2)).center(15) \
-                       + dictSD[t.get_text()][0].center(15)+ str(round(float(dictSD[t.get_text()][1])*float(dictSD[t.get_text()][0])/100)).center(15))
-            t.set_ha('right')
-    p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$ density plot")
-    strPath=strFileName[0:strFileName.rindex('/')]
-    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
-    print(imageFileName)
-    plt.savefig(imageFileName, bbox_inches='tight')
+        p = sns.displot(dfForPlot, x=strMetric,  kind="kde", hue="Variant", bw_adjust=0.15, clip=(0.02,1.0), common_norm=False, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+        p.set(xlabel="$\it{"+strMetric+"}^{*}$")
+        #p.set(ylabel="Density")
+        sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
+        p.map(plt.axvline, x=0.05, color='black', linewidth=1,linestyle='--')
+        if(0):
+            leg = p.axes.flat[0].get_legend()
+            if leg is None: leg = p._legend
+            #print(leg.get_title().get_text())
+            strTitle= str(leg.get_title().get_text()).center(20) + 'Hot ref. blocks'.center(15)+'Num. of'.center(15)+'Block pairs with'.rjust(15)+'\n' \
+                        +str(' ').center(20) + 'access(%)'.center(15)+'block pairs'.center(15)+"$\it{"+strMetric+"}^{*}$ >= 0.05".center(15)
+            new_title = str(leg.get_title().get_text()).center(28) + 'Hot Access(%)'.ljust(15)+'Num. block pairs'.center(15)+'Above 0.05'.rjust(15)
+            leg.set_title(strTitle)
+            for t in leg.texts:
+                t.set_text(str(t.get_text()).ljust(14) +  str(round((dictVarAccess[t.get_text()][1]*100/dictVarAccess[t.get_text()][0]),2)).center(15) \
+                           + dictSD[t.get_text()][0].center(15)+ str(round(float(dictSD[t.get_text()][1])*float(dictSD[t.get_text()][0])/100)).center(15))
+                t.set_ha('right')
+        p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$ density plot")
+        strPath=strFileName[0:strFileName.rindex('/')]
+        imageFileName=strPath+'/'+strApp+'-composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
+        print(imageFileName)
+        plt.savefig(imageFileName, bbox_inches='tight')
 
 
-    strMetric="SA"
-    #stat='percent',common_norm=False,
-    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", \
-                    kde=False, kde_kws={'bw_adjust':0.15,'clip':(0.05,1.0)}, weights="HotAccessWeight", aspect=2, alpha=1,facet_kws=dict(legend_out=False))
-    p.set(xlabel="$\it{"+strMetric+"}^{*}$")
-    p.set(ylabel="Number of block pairs")
-    p.set(xticks=np.arange(0,1.05,0.05))
-    p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
-    sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
-    if (0):
-        leg = p.axes.flat[0].get_legend()
-        if leg is None: leg = p._legend
-        #print(leg.get_title().get_text())
-        strTitle= str(leg.get_title().get_text()).center(20) + 'Hot ref. blocks'.center(15)+'Num. of'.center(15)+'Block pairs with'.rjust(15)+'\n' \
-                    +str(' ').center(20) + 'access(%)'.center(15)+'block pairs'.center(15)+"$\it{"+strMetric+"}^{*}$ >= 0.25".center(15)
-        leg.set_title(strTitle)
-        for t in leg.texts:
-            t.set_text(str(t.get_text()).ljust(14) +  str(round((dictVarAccess[t.get_text()][1]*100/dictVarAccess[t.get_text()][0]),2)).center(15) \
-                       + dictSA[t.get_text()][0].center(15)+ str(round(float(dictSA[t.get_text()][1])*float(dictSA[t.get_text()][0])/100)).center(15))
-            t.set_ha('right')
-    #p.fig.text(0.8, 0.7, strSAText,  ha='left', verticalalignment='top',bbox=dict(boxstyle="round",facecolor='none', edgecolor='grey',alpha=0.5))
-    p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
-    p.map(plt.axvline, x=0.25, color='black', linewidth=1,linestyle='--')
-    strPath=strFileName[0:strFileName.rindex('/')]
-    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-wgt.pdf'
-    print(imageFileName)
-    plt.savefig(imageFileName, bbox_inches='tight')
+        strMetric="SA"
+        #stat='percent',common_norm=False,
+        p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", \
+                        kde=False, kde_kws={'bw_adjust':0.15,'clip':(0.05,1.0)}, weights="HotAccessWeight", aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+        p.set(xlabel="$\it{"+strMetric+"}^{*}$")
+        p.set(ylabel="Number of block pairs")
+        p.set(xticks=np.arange(0,1.05,0.05))
+        p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
+        sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
+        if (0):
+            leg = p.axes.flat[0].get_legend()
+            if leg is None: leg = p._legend
+            #print(leg.get_title().get_text())
+            strTitle= str(leg.get_title().get_text()).center(20) + 'Hot ref. blocks'.center(15)+'Num. of'.center(15)+'Block pairs with'.rjust(15)+'\n' \
+                        +str(' ').center(20) + 'access(%)'.center(15)+'block pairs'.center(15)+"$\it{"+strMetric+"}^{*}$ >= 0.25".center(15)
+            leg.set_title(strTitle)
+            for t in leg.texts:
+                t.set_text(str(t.get_text()).ljust(14) +  str(round((dictVarAccess[t.get_text()][1]*100/dictVarAccess[t.get_text()][0]),2)).center(15) \
+                           + dictSA[t.get_text()][0].center(15)+ str(round(float(dictSA[t.get_text()][1])*float(dictSA[t.get_text()][0])/100)).center(15))
+                t.set_ha('right')
+        #p.fig.text(0.8, 0.7, strSAText,  ha='left', verticalalignment='top',bbox=dict(boxstyle="round",facecolor='none', edgecolor='grey',alpha=0.5))
+        p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
+        p.map(plt.axvline, x=0.25, color='black', linewidth=1,linestyle='--')
+        strPath=strFileName[0:strFileName.rindex('/')]
+        imageFileName=strPath+'/'+strApp+'-composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-wgt.pdf'
+        print(imageFileName)
+        plt.savefig(imageFileName, bbox_inches='tight')
 
-    p = sns.displot(dfForPlot, x=strMetric, hue="Variant", kind="kde", bw_adjust=0.15, clip=(0.05,1.0), common_norm=False, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
-    p.set(xlabel="$\it{"+strMetric+"}^{*}$")
-    #p.set(xticks=np.arange(0,1.05,0.05))
-    #p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
-    sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
-    p.map(plt.axvline, x=0.25, color='black', linewidth=1,linestyle='--')
-    if(0):
-        leg = p.axes.flat[0].get_legend()
-        if leg is None: leg = p._legend
-        #print(leg.get_title().get_text())
-        strTitle= str(leg.get_title().get_text()).center(20) + 'Hot ref. blocks'.center(15)+'Num. of'.center(15)+'Block pairs with'.rjust(15)+'\n' \
-                    +str(' ').center(20) + 'access(%)'.center(15)+'block pairs'.center(15)+"$\it{"+strMetric+"}^{*}$ >= 0.25".center(15)
-        leg.set_title(strTitle)
-        for t in leg.texts:
-            t.set_text(str(t.get_text()).ljust(14) +  str(round((dictVarAccess[t.get_text()][1]*100/dictVarAccess[t.get_text()][0]),2)).center(15) \
-                       + dictSA[t.get_text()][0].center(15)+ str(round(float(dictSA[t.get_text()][1])*float(dictSA[t.get_text()][0])/100)).center(15))
-            t.set_ha('right')
-    p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$ density plot")
-    strPath=strFileName[0:strFileName.rindex('/')]
-    imageFileName=strPath+'/composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
-    print(imageFileName)
-    plt.savefig(imageFileName, bbox_inches='tight')
+        p = sns.displot(dfForPlot, x=strMetric, hue="Variant", kind="kde", bw_adjust=0.15, clip=(0.05,1.0), common_norm=False, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+        p.set(xlabel="$\it{"+strMetric+"}^{*}$")
+        #p.set(xticks=np.arange(0,1.05,0.05))
+        #p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
+        sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
+        p.map(plt.axvline, x=0.25, color='black', linewidth=1,linestyle='--')
+        if(0):
+            leg = p.axes.flat[0].get_legend()
+            if leg is None: leg = p._legend
+            #print(leg.get_title().get_text())
+            strTitle= str(leg.get_title().get_text()).center(20) + 'Hot ref. blocks'.center(15)+'Num. of'.center(15)+'Block pairs with'.rjust(15)+'\n' \
+                        +str(' ').center(20) + 'access(%)'.center(15)+'block pairs'.center(15)+"$\it{"+strMetric+"}^{*}$ >= 0.25".center(15)
+            leg.set_title(strTitle)
+            for t in leg.texts:
+                t.set_text(str(t.get_text()).ljust(14) +  str(round((dictVarAccess[t.get_text()][1]*100/dictVarAccess[t.get_text()][0]),2)).center(15) \
+                           + dictSA[t.get_text()][0].center(15)+ str(round(float(dictSA[t.get_text()][1])*float(dictSA[t.get_text()][0])/100)).center(15))
+                t.set_ha('right')
+        p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$ density plot")
+        strPath=strFileName[0:strFileName.rindex('/')]
+        imageFileName=strPath+'/'+strApp+'-composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
+        print(imageFileName)
+        plt.savefig(imageFileName, bbox_inches='tight')
 
-    #p.set(xlabel="$\it{SI}$-$\it{"+strMetric+ "}$")
-    #sns.displot(dfForPlot, x="SA", hue="Variant", bins=100,  multiple="dodge", aspect=2)# col="Variant")
-    #sns.displot(dfForPlot, x="SA", hue="Variant", bins=binArray,  multiple="dodge", aspect=2)# col="Variant")
-    #sns.displot(dfForPlot, x="SA", hue="Variant", bins=100,  col="Variant",legend=False)
-    #plt.show()
+        #p.set(xlabel="$\it{SI}$-$\it{"+strMetric+ "}$")
+        #sns.displot(dfForPlot, x="SA", hue="Variant", bins=100,  multiple="dodge", aspect=2)# col="Variant")
+        #sns.displot(dfForPlot, x="SA", hue="Variant", bins=binArray,  multiple="dodge", aspect=2)# col="Variant")
+        #sns.displot(dfForPlot, x="SA", hue="Variant", bins=100,  col="Variant",legend=False)
+        #plt.show()
 
 #def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot):
 #def plot_app(strApp, optionHotRef, optionHotAff)
@@ -503,12 +546,22 @@ def plot_app(strApp, optionHotRef, optionHotAff):
 #plot_app('xsb-noinline', 2, 2)
 #plot_app('xsb-noflto', 2, 1) # unused
 #plot_app('hicoo-tensor',0,1)
+#plot_app('HiParTI-matrix',0,2)
 
 #Data for paper
-plot_app('miniVite',0,2) # used - all hm - more blocks
-plot_app('miniVite',2,2) # used - all hm - more blocks
-plot_app('HiParTI-HiCOO tensor MTTKRP',2,2)
-plot_app('HiParTI-HiCOO tensor MTTKRP',0,2)
-#plot_app('HiParTI-matrix',0,2)
-#plot_app('xsb-noflto', 2, 2) # used
-#plot_app('xsb-noinline', 0, 2)
+flPlot=False
+#plot_app('miniVite',0,2,flPlot) # used - all hm - more blocks
+plot_app('miniVite',2,2,flPlot) # used - all hm - more blocks
+plot_app('HiParTI-HiCOO tensor MTTKRP',2,2, flPlot)
+#plot_app('HiParTI-HiCOO tensor MTTKRP',0,2,flPlot)
+plot_app('xsb-noflto-other-grid', 2, 2,flPlot)
+plot_app('xsb-noflto-grid-index', 2, 2,flPlot)
+plot_app('xsb-noflto-mat-energy',2,2,flPlot)
+
+# Trial for targetted blocks in score
+if(0):
+    plot_app('miniVite',2,3,flPlot)
+    plot_app('HiParTI-HiCOO tensor MTTKRP',2,3, flPlot)
+    plot_app('xsb-noflto-other-grid', 2, 3,flPlot)
+    plot_app('xsb-noflto-grid-index', 2, 3,flPlot)
+    plot_app('xsb-noflto-mat-energy',2,3,flPlot)
