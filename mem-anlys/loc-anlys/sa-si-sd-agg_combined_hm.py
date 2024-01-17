@@ -749,7 +749,6 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             #df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SP-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SP-self']
             #df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SI-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SI-self']
 
-        csvFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+'-df.csv'
         dfAllCols=df_SP_SI_SD.columns.to_list()
         pattern=re.compile("S.*-")
         removeCols=list(filter(pattern.match, dfAllCols))
@@ -767,6 +766,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         df_hot_SP_SI_SD_csv=df_SP_SI_SD[csvColList]
         df_hot_SP_SI_SD_csv['TotalAccess']=arRegionAccess
         df_hot_SP_SI_SD_csv['PageAccess']=accessSumBlocks
+        print(arRegionAccess, accessSumBlocks)
+        csvFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+'-df.csv'
+        if (flagAllRefLines):
+            csvFileName=strPath+'/'+strApp.replace(' ','')+'-ALL-'+strMetric+'-df.csv'
+
         df_hot_SP_SI_SD_csv.to_csv(csvFileName)
 
         # STEP 5b - Proceed to plot
@@ -1031,6 +1035,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             if (flWeighted == True):
                 fileNameLastSeg = '_hm_order_Wgt.pdf'
             imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+fileNameLastSeg
+            if (flagAllRefLines):
+                imageFileName=strPath+'/'+strApp.replace(' ','')+'-ALL-'+strMetric+fileNameLastSeg
+
             print(imageFileName)
             #plt.show()
             plt.savefig(imageFileName, bbox_inches='tight')
@@ -1132,11 +1139,13 @@ if (0):  # latest try for all regions combined # Dec 27
 if (1):  # Jan 8
     intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/spatial.txt', 6, strMetric='SD-SP-SI', \
     #listCombineReg=['4-HotIns-11', '5-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
-    listCombineReg=[ '2-B0000001','3-B0000002'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    #listCombineReg=[ '2-B0000001','3-B0000002'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     #listCombineReg=['0-A0000000', '2-B0000001','3-B0000002','4-HotIns-11', '5-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
-    #intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1-anlys/spatial.txt', 16, strMetric='SD-SP-SI', \
+    listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1-anlys/spatial.txt', 16, strMetric='SD-SP-SI', \
     #listCombineReg=['14-B2000000','15-B2000001'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     #listCombineReg=['0-A0000000','12-B0001000','14-B2000000','15-B2000001'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+        listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 if (0): # works for all combined regions composite plot - Dec 20
     intraObjectPlot('XSB-rd-EVENT_k0', \

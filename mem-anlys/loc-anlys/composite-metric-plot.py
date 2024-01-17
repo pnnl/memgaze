@@ -25,7 +25,7 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
         intHotAff =1
     df_local=pd.read_csv(strFileName)
     df_local.insert(0,'Variant',strApp)
-    print('Start ', strApp)
+    print('Start ', strApp, strFileName)
     #print(df_local.shape)
     df_local.drop('Unnamed: 0',inplace=True,axis=1)
     df_local.sort_values(by=['Access'],ascending=False,inplace=True)
@@ -42,6 +42,7 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
     listRefLines = df_local['reg-page-blk'].to_list()
     listRefRegions=list(set([x[0] for x in listRefLines]))
     print(listRefRegions)
+    #print(df_local.columns)
 
     dfCols = df_local.columns.to_list()
     listAffinityLines=[]
@@ -84,6 +85,7 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
     listSelfAffLines = list(filter(pattern.match, listAffinityLines))
     #print(' listSelfAffLines ' , listSelfAffLines)
     listHotRefLines = df_local[df_local['Hot-Access'] >0.1]['reg-page-blk'].to_list()
+    print(listHotRefLines)
     totRegionAccess=df_local['TotalAccess'].iloc[0]
     totRefBlockAccess=df_local['Access'].sum()
     hotRefAccess=df_local[df_local['Hot-Access'] >0.1]['Access'].sum()
@@ -281,20 +283,6 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         print(dfForPlot.shape)
         strFileName=strPath+'XSBench/openmp-threading-noinline/memgaze-xs-read/'
 
-    if(strApp.lower()=='xsb-noflto-all'):
-        strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p3000000-event-k-0/XSB-rd-EVENT_k0-0-A0000000-1-B0000000-2-B0000001-3-B0000002-4-B0000003-5-B0000004-6-B1000000-7-HotIns-11-8-HotIns-12-SD-SP-SI-df.csv'
-        strAppVar='XSBench-event-k0'
-        strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
-        print(dfForPlot.shape)
-
-        strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p3000000-event-k-1/XSB-rd-EVENT_OPT_k1-0-A0000000-1-B0000000-2-B0000001-3-B0000002-SD-SP-SI-df.csv'
-        strAppVar='XSBench-event-k1'
-        strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
-        print(dfForPlot.shape)
-        strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read/'
-
     if(strApp.lower()=='xsb-noflto-other-grid'):
         strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/XSB-rd-EVENT_k0-4-HotIns-11-5-HotIns-12-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k0'
@@ -331,6 +319,20 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         print(dfForPlot.shape)
 
         strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1-anlys/XSB-rd-EVENT_OPT_k1-12-B0001000-SD-SP-SI-df.csv'
+        strAppVar='XSBench-event-k1'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        print(dfForPlot.shape)
+        strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read/'
+
+    if(strApp.lower()=='xsb-noflto-all'):
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/XSB-rd-EVENT_k0-ALL-SD-SP-SI-df.csv'
+        strAppVar='XSBench-event-k0'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        print(dfForPlot.shape)
+
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1-anlys/XSB-rd-EVENT_OPT_k1-ALL-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k1'
         strFileName=strPath+strFileName
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
@@ -421,11 +423,14 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         print(dictSD)
         print(dfForPlot[["Variant", "HotAccessWeight"]])
 
+
     if(flPlot == True):
         # Plots
         strMetric="SD"
+        #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  \
+        #                  kde=False, kde_kws={'bw_adjust':0.15,  'clip':(0.02,1.0)}, weights="HotAccessWeight", aspect=2, alpha=1,facet_kws=dict(legend_out=False))
         p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  \
-                          kde=False, kde_kws={'bw_adjust':0.15,  'clip':(0.02,1.0)}, weights="HotAccessWeight", aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+                          kde=False, kde_kws={'bw_adjust':0.15,  'clip':(0.00,1.0)}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
         #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  stat='percent', common_norm=False, \
         #                  kde=True, kde_kws={'bw_adjust':0.2}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
@@ -451,11 +456,11 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         #ax.axvline(x='0.05', ymin=ymin, ymax=ymax, linewidth=1, color='black')
         p.map(plt.axvline, x=0.05, color='black', linewidth=1,linestyle='--')
         strPath=strFileName[0:strFileName.rindex('/')]
-        imageFileName=strPath+'/'+strApp+'-composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-wgt.pdf'
+        imageFileName=strPath+'/'+strApp+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
         print(imageFileName)
         plt.savefig(imageFileName, bbox_inches='tight')
 
-        p = sns.displot(dfForPlot, x=strMetric,  kind="kde", hue="Variant", bw_adjust=0.15, clip=(0.02,1.0), common_norm=False, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+        p = sns.displot(dfForPlot, x=strMetric,  kind="kde", hue="Variant", bw_adjust=0.15, clip=(0.00,1.0) ,aspect=2, alpha=1,facet_kws=dict(legend_out=False))
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
         #p.set(ylabel="Density")
         sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
@@ -474,7 +479,7 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
                 t.set_ha('right')
         p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$ density plot")
         strPath=strFileName[0:strFileName.rindex('/')]
-        imageFileName=strPath+'/'+strApp+'-composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
+        imageFileName=strPath+'/'+strApp+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
         print(imageFileName)
         plt.savefig(imageFileName, bbox_inches='tight')
 
@@ -482,7 +487,10 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         strMetric="SA"
         #stat='percent',common_norm=False,
         p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", \
-                        kde=False, kde_kws={'bw_adjust':0.15,'clip':(0.05,1.0)}, weights="HotAccessWeight", aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+                        kde=False, kde_kws={'bw_adjust':0.15,'clip':(0.05,1.0)},  aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+        #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", \
+        #                kde=False, kde_kws={'bw_adjust':0.15,'clip':(0.05,1.0)},  aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
         p.set(ylabel="Number of block pairs")
         p.set(xticks=np.arange(0,1.05,0.05))
@@ -503,11 +511,11 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
         p.map(plt.axvline, x=0.25, color='black', linewidth=1,linestyle='--')
         strPath=strFileName[0:strFileName.rindex('/')]
-        imageFileName=strPath+'/'+strApp+'-composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-wgt.pdf'
+        imageFileName=strPath+'/'+strApp+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
         print(imageFileName)
         plt.savefig(imageFileName, bbox_inches='tight')
 
-        p = sns.displot(dfForPlot, x=strMetric, hue="Variant", kind="kde", bw_adjust=0.15, clip=(0.05,1.0), common_norm=False, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+        p = sns.displot(dfForPlot, x=strMetric, hue="Variant", kind="kde", bw_adjust=0.15, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
         #p.set(xticks=np.arange(0,1.05,0.05))
         #p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
@@ -526,7 +534,7 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
                 t.set_ha('right')
         p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$ density plot")
         strPath=strFileName[0:strFileName.rindex('/')]
-        imageFileName=strPath+'/'+strApp+'-composite-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
+        imageFileName=strPath+'/'+strApp+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
         print(imageFileName)
         plt.savefig(imageFileName, bbox_inches='tight')
 
@@ -549,14 +557,19 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
 #plot_app('HiParTI-matrix',0,2)
 
 #Data for paper
-flPlot=False
-#plot_app('miniVite',0,2,flPlot) # used - all hm - more blocks
-plot_app('miniVite',2,2,flPlot) # used - all hm - more blocks
-plot_app('HiParTI-HiCOO tensor MTTKRP',2,2, flPlot)
-#plot_app('HiParTI-HiCOO tensor MTTKRP',0,2,flPlot)
-plot_app('xsb-noflto-other-grid', 2, 2,flPlot)
-plot_app('xsb-noflto-grid-index', 2, 2,flPlot)
-plot_app('xsb-noflto-mat-energy',2,2,flPlot)
+flPlot=True
+#plot_app('miniVite',0,2,flPlot) # used for Plots in paper- all hm - more blocks
+#plot_app('miniVite',2,2,flPlot) # used for score table data - all hm - more blocks
+#plot_app('HiParTI-HiCOO tensor MTTKRP',2,2, flPlot) # used for score table data - all hm - more blocks
+#plot_app('xsb-noflto-other-grid', 2, 2,flPlot) # used for score table data - all hm - more blocks
+#plot_app('xsb-noflto-grid-index', 2, 2,flPlot) # used for score table data - all hm - more blocks
+#plot_app('xsb-noflto-mat-energy',2,2,flPlot) # used for score table data - all hm - more blocks
+
+#plot_app('xsb-noflto-all',2,2,True)
+
+plot_app('miniVite',0,2,flPlot)
+#plot_app('xsb-noflto-mat-energy',2  ,2,flPlot)
+#plot_app('xsb-noflto-grid-index', 2, 3,flPlot)
 
 # Trial for targetted blocks in score
 if(0):
