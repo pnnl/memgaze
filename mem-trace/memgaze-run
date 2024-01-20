@@ -121,7 +121,7 @@ while [[ $# -gt 0 ]] ; do
             break
             ;;
 
-        * ) # we have consumed one token of "<app> <app-args>", reset "$@"
+        * ) # we have consumed one token of "<app> <app-args>"; reset "$@"
             set -- "$arg" "$@"
             break
             ;;
