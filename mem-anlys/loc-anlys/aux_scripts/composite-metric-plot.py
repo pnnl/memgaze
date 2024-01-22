@@ -161,6 +161,8 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
                         dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,row['Access'], row['Hot-Access'], round((blkSDValue * valSIDiscount),3),np.nan,hotAccessWeight]
                     elif (flIncludeSA == True and flIncludeSD ==False):
                         dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,row['Access'], row['Hot-Access'], np.nan, round((blkSAValue * valSIDiscount),3),hotAccessWeight]
+                else:
+                    dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,row['Access'], row['Hot-Access'], 0, 0,hotAccessWeight]
                 #else:
                     #dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,row['Access'], row['Hot-Access'], 0, 0]
 
@@ -430,14 +432,14 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  \
         #                  kde=False, kde_kws={'bw_adjust':0.15,  'clip':(0.02,1.0)}, weights="HotAccessWeight", aspect=2, alpha=1,facet_kws=dict(legend_out=False))
         p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  \
-                          kde=False, kde_kws={'bw_adjust':0.15,  'clip':(0.00,1.0)}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+                          kde=False, kde_kws={'bw_adjust':0.1,  'clip':(0.00,1.0)}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
         #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  stat='percent', common_norm=False, \
         #                  kde=True, kde_kws={'bw_adjust':0.2}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
         p.set(ylabel="Number of block pairs")
-        p.axes.flat[0].set_xlim(0.0,)
-        if(strApp=='miniVite'):
-            p.axes.flat[0].set_ylim(0,20)
+        #p.axes.flat[0].set_xlim(0.0,)
+        #if(strApp=='miniVite'):
+        p.axes.flat[0].set_ylim(0,50)
         sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
         if(0):
             leg = p.axes.flat[0].get_legend()
@@ -454,17 +456,17 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
         #p.map(plt.axvline, x=0.045, color='black', linewidth=1)
         #ax.axvline(x='0.05', ymin=ymin, ymax=ymax, linewidth=1, color='black')
-        p.map(plt.axvline, x=0.05, color='black', linewidth=1,linestyle='--')
+        #p.map(plt.axvline, x=0.05, color='black', linewidth=1,linestyle='--')
         strPath=strFileName[0:strFileName.rindex('/')]
         imageFileName=strPath+'/'+strApp+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
         print(imageFileName)
         plt.savefig(imageFileName, bbox_inches='tight')
 
-        p = sns.displot(dfForPlot, x=strMetric,  kind="kde", hue="Variant", bw_adjust=0.15, clip=(0.00,1.0) ,aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+        p = sns.displot(dfForPlot, x=strMetric,  kind="kde", hue="Variant", bw_adjust=0.15, clip=(0.02,1.0) ,aspect=2, alpha=1,facet_kws=dict(legend_out=False))
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
         #p.set(ylabel="Density")
         sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
-        p.map(plt.axvline, x=0.05, color='black', linewidth=1,linestyle='--')
+        #p.map(plt.axvline, x=0.05, color='black', linewidth=1,linestyle='--')
         if(0):
             leg = p.axes.flat[0].get_legend()
             if leg is None: leg = p._legend
@@ -483,18 +485,17 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         print(imageFileName)
         plt.savefig(imageFileName, bbox_inches='tight')
 
-
         strMetric="SA"
         #stat='percent',common_norm=False,
         p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", \
-                        kde=False, kde_kws={'bw_adjust':0.15,'clip':(0.05,1.0)},  aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+                        kde=False, kde_kws={'bw_adjust':0.15,'clip':(0.00,1.0)},  aspect=2, alpha=1,facet_kws=dict(legend_out=False))
         #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,  multiple="dodge", \
         #                kde=False, kde_kws={'bw_adjust':0.15,'clip':(0.05,1.0)},  aspect=2, alpha=1,facet_kws=dict(legend_out=False))
-
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
         p.set(ylabel="Number of block pairs")
-        p.set(xticks=np.arange(0,1.05,0.05))
-        p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
+        p.axes.flat[0].set_ylim(0,50)
+        #p.set(xticks=np.arange(0,1.05,0.05))
+        #p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
         sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
         if (0):
             leg = p.axes.flat[0].get_legend()
@@ -509,18 +510,18 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
                 t.set_ha('right')
         #p.fig.text(0.8, 0.7, strSAText,  ha='left', verticalalignment='top',bbox=dict(boxstyle="round",facecolor='none', edgecolor='grey',alpha=0.5))
         p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
-        p.map(plt.axvline, x=0.25, color='black', linewidth=1,linestyle='--')
+        #p.map(plt.axvline, x=0.25, color='black', linewidth=1,linestyle='--')
         strPath=strFileName[0:strFileName.rindex('/')]
         imageFileName=strPath+'/'+strApp+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
         print(imageFileName)
         plt.savefig(imageFileName, bbox_inches='tight')
 
-        p = sns.displot(dfForPlot, x=strMetric, hue="Variant", kind="kde", bw_adjust=0.15, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+        p = sns.displot(dfForPlot, x=strMetric, hue="Variant", kind="kde", bw_adjust=0.15, clip=(0.02,1.0), aspect=2, alpha=1,facet_kws=dict(legend_out=False))
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
         #p.set(xticks=np.arange(0,1.05,0.05))
         #p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
         sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
-        p.map(plt.axvline, x=0.25, color='black', linewidth=1,linestyle='--')
+        #p.map(plt.axvline, x=0.25, color='black', linewidth=1,linestyle='--')
         if(0):
             leg = p.axes.flat[0].get_legend()
             if leg is None: leg = p._legend
@@ -557,6 +558,16 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
 #plot_app('HiParTI-matrix',0,2)
 
 #Data for paper
+# Three ways to choose hot ref blocks
+    # intHotRef = 0 - Option 0 - 90% in range Hot-Access - DEFAULT
+    # intHotRef = 1 - Option 1 - 90% of total access
+    # intHotRef = 2 - Option 2 - ALL blocks - all reference blocks for whole application
+# Two ways to choose hot affinity blocks
+    # intHotAff = 0 - Option 0 - only hot lines and self
+    # intHotAff = 1 - Option 1 - only hot lines and self, self-1, self+1, self+2 - DEFAULT
+    # intHotAff = 2 - Option 2 - all heatmap rows
+    # intHotAff = 3 - Option 3 - only hot lines and (self-1, self, self+1, self+2) for SA, (self-1, self+1, self ) for SD
+
 flPlot=True
 #plot_app('miniVite',0,2,flPlot) # used for Plots in paper- all hm - more blocks
 #plot_app('miniVite',2,2,flPlot) # used for score table data - all hm - more blocks
@@ -567,9 +578,11 @@ flPlot=True
 
 #plot_app('xsb-noflto-all',2,2,True)
 
-plot_app('miniVite',0,2,flPlot)
-#plot_app('xsb-noflto-mat-energy',2  ,2,flPlot)
-#plot_app('xsb-noflto-grid-index', 2, 3,flPlot)
+plot_app('miniVite',0,3,flPlot)
+plot_app('xsb-noflto-mat-energy',0,3,flPlot)
+plot_app('xsb-noflto-other-grid', 0,3,flPlot)
+plot_app('xsb-noflto-grid-index', 0,3,flPlot)
+plot_app('HiParTI-HiCOO tensor MTTKRP',0,3, flPlot)
 
 # Trial for targetted blocks in score
 if(0):
