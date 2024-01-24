@@ -180,6 +180,11 @@ def readFile(inFile, outFile,appName):
                   objFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-noflto/memgaze-xs-read/obj_XSBench'
                   objFile_C = ''
                   varVersion = 'xs: '
+                if (appName == 'xsbench-read-irr'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading-noinline/memgaze-xs-read-irregular/XSBench-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading-noinline/memgaze-xs-read-irregular/obj_XSBench'
+                  objFile_C = ''
+                  varVersion = 'xs: '
                 if (appName == 'xsbench-noinlne-read'): 
                   logFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze.binanlys'
                   objFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading-noinline/memgaze-xs-read/obj_XSBench'

@@ -1076,67 +1076,7 @@ if(0):
     #         listCombineReg=['0-A0000000', '1-A0000010','2-A0000011','3-A0000012','4-A0000013','5-A0000014'], flWeighted=flWeight,affinityOption=3)
 
 
-if (0): #Unused
-    intraObjectPlot('XSB-NoInl-rd-HIST',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-noinline/XSBench-memgaze-trace-b16384-p4000000-hist/spatial.txt', 9, strMetric='SD-SP-SI', \
-        listCombineReg=['1-B0000000','2-B0010000','3-B0020000','4-B0030000','5-B0040000','6-B0050000','7-B0060000'] ,flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSB-NoInl-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-noinline/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 2, strMetric='SD-SP-SI', \
-        listCombineReg=['1-B0000000','2-B0010000','3-B0020000','4-B0030000','5-B0040000','6-B0050000','7-B0060000'] ,flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSB-NoInl-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-noinline/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 9, strMetric='SD-SP-SI', \
-        listCombineReg=['1-B0000000','2-B0010000','3-B0020000','4-B0030000','5-B0040000','6-B0050000','7-B0060000'] ,flWeighted=flWeight,affinityOption=3)
-
-if (0): #Unused
-    intraObjectPlot('XSB-AOS-rd-HIST',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-code-change/XSBench-memgaze-trace-b16384-p4000000-hist/spatial.txt', 9, strMetric='SD-SP-SI', \
-        listCombineReg=['2-B0000','3-B0010','4-B0020','5-B0030','6-B0040','7-B0050','8-B0060'] ,flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSB-AOS-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-code-change/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 9, strMetric='SD-SP-SI', \
-        listCombineReg=['2-B0000','3-B0010','4-B0020','5-B0030','6-B0040','7-B0050','8-B0060'] ,flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSB-AOS-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read-code-change/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 3, strMetric='SD-SP-SI', \
-        flWeighted=flWeight,affinityOption=3)
-
-if (0): # Instrumentation - NOP stops
-    #intraObjectPlot('XSB-rd-HIST',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-hist/spatial.txt', 2, strMetric='SD-SP-SI', \
-    #     flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/hot_insn-force-1/spatial.txt', 1, strMetric='SD-SP-SI', \
-          flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 1, strMetric='SD-SP-SI', \
-         flWeighted=flWeight,affinityOption=3)
-
-if (0):
-    intraObjectPlot('XSB-rd-EVENT_k0', \
-        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-0/hot-insn-rud/spatial.txt', 4, strMetric='SD-SP-SI', \
-        listCombineReg=['8-B0060001', '9-B0060002'],flWeighted=flWeight,affinityOption=3)
-        #listCombineReg=['ALL'],flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSB-rd-EVENT_OPT_k1', \
-        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-sel-gs-2/XSBench-memgaze-trace-b32768-p3000000-event-k-1/hot-insn-rud/spatial.txt', \
-        4, strMetric='SD-SP-SI', \
-        listCombineReg=['7-HotIns-02','8-HotIns-01'], flWeighted=flWeight,affinityOption=3)
-        #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
-
-
-if (0): # Separate source code 391 line - doesnt add any value
-    intraObjectPlot('XSB-rd-HIST',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b8192-p6000000-hist/spatial.txt', 2, strMetric='SD-SP-SI', \
-         flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b8192-p6000000-event-k-0/spatial.txt', 3, strMetric='SD-SP-SI', \
-          flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/memgaze-xs-read/XSBench-memgaze-trace-b8192-p6000000-event-k-1/spatial.txt', 4, strMetric='SD-SP-SI', \
-         listCombineReg=['2-C0000000','3-C0000001','4-C0000002'], flWeighted=flWeight,affinityOption=3)
-
-if (0): # still useless for composite # latest try for all regions combined # Dec 20
-    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 6, strMetric='SD-SP-SI', \
-    listCombineReg=['4-HotIns-11', '5-HotIns-12'], flWeighted=flWeight,affinityOption=3)
-    #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
-    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', 3, strMetric='SD-SP-SI', \
-    listCombineReg=['1-B0000000','2-B0000001','3-B0000002'], flWeighted=flWeight,affinityOption=3)
-    #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3)
-
-if (0):  # latest try for all regions combined # Dec 27
-    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b32768-p5000000-event-k-0/spatial.txt', 7, strMetric='SD-SP-SI', \
-    #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
-    listCombineReg=['5-HotIns-11', '6-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
-    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b32768-p5000000-event-k-1/spatial.txt', 9, strMetric='SD-SP-SI', \
-    #listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
-    listCombineReg=['5-C0000000','6-C0000001','7-C0000002','8-C0000010'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
-
-if (1):  # Jan 8
+if (0):  # Jan 8
     intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/spatial.txt', 6, strMetric='SD-SP-SI', \
     #listCombineReg=['4-HotIns-11', '5-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     #listCombineReg=[ '2-B0000001','3-B0000002'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
@@ -1147,13 +1087,13 @@ if (1):  # Jan 8
     #listCombineReg=['0-A0000000','12-B0001000','14-B2000000','15-B2000001'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
         listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
-if (0): # works for all combined regions composite plot - Dec 20
+if (0): # Jan 23 # Useless - loads polluted by argument passing between functions
     intraObjectPlot('XSB-rd-EVENT_k0', \
-        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/spatial.txt', 10, strMetric='SD-SP-SI', \
+        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys-5p/spatial.txt', 10, strMetric='SD-SP-SI', \
         listCombineReg=['ALL'],flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('XSB-rd-EVENT_OPT_k1', \
-        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/spatial.txt', \
-        9, strMetric='SD-SP-SI', \
+        mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1-anlys-5p/spatial.txt', \
+        19, strMetric='SD-SP-SI', \
         listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 
