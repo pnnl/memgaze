@@ -1087,6 +1087,14 @@ if (0):  # Jan 8
     #listCombineReg=['0-A0000000','12-B0001000','14-B2000000','15-B2000001'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
         listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
+if (1):  # Jan 29
+    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-irregular/XSBench-memgaze-trace-b32768-p5000000-event-k-0/spatial.txt', 4, strMetric='SD-SP-SI', \
+    listCombineReg=['3-HotIns-11', '4-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    # Region 0 - A0000000 - 391 with little pollution; 1&2 - 294 ??? 3&4 - XS-data
+    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-irregular/XSBench-memgaze-trace-b32768-p5000000-event-k-1/spatial.txt', 15, strMetric='SD-SP-SI', \
+    listCombineReg=['8-A3000000','9-A3000001','10-A3000002','11-A3000003','12-A3000004','13-A3000010','14-A3000011'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    # Region 7 - A1000000 - 391 - index search; others - XS-data
+
 if (0): # Jan 23 # Useless - loads polluted by argument passing between functions
     intraObjectPlot('XSB-rd-EVENT_k0', \
         mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys-5p/spatial.txt', 10, strMetric='SD-SP-SI', \

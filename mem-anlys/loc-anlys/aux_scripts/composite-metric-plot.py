@@ -60,6 +60,9 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
     if (intHotAff==2):
         pattern = re.compile('SD-.*')
         listAffinityLines=list(filter(pattern.match, dfCols))
+    for item in listAffinityLines:
+        if ('stack' in item.lower()):
+            listAffinityLines.remove(item)
 
     #print(dfCols)
     #print('Columns in df_local ', df_local.columns.to_list())
@@ -85,7 +88,7 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
     listSelfAffLines = list(filter(pattern.match, listAffinityLines))
     #print(' listSelfAffLines ' , listSelfAffLines)
     listHotRefLines = df_local[df_local['Hot-Access'] >0.1]['reg-page-blk'].to_list()
-    print(listHotRefLines)
+    print('just for reference - not used- listHotRefLines ', listHotRefLines)
     totRegionAccess=df_local['TotalAccess'].iloc[0]
     totRefBlockAccess=df_local['Access'].sum()
     hotRefAccess=df_local[df_local['Hot-Access'] >0.1]['Access'].sum()
@@ -97,7 +100,6 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
     #print(" total access", totAccess)
     #print(" hot access ", hotAccess)
     dictVarAccess[strApp] = [totRegionAccess,hotRefAccess,allPageAccessRatio]
-    print('listHotRefLines ', listHotRefLines)
     for index, row in df_local.iterrows():
         for i in range(0,len(listAffinityLines)):
             flInclude=True
@@ -127,7 +129,7 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
             if(regPageBlock in listAffinityLines and listAffinityLines[i] =='self'):
                 flInclude=False
             # not include 'SELF' for SA
-            if(regPageBlock == listAffinityLines[i] ):
+            if(regPageBlock == listAffinityLines[i] ): #or listAffinityLines[i] == 'self'):
                 flIncludeSA=False
             if((intHotAff==3)):
                 if(not(listAffinityLines[i] in ['self', 'self-1', 'self+1'] or len(listAffinityLines[i].split('-'))>=3)):
@@ -177,14 +179,6 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
     arrVariants=list(set(dfForPlot["Variant"].to_list()))
     arrVariants.sort()
     #print(arrVariants)
-    dfForPlot['ScoreSA'] = (dfForPlot.SA * dfForPlot.HotLineWeight).where(dfForPlot.SA >= 0.25)
-    dfForPlot['ScoreSD'] = (dfForPlot.SD * dfForPlot.HotLineWeight).where(dfForPlot.SD >= 0.05)
-    for i in range(len(arrVariants)):
-        print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " *** Filter Region weight - SA score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSA'] ).sum()*dictVarAccess[arrVariants[i]][2])
-        print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " *** Filter Region weight - SD score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSD'] ).sum()*dictVarAccess[arrVariants[i]][2])
-    for i in range(len(arrVariants)):
-        print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " ... Filter - SA score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSA'] ).sum())#*dictVarAccess[arrVariants[i]][2])
-        print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " ... Filter - SD score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSD'] ).sum())#*dictVarAccess[arrVariants[i]][2])
     dfForPlot['ScoreSA'] = (dfForPlot.SA * dfForPlot.HotLineWeight)
     dfForPlot['ScoreSD'] = (dfForPlot.SD * dfForPlot.HotLineWeight)
     for i in range(len(arrVariants)):
@@ -193,6 +187,15 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
     for i in range(len(arrVariants)):
         print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " ... NO filter - SA score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSA'] ).sum())#*dictVarAccess[arrVariants[i]][2])
         print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " ... NO filter - SD score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSD'] ).sum())#*dictVarAccess[arrVariants[i]][2])
+
+    dfForPlot['ScoreSA'] = (dfForPlot.SA * dfForPlot.HotLineWeight).where(dfForPlot.SA >= 0.25)
+    dfForPlot['ScoreSD'] = (dfForPlot.SD * dfForPlot.HotLineWeight).where(dfForPlot.SD >= 0.05)
+    for i in range(len(arrVariants)):
+        print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " *** Filter Region weight - SA score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSA'] ).sum()*dictVarAccess[arrVariants[i]][2])
+        print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " *** Filter Region weight - SD score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSD'] ).sum()*dictVarAccess[arrVariants[i]][2])
+    for i in range(len(arrVariants)):
+        print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " ... Filter - SA score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSA'] ).sum())#*dictVarAccess[arrVariants[i]][2])
+        print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " ... Filter - SD score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSD'] ).sum())#*dictVarAccess[arrVariants[i]][2])
 
     binArray=[0.01,0.02,0.03,0.04,0.05,0.1,0.2,0.4,0.6,0.8,1.0]
     listDarkPalette=['#0343df','#650021','#3f9b0b']
@@ -250,8 +253,6 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
         #                  kde=False, kde_kws={'bw_adjust':0.15,  'clip':(0.02,1.0)}, weights="HotAccessWeight", aspect=2, alpha=1,facet_kws=dict(legend_out=False))
         p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  \
                           kde=False, kde_kws={'bw_adjust':0.1,  'clip':(0.00,1.0)}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
-        #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  stat='percent', common_norm=False, \
-        #                  kde=True, kde_kws={'bw_adjust':0.2}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
         p.set(ylabel="Number of block pairs")
         #p.axes.flat[0].set_xlim(0.0,)
@@ -271,34 +272,18 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
                            + dictSD[t.get_text()][0].center(15)+ str(round(float(dictSD[t.get_text()][1])*float(dictSD[t.get_text()][0])/100)).center(15))
                 t.set_ha('right')
         p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
-        #p.map(plt.axvline, x=0.045, color='black', linewidth=1)
-        #ax.axvline(x='0.05', ymin=ymin, ymax=ymax, linewidth=1, color='black')
         #p.map(plt.axvline, x=0.05, color='black', linewidth=1,linestyle='--')
         strPath=strFileName[0:strFileName.rindex('/')]
-        imageFileName=strPath+'/'+strApp+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
+        imageFileName=strPath+'/'+strApp.replace(' ','-')+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
         print(imageFileName)
         plt.savefig(imageFileName, bbox_inches='tight')
 
-        p = sns.displot(dfForPlot, x=strMetric,  kind="kde", hue="Variant", bw_adjust=0.15, clip=(0.02,1.0) ,aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+        p = sns.displot(dfForPlot, x=strMetric,  kind="kde", hue="Variant", bw_adjust=0.15, clip=(0.0,1.0) ,aspect=2, alpha=1,facet_kws=dict(legend_out=False))
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
-        #p.set(ylabel="Density")
         sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
-        #p.map(plt.axvline, x=0.05, color='black', linewidth=1,linestyle='--')
-        if(0):
-            leg = p.axes.flat[0].get_legend()
-            if leg is None: leg = p._legend
-            #print(leg.get_title().get_text())
-            strTitle= str(leg.get_title().get_text()).center(20) + 'Hot ref. blocks'.center(15)+'Num. of'.center(15)+'Block pairs with'.rjust(15)+'\n' \
-                        +str(' ').center(20) + 'access(%)'.center(15)+'block pairs'.center(15)+"$\it{"+strMetric+"}^{*}$ >= 0.05".center(15)
-            new_title = str(leg.get_title().get_text()).center(28) + 'Hot Access(%)'.ljust(15)+'Num. block pairs'.center(15)+'Above 0.05'.rjust(15)
-            leg.set_title(strTitle)
-            for t in leg.texts:
-                t.set_text(str(t.get_text()).ljust(14) +  str(round((dictVarAccess[t.get_text()][1]*100/dictVarAccess[t.get_text()][0]),2)).center(15) \
-                           + dictSD[t.get_text()][0].center(15)+ str(round(float(dictSD[t.get_text()][1])*float(dictSD[t.get_text()][0])/100)).center(15))
-                t.set_ha('right')
         p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$ density plot")
         strPath=strFileName[0:strFileName.rindex('/')]
-        imageFileName=strPath+'/'+strApp+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
+        imageFileName=strPath+'/'+strApp.replace(' ','-')+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
         print(imageFileName)
         plt.savefig(imageFileName, bbox_inches='tight')
 
@@ -329,39 +314,18 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
         p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$")
         #p.map(plt.axvline, x=0.25, color='black', linewidth=1,linestyle='--')
         strPath=strFileName[0:strFileName.rindex('/')]
-        imageFileName=strPath+'/'+strApp+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
+        imageFileName=strPath+'/'+strApp.replace(' ','-')+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
         print(imageFileName)
         plt.savefig(imageFileName, bbox_inches='tight')
 
-        p = sns.displot(dfForPlot, x=strMetric, hue="Variant", kind="kde", bw_adjust=0.15, clip=(0.02,1.0), aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+        p = sns.displot(dfForPlot, x=strMetric, hue="Variant", kind="kde", bw_adjust=0.15, clip=(0.0,1.0), aspect=2, alpha=1,facet_kws=dict(legend_out=False))
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
-        #p.set(xticks=np.arange(0,1.05,0.05))
-        #p.set_xticklabels(np.round(np.arange(0,1.05,0.05),2))
         sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
-        #p.map(plt.axvline, x=0.25, color='black', linewidth=1,linestyle='--')
-        if(0):
-            leg = p.axes.flat[0].get_legend()
-            if leg is None: leg = p._legend
-            #print(leg.get_title().get_text())
-            strTitle= str(leg.get_title().get_text()).center(20) + 'Hot ref. blocks'.center(15)+'Num. of'.center(15)+'Block pairs with'.rjust(15)+'\n' \
-                        +str(' ').center(20) + 'access(%)'.center(15)+'block pairs'.center(15)+"$\it{"+strMetric+"}^{*}$ >= 0.25".center(15)
-            leg.set_title(strTitle)
-            for t in leg.texts:
-                t.set_text(str(t.get_text()).ljust(14) +  str(round((dictVarAccess[t.get_text()][1]*100/dictVarAccess[t.get_text()][0]),2)).center(15) \
-                           + dictSA[t.get_text()][0].center(15)+ str(round(float(dictSA[t.get_text()][1])*float(dictSA[t.get_text()][0])/100)).center(15))
-                t.set_ha('right')
         p.set(title=strApp+" variants - composite $\it{"+strMetric+"}^{*}$ density plot")
         strPath=strFileName[0:strFileName.rindex('/')]
-        imageFileName=strPath+'/'+strApp+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
+        imageFileName=strPath+'/'+strApp.replace(' ','-')+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
         print(imageFileName)
         plt.savefig(imageFileName, bbox_inches='tight')
-
-        #p.set(xlabel="$\it{SI}$-$\it{"+strMetric+ "}$")
-        #sns.displot(dfForPlot, x="SA", hue="Variant", bins=100,  multiple="dodge", aspect=2)# col="Variant")
-        #sns.displot(dfForPlot, x="SA", hue="Variant", bins=binArray,  multiple="dodge", aspect=2)# col="Variant")
-        #sns.displot(dfForPlot, x="SA", hue="Variant", bins=100,  col="Variant",legend=False)
-        #plt.show()
-
 
 def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
     strFileName=''
@@ -489,8 +453,9 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
         print(dfForPlot.shape)
         strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read/'
+        strApp='XSB grid-XS-data'
 
-    if(strApp.lower()=='xsb-noflto-mat-energy'):
+    if(strApp.lower()=='xsb-noflto-mat-conc'):
         strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/XSB-rd-EVENT_k0-0-A0000000-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k0'
         strFileName=strPath+strFileName
@@ -503,6 +468,7 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
         print(dfForPlot.shape)
         strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read/'
+        strApp='XSB mat-conc'
 
     if(strApp.lower()=='xsb-noflto-grid-index'):
         strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/XSB-rd-EVENT_k0-2-B0000001-3-B0000002-SD-SP-SI-df.csv'
@@ -517,6 +483,7 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
         print(dfForPlot.shape)
         strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read/'
+        strApp='XSB grid-indices'
 
     if(strApp.lower()=='xsb-noflto-all'):
         strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/XSB-rd-EVENT_k0-ALL-SD-SP-SI-df.csv'
@@ -531,6 +498,37 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
         print(dfForPlot.shape)
         strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read/'
+        strApp='XSB all'
+
+    if(strApp.lower()=='xsb-noflto-irr-grid-index'):
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read-irregular/XSBench-memgaze-trace-b32768-p5000000-event-k-0/XSB-rd-EVENT_k0-0-A0000000-SD-SP-SI-df.csv'
+        strAppVar='XSBench-event-k0'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        print(dfForPlot.shape)
+
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read-irregular/XSBench-memgaze-trace-b32768-p5000000-event-k-1/XSB-rd-EVENT_OPT_k1-7-A1000000-SD-SP-SI-df.csv'
+        strAppVar='XSBench-event-k1'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        print(dfForPlot.shape)
+        strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read-irregular/'
+        strApp='XSB grid-indices'
+
+    if(strApp.lower()=='xsb-noflto-irr-other-grid'):
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read-irregular/XSBench-memgaze-trace-b32768-p5000000-event-k-0/XSB-rd-EVENT_k0-3-HotIns-11-4-HotIns-12-SD-SP-SI-df.csv'
+        strAppVar='XSBench-event-k0'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        print(dfForPlot.shape)
+
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read-irregular/XSBench-memgaze-trace-b32768-p5000000-event-k-1/XSB-rd-EVENT_OPT_k1-10-A3000002-11-A3000003-12-A3000004-13-A3000010-14-A3000011-8-A3000000-9-A3000001-SD-SP-SI-df.csv'
+        strAppVar='XSBench-event-k1'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        print(dfForPlot.shape)
+        strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read-irregular/'
+        strApp='XSB grid-XS-data'
 
     #print(dfForPlot)
     #print(dfForPlot.head(5))
@@ -567,21 +565,34 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
     # intHotAff = 2 - Option 2 - all heatmap rows
     # intHotAff = 3 - Option 3 - only hot lines and (self+1, self+2) for SA, (self-1, self+1, self) for SD
 
-flPlot=True
-#plot_app('miniVite',0,2,flPlot) # used for Plots in paper- all hm - more blocks
-#plot_app('miniVite',2,2,flPlot) # used for score table data - all hm - more blocks
-#plot_app('HiParTI-HiCOO tensor MTTKRP',2,2, flPlot) # used for score table data - all hm - more blocks
-#plot_app('xsb-noflto-other-grid', 2, 2,flPlot) # used for score table data - all hm - more blocks
-#plot_app('xsb-noflto-grid-index', 2, 2,flPlot) # used for score table data - all hm - more blocks
-#plot_app('xsb-noflto-mat-energy',2,2,flPlot) # used for score table data - all hm - more blocks
+# Scores in table
+flPlot=False
+plot_app('miniVite',2,2,flPlot) # used for score table data - all hm - more blocks
+plot_app('HiParTI-HiCOO tensor MTTKRP',2,2, flPlot) # used for score table data - all hm - more blocks
+plot_app('xsb-noflto-other-grid', 2, 2,flPlot) # used for score table data - all hm - more blocks
+plot_app('xsb-noflto-grid-index', 2, 2,flPlot) # used for score table data - all hm - more blocks
+plot_app('xsb-noflto-mat-energy',2,2,flPlot) # used for score table data - all hm - more blocks
 #plot_app('xsb-noflto-all',2,2,True)
 
-plot_app('miniVite',0,3,flPlot)
-plot_app('HiParTI-HiCOO tensor MTTKRP',0,3, flPlot)
-plot_app('xsb-noflto-mat-energy',0,3,flPlot)
-plot_app('xsb-noflto-other-grid', 0,3,flPlot)
-plot_app('xsb-noflto-grid-index', 0,2,flPlot) # No significant data for intHotAff = 3
+#Plots in paper
+if (0):
+    flPlot=True
+    plot_app('miniVite',0,2,flPlot)
+    plot_app('HiParTI-HiCOO tensor MTTKRP',0,2, flPlot)
+    plot_app('xsb-noflto-mat-conc',0,3,flPlot)
+    plot_app('xsb-noflto-mat-conc',0,2,flPlot)
 
+#plot_app('xsb-noflto-other-grid', 0,3,flPlot) # No useful data - irregular accesses
+#plot_app('xsb-noflto-other-grid', 0,2,flPlot) # No useful data - irregular accesses
+
+#plot_app('xsb-noflto-grid-index', 0,2,flPlot) # No significant data for intHotAff = 3
+
+
+
+#plot_app('xsb-noflto-irr-other-grid',0,3,flPlot)
+#plot_app('xsb-noflto-irr-grid-index',0,3,flPlot)
+#plot_app('xsb-noflto-irr-other-grid',0,2,flPlot)
+#plot_app('xsb-noflto-irr-grid-index',0,2,flPlot)
 #plot_app('xsb-noflto-all', 0,3,flPlot)
 
 # Trial for targetted blocks in score
