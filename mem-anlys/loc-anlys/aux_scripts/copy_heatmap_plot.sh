@@ -6,8 +6,8 @@ cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/bignuke_run
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v3-memgaze-trace-b16384-p5000000-anlys/minivite-v3-inter-sp.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/minivite-v3-inter-sp.pdf
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-v3-memgaze-trace-b16384-p5000000-anlys/minivite-v3-inter-sd.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/minivite-v3-inter-sd.pdf
 
-cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-SI-SA_ref-0_aff-3-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/minivite-comp-SA.pdf
-cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-SI-SD_ref-0_aff-3-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/minivite-comp-SD.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-SI-SA_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/minivite-comp-SA.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/miniVite/bignuke_run/mini-memgaze-ld/miniVite-SI-SD_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/minivite-comp-SD.pdf
 
 # Darknet
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/Darknet/alexnet_single/hot_lines/AlexNet-4-B0000000-SD-SP-SI_hm_order_fill.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/Darknet-AlexNet-matrix-B-4-SA.pdf
@@ -44,9 +44,12 @@ cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/mttsel-
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-Lexi-0-B0000000-SP-SI-SD_plot-no-SI.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-Reorder-Lexi-0-B0000000-SP-SI-SD-W_plot.pdf
 
 #HiParTI - HICOO - composite
-cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/HiParTI-HiCOO-tensor-MTTKRP-SI-SD_ref-0_aff-3-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-comp-SD.pdf
-cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/HiParTI-HiCOO-tensor-MTTKRP-SI-SA_ref-0_aff-3-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-comp-SA.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/HiParTI-HiCOO-tensor-MTTKRP-SI-SD_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-comp-SD.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/HiParTI-HiCOO-tensor-MTTKRP-SI-SA_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-comp-SA.pdf
 
 # XSBench
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/XSB-rd-EVENT_k0-0-A0000000-SD-SP-SI_hm_order_fill.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-k0-mat-energy.pdf
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1-anlys/XSB-rd-EVENT_OPT_k1-0-A0000000-SD-SP-SI_hm_order_fill.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-k1-mat-energy.pdf
+
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-SI-SD_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-comp-SD.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-SI-SA_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-comp-SA.pdf
