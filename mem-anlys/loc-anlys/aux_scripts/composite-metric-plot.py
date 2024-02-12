@@ -8,7 +8,7 @@ plt.rcParams['font.family'] = 'monospace'
 #plt.rcParams.update({"text.usetex": True,})
 
 SI_good=63
-def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,dictVarAccess):
+def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,dictVarAccess, listUnRealizedpairs):
     # Three ways to choose hot ref blocks
         # intHotRef = 0 - Option 0 - 90% in range Hot-Access - DEFAULT
         # intHotRef = 1 - Option 1 - 90% of total access
@@ -105,6 +105,8 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
     #print(" total access", totAccess)
     #print(" hot access ", hotAccess)
     dictVarAccess[strApp] = [totRegionAccess,hotRefAccess,allPageAccessRatio]
+    # When checking realized affinity, keep log of unrealized affinity pairs
+    # Lines that can be changed to improve realized vs potential affinity
     listFinalRefLines=[]
     for index, row in df_local.iterrows():
         for i in range(0,len(listAffinityLines)):
@@ -149,6 +151,9 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
                                      or (intHotRef == 1 and row['Access']>= accessThreshold)  or \
                                         (intHotRef == 2 ))):
                 listFinalRefLines.append(regPageBlock)
+                blkSIValue=np.nan
+                blkSAValue=np.nan
+                blkSDValue=np.nan
                 if((row['SI-'+listAffinityLines[i]])) and (~np.isnan(row['SI-'+listAffinityLines[i]])):
                     blkSIValue = row['SI-'+listAffinityLines[i]]
                 if((row['SD-'+listAffinityLines[i]])) and (~np.isnan(row['SD-'+listAffinityLines[i]])):
@@ -161,7 +166,6 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
                         valSIBin = 10
                     valSIDiscount = float((10-valSIBin+1)/10)
                     #print (regPageBlock,listAffinityLines[i],blkSDValue, blkSIValue, blkSAValue, valSIDiscount,flIncludeSA)
-
                     df_local.loc[df_local['reg-page-blk'] == regPageBlock, ['SD-'+listAffinityLines[i]]] = round((blkSDValue * valSIDiscount),3)
                     df_local.loc[df_local['reg-page-blk'] == regPageBlock, ['SP-'+listAffinityLines[i]]] = round((blkSAValue * valSIDiscount),3)
                     #print (regPageBlock, 'SI ', blkSIValue, blkSDValue, blkSAValue, 'BIN - ', valSIBin, valSIDiscount, \
@@ -171,8 +175,13 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
                         dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,row['Access'], row['Hot-Access'], round((blkSDValue * valSIDiscount),3),round((blkSAValue * valSIDiscount),3),hotAccessWeight]
                     elif (flIncludeSA == False and flIncludeSD ==True):
                         dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,row['Access'], row['Hot-Access'], round((blkSDValue * valSIDiscount),3),np.nan,hotAccessWeight]
+                        if(listAffinityLines[i] != 'self' and regPageBlock != listAffinityLines[i] and not(np.isnan(blkSAValue))):
+                            listUnRealizedpairs.append((strApp,regPageBlock, listAffinityLines[i], row['Access'], row['Hot-Access'], round((blkSAValue * valSIDiscount),3), 'SA'))
                     elif (flIncludeSA == True and flIncludeSD ==False):
                         dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,row['Access'], row['Hot-Access'], np.nan, round((blkSAValue * valSIDiscount),3),hotAccessWeight]
+                        if(not(np.isnan(blkSDValue))):
+                            listUnRealizedpairs.append((strApp,regPageBlock, listAffinityLines[i], row['Access'], row['Hot-Access'], round((blkSDValue * valSIDiscount),3),'SD'))
+
                 #else:
                 #    if(flIncludeSA == True and flIncludeSD ==True):
                 #        dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,row['Access'], row['Hot-Access'], 0, 0,hotAccessWeight]
@@ -182,6 +191,7 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
     listFinalRefLines=list(set(listFinalRefLines))
     listFinalRefLines.sort()
     print('Actual (used) - listFinalRefLines ', listFinalRefLines)
+    print(*listUnRealizedpairs,sep='\n')
     #print(dfForPlot.shape)
     #print(dfForPlot)
     #filename='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/plot_df_ref-'+str(intHotRef)+'_aff-'+str(intHotAff)+'.csv'
@@ -357,43 +367,45 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
     strPath='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/'
     dfForPlot= pd.DataFrame(columns=['Variant', 'reg-page-blk','Access','HotLineWeight', 'SD', 'SA', 'HotAccessWeight'])
     dictVarAccess={}
+    listUnRealizedpairs=[]
+
 
     if(strApp.lower()=='minivite-nuke'):
         strFileName='miniVite/hot_lines/miniVite-v1-1-A0000001-SD-SP-SI-df.csv'
         strAppVar='miniVite-v1'
         strFileName=strPath+strFileName
-        read_file_df(strFileName, optionHotRef,optionHotAff , strAppVar,dfForPlot,dictVarAccess)
+        read_file_df(strFileName, optionHotRef,optionHotAff , strAppVar,dfForPlot,dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='miniVite/hot_lines/miniVite-v2-1-A0000010-4-A0002000-SD-SP-SI-df.csv'
         strAppVar='miniVite-v2'
         strFileName=strPath+strFileName
-        read_file_df(strFileName, optionHotRef,optionHotAff , strAppVar,dfForPlot,dictVarAccess)
+        read_file_df(strFileName, optionHotRef,optionHotAff , strAppVar,dfForPlot,dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='miniVite/hot_lines/miniVite-v3-1-A0000001-5-A0001200-SD-SP-SI-df.csv'
         strAppVar='miniVite-v3'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot,dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot,dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
     if(strApp.lower()=='minivite'):
         strFileName='miniVite/bignuke_run/mini-memgaze-ld/miniVite-v1-memgaze-trace-b16384-p5000000-anlys/miniVite-v1-1-A0001000-2-B0000000-3-B1100000-SD-SP-SI-df.csv'
         strAppVar='miniVite-v1'
         strFileName=strPath+strFileName
-        read_file_df(strFileName, optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName, optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='miniVite/bignuke_run/mini-memgaze-ld/miniVite-v2-memgaze-trace-b16384-p5000000-anlys/miniVite-v2-2-A0002000-3-B0000000-4-B1000000-SD-SP-SI-df.csv'
         strAppVar='miniVite-v2'
         strFileName=strPath+strFileName
-        read_file_df(strFileName, optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName, optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='miniVite/bignuke_run/mini-memgaze-ld/miniVite-v3-memgaze-trace-b16384-p5000000-anlys/miniVite-v3-4-A0002000-5-B0000000-6-B1100000-SD-SP-SI-df.csv'
         strAppVar='miniVite-v3'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
         strFileName=strPath+'miniVite/bignuke_run/mini-memgaze-ld/'
 
@@ -401,25 +413,25 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         strFileName='HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-Lexi-0-B0000000-SD-SP-SI-df.csv'
         strAppVar='Lexi'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-BFS-0-B0000000-SD-SP-SI-df.csv'
         strAppVar='BFS'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-0-B0000000-SD-SP-SI-df.csv'
         strAppVar='Default'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='HICOO-tensor/mttsel-re-3-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-Random-0-B0000000-SD-SP-SI-df.csv'
         strAppVar='Random'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
         strFileName=strPath+'HICOO-tensor/'
 
@@ -427,27 +439,27 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         strFileName='HICOO-matrix/4096-same-iter/hot_lines/csr/HiParTi-CSR-0-A0000000-SD-SP-SI-df.csv'
         strAppVar='CSR'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
 
         strFileName='HICOO-matrix/4096-same-iter/hot_lines/coo_u_0/HiParTi-COO-0-A0000000-SD-SP-SI-df.csv'
         strAppVar='COO'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
 
         strFileName='HICOO-matrix/4096-same-iter/hot_lines/coo_u_1/HiParTi-COO-Reduce-4-A3000000-SD-SP-SI-df.csv'
         strAppVar='COO-Reduce'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
 
         strFileName='HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_0/HiParTi-HiCOO-0-A0000000-SD-SP-SI-df.csv'
         strAppVar='HiCOO'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
 
         strFileName='HICOO-matrix/4096-same-iter/hot_lines/hicoo_u_1/HiParTi-HiCOO-Schedule-2-B0010000-SD-SP-SI-df.csv'
         strAppVar='HiCOO-Schedule'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
 
         strFileName=strPath+'HICOO-matrix/4096-same-iter/hot_lines/'
 
@@ -455,13 +467,13 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         strFileName='XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1/XSB-rd-EVENT_OPT_k1-0-A0000000-1-B0000000-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k1'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='XSBench/openmp-threading-noinline/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0/XSB-rd-EVENT_k0-0-A0000000-1-B0000000-2-B0010000-3-B0020000-4-B0030000-5-B0040000-6-B0050000-7-B0060000-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k0'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
         strFileName=strPath+'XSBench/openmp-threading-noinline/memgaze-xs-read/'
 
@@ -469,13 +481,13 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/XSB-rd-EVENT_k0-4-HotIns-11-5-HotIns-12-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k0'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1-anlys/XSB-rd-EVENT_OPT_k1-14-B2000000-15-B2000001-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k1'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
         strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read/'
         strApp='XSB grid-XS-data'
@@ -484,13 +496,13 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/XSB-rd-EVENT_k0-0-A0000000-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k0'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1-anlys/XSB-rd-EVENT_OPT_k1-0-A0000000-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k1'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
         strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read/'
         strApp='XSBench'
@@ -499,13 +511,13 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/XSB-rd-EVENT_k0-2-B0000001-3-B0000002-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k0'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1-anlys/XSB-rd-EVENT_OPT_k1-12-B0001000-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k1'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
         strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read/'
         strApp='XSB grid-indices'
@@ -514,13 +526,13 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/XSB-rd-EVENT_k0-ALL-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k0'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1-anlys/XSB-rd-EVENT_OPT_k1-ALL-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k1'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
         strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read/'
         strApp='XSB all'
@@ -529,13 +541,13 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         strFileName='XSBench/openmp-noflto/memgaze-xs-read-irregular/XSBench-memgaze-trace-b32768-p5000000-event-k-0/XSB-rd-EVENT_k0-0-A0000000-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k0'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='XSBench/openmp-noflto/memgaze-xs-read-irregular/XSBench-memgaze-trace-b32768-p5000000-event-k-1/XSB-rd-EVENT_OPT_k1-7-A1000000-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k1'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
         strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read-irregular/'
         strApp='XSB grid-indices'
@@ -544,13 +556,13 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         strFileName='XSBench/openmp-noflto/memgaze-xs-read-irregular/XSBench-memgaze-trace-b32768-p5000000-event-k-0/XSB-rd-EVENT_k0-3-HotIns-11-4-HotIns-12-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k0'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='XSBench/openmp-noflto/memgaze-xs-read-irregular/XSBench-memgaze-trace-b32768-p5000000-event-k-1/XSB-rd-EVENT_OPT_k1-10-A3000002-11-A3000003-12-A3000004-13-A3000010-14-A3000011-8-A3000000-9-A3000001-SD-SP-SI-df.csv'
         strAppVar='XSBench-event-k1'
         strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess)
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
         strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read-irregular/'
         strApp='XSB grid-XS-data'
@@ -567,6 +579,9 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
 
     dfForPlot.sort_values(by='Variant', ascending=True, inplace=True)
     draw_plot(strApp,strFileName, optionHotRef,optionHotAff,dfForPlot,dictVarAccess,flPlot)
+    dfUnRealizedPairs=pd.DataFrame(listUnRealizedpairs)
+    dfUnRealizedPairs.columns=['Variant', 'reg-page-blk','aff_block', 'Access','HotLineWeight', 'value', 'Type']
+    print(dfUnRealizedPairs)
 
 
 #def plot_app(strApp, optionHotRef, optionHotAff)
@@ -607,9 +622,12 @@ if(flScore):
     plot_app('xsb-noflto-mat-conc',0,2,flPlot) # used for score table data - all hm - more blocks
 #plot_app('xsb-noflto-all',2,2,True)
 
+plot_app('HiParTI-HiCOO tensor MTTKRP',0,3, flPlot) # used for score table data - all hm - more blocks
+#plot_app('HiParTI-HiCOO tensor MTTKRP',0,2, flPlot) # used for score table data - all hm - more blocks
+
 #Plots in paper
 flPlot=True
-if (1):
+if (0):
     plot_app('xsb-noflto-mat-conc',0,3,flPlot)
     plot_app('xsb-noflto-mat-conc',0,2,flPlot)
     plot_app('miniVite',0,2,flPlot)
