@@ -1032,6 +1032,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             ax_2.set_title('Blocks')
             ax_3.set_title('Pages')
             fileNameLastSeg = '_hm_order_fill.pdf'
+            #fileNameLastSeg = '_hm_order_loc_sort.pdf'
             if (flWeighted == True):
                 fileNameLastSeg = '_hm_order_Wgt.pdf'
             imageFileName=strPath+'/'+strApp.replace(' ','')+'-'+regionIdNumName.replace(' ','').replace('&','-')+'-'+strMetric+fileNameLastSeg
@@ -1050,16 +1051,16 @@ f_avg1=None
 mainPath='/Users/suri836/Projects/spatial_rud/'
 flPlot=True
 
-if(0):
-    flWeight=True
-    #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',7,strMetric='SD-SP-SI', \
-    #         listCombineReg=['0-A0000000', '1-A0000010','2-A0000011','3-A0000012','4-A0000013'], flWeighted=flWeight,affinityOption=3)
-    #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',3,strMetric='SD-SP-SI', \
-    #         listCombineReg=['5-HotIns-11', '6-HotIns-12'], flWeighted=flWeight,affinityOption=3)
-    #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-story-copy/spatial.txt',3,strMetric='SD-SP-SI', \
-    #         listCombineReg=['6-HotIns-11', '7-HotIns-12'], flWeighted=flWeight,affinityOption=3)
-    #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-story-noseed-copy/spatial.txt',3,strMetric='SD-SP-SI', \
-    #         listCombineReg=['6-HotIns-11', '7-HotIns-12'], flWeighted=flWeight,affinityOption=3)
+if(1):
+    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',7,strMetric='SD-SP-SI', \
+             listCombineReg=['0-A0000000', '1-A0000010','2-A0000011','3-A0000012','4-A0000013'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',3,strMetric='SD-SP-SI', \
+             listCombineReg=['5-HotIns-11', '6-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-story-copy/spatial.txt',3,strMetric='SD-SP-SI', \
+             listCombineReg=['6-HotIns-11', '7-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-story-noseed-copy/spatial.txt',3,strMetric='SD-SP-SI', \
+             listCombineReg=['6-HotIns-11', '7-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+
     #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000/spatial.txt',2,strMetric='SD-SP-SI', \
     #         flWeighted=flWeight,affinityOption=3)
     #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-sel/chat-trace-b16384-p5000000/spatial.txt',3,strMetric='SD-SP-SI', \
@@ -1076,7 +1077,7 @@ if(0):
     #         listCombineReg=['0-A0000000', '1-A0000010','2-A0000011','3-A0000012','4-A0000013','5-A0000014'], flWeighted=flWeight,affinityOption=3)
 
 
-if (0):  # Jan 8
+if (0):  # Jan 8 - Used in paper plots
     intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/spatial.txt', 6, strMetric='SD-SP-SI', \
     #listCombineReg=['4-HotIns-11', '5-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     #listCombineReg=[ '2-B0000001','3-B0000002'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
@@ -1087,7 +1088,7 @@ if (0):  # Jan 8
     #listCombineReg=['0-A0000000','12-B0001000','14-B2000000','15-B2000001'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
         listCombineReg=['ALL'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
-if (1):  # Jan 29
+if (0):  # Jan 29 # Unused - irregular accesses only
     intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-irregular/XSBench-memgaze-trace-b32768-p5000000-event-k-0/spatial.txt', 4, strMetric='SD-SP-SI', \
     listCombineReg=['3-HotIns-11', '4-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     # Region 0 - A0000000 - 391 with little pollution; 1&2 - 294 ??? 3&4 - XS-data

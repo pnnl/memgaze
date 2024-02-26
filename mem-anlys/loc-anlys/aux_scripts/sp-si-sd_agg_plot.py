@@ -365,17 +365,17 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         for i, ax in enumerate(ax_plots.reshape(-1)[:len(plot_SP_col)]):
             #ax.set_title('Spatial affinity for '+ plot_SP_col[i])
             ax.set_xticks([])
-            ax.set_yticks([0, 0.125,0.25, 0.375, 0.5])
-            ax.set_yticklabels([0, 0.125,0.25, 0.375, 0.5], fontsize=12)
+            ax.set_yticks([0, 0.25,0.5, 0.75, 1.0])
+            ax.set_yticklabels([0, 0.25,0.5, 0.75, 1.0], fontsize=12)
             #ax.set_yticklabels([0, 0.125,0.25, 0.625, 0.75], fontsize=12)
-            ax.set_ylim(-0.25, 0.5)
+            ax.set_ylim(-0.25, 1.0)
             ax.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SP-'+plot_SP_col[i]], color=SP_color,label='SP')
             ax.plot(df_SP_SI_SD['reg-page-blk'], df_SP_SI_SD['SD-'+plot_SP_col[i]], color=SD_color,label='SD')
             ax.tick_params(axis='y', labelcolor='black')
             label_y = -0.05
-            ax.text(label_y, 0.3, r"SA ", color=SP_color, style='italic', fontsize='16' , rotation='vertical', transform=ax.transAxes)
+            ax.text(label_y, 0.3, "$\it{SA}^{*}$", color=SP_color, style='italic', fontsize='16' , rotation='vertical', transform=ax.transAxes)
             ax.text(label_y, 0.55, r"& ", color='black', style='italic',fontsize='16' ,rotation='vertical', transform=ax.transAxes)
-            ax.text(label_y, 0.70, r"SD", color=SD_color, style='italic',fontsize='16' ,rotation='vertical', transform=ax.transAxes)
+            ax.text(label_y, 0.70, "$\it{SD}^{*}$", color=SD_color, style='italic',fontsize='16' ,rotation='vertical', transform=ax.transAxes)
             # To draw a horizantal threshold line
             #xmin, xmax = ax.get_xlim()
             #ax.hlines(y=0.25, xmin=xmin, xmax=xmax, linewidth=1, color='black')

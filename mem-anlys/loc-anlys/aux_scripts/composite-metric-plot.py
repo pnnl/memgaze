@@ -175,12 +175,17 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
                         dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,row['Access'], row['Hot-Access'], round((blkSDValue * valSIDiscount),3),round((blkSAValue * valSIDiscount),3),hotAccessWeight]
                     elif (flIncludeSA == False and flIncludeSD ==True):
                         dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,row['Access'], row['Hot-Access'], round((blkSDValue * valSIDiscount),3),np.nan,hotAccessWeight]
-                        if(listAffinityLines[i] != 'self' and regPageBlock != listAffinityLines[i] and not(np.isnan(blkSAValue))):
-                            listUnRealizedpairs.append((strApp,regPageBlock, listAffinityLines[i], row['Access'], row['Hot-Access'], round((blkSAValue * valSIDiscount),3), 'SA'))
                     elif (flIncludeSA == True and flIncludeSD ==False):
                         dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,row['Access'], row['Hot-Access'], np.nan, round((blkSAValue * valSIDiscount),3),hotAccessWeight]
-                        if(not(np.isnan(blkSDValue))):
-                            listUnRealizedpairs.append((strApp,regPageBlock, listAffinityLines[i], row['Access'], row['Hot-Access'], round((blkSDValue * valSIDiscount),3),'SD'))
+
+                    # Unrealized - check in intHotAff == 2
+                    if(intHotAff ==2):
+                        if(not(listAffinityLines[i] in ['self+1', 'self+2'] or len(listAffinityLines[i].split('-'))>=3)):
+                            if(listAffinityLines[i] != 'self' and regPageBlock != listAffinityLines[i] and not(np.isnan(blkSAValue))):
+                                listUnRealizedpairs.append((strApp,regPageBlock, listAffinityLines[i], row['Access'], row['Hot-Access'], round((blkSAValue * valSIDiscount),3), 'SA'))
+                        if(not(listAffinityLines[i] in ['self', 'self-1', 'self+1'] or len(listAffinityLines[i].split('-'))>=3)):
+                           if(not(np.isnan(blkSDValue))):
+                               listUnRealizedpairs.append((strApp,regPageBlock, listAffinityLines[i], row['Access'], row['Hot-Access'], round((blkSDValue * valSIDiscount),3),'SD'))
 
                 #else:
                 #    if(flIncludeSA == True and flIncludeSD ==True):
@@ -190,8 +195,8 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
 
     listFinalRefLines=list(set(listFinalRefLines))
     listFinalRefLines.sort()
-    print('Actual (used) - listFinalRefLines ', listFinalRefLines)
-    print(*listUnRealizedpairs,sep='\n')
+    #print('Actual (used) - listFinalRefLines ', listFinalRefLines)
+    #print(*listUnRealizedpairs,sep='\n')
     #print(dfForPlot.shape)
     #print(dfForPlot)
     #filename='/Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/plot_df_ref-'+str(intHotRef)+'_aff-'+str(intHotAff)+'.csv'
@@ -579,9 +584,22 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
 
     dfForPlot.sort_values(by='Variant', ascending=True, inplace=True)
     draw_plot(strApp,strFileName, optionHotRef,optionHotAff,dfForPlot,dictVarAccess,flPlot)
-    dfUnRealizedPairs=pd.DataFrame(listUnRealizedpairs)
-    dfUnRealizedPairs.columns=['Variant', 'reg-page-blk','aff_block', 'Access','HotLineWeight', 'value', 'Type']
-    print(dfUnRealizedPairs)
+
+    if(len(listUnRealizedpairs) !=0):
+        dfUnRealizedPairs=pd.DataFrame(listUnRealizedpairs)
+        dfUnRealizedPairs.columns=['Variant', 'reg-page-blk','aff-block', 'Access','HotLineWeight', 'Value', 'Type']
+        dfUnRealizedPairs.sort_values(['Variant','Type', 'Value'], ascending=[True, True, False],inplace=True)
+        arrVariants=list(set(dfUnRealizedPairs["Variant"].to_list()))
+        for i in range(len(arrVariants)):
+            print(arrVariants[i], '--- SA')
+            print((dfUnRealizedPairs[(dfUnRealizedPairs.Variant ==arrVariants[i]) & (dfUnRealizedPairs.Type == 'SA') & (dfUnRealizedPairs.Value >= 0.05)]))
+            print(arrVariants[i], '--- SD')
+            print((dfUnRealizedPairs[(dfUnRealizedPairs.Variant ==arrVariants[i]) & (dfUnRealizedPairs.Type == 'SD') & (dfUnRealizedPairs.Value >= 0.0)]))
+
+        #print(dfUnRealizedPairs[dfUnRealizedPairs["Type"]=='SA'])
+        #print(dfUnRealizedPairs[dfUnRealizedPairs["Type"]=='SD'])
+    else:
+        print('Unrealized list - size 0')
 
 
 #def plot_app(strApp, optionHotRef, optionHotAff)
@@ -622,8 +640,9 @@ if(flScore):
     plot_app('xsb-noflto-mat-conc',0,2,flPlot) # used for score table data - all hm - more blocks
 #plot_app('xsb-noflto-all',2,2,True)
 
-plot_app('HiParTI-HiCOO tensor MTTKRP',0,3, flPlot) # used for score table data - all hm - more blocks
-#plot_app('HiParTI-HiCOO tensor MTTKRP',0,2, flPlot) # used for score table data - all hm - more blocks
+#plot_app('HiParTI-HiCOO tensor MTTKRP',0,3, flPlot) # used for score table data - all hm - more blocks
+plot_app('HiParTI-HiCOO tensor MTTKRP',0,2, flPlot) # used for score table data - all hm - more blocks
+plot_app('miniVite',0,2,flPlot)
 
 #Plots in paper
 flPlot=True
