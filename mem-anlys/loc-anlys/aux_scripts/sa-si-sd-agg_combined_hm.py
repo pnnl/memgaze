@@ -738,7 +738,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         for i in range(0,len(listAffinityLines)):
             listAffinityLines[i] = listAffinityLines[i].replace('SD-','')
         logger.info("HOT lines in affinity")
-        #print('hot lines in affinity', listAffinityLines)
+        print('hot lines in affinity', listAffinityLines)
 
         # STEP 5a - Fill in hot lines with self data - for visualization only
         # Repeat 'self' values in hot lines in affinity - otherwise, there is a diagonal hole in heatmap
@@ -997,6 +997,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             ax_2.yaxis.set_ticks_position('right')
             for ticklabel in ax_2.get_yticklabels():
                 if(ticklabel.get_text() in listAffinityLines):
+                    print(ticklabel.get_text())
                     ticklabel.set_color(hotLineInRegionColor)
 
             rndAccess = np.round((arRegPageAccess/1000).astype(float),2)
@@ -1052,14 +1053,14 @@ mainPath='/Users/suri836/Projects/spatial_rud/'
 flPlot=True
 
 if(1):
-    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',7,strMetric='SD-SP-SI', \
+    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',5,strMetric='SD-SP-SI', \
              listCombineReg=['0-A0000000', '1-A0000010','2-A0000011','3-A0000012','4-A0000013'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',3,strMetric='SD-SP-SI', \
              listCombineReg=['5-HotIns-11', '6-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
-    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-story-copy/spatial.txt',3,strMetric='SD-SP-SI', \
-             listCombineReg=['6-HotIns-11', '7-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
-    intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-story-noseed-copy/spatial.txt',3,strMetric='SD-SP-SI', \
-             listCombineReg=['6-HotIns-11', '7-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-story-copy/spatial.txt',3,strMetric='SD-SP-SI', \
+    #         listCombineReg=['6-HotIns-11', '7-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-story-noseed-copy/spatial.txt',3,strMetric='SD-SP-SI', \
+    #         listCombineReg=['6-HotIns-11', '7-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
     #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca/chat-trace-b16384-p5000000/spatial.txt',2,strMetric='SD-SP-SI', \
     #         flWeighted=flWeight,affinityOption=3)

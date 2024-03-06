@@ -146,6 +146,11 @@ def readFile(inFile, outFile,appName):
                   objFile_C = ''
                   varVersion = 'mtt: '
                 if (appName == 'mttkrp-reorder-sel'): 
+                  logFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-tensor-reorder-notiling/mttkrp-sel-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-tensor-reorder-notiling/obj_mttkrp_hicoo_reorder'
+                  objFile_C = ''
+                  varVersion = 'mt-re-sel: '
+                if (appName == 'mttkrp-reorder-tiling-sel'): 
                   logFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-tensor-reorder/mttkrp-sel-memgaze.binanlys'
                   objFile = '/home/suri836/Projects/run_memgaze/HiParTI/mg-tensor-reorder/obj_mttkrp_hicoo_reorder_matrixtiling'
                   objFile_C = ''

@@ -53,3 +53,8 @@ cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflt
 
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-SI-SD_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-comp-SD.pdf
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-SI-SA_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-comp-SA.pdf
+
+#Alpaca
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/Alpaca-5-HotIns-11-6-HotIns-12-SD-SP-SI_hm_order_fill.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/alpaca-src0_row.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/Alpaca-0-A0000000-1-A0000010-2-A0000011-3-A0000012-4-A0000013-SD-SP-SI_hm_order_fill.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/alpaca-src1_col.pdf
+

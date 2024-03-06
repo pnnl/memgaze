@@ -140,9 +140,11 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
             if(regPageBlock == listAffinityLines[i] or listAffinityLines[i] == 'self'):
                 flIncludeSA=False
             if((intHotAff==3)):
+                #print('opt 3 ', listAffinityLines[i], flIncludeSA, flInclude)
                 if(not(listAffinityLines[i] in ['self', 'self-1', 'self+1'] or len(listAffinityLines[i].split('-'))>=3)):
                     flIncludeSD=False
                 if(not(listAffinityLines[i] in ['self+1', 'self+2'] or len(listAffinityLines[i].split('-'))>=3)):
+                    #print('non SA ', listAffinityLines[i])
                     flIncludeSA=False
             if((flInclude==True ) and \
                         #((intHotRef == 0 and (row['Hot-Access']>= 0.1 and (row['Access']/row['TotalAccess'] >= 0.0025))) \
@@ -150,17 +152,19 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
                                      # this needs to be changed
                                      or (intHotRef == 1 and row['Access']>= accessThreshold)  or \
                                         (intHotRef == 2 ))):
+                #print('in include', row['SI-'+listAffinityLines[i]])
                 listFinalRefLines.append(regPageBlock)
                 blkSIValue=np.nan
                 blkSAValue=np.nan
                 blkSDValue=np.nan
-                if((row['SI-'+listAffinityLines[i]])) and (~np.isnan(row['SI-'+listAffinityLines[i]])):
+                if(~np.isnan(row['SI-'+listAffinityLines[i]])):
                     blkSIValue = row['SI-'+listAffinityLines[i]]
                 if((row['SD-'+listAffinityLines[i]])) and (~np.isnan(row['SD-'+listAffinityLines[i]])):
                     blkSDValue = row['SD-'+listAffinityLines[i]]
                 if((row['SP-'+listAffinityLines[i]])) and (~np.isnan(row['SP-'+listAffinityLines[i]])):
                     blkSAValue = row['SP-'+listAffinityLines[i]]
                 if (not(np.isnan(blkSIValue))):
+                    #print('in SI , SA -', flIncludeSA, ' SD ', flIncludeSD)
                     valSIBin = int(blkSIValue /SI_good) +1
                     if(valSIBin > 10):
                         valSIBin = 10
@@ -172,10 +176,12 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
                            #df_local[(df_local['reg-page-blk'] == regPageBlock)]['SD-'+listAffinityLines[i]].item(), \
                            #df_local[(df_local['reg-page-blk'] == regPageBlock)]['SP-'+listAffinityLines[i]].item() )
                     if(flIncludeSA == True and flIncludeSD ==True):
+                        #print('both true ', regPageBlock, listAffinityLines[i], round((blkSAValue * valSIDiscount),3))
                         dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,row['Access'], row['Hot-Access'], round((blkSDValue * valSIDiscount),3),round((blkSAValue * valSIDiscount),3),hotAccessWeight]
                     elif (flIncludeSA == False and flIncludeSD ==True):
                         dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,row['Access'], row['Hot-Access'], round((blkSDValue * valSIDiscount),3),np.nan,hotAccessWeight]
                     elif (flIncludeSA == True and flIncludeSD ==False):
+                        #print('SA true ', regPageBlock, listAffinityLines[i], round((blkSAValue * valSIDiscount),3))
                         dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,row['Access'], row['Hot-Access'], np.nan, round((blkSAValue * valSIDiscount),3),hotAccessWeight]
 
                     # Unrealized - check in intHotAff == 2
@@ -215,6 +221,8 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
     #print(arrVariants)
     dfForPlot['ScoreSA'] = (dfForPlot.SA * dfForPlot.HotLineWeight)
     dfForPlot['ScoreSD'] = (dfForPlot.SD * dfForPlot.HotLineWeight)
+    #print(dfForPlot['SA'])
+    #print(dfForPlot['ScoreSA'])
     for i in range(len(arrVariants)):
         print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " --- NO filter Region weight - SA score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSA'] ).sum()*dictVarAccess[arrVariants[i]][2])
         print(strApp, "ref - ", str(optionHotRef)," hot - ",str(optionHotAff)," ",arrVariants[i], " --- NO filter Region weight - SD score",  (dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ] ['ScoreSD'] ).sum()*dictVarAccess[arrVariants[i]][2])
@@ -572,6 +580,21 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read-irregular/'
         strApp='XSB grid-XS-data'
 
+    if(strApp.lower()=='alpaca-row'):
+        strFileName='alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/Alpaca-5-HotIns-11-6-HotIns-12-SD-SP-SI-df.csv'
+        strAppVar='alpaca-row'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
+        print(dfForPlot.shape)
+    if(strApp.lower()=='alpaca-col'):
+        strFileName='alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/Alpaca-0-A0000000-1-A0000010-2-A0000011-3-A0000012-4-A0000013-SD-SP-SI-df.csv'
+        strAppVar='alpaca-col'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
+        print(dfForPlot.shape)
+        strFileName=strPath+'alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/'
+        strApp='Alpaca'
+
     #print(dfForPlot)
     #print(dfForPlot.head(5))
     #print(dfForPlot.tail(5))
@@ -624,8 +647,9 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
     # intHotAff = 3 - Option 3 - only hot lines and (self+1, self+2) for SA, (self-1, self+1, self) for SD
 
 # Scores in table
+
 flPlot=False
-flScore=False
+flScore=True
 
 if(flScore):
     plot_app('miniVite',0,3,flPlot) # used for score table data - all hm - more blocks
@@ -638,14 +662,20 @@ if(flScore):
     plot_app('xsb-noflto-grid-index', 0, 2,flPlot) # used for score table data - all hm - more blocks
     plot_app('xsb-noflto-mat-conc',0,3,flPlot) # used for score table data - all hm - more blocks
     plot_app('xsb-noflto-mat-conc',0,2,flPlot) # used for score table data - all hm - more blocks
+    plot_app('alpaca-row',0,3,flPlot) # used for score table data - all hm - more blocks
+    plot_app('alpaca-row',0,2,flPlot) # used for score table data - all hm - more blocks
+    plot_app('alpaca-col',0,3,flPlot) # used for score table data - all hm - more blocks
+    plot_app('alpaca-col',0,2,flPlot) # used for score table data - all hm - more blocks
+
 #plot_app('xsb-noflto-all',2,2,True)
 
 #plot_app('HiParTI-HiCOO tensor MTTKRP',0,3, flPlot) # used for score table data - all hm - more blocks
-plot_app('HiParTI-HiCOO tensor MTTKRP',0,2, flPlot) # used for score table data - all hm - more blocks
-plot_app('miniVite',0,2,flPlot)
+#plot_app('HiParTI-HiCOO tensor MTTKRP',0,2, flPlot) # used for score table data - all hm - more blocks
+#plot_app('miniVite',0,2,flPlot)
 
 #Plots in paper
 flPlot=True
+
 if (0):
     plot_app('xsb-noflto-mat-conc',0,3,flPlot)
     plot_app('xsb-noflto-mat-conc',0,2,flPlot)
