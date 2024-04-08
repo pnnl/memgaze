@@ -157,7 +157,8 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
                 blkSIValue=np.nan
                 blkSAValue=np.nan
                 blkSDValue=np.nan
-                if(~np.isnan(row['SI-'+listAffinityLines[i]])):
+                if((row['SI-'+listAffinityLines[i]])) and (~np.isnan(row['SI-'+listAffinityLines[i]])):
+                #if(~np.isnan(row['SI-'+listAffinityLines[i]])):
                     blkSIValue = row['SI-'+listAffinityLines[i]]
                 if((row['SD-'+listAffinityLines[i]])) and (~np.isnan(row['SD-'+listAffinityLines[i]])):
                     blkSDValue = row['SD-'+listAffinityLines[i]]
@@ -314,7 +315,7 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
                 t.set_text(str(t.get_text()).ljust(14) +  str(round((dictVarAccess[t.get_text()][1]*100/dictVarAccess[t.get_text()][0]),2)).center(15) \
                            + dictSD[t.get_text()][0].center(15)+ str(round(float(dictSD[t.get_text()][1])*float(dictSD[t.get_text()][0])/100)).center(15))
                 t.set_ha('right')
-        p.set(title=strApp+" variants - $\it{"+strMetric+"}^{*}$")
+        p.set(title=strApp+" variants - $\it{"+strMetric+"}^{*}(j|i)$")
         #p.map(plt.axvline, x=0.05, color='black', linewidth=1,linestyle='--')
         strPath=strFileName[0:strFileName.rindex('/')]
         imageFileName=strPath+'/'+strApp.replace(' ','-')+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
@@ -329,7 +330,7 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
             sns.move_legend(p,"upper center",bbox_to_anchor=(.6, .9))
         else:
             sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
-        p.set(title=strApp+" variants - $\it{"+strMetric+"}^{*}$ density plot")
+        p.set(title=strApp+" variants - $\it{"+strMetric+"}^{*}(j|i)$ density plot")
         strPath=strFileName[0:strFileName.rindex('/')]
         imageFileName=strPath+'/'+strApp.replace(' ','-')+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
         print(imageFileName)
@@ -359,7 +360,7 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
                            + dictSA[t.get_text()][0].center(15)+ str(round(float(dictSA[t.get_text()][1])*float(dictSA[t.get_text()][0])/100)).center(15))
                 t.set_ha('right')
         #p.fig.text(0.8, 0.7, strSAText,  ha='left', verticalalignment='top',bbox=dict(boxstyle="round",facecolor='none', edgecolor='grey',alpha=0.5))
-        p.set(title=strApp+" variants - $\it{"+strMetric+"}^{*}$")
+        p.set(title=strApp+" variants - $\it{"+strMetric+"}^{*}(j|i)$")
         #p.map(plt.axvline, x=0.25, color='black', linewidth=1,linestyle='--')
         strPath=strFileName[0:strFileName.rindex('/')]
         imageFileName=strPath+'/'+strApp.replace(' ','-')+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
@@ -369,7 +370,7 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
         p = sns.displot(dfForPlot, x=strMetric, hue="Variant", kind="kde", bw_adjust=0.15, clip=(0.0,1.0), aspect=2, alpha=1,facet_kws=dict(legend_out=False))
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
         sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
-        p.set(title=strApp+" variants - $\it{"+strMetric+"}^{*}$ density plot")
+        p.set(title=strApp+" variants - $\it{"+strMetric+"}^{*}(j|i)$ density plot")
         strPath=strFileName[0:strFileName.rindex('/')]
         imageFileName=strPath+'/'+strApp.replace(' ','-')+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
         print(imageFileName)
@@ -649,7 +650,7 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
 # Scores in table
 
 flPlot=False
-flScore=True
+flScore=False
 
 if(flScore):
     plot_app('miniVite',0,3,flPlot) # used for score table data - all hm - more blocks
@@ -675,11 +676,10 @@ if(flScore):
 
 #Plots in paper
 flPlot=True
-
-if (0):
-    plot_app('xsb-noflto-mat-conc',0,3,flPlot)
-    plot_app('xsb-noflto-mat-conc',0,2,flPlot)
-    plot_app('miniVite',0,2,flPlot)
+if (1):
+    #plot_app('xsb-noflto-mat-conc',0,2,flPlot)
+    #plot_app('xsb-noflto-mat-conc',2,2,flPlot)
+    #plot_app('miniVite',0,2,flPlot)
     plot_app('HiParTI-HiCOO tensor MTTKRP',0,2, flPlot)
 
 #plot_app('xsb-noflto-other-grid', 0,3,flPlot) # No useful data - irregular accesses

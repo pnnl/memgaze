@@ -365,6 +365,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         for i, ax in enumerate(ax_plots.reshape(-1)[:len(plot_SP_col)]):
             #ax.set_title('Spatial affinity for '+ plot_SP_col[i])
             ax.set_xticks([])
+            ax.set_facecolor('white')
+            ax.grid(color='grey')
             ax.set_yticks([0, 0.25,0.5, 0.75, 1.0])
             ax.set_yticklabels([0, 0.25,0.5, 0.75, 1.0], fontsize=12)
             #ax.set_yticklabels([0, 0.125,0.25, 0.625, 0.75], fontsize=12)
@@ -391,7 +393,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             ax.text(0.01, 0.80, plot_SP_col[i][4:], color='black', size='16', rotation = 'horizontal', transform=ax.transAxes)
 
         ax=ax_plots.reshape(-1)[len(plot_SP_col)]
-        ax.plot(df_SP_SI_SD['reg-page-blk'], df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SP')]['Access'], color='tab:gray',label='Access')
+        ax.plot(df_SP_SI_SD['reg-page-blk'], df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SP')]['Access'], color=SI_color,label='Access')
+        ax.set_facecolor('white')
+        ax.grid(color='grey')
         ax.set_yscale('log')
         ax.set_ylim(0,100000)
         #ax.set_ylabel('Access')
@@ -399,7 +403,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         #ax.set_title('Access counts for blocks')
         ax.set_xlabel('Blocks',fontsize='16')
         label_y = -0.045
-        ax.text(label_y, 0.3, r"Access", color='tab:gray', rotation='vertical', transform=ax.transAxes)
+        ax.text(label_y, 0.3, r"Access", color=SI_color, fontsize='16', rotation='vertical', transform=ax.transAxes)
         ax.text(0.01, 0.80, 'Access frequency', color='black', size='16', rotation = 'horizontal', transform=ax.transAxes)
 
 

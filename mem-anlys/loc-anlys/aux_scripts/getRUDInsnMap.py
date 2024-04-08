@@ -181,8 +181,8 @@ def readFile(inFile, outFile,appName):
                   objFile_C = ''
                   varVersion = 'xs: '
                 if (appName == 'xsbench-read'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-noflto/memgaze-xs-read/obj_XSBench'
+                  logFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-noflto/memgaze-xs-read-large/obj_XSBench'
                   objFile_C = ''
                   varVersion = 'xs: '
                 if (appName == 'xsbench-read-irr'): 

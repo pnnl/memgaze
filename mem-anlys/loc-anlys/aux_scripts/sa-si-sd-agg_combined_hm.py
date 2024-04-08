@@ -267,6 +267,20 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             print ("after drop", self_aft_drop)
             break
 
+        # STEP 3d-1 - Get average of self before sampling for highest access blocks
+        # Paper - HICOO - matrices table
+        average_sd= pd.to_numeric(df_intra_obj[df_intra_obj['Type'] == 'SD'].self.values[0]).mean()
+        if (f_avg != None):
+            f_avg.write ( '*** Before sampling Average SD for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd)+'\n')
+        print ( '*** Before sampling Average SD for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_sd)+'\n')
+        average_si= pd.to_numeric(df_intra_obj[df_intra_obj['Type'] == 'SI'].self.values[0]).mean()
+        if (f_avg != None):
+            f_avg.write ( '*** Before sampling Average SI for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_si)+'\n')
+        print ( '*** Before sampling Average SI for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_si)+'\n')
+        count_si= (df_intra_obj[df_intra_obj['Type'] == 'SI'].self > 63).count()
+        if (f_avg != None):
+            f_avg.write ( '*** Before sampling SI more than 63 for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_si)+'\n')
+        print ( '*** Before sampling SI more than 63 for '+strApp+', Region '+regionIdNumName.replace(' ','').replace('&','-')+' '+str(average_si)+'\n')
 
         # STEP 3e - Sample dataframe for 150 rows based on access count as the weight
         # Combined heatmap for SP and SI
@@ -456,6 +470,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 cols_df_SP.append(col_SP_name)
                 cols_df_SI.append(col_SI_name)
                 cols_df_SD.append(col_SD_name)
+        print(' 459 cols_df_SP ', cols_df_SP)
+        print(' 460 cols_df_SI ', cols_df_SI)
+        print(' 461 cols_df_SD ', cols_df_SD)
 
         # Make visualization look better
         # Add columns so that self is not the only one shown
@@ -468,16 +485,22 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 if(len(negSelfCols) ==0 and len(negPageCols)==0 ):
                     cols_df_SP.insert(0,'SP-self-2')
                     cols_df_SP.insert(1,'SP-self-1')
-                    df_SP_SI_SD['SP-self-2']=np.NaN
-                    df_SP_SI_SD['SP-self-1']=np.NaN
+                    if ('SP-self-2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SP-self-2']=np.NaN
+                    if ('SP-self-1' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SP-self-1']=np.NaN
                     cols_df_SD.insert(0,'SD-self-2')
                     cols_df_SD.insert(1,'SD-self-1')
-                    df_SP_SI_SD['SD-self-2']=np.NaN
-                    df_SP_SI_SD['SD-self-1']=np.NaN
+                    if ('SD-self-2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SD-self-2']=np.NaN
+                    if ('SD-self-1' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SD-self-1']=np.NaN
                     cols_df_SI.insert(0,'SI-self-2')
                     cols_df_SI.insert(1,'SI-self-1')
-                    df_SP_SI_SD['SI-self-2']=np.NaN
-                    df_SP_SI_SD['SI-self-1']=np.NaN
+                    if ('SI-self-2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SI-self-2']=np.NaN
+                    if ('SI-self-1' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SI-self-1']=np.NaN
 
                 pattern = re.compile('.*self\+.*')
                 posSelfCols = list(filter(pattern.match, cols_df_SD))
@@ -486,16 +509,23 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                 if(len(posSelfCols) ==0 and len(posPageCols)==0):
                     cols_df_SP.append('SP-self+1')
                     cols_df_SP.append('SP-self+2')
-                    df_SP_SI_SD['SP-self+1']=np.NaN
-                    df_SP_SI_SD['SP-self+2']=np.NaN
+                    if ('SP-self+1' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SP-self+1']=np.NaN
+                    if ('SP-self+2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SP-self+2']=np.NaN
                     cols_df_SD.append('SD-self+1')
                     cols_df_SD.append('SD-self+2')
-                    df_SP_SI_SD['SD-self+1']=np.NaN
-                    df_SP_SI_SD['SD-self+2']=np.NaN
+                    if ('SD-self+1' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SD-self+1']=np.NaN
+                    if ('SD-self+2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SD-self+2']=np.NaN
                     cols_df_SI.append('SI-self+1')
                     cols_df_SI.append('SI-self+2')
-                    df_SP_SI_SD['SI-self+1']=np.NaN
-                    df_SP_SI_SD['SI-self+2']=np.NaN
+                    if ('SI-self+1' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SI-self+1']=np.NaN
+                    if ('SI-self+2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SI-self+2']=np.NaN
+
 
             pattern = re.compile('.*self-.*')
             negSelfCols = list(filter(pattern.match, cols_df_SD))
@@ -504,6 +534,61 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             print('cols_df_SD for ', strApp, ' ', cols_df_SD)
             print('posSelfCols ', posSelfCols)
             print('negSelfCols ', negSelfCols)
+            colSelfAdjIndex = -1
+            if(len(negSelfCols) ==1 and len(posSelfCols)==1):
+                print( ' **** in length 1')
+                colSelfAdjIndex = cols_df_SD.index('SD-self-1') if 'SD-self-1' in cols_df_SD else -1
+            if(colSelfAdjIndex != -1):
+                cols_df_SP.insert(colSelfAdjIndex, 'SP-self-2')
+                cols_df_SD.insert(colSelfAdjIndex, 'SD-self-2')
+                cols_df_SI.insert(colSelfAdjIndex, 'SI-self-2')
+                if ('SP-self-2' not in df_SP_SI_SD):
+                    df_SP_SI_SD['SP-self-2']=np.NaN
+                if ('SD-self-2' not in df_SP_SI_SD):
+                    df_SP_SI_SD['SD-self-2']=np.NaN
+                if ('SI-self-2' not in df_SP_SI_SD):
+                    df_SP_SI_SD['SI-self-2']=np.NaN
+            colSelfAdjIndex = cols_df_SD.index('SD-self+1') if 'SD-self+1' in cols_df_SD else -1
+            if(colSelfAdjIndex != -1):
+                cols_df_SP.insert(colSelfAdjIndex+1, 'SP-self+2')
+                cols_df_SD.insert(colSelfAdjIndex+1, 'SD-self+2')
+                cols_df_SI.insert(colSelfAdjIndex+1, 'SI-self+2')
+                cols_df_SP.insert(colSelfAdjIndex+2, 'SP-self+3')
+                cols_df_SD.insert(colSelfAdjIndex+2, 'SD-self+3')
+                cols_df_SI.insert(colSelfAdjIndex+2, 'SI-self+3')
+                cols_df_SP.insert(colSelfAdjIndex+3, 'SP-self+4')
+                cols_df_SD.insert(colSelfAdjIndex+3, 'SD-self+4')
+                cols_df_SI.insert(colSelfAdjIndex+3, 'SI-self+4')
+                cols_df_SP.insert(colSelfAdjIndex+4, 'SP-self+5')
+                cols_df_SD.insert(colSelfAdjIndex+4, 'SD-self+5')
+                cols_df_SI.insert(colSelfAdjIndex+4, 'SI-self+5')
+
+                if ('SP-self+2' not in df_SP_SI_SD):
+                    df_SP_SI_SD['SP-self+2']=np.NaN
+                if ('SD-self+2' not in df_SP_SI_SD):
+                    df_SP_SI_SD['SD-self+2']=np.NaN
+                if ('SI-self+2' not in df_SP_SI_SD):
+                    df_SP_SI_SD['SI-self+2']=np.NaN
+                if ('SP-self+3' not in df_SP_SI_SD):
+                    df_SP_SI_SD['SP-self+3']=np.NaN
+                if ('SD-self+3' not in df_SP_SI_SD):
+                    df_SP_SI_SD['SD-self+3']=np.NaN
+                if ('SI-self+3' not in df_SP_SI_SD):
+                    df_SP_SI_SD['SI-self+3']=np.NaN
+                if ('SP-self+4' not in df_SP_SI_SD):
+                    df_SP_SI_SD['SP-self+4']=np.NaN
+                if ('SD-self+4' not in df_SP_SI_SD):
+                    df_SP_SI_SD['SD-self+4']=np.NaN
+                if ('SI-self+4' not in df_SP_SI_SD):
+                    df_SP_SI_SD['SI-self+4']=np.NaN
+                if ('SP-self+5' not in df_SP_SI_SD):
+                    df_SP_SI_SD['SP-self+5']=np.NaN
+                if ('SD-self+5' not in df_SP_SI_SD):
+                    df_SP_SI_SD['SD-self+5']=np.NaN
+                if ('SI-self+5' not in df_SP_SI_SD):
+                    df_SP_SI_SD['SI-self+5']=np.NaN
+
+
             if(len(negSelfCols)==0 ):
                 colSelfIndex = cols_df_SD.index('SD-self') if 'SD-self' in cols_df_SD else -1
                 if(colSelfIndex != -1):
@@ -513,12 +598,18 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     cols_df_SP.insert(colSelfIndex+1, 'SP-self-1')
                     cols_df_SD.insert(colSelfIndex+1, 'SD-self-1')
                     cols_df_SI.insert(colSelfIndex+1, 'SI-self-1')
-                    df_SP_SI_SD['SP-self-1']=np.NaN
-                    df_SP_SI_SD['SD-self-1']=np.NaN
-                    df_SP_SI_SD['SI-self-1']=np.NaN
-                    df_SP_SI_SD['SP-self-2']=np.NaN
-                    df_SP_SI_SD['SD-self-2']=np.NaN
-                    df_SP_SI_SD['SI-self-2']=np.NaN
+                    if ('SP-self-1' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SP-self-1']=np.NaN
+                    if ('SD-self-1' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SD-self-1']=np.NaN
+                    if ('SI-self-1' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SI-self-1']=np.NaN
+                    if ('SP-self-2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SP-self-2']=np.NaN
+                    if ('SD-self-2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SD-self-2']=np.NaN
+                    if ('SI-self-2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SI-self-2']=np.NaN
 
             if(len(posSelfCols)==0):
                 colSelfIndex = cols_df_SD.index('SD-self') if 'SD-self' in cols_df_SD else -1
@@ -530,12 +621,18 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     cols_df_SP.insert(colSelfIndex+2, 'SP-self+2')
                     cols_df_SD.insert(colSelfIndex+2, 'SD-self+2')
                     cols_df_SI.insert(colSelfIndex+2, 'SI-self+2')
-                    df_SP_SI_SD['SP-self+1']=np.NaN
-                    df_SP_SI_SD['SD-self+1']=np.NaN
-                    df_SP_SI_SD['SI-self+1']=np.NaN
-                    df_SP_SI_SD['SP-self+2']=np.NaN
-                    df_SP_SI_SD['SD-self+2']=np.NaN
-                    df_SP_SI_SD['SI-self+2']=np.NaN
+                    if ('SP-self+1' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SP-self+1']=np.NaN
+                    if ('SD-self+1' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SD-self+1']=np.NaN
+                    if ('SI-self+1' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SI-self+1']=np.NaN
+                    if ('SP-self+2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SP-self+2']=np.NaN
+                    if ('SD-self+2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SD-self+2']=np.NaN
+                    if ('SI-self+2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SI-self+2']=np.NaN
 
         #print(cols_df_SP)
         #print(cols_df_SI)
@@ -783,7 +880,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         SI_self_adj_location=-1
         SD_self_location=-1
         self_location=-1
-        if(len(cols_df_SP)>10):
+        if(len(cols_df_SP)>1):
             print('**** listAffinityLines ***** ', listAffinityLines)
             print('**** cols_df_SP **** ', cols_df_SP)
             print('***** reg-page-blk **** ', df_SP_SI_SD['reg-page-blk'].to_list())
@@ -794,9 +891,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     y_location = cols_df_SP.index('SP-'+item)
                     self_location = cols_df_SP.index('SP-self')
                     SP_hot_box_coord[item] = (x_location,y_location, self_location)
-            print('SP_hot_box_coord ', SP_hot_box_coord)
+            #print('SP_hot_box_coord ', SP_hot_box_coord)
             SP_self_location=cols_df_SP.index('SP-self')
-            print('SP_self_location ', SP_self_location)
+            #print('SP_self_location ', SP_self_location)
             if(('SP-self+1') in cols_df_SP and (not df_SP_SI_SD['SP-self+1'].isnull().all())):
                 SP_self_adj_location=cols_df_SP.index('SP-self+1')
             for item in listAffinityLines:
@@ -805,9 +902,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     y_location = cols_df_SD.index('SD-'+item)
                     self_location = cols_df_SD.index('SD-self')
                     SD_hot_box_coord[item] = (x_location,y_location, self_location)
-            print('SD_hot_box_coord ', SD_hot_box_coord)
+            #print('SD_hot_box_coord ', SD_hot_box_coord)
             SD_self_location=cols_df_SD.index('SD-self')
-            print('SD_self_location ', SD_self_location)
+            #print('SD_self_location ', SD_self_location)
 
             for item in listAffinityLines:
                 if(item in x_loc_reg_page_blk):
@@ -815,9 +912,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     y_location = cols_df_SI.index('SI-'+item)
                     self_location = cols_df_SI.index('SI-self')
                     SI_hot_box_coord[item] = (x_location,y_location, self_location)
-            print('SI_hot_box_coord ', SI_hot_box_coord)
+            #print('SI_hot_box_coord ', SI_hot_box_coord)
             SI_self_location=cols_df_SI.index('SI-self')
-            print('SI_self_location ', SI_self_location)
+            #print('SI_self_location ', SI_self_location)
 
             if(('SI-self+1') in cols_df_SI and (not df_SP_SI_SD['SI-self+1'].isnull().all())):
                 SI_self_adj_location=cols_df_SI.index('SI-self+1')
@@ -826,7 +923,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         if ((flPlot == True) and len(cols_df_SP) > 0 and len(cols_df_SI) >0 and len(cols_df_SD)>0):
             hotLineColor='darkred'
             affRegionColor='dodgerblue'
-            hotLineInRegionColor='tomato'
+            hotLineInRegionColor='indianred'
             refRegionColor='black'
             selfBoxColor='violet'
             selfAdjBoxColor='violet'
@@ -891,8 +988,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             gsleft_ax_1.set_facecolor('white')
             if(SP_self_location!=-1):
                 gsleft_ax_1.add_patch(Rectangle((0, SP_self_location), 50, 1, edgecolor=selfBoxColor, fill=False, lw=1))
-            if(SP_self_adj_location!=-1):
-                gsleft_ax_1.add_patch(Rectangle((0, SP_self_adj_location), 50, 1, edgecolor=selfAdjBoxColor, fill=False, lw=1))
+            #if(SP_self_adj_location!=-1):
+            #    gsleft_ax_1.add_patch(Rectangle((0, SP_self_adj_location), 50, 1, edgecolor=selfAdjBoxColor, fill=False, lw=1))
 
             for key, value in SP_hot_box_coord.items():
                 gsleft_ax_1.add_patch(Rectangle((value[0], value[1]), 1, 1, edgecolor=hotLineInRegionColor, fill=False, lw=1))
@@ -908,8 +1005,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             gsleft_ax_2.set_facecolor('white')
             if(SI_self_location!=-1):
                 gsleft_ax_2.add_patch(Rectangle((0, SI_self_location), 50, 1, edgecolor=selfBoxColor, fill=False, lw=1))
-            if(SI_self_adj_location!=-1):
-                gsleft_ax_2.add_patch(Rectangle((0, SI_self_adj_location), 50, 1, edgecolor=selfAdjBoxColor, fill=False, lw=1))
+            #if(SI_self_adj_location!=-1):
+            #    gsleft_ax_2.add_patch(Rectangle((0, SI_self_adj_location), 50, 1, edgecolor=selfAdjBoxColor, fill=False, lw=1))
 
             for key, value in SI_hot_box_coord.items():
                 gsleft_ax_2.add_patch(Rectangle((value[0], value[1]), 1, 1, edgecolor=hotLineInRegionColor, fill=False, lw=1))
@@ -1083,8 +1180,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             sns.heatmap(rndAccess, cmap=custom_blue, cbar=False,annot=annot, fmt='', annot_kws = {'size':12},  ax=ax_3)
             ax_3.set_xticks([0])
 
-            print(len(rndAccess))
-            print(len(arRegPages))
+            #print(len(rndAccess))
+            #print(len(arRegPages))
             list_y_ticks=ax_3.get_yticklabels()
             fig_ylabel=[]
             for y_label in list_y_ticks:
@@ -1134,6 +1231,14 @@ flPlot=True
 #intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',1,strMetric='SD-SP-SI', \
 #         listCombineReg=['0-A0000000', '1-A0000010'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
+# FIX missing SA and SI values in +1, +2 locations
+# cannot set np.NaN when there are valid values in dataframe
+#intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',\
+#                flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+
+#intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',3,strMetric='SD-SP-SI', \
+#        listCombineReg=['5-HotIns-11', '6-HotIns-12'], flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+
 if(0):
     # Paper plots - START
     intraObjectPlot('Alpaca',mainPath+'spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/spatial.txt',5,strMetric='SD-SP-SI', \
@@ -1155,6 +1260,13 @@ if (0):  # Jan 8 - Used in paper plots
                     , strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     # Paper plots - END
 
+if (0):  # Mar 19 - Large grid size, not XL
+    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b32768-p5000000-event-k-0/spatial.txt', 2 \
+                   , strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b32768-p5000000-event-k-1/spatial.txt', 2 \
+                    , strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+
+
 
 if(0): # Data from bignuke runs
     # Paper plots - START
@@ -1172,7 +1284,7 @@ if (0):
     intraObjectPlot('AlexNet',mainPath+'spatial_pages_exp/Darknet/alexnet_single/hot_lines/spatial.txt',5, \
                     listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     # Paper plots - END
-if(0):
+if(1):
     # Paper plots - START
     intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',\
                     flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
@@ -1186,7 +1298,7 @@ if(0):
                     flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     # Paper plots - END
 
-if(1):
+if(0):
     # Paper plots - START
     intraObjectPlot('HiParTI-HiCOO', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,\
                     strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
