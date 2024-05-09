@@ -44,15 +44,19 @@ cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/mttsel-
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-Lexi-0-B0000000-SP-SI-SD_plot-no-SI.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-Reorder-Lexi-0-B0000000-SP-SI-SD-W_plot.pdf
 
 #HiParTI - HICOO - composite
-cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/HiParTI-HiCOO-tensor-MTTKRP-SI-SD_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-comp-SD.pdf
-cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/HiParTI-HiCOO-tensor-MTTKRP-SI-SA_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-comp-SA.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/HiParTI-HiCOO-tensor-reordering-SI-SD_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-comp-SD.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/HICOO-tensor/HiParTI-HiCOO-tensor-reordering-SI-SA_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/HiParTI-HiCOO-comp-SA.pdf
 
 # XSBench
-cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-0-anlys/XSB-rd-EVENT_k0-0-A0000000-SD-SP-SI_hm_order_fill.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-k0-mat-energy.pdf
-cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-memgaze-trace-b16384-p4000000-event-k-1-anlys/XSB-rd-EVENT_OPT_k1-0-A0000000-SD-SP-SI_hm_order_fill.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-k1-mat-energy.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-0/XSB-rd-EVENT_k0-0-A0000000-SD-SP-SI_hm_order_fill.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-k0-mat-energy.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-1/XSB-rd-EVENT_OPT_k1-0-A0000000-SD-SP-SI_hm_order_fill.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-k1-mat-energy.pdf
 
-cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-SI-SD_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-comp-SD.pdf
-cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read/XSBench-SI-SA_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-comp-SA.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-SI-SD_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-comp-SD.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-SI-SA_ref-0_aff-2-displot-kde.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-comp-SA.pdf
+
+#XSB-rd-EVENT_OPT_k1-3-B0001000-4-B1000000-SP-SI-SD_plot-no-SI
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-1/XSB-rd-EVENT_OPT_k1-3-B0001000-4-B1000000-SP-SI-SD_plot-no-SI.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-k1-sparse-SA-plot.pdf
+cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-0/XSB-rd-EVENT_k0-2-B0010000-3-B1000000-SP-SI-SD_plot-no-SI.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/XSBench-k0-sparse-SA-plot.pdf
 
 #Alpaca
 cp -p /Users/suri836/Projects/spatial_rud/spatial_pages_exp/alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/Alpaca-5-HotIns-11-6-HotIns-12-SD-SP-SI_hm_order_fill.pdf /Users/suri836/Projects/spatial_rud/overleaf_paper/62d2f71008ee752e04cff1ea/fig/alpaca-src0_row.pdf

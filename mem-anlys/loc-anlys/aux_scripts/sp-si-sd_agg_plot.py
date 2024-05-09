@@ -191,7 +191,9 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         arRegPages=df_reg_pages['reg-page'].to_list()
 
         #plot_SP_col=['self-3','self-2','self-1','self','self+1','self+2','self+3']
-        plot_SP_col=['self-1', 'self','self+1','self+2'] #,'self+3','self+4']
+        #plot_SP_col=['self-1', 'self','self+1','self+2'] #,'self+3','self+4']
+        #plot_SP_col=['self-1', 'self','self+1']#,'self+2'] #,'self+3','self+4']
+        plot_SP_col=['self','self+1']#,'self+2'] #,'self+3','self+4']
         plot_SP_col.reverse()
         for colname in plot_SP_col:
             if( 1==0):
@@ -231,6 +233,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
         df_intra_obj_SP=df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SP')]
         df_intra_obj_SI=df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SI')]
         df_intra_obj_SD=df_intra_obj_drop[(df_intra_obj_drop['Type'] == 'SD')]
+        df_intra_obj_drop = df_intra_obj_drop[df_intra_obj_drop['Access'] > 10]
         #print('SP cols ', df_intra_obj_SP.columns)
         #print('SI cols ', df_intra_obj_SI.columns)
         print('after filter Type SP - ', df_intra_obj_SP.shape)
@@ -325,17 +328,17 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     if(valSIBin > 10):
                         valSIBin = 10
                     valSIDiscount = float((10-valSIBin+1)/10)
-                    if(blkSIValue >=63):
+                    #if(blkSIValue >=63):
                     #print(row[['reg-page-blk', 'SI-'+plot_SP_col[i], 'SP-'+plot_SP_col[i], 'SD-'+plot_SP_col[i]]])
-                        print(df_SP_SI_SD.loc[index,'reg-page-blk'],"SI ", df_SP_SI_SD.loc[index,'SI-'+plot_SP_col[i]], " SD ", \
-                              df_SP_SI_SD.loc[index,'SD-'+plot_SP_col[i]]," SA ",df_SP_SI_SD.loc[index,'SP-'+plot_SP_col[i]])
+                        #print(df_SP_SI_SD.loc[index,'reg-page-blk'],"SI ", df_SP_SI_SD.loc[index,'SI-'+plot_SP_col[i]], " SD ", \
+                        #      df_SP_SI_SD.loc[index,'SD-'+plot_SP_col[i]]," SA ",df_SP_SI_SD.loc[index,'SP-'+plot_SP_col[i]])
                     df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == regPageBlock, 'SD-'+plot_SP_col[i]] = round((blkSDValue * valSIDiscount),3)
                     df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == regPageBlock, 'SP-'+plot_SP_col[i]] = round((blkSAValue * valSIDiscount),3)
                     #df_local.loc[df_local['reg-page-blk'] == regPageBlock, ['SD-'+listAffinityLines[i]]]
                     #print(regPageBlock,plot_SP_col)
-                    if(blkSIValue >=63):
+                    #if(blkSIValue >=63):
                         #print(row[['reg-page-blk', 'SI-'+plot_SP_col[i], 'SP-'+plot_SP_col[i], 'SD-'+plot_SP_col[i]]])
-                        print(" Change ", df_SP_SI_SD.loc[index,'reg-page-blk'], "SD " ,df_SP_SI_SD.loc[index,'SD-'+plot_SP_col[i]], " SA ",df_SP_SI_SD.loc[index,'SP-'+plot_SP_col[i]])
+                        #print(" Change ", df_SP_SI_SD.loc[index,'reg-page-blk'], "SD " ,df_SP_SI_SD.loc[index,'SD-'+plot_SP_col[i]], " SA ",df_SP_SI_SD.loc[index,'SP-'+plot_SP_col[i]])
                         #print(df_SP_SI_SD.loc[index,'SI-'+plot_SP_col[i]])
                     #df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == regPageBlock, ['SP-'+plot_SP_col[i]]] = round((blkSAValue * valSIDiscount),3)
 
@@ -358,7 +361,11 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == regPageBlock, 'SP-'+plot_SP_col[i]] = round((blkSAValue * row['Hot-Access']),3)
 
 
-        fig, ax_plots = plt.subplots(nrows=len(plot_SP_col)+1, ncols=1,constrained_layout=True, figsize=(15, 10))
+        fig, ax_plots = plt.subplots(nrows=len(plot_SP_col)+1, ncols=1,constrained_layout=True, figsize=(15, 7.5))
+        #df_SP_SI_SD.sort_values(by=['SP-self+1'],inplace=True,ascending=False)
+        print(df_SP_SI_SD.size, df_SP_SI_SD.columns.to_list)
+        df_SP_SI_SD = df_SP_SI_SD[df_SP_SI_SD['Access'] > 10]
+        print(df_SP_SI_SD.size, df_SP_SI_SD.columns.to_list)
         SP_color='tab:orange'
         SD_color='green'
         SI_color='tab:blue'
@@ -449,6 +456,16 @@ if(0):
     intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/mttsel-re-1-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,numExtraPages=numExtraPages)
     intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/mttsel-re-2-b16384-p4000000-U-0/spatial_pages_'+str(numExtraPages)+'/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,numExtraPages=numExtraPages)
 
-if(1):
+if(0):
     intraObjectPlot('HiParTI-HiCOO-Lexi', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,affinityOption=3)
     intraObjectPlot('HiParTI-HiCOO-BFS', mainPath+'spatial_pages_exp/HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/hot_lines/spatial.txt', 1,strMetric='SP-SI-SD',flWeight=flWeight,affinityOption=3)
+
+if(1):
+    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-0/spatial.txt', 4 \
+        #, listCombineReg=['0-A0000000', '2-B0010000', '3-B1000000'],  strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+        , listCombineReg=[ '2-B0010000', '3-B1000000'],  strMetric='SP-SI-SD', flWeight=flWeight,affinityOption=3)
+        #,  strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-1/spatial.txt', 5 \
+        #, listCombineReg=['0-A0000000','3-B0001000', '4-B1000000'], strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+        , listCombineReg=['3-B0001000', '4-B1000000'], strMetric='SP-SI-SD', flWeight=flWeight,affinityOption=3)
+        #,  strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)

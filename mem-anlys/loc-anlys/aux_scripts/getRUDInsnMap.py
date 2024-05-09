@@ -156,18 +156,18 @@ def readFile(inFile, outFile,appName):
                   objFile_C = ''
                   varVersion = 'mt-re-sel: '
                 if (appName == 'mini-v1'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld/miniVite-v1-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld/obj_v1'
+                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld-300k/miniVite-v1-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld-300k/obj_v1'
                   objFile_C = ''
                   varVersion = 'm-v1: '
                 if (appName == 'mini-v2'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld/miniVite-v2-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld/obj_v2'
+                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld-300k/miniVite-v2-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld-300k/obj_v2'
                   objFile_C = ''
                   varVersion = 'm-v2: '
                 if (appName == 'mini-v3'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld/miniVite-v3-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld/obj_v3'
+                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld-300k/miniVite-v3-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld-300k/obj_v3'
                   objFile_C = ''
                   varVersion = 'm-v3: '
                 if (appName == 'alpaca'): 
@@ -176,8 +176,8 @@ def readFile(inFile, outFile,appName):
                   objFile_C = ''
                   varVersion = 'al: '
                 if (appName == 'xsbench'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading/memgaze-xs/XSBench-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading/memgaze-xs/obj_XSBench'
+                  logFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading-noinline/memgaze-xs-large/XSBench-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading-noinline/memgaze-xs-large/obj_XSBench'
                   objFile_C = ''
                   varVersion = 'xs: '
                 if (appName == 'xsbench-read'): 

@@ -5,7 +5,9 @@ import seaborn as sns
 import re
 import matplotlib.patches as mpatches
 plt.rcParams['font.family'] = 'monospace'
+sns.set(font_scale=4,style="white",palette=None)
 #plt.rcParams.update({"text.usetex": True,})
+
 
 SI_good=63
 def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,dictVarAccess, listUnRealizedpairs):
@@ -32,9 +34,11 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
     #print(df_local['Access'].sum())
     sumAccessRefBlocks = df_local['Access'].sum()
     # This is not correct - heatmap only has selected lines - ordered by access, not all lines in region
-    val = pd.Index(df_local.Access.cumsum()).get_loc(int((0.9*sumAccessRefBlocks)), 'nearest', tolerance=int(0.05*sumAccessRefBlocks))
-    #print(val)
-    accessThreshold=df_local.at[val,'Access']
+    #print(df_local.Access.cumsum())
+    #print(pd.Index(df_local.Access.cumsum()))
+    val = pd.Index(df_local.Access.cumsum()).get_indexer([int((0.9*sumAccessRefBlocks))], method="nearest", tolerance=int(0.05*sumAccessRefBlocks))
+    #print(val[0])
+    accessThreshold=df_local.at[val[0],'Access']
     #print(' All lines above access count ' , accessThreshold)
     #accessThreshold=round((0.05*sumAccessRefBlocks),0)
     #print(' All lines above access count ' , accessThreshold)
@@ -211,11 +215,17 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
 
 def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarAccess,flPlot:bool=False):
     #print(dictVarAccess)
-    #print(dfForPlot.head)
+    print(dfForPlot.columns.to_list())
+    print(dfForPlot.tail(2))
+
     #HACK - added to show the KDE plot without the spike
     if(strApp=='XSBench'):
-        dfForPlot.loc[len(dfForPlot)]=['XSBench-event-k0','0-2-201',40640, 1.0, 0.001, np.nan,0.426003]
+        dfForPlot.loc[len(dfForPlot)]=['Event-k0','0-2-201',40640, 1.0, 0.001, np.nan,0.426003]
+        dfForPlot.loc[len(dfForPlot)]=['Event-k1','0-2-201',40640, 1.0, 0.001, np.nan,0.426003]
         #0   XSBench-event-k0      0-2-201   40640  ...  0.05    NaN         0.426003
+
+    print(dfForPlot.tail(2))
+
     #print(dfForPlot.tail)
     arrVariants=list(set(dfForPlot["Variant"].to_list()))
     arrVariants.sort()
@@ -296,13 +306,16 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
         #p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  \
         #                  kde=False, kde_kws={'bw_adjust':0.15,  'clip':(0.02,1.0)}, weights="HotAccessWeight", aspect=2, alpha=1,facet_kws=dict(legend_out=False))
         p = sns.displot(dfForPlot, x=strMetric, hue="Variant", bins=50,   multiple="dodge",  \
-                          kde=False, kde_kws={'bw_adjust':0.1,  'clip':(0.00,1.0)}, aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+                          kde=False, kde_kws={'bw_adjust':0.1,  'clip':(0.00,1.0)}, aspect=2, height=10, alpha=1,facet_kws=dict(legend_out=False))
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
         p.set(ylabel="Number of block pairs")
         #p.axes.flat[0].set_xlim(0.0,)
         #if(strApp=='miniVite'):
         #p.axes.flat[0].set_ylim(0,50)
         sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
+        #plt.setp(p._legend().get_texts(), fontsize='22') # for legend text
+        #plt.setp(p._legend().get_title(), fontsize='32') # for legend title
+
         if(0):
             leg = p.axes.flat[0].get_legend()
             if leg is None: leg = p._legend
@@ -323,10 +336,9 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
         plt.savefig(imageFileName, bbox_inches='tight')
 
         clip_limit=(0,1.0)
-        p = sns.displot(dfForPlot, x=strMetric,  kind="kde", hue="Variant", bw_adjust=0.15,  clip=clip_limit ,aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+        p = sns.displot(dfForPlot, x=strMetric,  kind="kde", hue="Variant", bw_adjust=0.15,  clip=clip_limit ,aspect=2,height=10,linewidth=3, alpha=1,facet_kws=dict(legend_out=False))
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
         if(strApp=='XSBench'):
-
             sns.move_legend(p,"upper center",bbox_to_anchor=(.6, .9))
         else:
             sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
@@ -367,7 +379,7 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
         print(imageFileName)
         plt.savefig(imageFileName, bbox_inches='tight')
 
-        p = sns.displot(dfForPlot, x=strMetric, hue="Variant", kind="kde", bw_adjust=0.15, clip=(0.0,1.0), aspect=2, alpha=1,facet_kws=dict(legend_out=False))
+        p = sns.displot(dfForPlot, x=strMetric, hue="Variant", kind="kde", bw_adjust=0.15, clip=(0.0,1.0), aspect=2, height=10,linewidth=3,alpha=1,facet_kws=dict(legend_out=False))
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
         sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
         p.set(title=strApp+" variants - $\it{"+strMetric+"}^{*}(j|i)$ density plot")
@@ -423,19 +435,7 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         print(dfForPlot.shape)
         strFileName=strPath+'miniVite/bignuke_run/mini-memgaze-ld/'
 
-    if(strApp == 'HiParTI-HiCOO tensor MTTKRP'):
-        strFileName='HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-Lexi-0-B0000000-SD-SP-SI-df.csv'
-        strAppVar='Lexi'
-        strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
-        print(dfForPlot.shape)
-
-        strFileName='HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-BFS-0-B0000000-SD-SP-SI-df.csv'
-        strAppVar='BFS'
-        strFileName=strPath+strFileName
-        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
-        print(dfForPlot.shape)
-
+    if(strApp == 'HiParTI-HiCOO tensor reordering'):
         strFileName='HICOO-tensor/mttsel-re-0-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-0-B0000000-SD-SP-SI-df.csv'
         strAppVar='Default'
         strFileName=strPath+strFileName
@@ -447,6 +447,19 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         strFileName=strPath+strFileName
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
+
+        strFileName='HICOO-tensor/mttsel-re-2-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-BFS-0-B0000000-SD-SP-SI-df.csv'
+        strAppVar='BFS'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
+        print(dfForPlot.shape)
+
+        strFileName='HICOO-tensor/mttsel-re-1-b16384-p4000000-U-0/hot_lines/HiParTI-HiCOO-Lexi-0-B0000000-SD-SP-SI-df.csv'
+        strAppVar='Lexi'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
+        print(dfForPlot.shape)
+
         strFileName=strPath+'HICOO-tensor/'
 
     if(strApp == 'HiParTI-matrix'):
@@ -596,9 +609,84 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         strFileName=strPath+'alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/'
         strApp='Alpaca'
 
+    if(strApp.lower()=='darknet'):
+        strFileName='Darknet/alexnet_single/hot_lines/AlexNet-4-B0000000-SD-SP-SI-df.csv'
+        strAppVar='alexnet-4'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
+        print(dfForPlot.shape)
+        strFileName='Darknet/alexnet_single/hot_lines/AlexNet-5-B1000000-6-B1001000-7-B1010000-8-B1011000-SD-SP-SI-df.csv'
+        strAppVar='alexnet-5-8'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
+        print(dfForPlot.shape)
+        strFileName='Darknet/resnet152_single/hot_lines/ResNet-10-B0000000-SD-SP-SI-df.csv'
+        strAppVar='resnet-10'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
+        print(dfForPlot.shape)
+
+        strFileName=strPath+'Darknet/'
+        strApp='Darknet'
+
     #print(dfForPlot)
     #print(dfForPlot.head(5))
     #print(dfForPlot.tail(5))
+    if(strApp.lower()=='xsb-large-mat'):
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-1/XSB-rd-EVENT_OPT_k1-0-A0000000-SD-SP-SI-df.csv'
+        strAppVar='Event-k1'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
+        print(dfForPlot.shape)
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-0/XSB-rd-EVENT_k0-0-A0000000-SD-SP-SI-df.csv'
+        strAppVar='Event-k0'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
+        print(dfForPlot.shape)
+        strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read-large/'
+        strApp='XSBench'
+
+    if(strApp.lower()=='xsb-large-grid'):
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-1/XSB-rd-EVENT_OPT_k1-3-B0001000-4-B1000000-SD-SP-SI-df.csv'
+        strAppVar='XSB-k-1'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
+        print(dfForPlot.shape)
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-0/XSB-rd-EVENT_k0-2-B0010000-3-B1000000-SD-SP-SI-df.csv'
+        strAppVar='XSB-k-0'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
+        print(dfForPlot.shape)
+        strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read-large/'
+        strApp='XSBench-g'
+
+    if(strApp.lower()=='xsb-large-all'):
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-1/XSB-rd-EVENT_OPT_k1-ALL-SD-SP-SI-df.csv'
+        strAppVar='XSB-k-1'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
+        print(dfForPlot.shape)
+        strFileName='XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-0/XSB-rd-EVENT_k0-ALL-SD-SP-SI-df.csv'
+        strAppVar='XSB-k-0'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
+        print(dfForPlot.shape)
+        strFileName=strPath+'XSBench/openmp-noflto/memgaze-xs-read-large/'
+        strApp='XSBench'
+
+    if(strApp.lower()=='xsb-noinl-large-all'):
+        strFileName='XSBench/openmp-threading-noinline/memgaze-xs-large/memgaze-xs-large/XSBench-memgaze-trace-b8192-p5000000-event-k-1/XSB-rd-EVENT_OPT_k1-ALL-SD-SP-SI-df.csv'
+        strAppVar='XSB-k-1'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
+        print(dfForPlot.shape)
+        strFileName='XSBench/openmp-threading-noinline/memgaze-xs-large/memgaze-xs-large/XSBench-memgaze-trace-b8192-p5000000-event-k-0/XSB-rd-EVENT_k0-ALL-SD-SP-SI-df.csv'
+        strAppVar='XSB-k-0'
+        strFileName=strPath+strFileName
+        read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
+        print(dfForPlot.shape)
+        strFileName=strPath+'XSBench/openmp-threading-noinline/memgaze-xs-large/memgaze-xs-large/'
+        strApp='XSBench'
 
     if(0):
         arrVariants=list(set(dfForPlot["Variant"].to_list()))
@@ -606,7 +694,8 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
             print(arrVariants[i])
             print((dfForPlot[dfForPlot["Variant"] ==arrVariants[i] ][['Access','HotLineWeight']]))
 
-    dfForPlot.sort_values(by='Variant', ascending=True, inplace=True)
+    if (strApp != 'HiParTI-HiCOO tensor reordering'):
+        dfForPlot.sort_values(by='Variant', ascending=True, inplace=True)
     draw_plot(strApp,strFileName, optionHotRef,optionHotAff,dfForPlot,dictVarAccess,flPlot)
 
     if(len(listUnRealizedpairs) !=0):
@@ -649,38 +738,55 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
 
 # Scores in table
 
-flPlot=False
-flScore=False
+flPlot=True
+flScore=True
 
 if(flScore):
-    plot_app('miniVite',0,3,flPlot) # used for score table data - all hm - more blocks
-    plot_app('miniVite',0,2,flPlot) # used for score table data - all hm - more blocks
-    plot_app('HiParTI-HiCOO tensor MTTKRP',0,3, flPlot) # used for score table data - all hm - more blocks
-    plot_app('HiParTI-HiCOO tensor MTTKRP',0,2, flPlot) # used for score table data - all hm - more blocks
-    plot_app('xsb-noflto-other-grid', 0, 3,flPlot) # used for score table data - all hm - more blocks
-    plot_app('xsb-noflto-other-grid', 0, 2,flPlot) # used for score table data - all hm - more blocks
-    plot_app('xsb-noflto-grid-index', 0, 3,flPlot) # used for score table data - all hm - more blocks
-    plot_app('xsb-noflto-grid-index', 0, 2,flPlot) # used for score table data - all hm - more blocks
-    plot_app('xsb-noflto-mat-conc',0,3,flPlot) # used for score table data - all hm - more blocks
-    plot_app('xsb-noflto-mat-conc',0,2,flPlot) # used for score table data - all hm - more blocks
-    plot_app('alpaca-row',0,3,flPlot) # used for score table data - all hm - more blocks
-    plot_app('alpaca-row',0,2,flPlot) # used for score table data - all hm - more blocks
-    plot_app('alpaca-col',0,3,flPlot) # used for score table data - all hm - more blocks
-    plot_app('alpaca-col',0,2,flPlot) # used for score table data - all hm - more blocks
+#    plot_app('miniVite',0,3,flPlot) # used for score table data - all hm - more blocks
+#    plot_app('miniVite',0,2,flPlot) # used for score table data - all hm - more blocks
+    plot_app('HiParTI-HiCOO tensor reordering',0,3, flPlot) # used for score table data - all hm - more blocks
+    plot_app('HiParTI-HiCOO tensor reordering',0,2, flPlot) # used for score table data - all hm - more blocks
+#    plot_app('xsb-large-mat',0,3,flPlot) # used for score table data - all hm - more blocks
+#    plot_app('xsb-large-mat',0,2,flPlot) # used for score table data - all hm - more blocks
+ #   plot_app('alpaca-row',0,3,flPlot) # used for score table data - all hm - more blocks
+ #   plot_app('alpaca-row',0,2,flPlot) # used for score table data - all hm - more blocks
+#  plot_app('alpaca-col',0,3,flPlot) # used for score table data - all hm - more blocks
+ #   plot_app('alpaca-col',0,2,flPlot) # used for score table data - all hm - more blocks
+  #plot_app('darknet',0,3,flPlot) # used for score table data - all hm - more blocks
+    #plot_app('darknet',0,2,flPlot) # used for score table data - all hm - more blocks
+    
+flScore=False
+flPlot = True
+if(flScore):
+    plot_app('xsb-large-mat',0,3,flPlot) # used for score table data - all hm - more blocks
+    plot_app('xsb-large-mat',0,2,flPlot) # used for score table data - all hm - more blocks
+    plot_app('xsb-large-grid',0,3,flPlot) # used for score table data - all hm - more blocks
+    plot_app('xsb-large-grid',0,2,flPlot) # used for score table data - all hm - more blocks
+    plot_app('xsb-large-all',0,3,flPlot) # used for score table data - all hm - more blocks
+    plot_app('xsb-large-all',0,2,flPlot) # used for score table data - all hm - more blocks
+  #  plot_app('xsb-noinl-large-all',0,3,flPlot) # used for score table data - all hm - more blocks
+  #  plot_app('xsb-noinl-large-all',0,2,flPlot) # used for score table data - all hm - more blocks
+  #  plot_app('xsb-noinl-large-all',2,3,flPlot) # used for score table data - all hm - more blocks
+  #  plot_app('xsb-noinl-large-all',2,2,flPlot) # used for score table data - all hm - more blocks
+ #   plot_app('xsb-noflto-other-grid', 0, 3,flPlot) # used for score table data - all hm - more blocks
+ #   plot_app('xsb-noflto-other-grid', 0, 2,flPlot) # used for score table data - all hm - more blocks
+ #   plot_app('xsb-noflto-grid-index', 0, 3,flPlot) # used for score table data - all hm - more blocks
+ #   plot_app('xsb-noflto-grid-index', 0, 2,flPlot) # used for score table data - all hm - more blocks
+ #   plot_app('xsb-noflto-mat-conc',0,3,flPlot) # used for score table data - all hm - more blocks
+ #   plot_app('xsb-noflto-mat-conc',0,2,flPlot) # used for score table data - all hm - more blocks
 
 #plot_app('xsb-noflto-all',2,2,True)
-
-#plot_app('HiParTI-HiCOO tensor MTTKRP',0,3, flPlot) # used for score table data - all hm - more blocks
-#plot_app('HiParTI-HiCOO tensor MTTKRP',0,2, flPlot) # used for score table data - all hm - more blocks
+#plot_app('HiParTI-HiCOO tensor reordering',0,3, flPlot) # used for score table data - all hm - more blocks
+#plot_app('HiParTI-HiCOO tensor reordering',0,2, flPlot) # used for score table data - all hm - more blocks
 #plot_app('miniVite',0,2,flPlot)
 
 #Plots in paper
 flPlot=True
-if (1):
+if (0):
     #plot_app('xsb-noflto-mat-conc',0,2,flPlot)
     #plot_app('xsb-noflto-mat-conc',2,2,flPlot)
     #plot_app('miniVite',0,2,flPlot)
-    plot_app('HiParTI-HiCOO tensor MTTKRP',0,2, flPlot)
+    plot_app('HiParTI-HiCOO tensor reordering',0,2, flPlot)
 
 #plot_app('xsb-noflto-other-grid', 0,3,flPlot) # No useful data - irregular accesses
 #plot_app('xsb-noflto-other-grid', 0,2,flPlot) # No useful data - irregular accesses
@@ -691,7 +797,7 @@ if (1):
 # Trial for targetted blocks in score
 if(0):
     plot_app('miniVite',2,3,flPlot)
-    plot_app('HiParTI-HiCOO tensor MTTKRP',2,3, flPlot)
+    plot_app('HiParTI-HiCOO tensor reordering',2,3, flPlot)
     plot_app('xsb-noflto-other-grid', 2, 3,flPlot)
     plot_app('xsb-noflto-grid-index', 2, 3,flPlot)
     plot_app('xsb-noflto-mat-energy',2,3,flPlot)

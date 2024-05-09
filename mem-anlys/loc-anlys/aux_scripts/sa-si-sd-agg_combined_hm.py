@@ -108,6 +108,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
     df_inter_data['Reg_Num-Name']=df_inter_data.apply(lambda x:'%s-%s' % (x['RegionId_Num'],x['RegionId_Name']),axis=1)
     numRegionInFile = df_inter_data['RegionId_Num'].count()
     #print(df_inter_data)
+    df_inter_data['Access count']=df_inter_data['Access count'].astype(int)
     df_inter_data_sample=df_inter_data.nlargest(n=numRegion,  columns=['Access count'])
     arRegionId = df_inter_data_sample['Reg_Num-Name'].values.flatten().tolist()
     print('orig arRegionId ', arRegionId)
@@ -538,57 +539,57 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             if(len(negSelfCols) ==1 and len(posSelfCols)==1):
                 print( ' **** in length 1')
                 colSelfAdjIndex = cols_df_SD.index('SD-self-1') if 'SD-self-1' in cols_df_SD else -1
-            if(colSelfAdjIndex != -1):
-                cols_df_SP.insert(colSelfAdjIndex, 'SP-self-2')
-                cols_df_SD.insert(colSelfAdjIndex, 'SD-self-2')
-                cols_df_SI.insert(colSelfAdjIndex, 'SI-self-2')
-                if ('SP-self-2' not in df_SP_SI_SD):
-                    df_SP_SI_SD['SP-self-2']=np.NaN
-                if ('SD-self-2' not in df_SP_SI_SD):
-                    df_SP_SI_SD['SD-self-2']=np.NaN
-                if ('SI-self-2' not in df_SP_SI_SD):
-                    df_SP_SI_SD['SI-self-2']=np.NaN
-            colSelfAdjIndex = cols_df_SD.index('SD-self+1') if 'SD-self+1' in cols_df_SD else -1
-            if(colSelfAdjIndex != -1):
-                cols_df_SP.insert(colSelfAdjIndex+1, 'SP-self+2')
-                cols_df_SD.insert(colSelfAdjIndex+1, 'SD-self+2')
-                cols_df_SI.insert(colSelfAdjIndex+1, 'SI-self+2')
-                cols_df_SP.insert(colSelfAdjIndex+2, 'SP-self+3')
-                cols_df_SD.insert(colSelfAdjIndex+2, 'SD-self+3')
-                cols_df_SI.insert(colSelfAdjIndex+2, 'SI-self+3')
-                cols_df_SP.insert(colSelfAdjIndex+3, 'SP-self+4')
-                cols_df_SD.insert(colSelfAdjIndex+3, 'SD-self+4')
-                cols_df_SI.insert(colSelfAdjIndex+3, 'SI-self+4')
-                cols_df_SP.insert(colSelfAdjIndex+4, 'SP-self+5')
-                cols_df_SD.insert(colSelfAdjIndex+4, 'SD-self+5')
-                cols_df_SI.insert(colSelfAdjIndex+4, 'SI-self+5')
+                if(colSelfAdjIndex != -1):
+                    cols_df_SP.insert(colSelfAdjIndex, 'SP-self-2')
+                    cols_df_SD.insert(colSelfAdjIndex, 'SD-self-2')
+                    cols_df_SI.insert(colSelfAdjIndex, 'SI-self-2')
+                    if ('SP-self-2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SP-self-2']=np.NaN
+                    if ('SD-self-2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SD-self-2']=np.NaN
+                    if ('SI-self-2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SI-self-2']=np.NaN
+                colSelfAdjIndex = cols_df_SD.index('SD-self+1') if 'SD-self+1' in cols_df_SD else -1
+                if(colSelfAdjIndex != -1):
+                    cols_df_SP.insert(colSelfAdjIndex+1, 'SP-self+2')
+                    cols_df_SD.insert(colSelfAdjIndex+1, 'SD-self+2')
+                    cols_df_SI.insert(colSelfAdjIndex+1, 'SI-self+2')
+                    cols_df_SP.insert(colSelfAdjIndex+2, 'SP-self+3')
+                    cols_df_SD.insert(colSelfAdjIndex+2, 'SD-self+3')
+                    cols_df_SI.insert(colSelfAdjIndex+2, 'SI-self+3')
+                    cols_df_SP.insert(colSelfAdjIndex+3, 'SP-self+4')
+                    cols_df_SD.insert(colSelfAdjIndex+3, 'SD-self+4')
+                    cols_df_SI.insert(colSelfAdjIndex+3, 'SI-self+4')
+                    cols_df_SP.insert(colSelfAdjIndex+4, 'SP-self+5')
+                    cols_df_SD.insert(colSelfAdjIndex+4, 'SD-self+5')
+                    cols_df_SI.insert(colSelfAdjIndex+4, 'SI-self+5')
 
-                if ('SP-self+2' not in df_SP_SI_SD):
-                    df_SP_SI_SD['SP-self+2']=np.NaN
-                if ('SD-self+2' not in df_SP_SI_SD):
-                    df_SP_SI_SD['SD-self+2']=np.NaN
-                if ('SI-self+2' not in df_SP_SI_SD):
-                    df_SP_SI_SD['SI-self+2']=np.NaN
-                if ('SP-self+3' not in df_SP_SI_SD):
-                    df_SP_SI_SD['SP-self+3']=np.NaN
-                if ('SD-self+3' not in df_SP_SI_SD):
-                    df_SP_SI_SD['SD-self+3']=np.NaN
-                if ('SI-self+3' not in df_SP_SI_SD):
-                    df_SP_SI_SD['SI-self+3']=np.NaN
-                if ('SP-self+4' not in df_SP_SI_SD):
-                    df_SP_SI_SD['SP-self+4']=np.NaN
-                if ('SD-self+4' not in df_SP_SI_SD):
-                    df_SP_SI_SD['SD-self+4']=np.NaN
-                if ('SI-self+4' not in df_SP_SI_SD):
-                    df_SP_SI_SD['SI-self+4']=np.NaN
-                if ('SP-self+5' not in df_SP_SI_SD):
-                    df_SP_SI_SD['SP-self+5']=np.NaN
-                if ('SD-self+5' not in df_SP_SI_SD):
-                    df_SP_SI_SD['SD-self+5']=np.NaN
-                if ('SI-self+5' not in df_SP_SI_SD):
-                    df_SP_SI_SD['SI-self+5']=np.NaN
+                    if ('SP-self+2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SP-self+2']=np.NaN
+                    if ('SD-self+2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SD-self+2']=np.NaN
+                    if ('SI-self+2' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SI-self+2']=np.NaN
+                    if ('SP-self+3' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SP-self+3']=np.NaN
+                    if ('SD-self+3' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SD-self+3']=np.NaN
+                    if ('SI-self+3' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SI-self+3']=np.NaN
+                    if ('SP-self+4' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SP-self+4']=np.NaN
+                    if ('SD-self+4' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SD-self+4']=np.NaN
+                    if ('SI-self+4' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SI-self+4']=np.NaN
+                    if ('SP-self+5' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SP-self+5']=np.NaN
+                    if ('SD-self+5' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SD-self+5']=np.NaN
+                    if ('SI-self+5' not in df_SP_SI_SD):
+                        df_SP_SI_SD['SI-self+5']=np.NaN
 
-
+            print('line 591 ', cols_df_SP)
             if(len(negSelfCols)==0 ):
                 colSelfIndex = cols_df_SD.index('SD-self') if 'SD-self' in cols_df_SD else -1
                 if(colSelfIndex != -1):
@@ -612,8 +613,8 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                         df_SP_SI_SD['SI-self-2']=np.NaN
 
             if(len(posSelfCols)==0):
+                print('posSelfCols ==0', colSelfIndex)
                 colSelfIndex = cols_df_SD.index('SD-self') if 'SD-self' in cols_df_SD else -1
-                #print('posSelfCols ==0', colSelfIndex)
                 if(colSelfIndex != -1):
                     cols_df_SP.insert(colSelfIndex+1, 'SP-self+1')
                     cols_df_SD.insert(colSelfIndex+1, 'SD-self+1')
@@ -634,7 +635,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
                     if ('SI-self+2' not in df_SP_SI_SD):
                         df_SP_SI_SD['SI-self+2']=np.NaN
 
-        #print(cols_df_SP)
+        print('line 637 ', cols_df_SP)
         #print(cols_df_SI)
         pattern = re.compile('SD-self-\d\d.*')
         negSelfCols = list(filter(pattern.match, cols_df_SD))
@@ -849,19 +850,42 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             #df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i],'SI-'+listAffinityLines[i]] = df_SP_SI_SD.loc[df_SP_SI_SD['reg-page-blk'] == listAffinityLines[i], 'SI-self']
 
         dfAllCols=df_SP_SI_SD.columns.to_list()
+        print('dfAllCols ', dfAllCols)
         pattern=re.compile("S.*-")
         removeCols=list(filter(pattern.match, dfAllCols))
         csvColList=[]
         if(len(removeCols)!=0):
             subList = [x for x in dfAllCols if x not in removeCols]
         csvColList.extend(subList)
-        print('csvColList ', csvColList)
+        print(' no S csvColList ', csvColList)
         hmAffLines=[]
         hmAffLines.extend(cols_df_SP)
         hmAffLines.extend(cols_df_SI)
         hmAffLines.extend(cols_df_SD)
         print('hmAffLines ', hmAffLines)
         csvColList.extend(hmAffLines)
+        print('after hmAffLines csvColList ', csvColList)
+        listExtraCols=[]
+        for item in csvColList:
+            if (not (item in dfAllCols)):
+                csvColList.remove(item)
+                listExtraCols.append(item)
+                print (listExtraCols )
+        print (listExtraCols )
+        for item in listExtraCols:
+            removeItem = item[3:]
+            print ('SP-'+removeItem)
+            if ('SP-'+removeItem in cols_df_SP):
+                cols_df_SP.remove('SP-'+removeItem)
+                hmAffLines.remove('SP-'+removeItem)
+            if ('SD-'+removeItem in cols_df_SD):
+                cols_df_SD.remove('SD-'+removeItem)
+                hmAffLines.remove('SD-'+removeItem)
+            if ('SI-'+removeItem in cols_df_SI):
+                cols_df_SI.remove('SI-'+removeItem)
+                hmAffLines.remove('SI-'+removeItem)
+
+        print('after remove csvColList ', csvColList)
         df_hot_SP_SI_SD_csv=df_SP_SI_SD[csvColList]
         df_hot_SP_SI_SD_csv['TotalAccess']=arRegionAccess
         df_hot_SP_SI_SD_csv['PageAccess']=accessSumBlocks
@@ -1260,12 +1284,34 @@ if (0):  # Jan 8 - Used in paper plots
                     , strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     # Paper plots - END
 
-if (0):  # Mar 19 - Large grid size, not XL
-    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b32768-p5000000-event-k-0/spatial.txt', 2 \
-                   , strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
-    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b32768-p5000000-event-k-1/spatial.txt', 2 \
-                    , strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+# Apr 30 - trial to show grid access
+if(0):
+    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-large/memgaze-xs-large/XSBench-memgaze-trace-b8192-p5000000-event-k-0/spatial.txt'\
+                    , 2 ,  listCombineReg=['ALL'], strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-threading-noinline/memgaze-xs-large/memgaze-xs-large/XSBench-memgaze-trace-b8192-p5000000-event-k-1/spatial.txt'\
+                    , 2 , listCombineReg=['ALL'], strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
+
+if (1):  # Mar 19 - Large grid size, not XL
+    #intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b32768-p5000000-event-k-0/spatial.txt', 2 \
+    #               , strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    #intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b32768-p5000000-event-k-1/spatial.txt', 2 \
+    #                , strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+
+    #intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-0/spatial.txt', 2 \
+    #              , listCombineReg=['ALL'],  strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    #intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-1/spatial.txt', 2 \
+    #              , listCombineReg=['ALL'], strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+
+# May 2 - trial for all same regions
+    intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-0/spatial.txt', 4 \
+        #, listCombineReg=['0-A0000000', '2-B0010000', '3-B1000000'],  strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+        , listCombineReg=[ '2-B0010000', '3-B1000000'],  strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+        #,  strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+    intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-1/spatial.txt', 5 \
+        #, listCombineReg=['0-A0000000','3-B0001000', '4-B1000000'], strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+        , listCombineReg=['3-B0001000', '4-B1000000'], strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
+        #,  strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 
 if(0): # Data from bignuke runs
@@ -1284,7 +1330,7 @@ if (0):
     intraObjectPlot('AlexNet',mainPath+'spatial_pages_exp/Darknet/alexnet_single/hot_lines/spatial.txt',5, \
                     listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     # Paper plots - END
-if(1):
+if(0):
     # Paper plots - START
     intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',\
                     flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
