@@ -593,24 +593,30 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             if(len(negSelfCols)==0 ):
                 colSelfIndex = cols_df_SD.index('SD-self') if 'SD-self' in cols_df_SD else -1
                 if(colSelfIndex != -1):
-                    cols_df_SP.insert(colSelfIndex, 'SP-self-2')
-                    cols_df_SD.insert(colSelfIndex, 'SD-self-2')
-                    cols_df_SI.insert(colSelfIndex, 'SI-self-2')
-                    cols_df_SP.insert(colSelfIndex+1, 'SP-self-1')
-                    cols_df_SD.insert(colSelfIndex+1, 'SD-self-1')
-                    cols_df_SI.insert(colSelfIndex+1, 'SI-self-1')
+                    if (0):
+                        cols_df_SP.insert(colSelfIndex, 'SP-self-2')
+                        cols_df_SD.insert(colSelfIndex, 'SD-self-2')
+                        cols_df_SI.insert(colSelfIndex, 'SI-self-2')
+                        cols_df_SP.insert(colSelfIndex+1, 'SP-self-1')
+                        cols_df_SD.insert(colSelfIndex+1, 'SD-self-1')
+                        cols_df_SI.insert(colSelfIndex+1, 'SI-self-1')
+                    cols_df_SP.insert(colSelfIndex, 'SP-self-1')
+                    cols_df_SD.insert(colSelfIndex, 'SD-self-1')
+                    cols_df_SI.insert(colSelfIndex, 'SI-self-1')
+
                     if ('SP-self-1' not in df_SP_SI_SD):
                         df_SP_SI_SD['SP-self-1']=np.NaN
                     if ('SD-self-1' not in df_SP_SI_SD):
                         df_SP_SI_SD['SD-self-1']=np.NaN
                     if ('SI-self-1' not in df_SP_SI_SD):
                         df_SP_SI_SD['SI-self-1']=np.NaN
-                    if ('SP-self-2' not in df_SP_SI_SD):
-                        df_SP_SI_SD['SP-self-2']=np.NaN
-                    if ('SD-self-2' not in df_SP_SI_SD):
-                        df_SP_SI_SD['SD-self-2']=np.NaN
-                    if ('SI-self-2' not in df_SP_SI_SD):
-                        df_SP_SI_SD['SI-self-2']=np.NaN
+                    if (0):
+                        if ('SP-self-2' not in df_SP_SI_SD):
+                            df_SP_SI_SD['SP-self-2']=np.NaN
+                        if ('SD-self-2' not in df_SP_SI_SD):
+                            df_SP_SI_SD['SD-self-2']=np.NaN
+                        if ('SI-self-2' not in df_SP_SI_SD):
+                            df_SP_SI_SD['SI-self-2']=np.NaN
 
             if(len(posSelfCols)==0):
                 print('posSelfCols ==0', colSelfIndex)
@@ -978,7 +984,7 @@ def intraObjectPlot(strApp, strFileName,numRegion, strMetric=None, f_avg=None,li
             df_hm_SD=df_hm_SD.transpose()
             print('df_hm_SD shape', df_hm_SD.shape)
 
-            fig = plt.figure(constrained_layout=True, figsize=(15, 12))
+            fig = plt.figure(constrained_layout=True, figsize=(15, 9))
             gs = gridspec.GridSpec(1, 2, figure=fig,width_ratios=[12,3])
             gsleft = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec = gs[0] ,hspace=0.02)#,height_ratios=[3.25,3.5,3.25])
             gsrightwhole=gridspec.GridSpecFromSubplotSpec(2, 1, height_ratios=[0.01,9.99], subplot_spec = gs[1] ,hspace=0.0)
@@ -1292,7 +1298,7 @@ if(0):
                     , 2 , listCombineReg=['ALL'], strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
 
 
-if (1):  # Mar 19 - Large grid size, not XL
+if (0):  # Mar 19 - Large grid size, not XL
     #intraObjectPlot('XSB-rd-EVENT_k0',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b32768-p5000000-event-k-0/spatial.txt', 2 \
     #               , strMetric='SD-SP-SI', flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     #intraObjectPlot('XSB-rd-EVENT_OPT_k1',mainPath+'spatial_pages_exp/XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b32768-p5000000-event-k-1/spatial.txt', 2 \
@@ -1330,7 +1336,7 @@ if (0):
     intraObjectPlot('AlexNet',mainPath+'spatial_pages_exp/Darknet/alexnet_single/hot_lines/spatial.txt',5, \
                     listCombineReg=['5-B1000000','6-B1001000','7-B1010000','8-B1011000'],strMetric='SD-SP-SI',flWeighted=flWeight,affinityOption=3,flPlot=flPlot)
     # Paper plots - END
-if(0):
+if(1):
     # Paper plots - START
     intraObjectPlot('HiParTi - CSR',mainPath+'spatial_pages_exp/HICOO-matrix/4096-same-iter/hot_lines/csr/spatial.txt',2,f_avg=f_avg1,strMetric='SD-SP-SI',\
                     flWeighted=flWeight,affinityOption=3,flPlot=flPlot)

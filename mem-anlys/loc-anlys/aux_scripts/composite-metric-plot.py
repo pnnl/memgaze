@@ -5,11 +5,16 @@ import seaborn as sns
 import re
 import matplotlib.patches as mpatches
 plt.rcParams['font.family'] = 'monospace'
-sns.set(font_scale=4,style="white",palette=None)
+sns.set(font_scale=4.5,style="white",palette=None)
 #plt.rcParams.update({"text.usetex": True,})
 
 
-SI_good=63
+SI_good=49
+# the value is 50, but SI calculations in affinity analysis start at 0, so the first 50 entries go to bin 1
+# Represent 1/4 of load queue in Bignuke - actual value 192
+max_bins=5
+# Samples are generally 250 accesses with 8K buffer from Memgaze
+
 def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,dictVarAccess, listUnRealizedpairs):
     # Three ways to choose hot ref blocks
         # intHotRef = 0 - Option 0 - 90% in range Hot-Access - DEFAULT
@@ -142,7 +147,9 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
                 flInclude=False
             # not include 'SELF' for SA
             if(regPageBlock == listAffinityLines[i] or listAffinityLines[i] == 'self'):
+                #print('line 150 flIncludeSA ', flIncludeSA)
                 flIncludeSA=False
+                #print('line 151 flIncludeSA ', flIncludeSA, listAffinityLines[i])
             if((intHotAff==3)):
                 #print('opt 3 ', listAffinityLines[i], flIncludeSA, flInclude)
                 if(not(listAffinityLines[i] in ['self', 'self-1', 'self+1'] or len(listAffinityLines[i].split('-'))>=3)):
@@ -150,6 +157,8 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
                 if(not(listAffinityLines[i] in ['self+1', 'self+2'] or len(listAffinityLines[i].split('-'))>=3)):
                     #print('non SA ', listAffinityLines[i])
                     flIncludeSA=False
+                #else:
+                    #print ('------ else SA ', listAffinityLines[i], flIncludeSA, ' flInclude ', flInclude, row['Hot-Access'])
             if((flInclude==True ) and \
                         #((intHotRef == 0 and (row['Hot-Access']>= 0.1 and (row['Access']/row['TotalAccess'] >= 0.0025))) \
                             ((intHotRef == 0 and  (row['Hot-Access']>= 0.1)) \
@@ -157,23 +166,27 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
                                      or (intHotRef == 1 and row['Access']>= accessThreshold)  or \
                                         (intHotRef == 2 ))):
                 #print('in include', row['SI-'+listAffinityLines[i]])
+                #print ('------ in add SA ', listAffinityLines[i], flIncludeSA, ' flInclude ', flInclude, row['Hot-Access'], row['SI-'+listAffinityLines[i]],row['SP-'+listAffinityLines[i]] )
                 listFinalRefLines.append(regPageBlock)
                 blkSIValue=np.nan
                 blkSAValue=np.nan
                 blkSDValue=np.nan
-                if((row['SI-'+listAffinityLines[i]])) and (~np.isnan(row['SI-'+listAffinityLines[i]])):
-                #if(~np.isnan(row['SI-'+listAffinityLines[i]])):
+                # This doesnt work if SI is zero
+                #if((row['SI-'+listAffinityLines[i]])) and (~np.isnan(row['SI-'+listAffinityLines[i]])):
+                if(~np.isnan(row['SI-'+listAffinityLines[i]])):
                     blkSIValue = row['SI-'+listAffinityLines[i]]
                 if((row['SD-'+listAffinityLines[i]])) and (~np.isnan(row['SD-'+listAffinityLines[i]])):
                     blkSDValue = row['SD-'+listAffinityLines[i]]
                 if((row['SP-'+listAffinityLines[i]])) and (~np.isnan(row['SP-'+listAffinityLines[i]])):
                     blkSAValue = row['SP-'+listAffinityLines[i]]
                 if (not(np.isnan(blkSIValue))):
-                    #print('in SI , SA -', flIncludeSA, ' SD ', flIncludeSD)
+                    #print('in SI , SA -', flIncludeSA, ' SD ', flIncludeSD, listAffinityLines[i])
                     valSIBin = int(blkSIValue /SI_good) +1
-                    if(valSIBin > 10):
-                        valSIBin = 10
-                    valSIDiscount = float((10-valSIBin+1)/10)
+                    if (blkSIValue > SI_good):
+                        print('blkSIValue > ',str(SI_good),' val ', str(blkSIValue), str(blkSDValue), str(blkSAValue))
+                    if(valSIBin > max_bins):
+                        valSIBin = max_bins
+                    valSIDiscount = float((max_bins-valSIBin+1)/max_bins)
                     #print (regPageBlock,listAffinityLines[i],blkSDValue, blkSIValue, blkSAValue, valSIDiscount,flIncludeSA)
                     df_local.loc[df_local['reg-page-blk'] == regPageBlock, ['SD-'+listAffinityLines[i]]] = round((blkSDValue * valSIDiscount),3)
                     df_local.loc[df_local['reg-page-blk'] == regPageBlock, ['SP-'+listAffinityLines[i]]] = round((blkSAValue * valSIDiscount),3)
@@ -181,12 +194,13 @@ def read_file_df(strFileName, intHotRef:None, intHotAff:None, strApp,dfForPlot,d
                            #df_local[(df_local['reg-page-blk'] == regPageBlock)]['SD-'+listAffinityLines[i]].item(), \
                            #df_local[(df_local['reg-page-blk'] == regPageBlock)]['SP-'+listAffinityLines[i]].item() )
                     if(flIncludeSA == True and flIncludeSD ==True):
-                        #print('both true ', regPageBlock, listAffinityLines[i], round((blkSAValue * valSIDiscount),3))
+                        #print('***** both true ', regPageBlock, listAffinityLines[i], round((blkSAValue * valSIDiscount),3))
                         dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,row['Access'], row['Hot-Access'], round((blkSDValue * valSIDiscount),3),round((blkSAValue * valSIDiscount),3),hotAccessWeight]
                     elif (flIncludeSA == False and flIncludeSD ==True):
+                        #print('***** SD true ', regPageBlock, listAffinityLines[i], round((blkSDValue * valSIDiscount),3))
                         dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,row['Access'], row['Hot-Access'], round((blkSDValue * valSIDiscount),3),np.nan,hotAccessWeight]
                     elif (flIncludeSA == True and flIncludeSD ==False):
-                        #print('SA true ', regPageBlock, listAffinityLines[i], round((blkSAValue * valSIDiscount),3))
+                        #print('**** SA true ', regPageBlock, listAffinityLines[i], round((blkSAValue * valSIDiscount),3))
                         dfForPlot.loc[len(dfForPlot)]=[strApp,regPageBlock,row['Access'], row['Hot-Access'], np.nan, round((blkSAValue * valSIDiscount),3),hotAccessWeight]
 
                     # Unrealized - check in intHotAff == 2
@@ -217,7 +231,7 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
     #print(dictVarAccess)
     print(dfForPlot.columns.to_list())
     print(dfForPlot.tail(2))
-
+    #print(dfForPlot)
     #HACK - added to show the KDE plot without the spike
     if(strApp=='XSBench'):
         dfForPlot.loc[len(dfForPlot)]=['Event-k0','0-2-201',40640, 1.0, 0.001, np.nan,0.426003]
@@ -328,7 +342,7 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
                 t.set_text(str(t.get_text()).ljust(14) +  str(round((dictVarAccess[t.get_text()][1]*100/dictVarAccess[t.get_text()][0]),2)).center(15) \
                            + dictSD[t.get_text()][0].center(15)+ str(round(float(dictSD[t.get_text()][1])*float(dictSD[t.get_text()][0])/100)).center(15))
                 t.set_ha('right')
-        p.set(title=strApp+" variants - $\it{"+strMetric+"}^{*}(j|i)$")
+        p.set(title=strApp+" variants \n $\it{"+strMetric+"}^{*}(j|i)$")
         #p.map(plt.axvline, x=0.05, color='black', linewidth=1,linestyle='--')
         strPath=strFileName[0:strFileName.rindex('/')]
         imageFileName=strPath+'/'+strApp.replace(' ','-')+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
@@ -338,11 +352,12 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
         clip_limit=(0,1.0)
         p = sns.displot(dfForPlot, x=strMetric,  kind="kde", hue="Variant", bw_adjust=0.15,  clip=clip_limit ,aspect=2,height=10,linewidth=3, alpha=1,facet_kws=dict(legend_out=False))
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
+        p.set(ylabel="Rel. Frequency")
         if(strApp=='XSBench'):
             sns.move_legend(p,"upper center",bbox_to_anchor=(.6, .9))
         else:
             sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
-        p.set(title=strApp+" variants - $\it{"+strMetric+"}^{*}(j|i)$ density plot")
+        p.set(title=strApp+" variants \n $\it{"+strMetric+"}^{*}(j|i)$ density plot")
         strPath=strFileName[0:strFileName.rindex('/')]
         imageFileName=strPath+'/'+strApp.replace(' ','-')+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
         print(imageFileName)
@@ -372,7 +387,7 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
                            + dictSA[t.get_text()][0].center(15)+ str(round(float(dictSA[t.get_text()][1])*float(dictSA[t.get_text()][0])/100)).center(15))
                 t.set_ha('right')
         #p.fig.text(0.8, 0.7, strSAText,  ha='left', verticalalignment='top',bbox=dict(boxstyle="round",facecolor='none', edgecolor='grey',alpha=0.5))
-        p.set(title=strApp+" variants - $\it{"+strMetric+"}^{*}(j|i)$")
+        p.set(title=strApp+" variants \n $\it{"+strMetric+"}^{*}(j|i)$")
         #p.map(plt.axvline, x=0.25, color='black', linewidth=1,linestyle='--')
         strPath=strFileName[0:strFileName.rindex('/')]
         imageFileName=strPath+'/'+strApp.replace(' ','-')+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
@@ -381,8 +396,9 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
 
         p = sns.displot(dfForPlot, x=strMetric, hue="Variant", kind="kde", bw_adjust=0.15, clip=(0.0,1.0), aspect=2, height=10,linewidth=3,alpha=1,facet_kws=dict(legend_out=False))
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
+        p.set(ylabel="Rel. Frequency")
         sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
-        p.set(title=strApp+" variants - $\it{"+strMetric+"}^{*}(j|i)$ density plot")
+        p.set(title=strApp+" variants \n $\it{"+strMetric+"}^{*}(j|i)$ density plot")
         strPath=strFileName[0:strFileName.rindex('/')]
         imageFileName=strPath+'/'+strApp.replace(' ','-')+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
         print(imageFileName)
@@ -398,38 +414,38 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
 
     if(strApp.lower()=='minivite-nuke'):
         strFileName='miniVite/hot_lines/miniVite-v1-1-A0000001-SD-SP-SI-df.csv'
-        strAppVar='miniVite-v1'
+        strAppVar='v1'
         strFileName=strPath+strFileName
         read_file_df(strFileName, optionHotRef,optionHotAff , strAppVar,dfForPlot,dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='miniVite/hot_lines/miniVite-v2-1-A0000010-4-A0002000-SD-SP-SI-df.csv'
-        strAppVar='miniVite-v2'
+        strAppVar='v2'
         strFileName=strPath+strFileName
         read_file_df(strFileName, optionHotRef,optionHotAff , strAppVar,dfForPlot,dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='miniVite/hot_lines/miniVite-v3-1-A0000001-5-A0001200-SD-SP-SI-df.csv'
-        strAppVar='miniVite-v3'
+        strAppVar='v3'
         strFileName=strPath+strFileName
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot,dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
     if(strApp.lower()=='minivite'):
         strFileName='miniVite/bignuke_run/mini-memgaze-ld/miniVite-v1-memgaze-trace-b16384-p5000000-anlys/miniVite-v1-1-A0001000-2-B0000000-3-B1100000-SD-SP-SI-df.csv'
-        strAppVar='miniVite-v1'
+        strAppVar='v1'
         strFileName=strPath+strFileName
         read_file_df(strFileName, optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='miniVite/bignuke_run/mini-memgaze-ld/miniVite-v2-memgaze-trace-b16384-p5000000-anlys/miniVite-v2-2-A0002000-3-B0000000-4-B1000000-SD-SP-SI-df.csv'
-        strAppVar='miniVite-v2'
+        strAppVar='v2'
         strFileName=strPath+strFileName
         read_file_df(strFileName, optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
 
         strFileName='miniVite/bignuke_run/mini-memgaze-ld/miniVite-v3-memgaze-trace-b16384-p5000000-anlys/miniVite-v3-4-A0002000-5-B0000000-6-B1100000-SD-SP-SI-df.csv'
-        strAppVar='miniVite-v3'
+        strAppVar='v3'
         strFileName=strPath+strFileName
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
@@ -600,6 +616,7 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
         strFileName=strPath+strFileName
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
+
     if(strApp.lower()=='alpaca-col'):
         strFileName='alpaca/mg-alpaca-noinline/chat-trace-b32768-p6000000-questions_copy/Alpaca-0-A0000000-1-A0000010-2-A0000011-3-A0000012-4-A0000013-SD-SP-SI-df.csv'
         strAppVar='alpaca-col'
@@ -741,22 +758,24 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
 flPlot=True
 flScore=True
 
+
 if(flScore):
-#    plot_app('miniVite',0,3,flPlot) # used for score table data - all hm - more blocks
-#    plot_app('miniVite',0,2,flPlot) # used for score table data - all hm - more blocks
+    plot_app('miniVite',0,3,flPlot) # used for score table data - all hm - more blocks
+    plot_app('miniVite',0,2,flPlot) # used for score table data - all hm - more blocks
     plot_app('HiParTI-HiCOO tensor reordering',0,3, flPlot) # used for score table data - all hm - more blocks
     plot_app('HiParTI-HiCOO tensor reordering',0,2, flPlot) # used for score table data - all hm - more blocks
-#    plot_app('xsb-large-mat',0,3,flPlot) # used for score table data - all hm - more blocks
-#    plot_app('xsb-large-mat',0,2,flPlot) # used for score table data - all hm - more blocks
- #   plot_app('alpaca-row',0,3,flPlot) # used for score table data - all hm - more blocks
- #   plot_app('alpaca-row',0,2,flPlot) # used for score table data - all hm - more blocks
-#  plot_app('alpaca-col',0,3,flPlot) # used for score table data - all hm - more blocks
- #   plot_app('alpaca-col',0,2,flPlot) # used for score table data - all hm - more blocks
+    plot_app('xsb-large-mat',0,3,flPlot) # used for score table data - all hm - more blocks
+    plot_app('xsb-large-mat',0,2,flPlot) # used for score table data - all hm - more blocks
+    flPlot=False
+    plot_app('alpaca-row',0,3,flPlot) # used for score table data - all hm - more blocks
+    plot_app('alpaca-row',0,2,flPlot) # used for score table data - all hm - more blocks
+    plot_app('alpaca-col',0,3,flPlot) # used for score table data - all hm - more blocks
+    plot_app('alpaca-col',0,2,flPlot) # used for score table data - all hm - more blocks
   #plot_app('darknet',0,3,flPlot) # used for score table data - all hm - more blocks
     #plot_app('darknet',0,2,flPlot) # used for score table data - all hm - more blocks
     
 flScore=False
-flPlot = True
+flPlot = False
 if(flScore):
     plot_app('xsb-large-mat',0,3,flPlot) # used for score table data - all hm - more blocks
     plot_app('xsb-large-mat',0,2,flPlot) # used for score table data - all hm - more blocks
