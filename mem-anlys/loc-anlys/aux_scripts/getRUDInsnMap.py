@@ -156,18 +156,18 @@ def readFile(inFile, outFile,appName):
                   objFile_C = ''
                   varVersion = 'mt-re-sel: '
                 if (appName == 'mini-v1'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld-300k/miniVite-v1-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld-300k/obj_v1'
+                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-fp-arabic/miniVite-v1-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-fp-arabic/obj_v1'
                   objFile_C = ''
                   varVersion = 'm-v1: '
                 if (appName == 'mini-v2'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld-300k/miniVite-v2-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld-300k/obj_v2'
+                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-fp-arabic/miniVite-v2-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-fp-arabic/obj_v2'
                   objFile_C = ''
                   varVersion = 'm-v2: '
                 if (appName == 'mini-v3'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld-300k/miniVite-v3-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-ld-300k/obj_v3'
+                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-fp-arabic/miniVite-v3-memgaze.binanlys'
+                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-fp-arabic/obj_v3'
                   objFile_C = ''
                   varVersion = 'm-v3: '
                 if (appName == 'alpaca'): 

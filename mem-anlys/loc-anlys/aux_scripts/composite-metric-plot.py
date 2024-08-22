@@ -4,8 +4,8 @@ import pandas as pd
 import seaborn as sns
 import re
 import matplotlib.patches as mpatches
-plt.rcParams['font.family'] = 'monospace'
-sns.set(font_scale=4.5,style="white",palette=None)
+plt.rcParams['font.family'] = 'sans-serif'
+sns.set(font_scale=4.0,style="white",palette='deep')
 #plt.rcParams.update({"text.usetex": True,})
 
 
@@ -234,8 +234,8 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
     #print(dfForPlot)
     #HACK - added to show the KDE plot without the spike
     if(strApp=='XSBench'):
-        dfForPlot.loc[len(dfForPlot)]=['Event-k0','0-2-201',40640, 1.0, 0.001, np.nan,0.426003]
-        dfForPlot.loc[len(dfForPlot)]=['Event-k1','0-2-201',40640, 1.0, 0.001, np.nan,0.426003]
+        dfForPlot.loc[len(dfForPlot)]=['k0','0-2-201',40640, 1.0, 0.001, np.nan,0.426003]
+        dfForPlot.loc[len(dfForPlot)]=['k1','0-2-201',40640, 1.0, 0.001, np.nan,0.426003]
         #0   XSBench-event-k0      0-2-201   40640  ...  0.05    NaN         0.426003
 
     print(dfForPlot.tail(2))
@@ -342,7 +342,10 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
                 t.set_text(str(t.get_text()).ljust(14) +  str(round((dictVarAccess[t.get_text()][1]*100/dictVarAccess[t.get_text()][0]),2)).center(15) \
                            + dictSD[t.get_text()][0].center(15)+ str(round(float(dictSD[t.get_text()][1])*float(dictSD[t.get_text()][0])/100)).center(15))
                 t.set_ha('right')
-        p.set(title=strApp+" variants \n $\it{"+strMetric+"}^{*}(j|i)$")
+        p.set(title=strApp+" variants $\it{"+strMetric+"}^{*}(j|i)$")
+        if(strApp == 'HiParTI-HiCOO tensor reordering'):
+            p.set(title=strApp+" variants \n $\it{"+strMetric+"}^{*}(j|i)$ density plot")
+
         #p.map(plt.axvline, x=0.05, color='black', linewidth=1,linestyle='--')
         strPath=strFileName[0:strFileName.rindex('/')]
         imageFileName=strPath+'/'+strApp.replace(' ','-')+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
@@ -357,7 +360,10 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
             sns.move_legend(p,"upper center",bbox_to_anchor=(.6, .9))
         else:
             sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
-        p.set(title=strApp+" variants \n $\it{"+strMetric+"}^{*}(j|i)$ density plot")
+        p.set(title=strApp+" variants $\it{"+strMetric+"}^{*}(j|i)$ density plot")
+        if(strApp == 'HiParTI-HiCOO tensor reordering'):
+            p.set(title=strApp+" variants \n $\it{"+strMetric+"}^{*}(j|i)$ density plot")
+
         strPath=strFileName[0:strFileName.rindex('/')]
         imageFileName=strPath+'/'+strApp.replace(' ','-')+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
         print(imageFileName)
@@ -387,7 +393,10 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
                            + dictSA[t.get_text()][0].center(15)+ str(round(float(dictSA[t.get_text()][1])*float(dictSA[t.get_text()][0])/100)).center(15))
                 t.set_ha('right')
         #p.fig.text(0.8, 0.7, strSAText,  ha='left', verticalalignment='top',bbox=dict(boxstyle="round",facecolor='none', edgecolor='grey',alpha=0.5))
-        p.set(title=strApp+" variants \n $\it{"+strMetric+"}^{*}(j|i)$")
+        p.set(title=strApp+" variants $\it{"+strMetric+"}^{*}(j|i)$")
+        if(strApp == 'HiParTI-HiCOO tensor reordering'):
+            p.set(title=strApp+" variants \n $\it{"+strMetric+"}^{*}(j|i)$ density plot")
+
         #p.map(plt.axvline, x=0.25, color='black', linewidth=1,linestyle='--')
         strPath=strFileName[0:strFileName.rindex('/')]
         imageFileName=strPath+'/'+strApp.replace(' ','-')+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot.pdf'
@@ -398,7 +407,9 @@ def draw_plot(strApp, strFileName, optionHotRef, optionHotAff,dfForPlot,dictVarA
         p.set(xlabel="$\it{"+strMetric+"}^{*}$")
         p.set(ylabel="Rel. Frequency")
         sns.move_legend(p,"upper center",bbox_to_anchor=(.8, .9))
-        p.set(title=strApp+" variants \n $\it{"+strMetric+"}^{*}(j|i)$ density plot")
+        p.set(title=strApp+" variants $\it{"+strMetric+"}^{*}(j|i)$ density plot")
+        if(strApp == 'HiParTI-HiCOO tensor reordering'):
+            p.set(title=strApp+" variants \n $\it{"+strMetric+"}^{*}(j|i)$ density plot")
         strPath=strFileName[0:strFileName.rindex('/')]
         imageFileName=strPath+'/'+strApp.replace(' ','-')+'-SI-'+strMetric+'_ref-'+str(optionHotRef)+'_aff-'+str(optionHotAff)+'-displot-kde.pdf'
         print(imageFileName)
@@ -651,12 +662,12 @@ def plot_app(strApp, optionHotRef, optionHotAff,flPlot:bool=False):
     #print(dfForPlot.tail(5))
     if(strApp.lower()=='xsb-large-mat'):
         strFileName='XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-1/XSB-rd-EVENT_OPT_k1-0-A0000000-SD-SP-SI-df.csv'
-        strAppVar='Event-k1'
+        strAppVar='k1'
         strFileName=strPath+strFileName
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
         strFileName='XSBench/openmp-noflto/memgaze-xs-read-large/XSBench-memgaze-trace-b16384-p5000000-event-k-0/XSB-rd-EVENT_k0-0-A0000000-SD-SP-SI-df.csv'
-        strAppVar='Event-k0'
+        strAppVar='k0'
         strFileName=strPath+strFileName
         read_file_df(strFileName,  optionHotRef,optionHotAff , strAppVar,dfForPlot, dictVarAccess,listUnRealizedpairs)
         print(dfForPlot.shape)
