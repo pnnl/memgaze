@@ -32,15 +32,25 @@ including multi-resolution analysis for locations vs. operations;
 accesses vs. spatio-temporal reuse, and reuse (distance, rate, volume)
 vs. access patterns.
 
+Memgaze now includes MemFriend, a new analysis module that introduces
+spatial and temporal locality analysis that captures affinity (access
+correlation) between pairs of memory locations. MemFriend's
+multi-resolution analysis identifies significant memory segments and
+simultaneously prunes the analysis space such that time and space
+complexity is modest. MemFriend creates signatures, selectable at 3D,
+2D, and 1D resolutions, that provide novel insights and enable
+predictive reasoning about application performance. The results aid
+data layout optimizations, and data placement decisions.
+
 
 **Contacts**: (_firstname_._lastname_@pnnl.gov)
   - Nathan R. Tallent ([www](https://hpc.pnnl.gov/people/tallent)), ([www](https://www.pnnl.gov/people/nathan-tallent))
 
 
 **Contributors**:
-  - Ozgur Kilic (Now BNL)
   - Nathan R. Tallent (PNNL) ([www](https://hpc.pnnl.gov/people/tallent)), ([www](https://www.pnnl.gov/people/nathan-tallent))
   - Yasodha Suriyakumar (Portland State University)
+  - Ozgur Kilic (Now BNL)
   - Andrés Marquez (PNNL)
   - Onur Cankur (University of Maryland)
   - Chenhao Xie (PNNL)
@@ -49,6 +59,8 @@ vs. access patterns.
 
 References
 -----------------------------------------------------------------------------
+
+* Yasodha Suriyakumar, Nathan R. Tallent, Andrés Marquez, and Karen Karavanic, "MemFriend: Understanding memory performance with spatial-temporal affinity," in Proc. of the International Symposium on Memory Systems (MemSys 2024), September 2024.
 
 * Ozgur O. Kilic, Nathan R. Tallent, Yasodha Suriyakumar, Chenhao Xie, Andrés Marquez, and Stephane Eranian, "MemGaze: Rapid and effective load-level memory and data analysis," in Proc. of the 2022 IEEE Conf. on Cluster Computing, IEEE, Sep 2022.
 
