@@ -21,7 +21,7 @@ Building & Installing
 
 0. Options:
    ```sh
-   DEVELOP=1
+   DEVELOP=0 # use 1 for developmental build
 
    MG_PERF_CC=<linux-perf-cc>
    
