@@ -1425,8 +1425,9 @@ int LoadModule::dyninstAnalyzeRoutines(ProgScope *prog, const MiamiOptions *mo, 
         // Check for NOP discontinuity within the blocks in the function
         // If it's within 10 bytes, then allow the function end to remain the same
         // If there are jumps to other functions - it should be more than 10 bytes change in address range
-        if (!(Pend >= ((blk->getStartAddress())-0xa))){
-          cout <<"Someting Wrong:"<<endl;
+        // if (!(Pend >= ((blk->getStartAddress())-0xa))){
+        if (Pend != blk->getStartAddress()) {
+            cout <<"Someting Wrong:"<<endl;
           cout <<hex<<"Prev End:"<<Pend<<" Start:"<<blk->getStartAddress()<<" End:"<<blk->getEndAddress()<<dec<<endl;
           if (Pend != start)
             end = Pend;
