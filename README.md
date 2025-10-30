@@ -60,13 +60,15 @@ data layout optimizations, and data placement decisions.
 References
 -----------------------------------------------------------------------------
 
-* Yasodha Suriyakumar, Nathan R. Tallent, Andrés Marquez, and Karen Karavanic, "MemFriend: Understanding memory performance with spatial-temporal affinity," in Proc. of the International Symposium on Memory Systems (MemSys 2024), September 2024.
+* Yasodha Suriyakumar, Nathan R. Tallent, Andrés Marquez, and Karen Karavanic, "MemFriend: Understanding memory performance with spatial-temporal affinity," in Proc. of the International Symposium on Memory Systems (MemSys 2024), September 2024. ([doi](https://doi.org/10.1145/3695794.3695820))
 
-* Ozgur O. Kilic, Nathan R. Tallent, Yasodha Suriyakumar, Chenhao Xie, Andrés Marquez, and Stephane Eranian, "MemGaze: Rapid and effective load-level memory and data analysis," in Proc. of the 2022 IEEE Conf. on Cluster Computing, IEEE, Sep 2022.
+* Ozgur O. Kilic, Nathan R. Tallent, Yasodha Suriyakumar, Chenhao Xie, Andrés Marquez, and Stephane Eranian, "MemGaze: Rapid and effective load-level memory and data analysis," in Proc. of the 2022 IEEE Conf. on Cluster Computing, IEEE, Sep 2022. ([doi](https://doi.org/10.1109/CLUSTER51413.2022.00058))
 
-* Ozgur O. Kilic, Nathan R. Tallent, and Ryan D. Friese, "Rapid memory footprint access diagnostics," in Proc. of the 2020 IEEE Intl. Symp. on Performance Analysis of Systems and Software, IEEE Computer Society, May 2020. <https://10.1109/ISPASS48437.2020.00047>
+* Ozgur O. Kilic, Nathan R. Tallent, and Ryan D. Friese, "Rapid memory footprint access diagnostics," in Proc. of the 2020 IEEE Intl. Symp. on Performance Analysis of Systems and Software, IEEE Computer Society, May 2020. ([doi](https://doi.org/10.1109/ISPASS48437.2020.00047))
 
-* Ozgur O. Kilic, Nathan R. Tallent, and Ryan D. Friese, "Rapidly measuring loop footprints," in Proc. of IEEE Intl. Conf. on Cluster Computing (Workshop on Monitoring and Analysis for High Performance Computing Systems Plus Applications), pp. 1--9, IEEE Computer Society, September 2019. https://doi.org/10.1109/CLUSTER.2019.8891025
+* Ozgur O. Kilic, Nathan R. Tallent, and Ryan D. Friese, "Rapidly measuring loop footprints," in Proc. of IEEE Intl. Conf. on Cluster Computing (Workshop on Monitoring and Analysis for High Performance Computing Systems Plus Applications), pp. 1--9, IEEE Computer Society, September 2019. ([doi](https://doi.org/10.1109/CLUSTER.2019.8891025))
+
+
 
 
 Acknowledgements
