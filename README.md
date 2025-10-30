@@ -57,6 +57,17 @@ data layout optimizations, and data placement decisions.
   - Stephane Eranian (Google)
 
 
+<!--
+There is a separation between trace collection and analysis. The trace format is very simple.
+
+To collect high-resolution low-overhead traces, we need a processor tracing support. The current implementation is for Intel.
+
+One can collect traces from GPUs/CPUs using slow methods and write to the simple format. We are developing a generic method using PIN (MEMPRINT: Constructing Program Memory Footprint Estimations using statistical methods from Sparsely Sampled Pin-based Memory Traces).
+
+The analyses then consume the generic format.
+-->
+
+
 References
 -----------------------------------------------------------------------------
 
