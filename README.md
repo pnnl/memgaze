@@ -46,11 +46,10 @@ data layout optimizations, and data placement decisions.
 **Contacts**: (_firstname_._lastname_@pnnl.gov)
   - Nathan R. Tallent ([www](https://hpc.pnnl.gov/people/tallent)), ([www](https://www.pnnl.gov/people/nathan-tallent))
 
-
 **Contributors**:
   - Nathan R. Tallent ([www](https://nathantallent.github.io))
   - Yasodha Suriyakumar (Portland State University)
-<!-- Venkata Challa, https://www.researchgate.net/scientific-contributions/Prajwal-Challa-2231777668 -->
+  - Venkata Challa ([www](https://www.researchgate.net/scientific-contributions/Prajwal-Challa-2231777668)) (U. Texas, Arlington)
   - Andrés Marquez (PNNL)
   - Ozgur Kilic (Now BNL)
   - Onur Cankur (University of Maryland)
