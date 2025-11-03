@@ -76,7 +76,12 @@ Data formats
 
 * MemGaze's final trace format:
 
-  `<insn-pc> <mem-addr> <cpu-id> <timestamp> <sample-id> <LoadModule-id>`
+  ```
+  <header>
+  <insn-pc> <mem-addr> <cpu-id> <timestamp> <sample-id> <LoadModule-id>
+  ```
+
+  - `<header>`: is a map of load modules to load module ids
 
   - `<insn-pc>`:  instruction pointer of memory access (static, unrelocated)
   - `<mem-addr>`: memory data address (dynamic, run-time)
