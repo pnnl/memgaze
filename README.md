@@ -73,7 +73,9 @@ References
 
 * Dhruv Gajaria, Prajwal Challa, Yasodha Suriyakuma, Jospeh Manzano, Nathan Tallent, and Andrés Márquez. "An Integrated Framework for Memory-Centric Analysis: From Trace Collection to Co-Design." Frontiers in High Performance Computing, Vol. 4-2026, 2026. ([doi: 10.3389/fhpcp.2026.1801169](https://doi.org/10.3389/fhpcp.2026.1801169))
 
-* Yasodha Suriyakumar, Nathan R. Tallent, Andrés Marquez, and Karen Karavanic. "MemFriend: Understanding Memory Performance with Spatial-Temporal Affinity," Proc. of the International Symposium on Memory Systems (MemSys 2024), MemSys '24, ACM, September 2024 ([doi: 10.1145/3695794.3695820](https://doi.org/10.1145/3695794.3695820))
+* Dhruv Gajaria and Andrés Márquez, “HOME: A hierarchy-oriented memory evaluation framework for fast contention analysis,” in Proc. of the International Symposium on Memory Systems, MemSys '25, ACM, September 2025. ([doi: 10.1145/3767110.3767132](https://doi.org/10.1145/3767110.3767123))
+
+* Yasodha Suriyakumar, Nathan R. Tallent, Andrés Marquez, and Karen Karavanic. "MemFriend: Understanding Memory Performance with Spatial-Temporal Affinity," Proc. of the International Symposium on Memory Systems, MemSys '24, ACM, September 2024 ([doi: 10.1145/3695794.3695820](https://doi.org/10.1145/3695794.3695820))
 
 * Ozgur O. Kilic, Nathan R. Tallent, Yasodhadevi Suriyakumar, Chenhao Xie, Andrés Marquez, and Stephane Eranian. "MemGaze: Rapid and Effective Load-Level Memory and Data Analysis." Proc. of the 2022 IEEE Conf. on Cluster Computing, CLUSTER '22, IEEE, September 2022. ([doi: 10.1109/CLUSTER51413.2022.00058](https://doi.org/10.1109/CLUSTER51413.2022.00058))
 
