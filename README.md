@@ -1,8 +1,8 @@
 <!-- -*-Mode: markdown;-*- -->
 <!-- $Id$ -->
 
-MemGaze
-=============================================================================
+# MemGaze
+
 
 **Home**:
   - https://github.com/pnnl/memgaze
@@ -43,6 +43,23 @@ predictive reasoning about application performance. The results aid
 data layout optimizations, and data placement decisions.
 
 
+
+<!--
+There is a separation between trace collection and analysis. The trace format is very simple.
+
+To collect high-resolution low-overhead traces, we need a processor tracing support. The current implementation is for Intel.
+
+One can collect traces from GPUs/CPUs using slow methods and write to the simple format. We are developing a generic method using PIN (MEMPRINT: Constructing Program Memory Footprint Estimations using statistical methods from Sparsely Sampled Pin-based Memory Traces).
+
+The analyses then consume the generic format.
+-->
+
+
+------------------------------------------------------------------------------
+
+## Contacts
+
+
 **Contacts**: (_firstname_._lastname_@pnnl.gov)
   - Nathan R. Tallent ([www](https://hpc.pnnl.gov/people/tallent)), ([www](https://www.pnnl.gov/people/nathan-tallent))
 
@@ -57,35 +74,26 @@ data layout optimizations, and data placement decisions.
   - Stephane Eranian (Google)
 
 
-<!--
-There is a separation between trace collection and analysis. The trace format is very simple.
 
-To collect high-resolution low-overhead traces, we need a processor tracing support. The current implementation is for Intel.
+## References
 
-One can collect traces from GPUs/CPUs using slow methods and write to the simple format. We are developing a generic method using PIN (MEMPRINT: Constructing Program Memory Footprint Estimations using statistical methods from Sparsely Sampled Pin-based Memory Traces).
+- Nanda Velugoti, Joseph Manzano, Andrés Marquez, Kyle Hale, and Nathan R. Tallent. "MemPower: Efficient Power Management with Fine-grained Memory Analysis and Modeling for HPC Workloads" Proc. of the 2026 IEEE Conf. on Cluster Computing, CLUSTER '26, IEEE, September 2026. ([doi: 10.1109/CLUSTER68337.2026.00027](https://doi.org/10.1109/CLUSTER68337.2026.00027))
 
-The analyses then consume the generic format.
--->
+- Dhruv Gajaria, Prajwal Challa, Yasodha Suriyakuma, Jospeh Manzano, Nathan Tallent, and Andrés Márquez. "An Integrated Framework for Memory-Centric Analysis: From Trace Collection to Co-Design." Frontiers in High Performance Computing, Vol. 4-2026, 2026. ([doi: 10.3389/fhpcp.2026.1801169](https://doi.org/10.3389/fhpcp.2026.1801169))
 
+- Dhruv Gajaria and Andrés Márquez, “HOME: A hierarchy-oriented memory evaluation framework for fast contention analysis,” in Proc. of the International Symposium on Memory Systems, MemSys '25, ACM, September 2025. ([doi: 10.1145/3767110.3767132](https://doi.org/10.1145/3767110.3767123))
 
-References
------------------------------------------------------------------------------
+- Yasodha Suriyakumar, Nathan R. Tallent, Andrés Marquez, and Karen Karavanic. "MemFriend: Understanding Memory Performance with Spatial-Temporal Affinity," Proc. of the International Symposium on Memory Systems, MemSys '24, ACM, September 2024 ([doi: 10.1145/3695794.3695820](https://doi.org/10.1145/3695794.3695820))
 
-* Dhruv Gajaria, Prajwal Challa, Yasodha Suriyakuma, Jospeh Manzano, Nathan Tallent, and Andrés Márquez. "An Integrated Framework for Memory-Centric Analysis: From Trace Collection to Co-Design." Frontiers in High Performance Computing, Vol. 4-2026, 2026. ([doi: 10.3389/fhpcp.2026.1801169](https://doi.org/10.3389/fhpcp.2026.1801169))
+- Ozgur O. Kilic, Nathan R. Tallent, Yasodhadevi Suriyakumar, Chenhao Xie, Andrés Marquez, and Stephane Eranian. "MemGaze: Rapid and Effective Load-Level Memory and Data Analysis." Proc. of the 2022 IEEE Conf. on Cluster Computing, CLUSTER '22, IEEE, September 2022. ([doi: 10.1109/CLUSTER51413.2022.00058](https://doi.org/10.1109/CLUSTER51413.2022.00058))
 
-* Dhruv Gajaria and Andrés Márquez, “HOME: A hierarchy-oriented memory evaluation framework for fast contention analysis,” in Proc. of the International Symposium on Memory Systems, MemSys '25, ACM, September 2025. ([doi: 10.1145/3767110.3767132](https://doi.org/10.1145/3767110.3767123))
+- Ozgur O. Kilic, Nathan R. Tallent, and Ryan D. Friese. "Rapid Memory Footprint Access Diagnostics" Proc. of the 2020 IEEE Intl. Symp. on Performance Analysis of Systems and Software, ISPASS '20, pp. 273-284, IEEE Computer Society, October 2020. ([doi: 10.1109/ISPASS48437.2020.00047](https://doi.org/10.1109/ISPASS48437.2020.00047))
 
-* Yasodha Suriyakumar, Nathan R. Tallent, Andrés Marquez, and Karen Karavanic. "MemFriend: Understanding Memory Performance with Spatial-Temporal Affinity," Proc. of the International Symposium on Memory Systems, MemSys '24, ACM, September 2024 ([doi: 10.1145/3695794.3695820](https://doi.org/10.1145/3695794.3695820))
-
-* Ozgur O. Kilic, Nathan R. Tallent, Yasodhadevi Suriyakumar, Chenhao Xie, Andrés Marquez, and Stephane Eranian. "MemGaze: Rapid and Effective Load-Level Memory and Data Analysis." Proc. of the 2022 IEEE Conf. on Cluster Computing, CLUSTER '22, IEEE, September 2022. ([doi: 10.1109/CLUSTER51413.2022.00058](https://doi.org/10.1109/CLUSTER51413.2022.00058))
-
-* Ozgur O. Kilic, Nathan R. Tallent, and Ryan D. Friese. "Rapid Memory Footprint Access Diagnostics" Proc. of the 2020 IEEE Intl. Symp. on Performance Analysis of Systems and Software, ISPASS '20, pp. 273-284, IEEE Computer Society, October 2020. ([doi: 10.1109/ISPASS48437.2020.00047](https://doi.org/10.1109/ISPASS48437.2020.00047))
-
-* Ozgur O. Kilic, Nathan R. Tallent, and Ryan D. Friese. "Rapidly Measuring Loop Footprints." Proc. of IEEE Intl. Conf. on Cluster Computing (Workshop on Monitoring and Analysis for High Performance Computing Systems Plus Applications), CLUSTER Workshops '19, pp. 1-9, IEEE Computer Society, September 2019. ([doi: 10.1109/CLUSTER.2019.8891025](https://doi.org/10.1109/CLUSTER.2019.8891025))
+- Ozgur O. Kilic, Nathan R. Tallent, and Ryan D. Friese. "Rapidly Measuring Loop Footprints." Proc. of IEEE Intl. Conf. on Cluster Computing (Workshop on Monitoring and Analysis for High Performance Computing Systems Plus Applications), CLUSTER Workshops '19, pp. 1-9, IEEE Computer Society, September 2019. ([doi: 10.1109/CLUSTER.2019.8891025](https://doi.org/10.1109/CLUSTER.2019.8891025))
 
 
-Acknowledgements
------------------------------------------------------------------------------
+
+## Acknowledgements
 
 This work was supported by the U.S. Department of Energy's Office of
 Advanced Scientific Computing Research:
