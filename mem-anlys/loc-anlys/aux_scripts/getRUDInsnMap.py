@@ -156,18 +156,18 @@ def readFile(inFile, outFile,appName):
                   objFile_C = ''
                   varVersion = 'mt-re-sel: '
                 if (appName == 'mini-v1'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-fp-arabic/miniVite-v1-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-fp-arabic/obj_v1'
+                  logFile = '/home/yasodhan/Projects/run_memgaze/minivite-x/mini-memgaze-myc/miniVite-v1-memgaze.binanlys'
+                  objFile = '/home/yasodhan/Projects/run_memgaze/minivite-x/mini-memgaze-myc/obj_v1'
                   objFile_C = ''
                   varVersion = 'm-v1: '
                 if (appName == 'mini-v2'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-fp-arabic/miniVite-v2-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-fp-arabic/obj_v2'
+                  logFile = '/home/yasodhan/Projects/run_memgaze/minivite-x/mini-memgaze-myc/miniVite-v2-memgaze.binanlys'
+                  objFile = '/home/yasodhan/Projects/run_memgaze/minivite-x/mini-memgaze-myc/obj_v2'
                   objFile_C = ''
                   varVersion = 'm-v2: '
                 if (appName == 'mini-v3'): 
-                  logFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-fp-arabic/miniVite-v3-memgaze.binanlys'
-                  objFile = '/home/suri836/Projects/run_memgaze/minivite-x/mini-memgaze-fp-arabic/obj_v3'
+                  logFile = '/home/yasodhan/Projects/run_memgaze/minivite-x/mini-memgaze-myc/miniVite-v3-memgaze.binanlys'
+                  objFile = '/home/yasodhan/Projects/run_memgaze/minivite-x/mini-memgaze-myc/obj_v3'
                   objFile_C = ''
                   varVersion = 'm-v3: '
                 if (appName == 'alpaca'): 
@@ -175,6 +175,11 @@ def readFile(inFile, outFile,appName):
                   objFile = '/home/suri836/Projects/run_memgaze/alpaca.cpp-81bd894/mg-alpaca-noinline/obj_chat'
                   objFile_C = ''
                   varVersion = 'al: '
+                if (appName == 'grid-ub1'): 
+                  logFile = '/home/yasodhan/Projects/Benchmarks/micro-benchmarks/small-grid-reg_reuse-rand-reg_set/memgaze-ub1/exe-grid-memgaze.binanlys'
+                  objFile = '/home/yasodhan/Projects/Benchmarks/micro-benchmarks/small-grid-reg_reuse-rand-reg_set/obj_exe-grid'
+                  objFile_C = ''
+                  varVersion = 'ub1: '
                 if (appName == 'xsbench'): 
                   logFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading-noinline/memgaze-xs-large/XSBench-memgaze.binanlys'
                   objFile = '/home/suri836/Projects/run_memgaze/XSBench/XSBench/openmp-threading-noinline/memgaze-xs-large/obj_XSBench'
@@ -360,6 +365,8 @@ def readFile(inFile, outFile,appName):
                 command = 'grep '+varInstgr+' '+logFile
                 strMapping =''
                 strSpillCode=''
+                fnStartIP=''
+                fnName=''
                 try:
                   strMapping = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT,universal_newlines=True)
                 except subprocess.CalledProcessError as grepexc:
@@ -429,7 +436,6 @@ def readFile(inFile, outFile,appName):
                       f_obj_c.write('\n')
                     f_obj_l.write( strBinLine)
                     f_obj_l.write('\n')
-                    fnStartIP=''
                     for key in sorted(dictFnIdentify):
                         #print( 'key ', int(key), "int(grData[5],16)", int(grData[5],16), "int(grData[5],16)) < int(key)", ((int(grData[5],16)) < int(key)))
                         if ((int(grepInsn,16)) < key):
