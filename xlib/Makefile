@@ -41,7 +41,7 @@ MY_DYNINST = dyninst@12.1.0
 
 
 xlib :
-ifdef DEVELOP
+ifeq ($(DEVELOP),1)
   xlib : info xlib_spack xlib_hpctoolkit_dev  xlib_hpctk_libs_copy
   #xlib : info xlib_spack xlib_hpctoolkit_dev xlib_dyninst_patch xlib_hpctk_libs_copy
 	@$(PRINTF) $(_msg_infoGrp)

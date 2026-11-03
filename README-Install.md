@@ -21,7 +21,7 @@ Building & Installing
 
 0. Options:
    ```sh
-   DEVELOP=1
+   DEVELOP=0 # use 1 for developmental build
 
    MG_PERF_CC=<linux-perf-cc>
    
@@ -63,7 +63,7 @@ MemGaze has four main steps.
    ```
 
   Important contents of `<inst-dir>`:
-  - `<app>`           : Instrumented `<app>`
+  - `<app>`           : Instrumented `<app> (<app-memgaze>)`
   - `<app>.binanlys`  : Static binary analysis
   - `<app>.hpcstruct` : HPCToolkit structure file
 
@@ -91,7 +91,7 @@ MemGaze has four main steps.
    either load-based or time-based.
 
    ```
-   memgaze-run -p <period or 0> -b <bufsz> [-e pt-load | pt-time | ldlat] [-o <trace-dir>] -- <app> <app-args>
+   memgaze-run -p <period or 0> -b <bufsz> [-e pt-load | pt-time | ldlat] [-o <trace-dir>] -- <app-memgaze> <app-args>
    ```
    
    Important contents of `<trace-dir>`:

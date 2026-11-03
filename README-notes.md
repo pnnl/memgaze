@@ -29,8 +29,9 @@ MemGaze Issues
   These bugs occur only for some binaries. When they occur for a
   binary, they only occur for a few loads.
   
-  For more, see DynInst note (2) in `xlib/README.md
-  `
+  For more, see DynInst note (2) in `xlib/README.md`
+  
+  NOTE: fixed with https://github.com/dyninst/dyninst/pull/2325
   
 * Bug: Occasionally, `memgaze-inst` may not instrument portions of an
   extremely complex non-contiguous function. In the notes history, see
@@ -76,7 +77,12 @@ Data formats
 
 * MemGaze's final trace format:
 
-  `<insn-pc> <mem-addr> <cpu-id> <timestamp> <sample-id> <LoadModule-id>`
+  ```
+  <header>
+  <insn-pc> <mem-addr> <cpu-id> <timestamp> <sample-id> <LoadModule-id>
+  ```
+
+  - `<header>`: is a map of load modules to load module ids
 
   - `<insn-pc>`:  instruction pointer of memory access (static, unrelocated)
   - `<mem-addr>`: memory data address (dynamic, run-time)

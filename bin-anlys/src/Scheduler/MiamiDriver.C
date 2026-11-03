@@ -551,209 +551,151 @@ void MIAMI_Driver::printLinemapInfo(){
       return;
 }
 
-
-
-void
-MIAMI_Driver::LoadImage(uint32_t id, std::string& iname, addrtype start_addr, addrtype low_offset)
-{
-   std::cerr << "[INFO]MIAMI_Driver::LoadImage: " << iname <<std::hex<<" "<<start_addr<<" "<<low_offset<<std::dec<< endl;
+void MIAMI_Driver::LoadImage(uint32_t id, std::string &iname, addrtype start_addr, addrtype low_offset) {
+  std::cerr << "[INFO] MIAMI_Driver::LoadImage " << iname << std::hex << " " << start_addr << " " << low_offset
+            << std::dec << endl;
 #if DEBUG_CFG_COUNTS
-   DEBUG_CFG(1,
-      fprintf(stderr, "MIAMI_Driver::LoadImage called for id %u, name %s, start_addr 0x%" PRIxaddr 
-           ", low_offset 0x%" PRIxaddr "\n",
-           id, iname.c_str(), start_addr, low_offset);
-      fflush(stderr);
-   )
+  DEBUG_CFG(1, fprintf(stderr,
+                       "MIAMI_Driver::LoadImage called for id %u, name %s, start_addr 0x%" PRIxaddr
+                       ", low_offset 0x%" PRIxaddr "\n",
+                       id, iname.c_str(), start_addr, low_offset);
+            fflush(stderr);)
 #endif
 
-   if (id>maxImgs)  // I need to extend my array
-   {
-      uint32_t oldSize = maxImgs;
-      while (maxImgs < id)
-         maxImgs <<= 1;
-      allImgs = (LoadModule**) realloc (allImgs, (maxImgs+1)*sizeof (LoadModule*));
-      for (uint32_t i=oldSize+1 ; i<=maxImgs ; ++i)
-         allImgs[i] = 0;
-   }
-   LoadModule* & newimg = allImgs [id];
-   if (newimg)   // should be NULL I think
-      assert (!"Loading image with id seen before");
-
-   // check if we have any data about this image in the CFG file
-   StringOffsetMap::iterator sit = imgFileOffsets.find(iname);
-   if (sit != imgFileOffsets.end())
-   {
-//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
-      // only process images for which we've collected data before
-      // now go and read the info for this image
-      int res = fseek(fd, sit->second, SEEK_SET);
-      if (res < 0)  // error
-      {
-         perror ("Changing offset to start of image failed");
-         return;
-      }
-      // compute a CRC32 checksum for this image file if we need to perform static
-      // memory analysis. The CRC is used to check the integrity of the cached values
-      uint32_t hashKey = 0;
-      if (mo->do_staticmem)
-      {
-//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
-         FILE *img_fd = fopen(iname.c_str(), "rb");
-         if (img_fd)  // I was able to open it, compute its CRC32 hash
-         {
-            MIAMIU::CRC32Hash crc32;
-            crc32.UpdateForFile(img_fd);
-            hashKey = crc32.Evaluate();
-            fclose(img_fd);
-         } else
-         {
-            cerr << "WARNING: Cannot open image file " << iname 
-                 << " for reading. Cannot compute its checksum." << endl;
-         }
-      }
-      newimg = new LoadModule (id, start_addr, low_offset, iname, hashKey);
-      ++ loadedImgs;
-     //TODO FIXME:dyninst I commented out newimg->loadFromFile(fd, false) to force
-     //control flow to fetch cfg from dynisnt 
-      // read only data for this image.
-      if (mo->do_fp && mo->palm_cfg_file.length()>1){
-         std::cout<<"in do fp:"<<mo->do_fp<<" file size:"<< mo->palm_cfg_file.length()<<std::endl;
-         newimg->palmLoadFromFile(mo);
-         newimg->createDyninstImage(bpatch);
-         newimg->loadFPfile(mo->func_name, prog, mo);
-         newimg->palmAnalyzeRoutines(prog, mo);
-      } else if(mo->load_classes){
-//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
-         std::cout<<"OZGURDBG in load_classes"<<std::endl;
-         newimg->loadFromFile(fd, false);  // do not parse routines now
-         newimg->createDyninstImage(bpatch);
-//         newimg->loadFPfile(mo->func_name, prog, mo);
-//         newimg->analyzeRoutines(fd, prog, mo);
-//From here I planing to follow v1 path to create routines vy using dyninst.  
-//std::cout<<"OZGURDBG::segfault func:"<<__func__<<" line"<<__LINE__<<std::endl;
-         newimg->dyninstAnalyzeRoutines(fd,prog, mo);
-         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
-//write this image back to a file
-         BPatch_binaryEdit* BPapp = static_cast<BPatch_binaryEdit*>(newimg->getDyninstApp());
-         std::string newName;
-         if (mo->outBinName.size() >0 ){
-            newName = mo->outBinName; 
-         } else {
-            newName = iname+"-memgaze";
-         }
-         std::cout << "Start Writing to a file\n";
-         Dyninst::PatchAPI::Patcher* patcher =  newimg->getPatcher();
-//        Dyninst::PatchAPI::PatchMgrPtr patchMgr = Dyninst::PatchAPI::convert(BPapp);
-//         Dyninst::PatchAPI::Patcher patcher(patchMgr);
-         if(!patcher->commit()){
-          std::cout <<"PATCHERISNOTWORKING2"<<std::endl;
-         }
-         BPapp->writeFile(newName.c_str());
-std::cout<<"I wrote to a file named "<<newName<<" image: "<<iname<<std::endl;
-      }
-      else { 
-//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
-         std::cout<<"old cfg do fp:"<<mo->do_fp<<" fp file size:"<< mo->fp_path.length()<<std::endl;
-         newimg->loadFromFile(fd, false);  // do not parse routines now
-         newimg->createDyninstImage(bpatch);
-        //FIXME:dyninst TODO 
-         //newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
-         newimg->loadFPfile(mo->func_name, prog, mo);
-         // Now go and analyze each routine; compute counts for all blocks and edges,
-         // recover executed paths, attempt to decode and schedule the instructions
-         // if string not empty, dump CFG of this routine
-         newimg->analyzeRoutines(fd, prog, mo);
-         //TODO lets try this here too.
-         //newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
-      }
-   }
-   else{
-//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
-      uint32_t hashKey = 0;
-      if (mo->do_staticmem)
-      {
-//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
-         FILE *img_fd = fopen(iname.c_str(), "rb");
-         if (img_fd)  // I was able to open it, compute its CRC32 hash
-         {
-            MIAMIU::CRC32Hash crc32;
-            crc32.UpdateForFile(img_fd);
-            hashKey = crc32.Evaluate();
-            fclose(img_fd);
-         } else
-         {
-            cerr << "WARNING: Cannot open image file " << iname 
-                 << " for reading. Cannot compute its checksum." << endl;
-         }
-      }
-      
-      newimg = new LoadModule (id, start_addr, low_offset, iname, hashKey);
-      ++ loadedImgs;
-      if (mo->do_fp && mo->palm_cfg_file.length()>1){
-         std::cout<<"in do fp:"<<mo->do_fp<<" file size:"<< mo->palm_cfg_file.length()<<std::endl;
-         newimg->palmLoadFromFile(mo);
-         newimg->createDyninstImage(bpatch);
-         newimg->loadFPfile(mo->func_name, prog, mo);
-         newimg->palmAnalyzeRoutines(prog, mo);
-      } else if(mo->load_classes){
-std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
-std::cout<<"OZGURDBG in load_classes"<<std::endl;
-         //newimg->loadFromFile(fd, false);  // do not parse routines now
-         newimg->createDyninstImage(bpatch);
-         //OZGURDYNFIXS
-         BPatch_binaryEdit* BPapp = static_cast<BPatch_binaryEdit*>(newimg->getDyninstApp());
-         Dyninst::PatchAPI::PatchMgrPtr patchMgr = Dyninst::PatchAPI::convert(BPapp); 
-         Dyninst::PatchAPI::Patcher patcher(patchMgr);
-         newimg->dyninstAnalyzeRoutines(prog, mo, &patcher);
-         //OZGURDYNFIXe
-         //newimg->dyninstAnalyzeRoutines(prog, mo);
-         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
-//After here We were using palm way to create each routine
-//      /*OZGURS trying to loop in routines This is DBG turn this off when you are done*/
-//         std::vector<BPatch_function *> funcs;
-//         newimg->getDyninstImage()->getProcedures(funcs);
-//         Dyninst::Address start, end;
-//         for (auto func : funcs){
-//            if (func->getName().find("targ")== std::string::npos){
-//               std::cout<<"-----> I am instrumenting func:"<< func->getName()<<std::endl;
-//               newimg->dyninstAnalyzeRoutine(func->getName(), prog, mo);
-//               //newimg->dyninstAnalyzeRoutine(func, prog, mo);
-//            } else {
-//               std::cout<<"-----> I am NOT instrumenting func:"<< func->getName()<<std::endl;
-////            std::cout<<"OZGURDBG func name: "<<func->getName()<<" baseAddr:"<<std::hex<<func->getBaseAddr()<<" Start Addr=0x"<<start<<" End Addr=0x"<<end<<" func baseAddr:"<<base_addr<<" low_addr_offset:"<<low_addr_offset<<" pathname: "<</*obj->pathName()<<*/std::dec<<std::endl;
-//            }
-//         }
-
-//write this image back to a file
-//         BPatch_binaryEdit* BPapp = static_cast<BPatch_binaryEdit*>(newimg->getDyninstApp());
-         std::cout<<std::dec<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
-
-         std::string newName;
-         if (mo->outBinName.size() >0 ){
-            newName = mo->outBinName; 
-         } else {
-            newName = iname+"-memgaze";
-         }
-//        Dyninst::PatchAPI::PatchMgrPtr patchMgr = Dyninst::PatchAPI::convert(BPapp);
-//        Dyninst::PatchAPI::PatchMgrPtr patchMgr = newimg->getPatchMgrPtr();
-//         Dyninst::PatchAPI::Patcher patcher(patchMgr);
-//         Dyninst::PatchAPI::Patcher* patcher =newimg->getPatcher();
-        
-         if (!patcher.commit()){
-         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
-          std::cout <<"PATCHERISNOTWORKING2"<<std::endl;
-         } else {
-          std::cout<<"DID I COMMIT???"<<std::endl;
-         }
-//
-         std::cout << "Start Writing to a file\n";
-         BPapp->writeFile(newName.c_str());
-std::cout<<"OZGURDBG::I Wrote to a file named "<<newName<<" image: "<<iname<<std::endl;
+  if (id > maxImgs) { // I need to extend my array
+    uint32_t oldSize = maxImgs;
+    while (maxImgs < id)
+      maxImgs <<= 1;
+    allImgs = (LoadModule **)realloc(allImgs, (maxImgs + 1) * sizeof(LoadModule *));
+    for (uint32_t i = oldSize + 1; i <= maxImgs; ++i)
+      allImgs[i] = 0;
+  }
+  LoadModule *&newimg = allImgs[id];
+  if (newimg) {
+    assert(!"Loading image with id seen before");
+  }
+  // check if we have any data about this image in the CFG file
+  StringOffsetMap::iterator sit = imgFileOffsets.find(iname);
+  if (sit != imgFileOffsets.end()) {
+    //  only process images for which we've collected data before
+    //  now go and read the info for this image
+    int res = fseek(fd, sit->second, SEEK_SET);
+    if (res < 0) { // error
+      perror("Changing offset to start of image failed");
+      return;
+    }
+    // compute a CRC32 checksum for this image file if we need to perform static
+    // memory analysis. The CRC is used to check the integrity of the cached values
+    uint32_t hashKey = 0;
+    if (mo->do_staticmem) {
+      FILE *img_fd = fopen(iname.c_str(), "rb");
+      if (img_fd) {
+        MIAMIU::CRC32Hash crc32;
+        crc32.UpdateForFile(img_fd);
+        hashKey = crc32.Evaluate();
+        fclose(img_fd);
       } else {
-         newimg->createDyninstImage(bpatch);
-         newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
+        cerr << "[LOG] WARNING: Cannot open image file " << iname << " for reading. Cannot compute its checksum."
+             << endl;
       }
-   }
+    }
+    newimg = new LoadModule(id, start_addr, low_offset, iname, hashKey);
+    ++loadedImgs;
+    // TODO FIXME:dyninst I commented out newimg->loadFromFile(fd, false) to force
+    // control flow to fetch cfg from dynisnt
+    //  read only data for this image.
+    if (mo->do_fp && mo->palm_cfg_file.length() > 1) {
+      newimg->palmLoadFromFile(mo);
+      newimg->createDyninstImage(bpatch);
+      newimg->loadFPfile(mo->func_name, prog, mo);
+      newimg->palmAnalyzeRoutines(prog, mo);
+    } else if (mo->load_classes) {
+      newimg->loadFromFile(fd, false); // do not parse routines now
+      newimg->createDyninstImage(bpatch);
+      
+      // From here I planing to follow v1 path to create routines vy using dyninst.
+      newimg->dyninstAnalyzeRoutines(fd, prog, mo);
+      
+      // write this image back to a file
+      BPatch_binaryEdit *BPapp = static_cast<BPatch_binaryEdit *>(newimg->getDyninstApp());
+      std::string newName;
+      
+      if (mo->outBinName.size() > 0) {
+        newName = mo->outBinName;
+      } else {
+        newName = iname + "-memgaze";
+      }
+            
+      Dyninst::PatchAPI::Patcher *patcher = newimg->getPatcher();
+      // Dyninst::PatchAPI::PatchMgrPtr patchMgr = Dyninst::PatchAPI::convert(BPapp);
+      // Dyninst::PatchAPI::Patcher patcher(patchMgr);
+      if (!patcher->commit()) {
+        std::cout << "[LOG] ERROR PATCHER IS NOT WORKING" << std::endl;
+      }
+      BPapp->writeFile(newName.c_str());
+      std::cout << "[LOG] wrote to a file " << newName << " image: " << iname << std::endl;
+    } else {
+      std::cout << "[LOG] old cfg do fp:" << mo->do_fp << " fp file size:" << mo->fp_path.length() << std::endl;
+      newimg->loadFromFile(fd, false); // do not parse routines now
+      newimg->createDyninstImage(bpatch);
+      // FIXME:dyninst TODO
+      // newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
+      newimg->loadFPfile(mo->func_name, prog, mo);
+      // Now go and analyze each routine; compute counts for all blocks and edges,
+      // recover executed paths, attempt to decode and schedule the instructions
+      // if string not empty, dump CFG of this routine
+      newimg->analyzeRoutines(fd, prog, mo);
+      // TODO lets try this here too.
+      // newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
+    }
+  } else {
+    uint32_t hashKey = 0;
+    if (mo->do_staticmem) {
+      FILE *img_fd = fopen(iname.c_str(), "rb");
+      if (img_fd) { // I was able to open it, compute its CRC32 hash
+        MIAMIU::CRC32Hash crc32;
+        crc32.UpdateForFile(img_fd);
+        hashKey = crc32.Evaluate();
+        fclose(img_fd);
+      } else {
+        cerr << "[LOG] ERROR Cannot open image file " << iname << " for reading. Cannot compute its checksum." << endl;
+      }
+    }
+
+    newimg = new LoadModule(id, start_addr, low_offset, iname, hashKey);
+    ++loadedImgs;
+    if (mo->do_fp && mo->palm_cfg_file.length() > 1) {
+      std::cout << "[LOG] in do fp:" << mo->do_fp << " file size:" << mo->palm_cfg_file.length() << std::endl;
+      newimg->palmLoadFromFile(mo);
+      newimg->createDyninstImage(bpatch);
+      newimg->loadFPfile(mo->func_name, prog, mo);
+      newimg->palmAnalyzeRoutines(prog, mo);
+    } else if (mo->load_classes) {
+      // newimg->loadFromFile(fd, false);  // do not parse routines now
+      newimg->createDyninstImage(bpatch);
+      BPatch_binaryEdit *BPapp = static_cast<BPatch_binaryEdit *>(newimg->getDyninstApp());
+      Dyninst::PatchAPI::PatchMgrPtr patchMgr = Dyninst::PatchAPI::convert(BPapp);
+      Dyninst::PatchAPI::Patcher patcher(patchMgr);
+      newimg->dyninstAnalyzeRoutines(prog, mo, &patcher);
+      // newimg->dyninstAnalyzeRoutines(prog, mo);
+      std::string newName;
+      if (mo->outBinName.size() > 0) {
+        newName = mo->outBinName;
+      } else {
+        newName = iname + "-memgaze";
+      }
+      if (!patcher.commit()) {
+        std::cout << "[LOG] ERROR PATCHER IS NOT WORKING" << std::endl;
+      } else {
+        std::cout << "[LOG] DID I COMMIT???" << std::endl;
+      }
+      BPapp->writeFile(newName.c_str());
+      std::cout << "[LOG] Wrote to a file named " << newName << " image: " << iname << std::endl;
+    } else {
+      newimg->createDyninstImage(bpatch);
+      newimg->dyninstAnalyzeRoutine(mo->func_name, prog, mo);
+    }
+  }
 }
 
 void

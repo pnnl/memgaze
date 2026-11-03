@@ -1362,256 +1362,159 @@ int LoadModule::dyninstAnalyzeRoutines(FILE *fd, ProgScope *prog, const MiamiOpt
    return 0;
 }
 
-int LoadModule::dyninstAnalyzeRoutines(ProgScope *prog, const MiamiOptions *mo, Dyninst::PatchAPI::Patcher* patcher){
-   std::cout<<__func__<<__LINE__<<std::endl;
-   std::vector<BPatch_function *> funcs;
-   dyn_image->getProcedures(funcs);
-   for (auto func : funcs){
-      //std::vector<BPatch_function*> tfunctions;
-      string routName = func->getName().c_str();
-      std::cerr<<"Name of the routine is: "<<routName.c_str()<<std::endl;
-      //   dyn_image->findFunction(routName.c_str(), tfunctions,false,true,false);
-      std::cout<<__func__<<__LINE__<<std::endl; 
-      //   for(unsigned int f = 0; f < tfunctions.size(); f++) { //search for inlined functions (possibly do special analysis in inlined function found)
-      //      //      cout<<tfunctions[f]->getName()<<" "<<tfunctions[f]->getMangledName()<<" inst: "<<tfunctions[f]->isInstrumentable()<<" "<<(unsigned int*)tfunctions[f]->getBaseAddr()<<std::endl;
-      //      BPatch_flowGraph *fg =tfunctions[f]->getCFG();
-      //      std::set<BPatch_basicBlock*> blks;
-      //      fg->getAllBasicBlocks(blks);
-      //      //      cout<<"num basic blocks: "<<blks.size()<<std::endl;
-      //      Dyninst::SymtabAPI::Symtab* symtab = Dyninst::SymtabAPI::convert(tfunctions[f]->getModule()->getObject());
-      //      //      cout<<(symtab == NULL)<<std::endl;
-      //      if (symtab!=NULL){
-      //         Dyninst::SymtabAPI::Function* tf;
-      //         if(symtab->findFuncByEntryOffset(tf,(Dyninst::Offset)tfunctions[f]->getBaseAddr())){
-      //            Dyninst::SymtabAPI::InlineCollection inlines = tf->getInlines();
-      //            //            cout<<"inlined: "<<inlines.size()<<std::endl;
-      //            for(Dyninst::SymtabAPI::InlineCollection::iterator it = inlines.begin();it != inlines.end(); ++it){
-      //               Dyninst::SymtabAPI::FunctionBase* inFunc = (*it);
-      //               //               cout<<"\t"<<inFunc->getName()<<std::endl;
-      //               std::pair<std::string, Dyninst::Offset> callSite = dynamic_cast<Dyninst::SymtabAPI::InlinedFunction*>(inFunc)->getCallsite();
-      //               //               cout<<callSite.first<<" "<<callSite.second<<std::endl;
-      //            }
-      //         }
-      //      }
-      //   }
-      //   if (tfunctions.size()<1){
-      //      std::cout<<"OZGURERROR::somthing is wrong\n";
-      //   }
-      std::cout<<__func__<<__LINE__<<std::endl; 
-      Dyninst::Address start,end;
-      func->getAddressRange(start,end);
-      cout <<hex<< " Start:"<<start<<" End:"<<end<<endl;
-      //if (func->isInstrumentable()){
-      //std::cout<<routName<<" is Instrumentable"<<std::endl; 
-      BPatch_flowGraph *fg =func->getCFG();
-      std::set<BPatch_basicBlock*> blks;
-      //BPatch_Vector<BPatch_basicBlock*> eblks, xblks;
-      fg->getAllBasicBlocks(blks);
-      //fg->getEntryBasicBlock(eblks);
-      //fg->getExitBasicBlock(xblks);
-      
-      Dyninst::Address  Pend=start;
-      cout<<"num basic blocks: "<<blks.size()<<std::endl;
-      //cout<<"num Entry blocks: "<<eblks.size()<<std::endl;
-      //for (auto blk :  eblks){
-      //  cout <<hex<<"Entry Start:"<<blk->getStartAddress()<<" End:"<<blk->getEndAddress()<<dec<<endl;
-      //}
-      //for (auto blk :  blks){
-      //  cout <<hex<<"Exit Start:"<<blk->getStartAddress()<<" End:"<<blk->getEndAddress()<<dec<<endl;
-      //}
+int LoadModule::dyninstAnalyzeRoutines(ProgScope *prog, const MiamiOptions *mo, Dyninst::PatchAPI::Patcher *patcher) {
+  std::vector<BPatch_function *> funcs;
+  dyn_image->getProcedures(funcs);
 
-      for (auto blk :  blks){
-        // cout <<hex<<"Prev End:"<<Pend<<" Start-10:"<<(blk->getStartAddress())-0xa<<endl;
-        // Check for NOP discontinuity within the blocks in the function
-        // If it's within 10 bytes, then allow the function end to remain the same
-        // If there are jumps to other functions - it should be more than 10 bytes change in address range
-        if (!(Pend >= ((blk->getStartAddress())-0xa))){
-          cout <<"Someting Wrong:"<<endl;
-          cout <<hex<<"Prev End:"<<Pend<<" Start:"<<blk->getStartAddress()<<" End:"<<blk->getEndAddress()<<dec<<endl;
-          if (Pend != start)
-            end = Pend;
-          break;
-        } else {
-          cout <<hex<<"Prev End:"<<Pend<<" Start:"<<blk->getStartAddress()<<" End:"<<blk->getEndAddress()<<dec<<endl;
-          Pend = blk->getEndAddress();
+  for (auto func : funcs) {
+    string routName = func->getName().c_str();
+    std::cerr << "Name of the routine is: " << routName.c_str() << std::endl;
+    std::cout << __func__ << __LINE__ << std::endl;
+    Dyninst::Address start, end;
+    func->getAddressRange(start, end);
+    cout << hex << " Start:" << start << " End:" << end << endl;
+    BPatch_flowGraph *fg = func->getCFG();
+    std::set<BPatch_basicBlock *> blks;
+    fg->getAllBasicBlocks(blks);
+
+    Dyninst::Address Pend = start;
+    cout << "[LOG] Num basic blocks: " << blks.size() << std::endl;
+
+    for (auto blk : blks) {
+      // cout <<hex<<"Prev End:"<<Pend<<" Start-10:"<<(blk->getStartAddress())-0xa<<endl;
+      // Check for NOP discontinuity within the blocks in the function
+      // If it's within 10 bytes, then allow the function end to remain the same
+      // If there are jumps to other functions - it should be more than 10 bytes change in address range
+      // if (!(Pend >= ((blk->getStartAddress())-0xa))){
+      if (Pend != blk->getStartAddress()) {
+        cout << hex << "[LOG] ERROR Prev End:" << Pend << " Start:" << blk->getStartAddress() << " End:" << blk->getEndAddress()
+             << dec << endl;
+        if (Pend != start)
+          end = Pend;
+        break;
+      } else {
+        cout << hex << "Prev End:" << Pend << " Start:" << blk->getStartAddress() << " End:" << blk->getEndAddress()
+             << dec << endl;
+        Pend = blk->getEndAddress();
+      }
+    }
+    Dyninst::ParseAPI::CodeSource *codeSrc = Dyninst::ParseAPI::convert(func)->obj()->cs();
+    std::cout << __func__ << __LINE__ << std::endl;
+    base_addr = (MIAMI::addrtype)((Dyninst::Address)codeSrc->getPtrToInstruction(start) - start);
+    std::cout << __func__ << __LINE__ << std::endl;
+    reloc_offset = base_addr;
+    std::cout << __func__ << __LINE__ << std::endl;
+    low_addr_offset = (MIAMI::addrtype)codeSrc->offset();
+    std::cout << __func__ << __LINE__ << std::endl;
+    if (mo->lat_path.size() > 0) {
+      ifstream latFile;
+      latFile.open(mo->lat_path);
+      addrtype insn;
+      double lat;
+      std::string latFuncNm;
+      std::string latDso;
+      std::string funcName = "func:" + mo->func_name;
+      std::string line;
+      bool inFunction = false;
+      while (std::getline(latFile, line)) {
+        if (line == funcName) {
+          inFunction = true;
+          continue;
+        } else if (line.length() < 2) {
+          inFunction = false;
+        }
+        if (inFunction) {
+          int numLevel = 0;
+          std::istringstream in(line);
+          in >> std::hex >> insn >> numLevel;
+          memStruct tempMemStruct;
+          for (int i = 0; i < numLevel; i++) {
+            in >> std::dec >> tempMemStruct.level >> tempMemStruct.hitCount >> tempMemStruct.latency;
+            std::cout << "[LOG] LATENCY DATA lvl:" << tempMemStruct.level << " hit:" << tempMemStruct.hitCount
+                      << " lat: " << tempMemStruct.latency << std::endl;
+          }
+          in >> lat;
+          instLats[low_addr_offset + insn] = lat;
         }
       }
-      //cout<<"num Exit blocks: "<<xblks.size()<<std::endl;
-        //    Dyninst::SymtabAPI::Symtab* symtab = Dyninst::SymtabAPI::convert(func->getModule()->getObject());
-        //    if (symtab!=NULL){
-        //       Dyninst::SymtabAPI::Function* tf;
-        //       if(symtab->findFuncByEntryOffset(tf,(Dyninst::Offset)func->getBaseAddr())){
-        //          Dyninst::SymtabAPI::InlineCollection inlines = tf->getInlines();
-        //                      cout<<"inlined: "<<inlines.size()<<std::endl;
-        //          for(Dyninst::SymtabAPI::InlineCollection::iterator it = inlines.begin();it != inlines.end(); ++it){
-        //             Dyninst::SymtabAPI::FunctionBase* inFunc = (*it);
-        //                            cout<<"\t"<<inFunc->getName()<<std::endl;
-        //             std::pair<std::string, Dyninst::Offset> callSite = dynamic_cast<Dyninst::SymtabAPI::InlinedFunction*>(inFunc)->getCallsite();
-        //                            cout<<callSite.first<<" "<<callSite.second<<std::endl;
-        //          }
-        //       }
-        //      }
+      latFile.close();
+    }
 
-      //}else {
-      //  std::cout<<routName<<" is NOT Instrumentable"<<std::endl; 
-      //}
-      //Dyninst::Address start,end;
-      std::cout<<__func__<<__LINE__<<std::endl; 
-      //   tfunctions[0]->getAddressRange(start,end);
-      //func->getAddressRange(start,end);
-
-      std::cout<<__func__<<__LINE__<<std::endl; 
-      //   Dyninst::ParseAPI::CodeSource* codeSrc = Dyninst::ParseAPI::convert(tfunctions[0])->obj()->cs();
-      Dyninst::ParseAPI::CodeSource* codeSrc = Dyninst::ParseAPI::convert(func)->obj()->cs();
-      std::cout<<__func__<<__LINE__<<std::endl; 
-      base_addr = (MIAMI::addrtype)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-start);
-      std::cout<<__func__<<__LINE__<<std::endl; 
-      reloc_offset=base_addr;
-         std::cout<<"OZGUR_1 RELOC:::"<<std::hex<<reloc_offset<<std::dec<<std::endl;
-      std::cout<<__func__<<__LINE__<<std::endl; 
-      low_addr_offset = (MIAMI::addrtype)codeSrc->offset();
-      std::cout<<__func__<<__LINE__<<std::endl; 
-      //cout << (unsigned int*)codeSrc->getPtrToInstruction(start) <<" BU mu: "<<(unsigned int*)start<<" "<<(unsigned int*)((Dyninst::Address)codeSrc->getPtrToInstruction(start)-(Dyninst::Address)start)<<endl;
-      //cout << (unsigned int*)codeSrc->offset()<<" "<<(unsigned int*)codeSrc->length()<<" "<<(unsigned int*)codeSrc->baseAddress()<<" "<<(unsigned int*)codeSrc->loadAddress()<<endl;
-      if (mo->lat_path.size() > 0){
-         ifstream latFile;
-         latFile.open(mo->lat_path);
-         addrtype insn;
-         double lat;
-         std::string latFuncNm;
-         std::string latDso;
-         //ozgurS
-         std::string funcName = "func:"+mo->func_name;
-         std::string line;
-         bool inFunction =false;
-         //      memStruct emptyMemStruct;
-         //      emptyMemStruct.level = 0;
-         //      emptyMemStruct.hitCount = 0;
-         //      emptyMemStruct.latency = 0;
-         //      for(int i= 0; i<10; i++){
-         //         emptyLevelMap[i]=emptyMemStruct;
-         //      }
-         while (std::getline(latFile , line)) {
-            if (line == funcName){
-               inFunction = true;
-               continue;
-            } else if (line.length() < 2){
-               inFunction = false;
-            }
-            if (inFunction){
-               int numLevel = 0;
-               std::cout<<" OZGURLATDEBUUG " << line << std::endl;
-               std::istringstream in(line);
-               in  >> std::hex >> insn >> numLevel;
-               memStruct tempMemStruct;
-               //               InstlvlMap lvlMap; 
-               for (int i=0; i <numLevel; i++){
-                  in >> std::dec >> tempMemStruct.level >> tempMemStruct.hitCount >> tempMemStruct.latency;
-                  std::cout<<"OZGURLATDATA lvl:"<<tempMemStruct.level<<" hit:"<<tempMemStruct.hitCount<<" lat: "<<tempMemStruct.latency<<std::endl;
-                  //                  lvlMap[tempMemStruct.level] = tempMemStruct;
-               }
-               //               double miss = calculateMissRatio(lvlMap ,  0);
-               in >> lat;
-               //               instMemMap[low_addr_offset+insn] = lvlMap;
-               //               std::cout<<"lvl6::"<<lvlMap[6].hitCount<<std::endl;
-               //               std::cout<<"insMemMap::"<<instMemMap[low_addr_offset+insn][6].hitCount<<std::endl;
-               instLats[low_addr_offset+insn]=lat;
-               //               std::cout<<" 1OZGURDEBUG inst " << std::hex << insn << " lvl: "<< std::dec << instMemMap[low_addr_offset+insn][0].level <<" hit:" <<instMemMap[low_addr_offset+insn][0].hitCount << " lat: " << instMemMap[low_addr_offset+insn][0].latency << " missRatio lvl0: " << miss << std::endl;
-            }
-         }
-         //ozgurE      
-         /*      while (latFile >> std::hex >> insn >> std::dec >> lat >> latFuncNm >> latDso){
-                 if (routName.compare(latFuncNm) == 0){
-                 cout<< std::hex<<(unsigned int*)low_addr_offset<<" "<<(unsigned int*)insn <<" "<<(unsigned int*)(low_addr_offset+insn)<<std::dec<< " "<<lat<<" "<<latFuncNm<<" "<<latDso<<endl;
-                 instLats[low_addr_offset+insn]=lat;
-                 }
-                 }*/
-         latFile.close(); 
-      }
-
-   if (mo->fp_path.size() > 0){
+    if (mo->fp_path.size() > 0) {
       ifstream fpFile;
       fpFile.open(mo->fp_path);
       addrtype insn;
       std::string fpFuncNm;
       std::string fpDso;
-      //ozgurS
       std::string dso = "dso:";
-      std::string funcName = "func:"+mo->func_name;
+      std::string funcName = "func:" + mo->func_name;
       std::string line;
-      bool inFunction =false;
+      bool inFunction = false;
       memStruct emptyMemStruct;
       emptyMemStruct.level = 0;
       emptyMemStruct.hitCount = 0;
       emptyMemStruct.latency = 0;
-      std::getline(fpFile , line);
+      std::getline(fpFile, line);
       std::istringstream in(line);
       int totalLVLs = 0;
-      in >> std::dec >> totalLVLs ;
-      std::cout<<"OZGUR XTRW totallvl "<<totalLVLs<<std::endl;
-      for(int i= 0; i<totalLVLs; i++){
-         emptyLevelMap[i]=emptyMemStruct;
+      in >> std::dec >> totalLVLs;
+      std::cout << "[LOG] XTRW totallvl " << totalLVLs << std::endl;
+      for (int i = 0; i < totalLVLs; i++) {
+        emptyLevelMap[i] = emptyMemStruct;
       }
-      while (std::getline(fpFile , line)) {
-         if (line == funcName){
-            inFunction = true;
-            continue;
-         } else if (line.length() < 2){
-            inFunction = false;
-         }
-         if (inFunction){
-            int numLevel = 0;
-            std::cout<<" OZGURXDEBUG line: " << line << std::endl;
-            std::istringstream in(line);
-            in  >> std::hex >> insn >> numLevel;
-            memStruct tempMemStruct;
-            InstlvlMap lvlMap; 
-            for (int i=0; i <numLevel; i++){
-               in >> std::dec >> tempMemStruct.level >> tempMemStruct.hitCount;
-               std::cout<<"OZGURDATACOLLECTION lvl:"<<tempMemStruct.level<<" hit:"<<tempMemStruct.hitCount<<std::endl;
-               lvlMap[tempMemStruct.level] = tempMemStruct;
-            }
-            double miss = calculateMissRatio(lvlMap ,  0);
-            instMemMap[start+insn] = lvlMap;
-            std::cout<<" 1OZGURDEBUG inst " << std::hex << insn << " real addres: "<<start+insn << " lvl: "<< std::dec << instMemMap[start+insn][0].level <<" hit:" <<instMemMap[start+insn][0].hitCount  << " missRatio lvl0: " << miss << std::endl;
-         }
+      while (std::getline(fpFile, line)) {
+        if (line == funcName) {
+          inFunction = true;
+          continue;
+        } else if (line.length() < 2) {
+          inFunction = false;
+        }
+        if (inFunction) {
+          int numLevel = 0;
+          std::istringstream in(line);
+          in >> std::hex >> insn >> numLevel;
+          memStruct tempMemStruct;
+          InstlvlMap lvlMap;
+          for (int i = 0; i < numLevel; i++) {
+            in >> std::dec >> tempMemStruct.level >> tempMemStruct.hitCount;
+            std::cout << "[LOG] DATA COLLECTION lvl:" << tempMemStruct.level << " hit:" << tempMemStruct.hitCount
+                      << std::endl;
+            lvlMap[tempMemStruct.level] = tempMemStruct;
+          }
+          double miss = calculateMissRatio(lvlMap, 0);
+          instMemMap[start + insn] = lvlMap;
+          std::cout << " [LOG] inst " << std::hex << insn << " real addres: " << start + insn
+                    << " lvl: " << std::dec << instMemMap[start + insn][0].level
+                    << " hit:" << instMemMap[start + insn][0].hitCount << " missRatio lvl0: " << miss << std::endl;
+        }
       }
-      //ozgurE      
-      /*      while (latFile >> std::hex >> insn >> std::dec >> lat >> latFuncNm >> latDso){
-              if (routName.compare(latFuncNm) == 0){
-              cout<< std::hex<<(unsigned int*)low_addr_offset<<" "<<(unsigned int*)insn <<" "<<(unsigned int*)(low_addr_offset+insn)<<std::dec<< " "<<lat<<" "<<latFuncNm<<" "<<latDso<<endl;
-              instLats[low_addr_offset+insn]=lat;
-              }
-              }*/
-      fpFile.close(); 
-   }
+      fpFile.close();
+    }
 
+    std::cout << "Creating Routine:: " << string(routName) << " Start: " << std::hex << (addrtype)start
+              << " End: " << (addrtype)end << " Reloc Off: " << reloc_offset << std::dec << std::endl;
+    Routine *rout =
+        new Routine(this, (addrtype)start, (usize_t)end - start, string(routName), (addrtype)start, reloc_offset);
 
-   std::cout << "Creating Routine:: "<<string(routName)<<" Start: "<<std::hex<<(addrtype)start<<" End: "<<(addrtype)end<< " Reloc Off: "<<reloc_offset<<std::dec<<std::endl;
-   Routine* rout = new Routine(this, (addrtype)start, (usize_t) end-start, string(routName), (addrtype)start, reloc_offset);
-
-   std::cerr << "[INFO]LoadModule::dynInstAnalyzeRoutines(): '" << rout->Name() <<" "<<(unsigned int*)reloc_offset<< "'\n";
-   addrtype rstart = rout->Start();
-   rout->discover_CFG(rstart);
-   //rout->dyninst_discover_CFG(rstart);
-   int ires;
-//std::cout<<"OZGURDBG::Discover the Path func:"<<__func__<<" line"<<__LINE__<<std::endl;
-
-   img_scope = new ImageScope(prog, img_name, img_id);
-   if (rout->is_valid_for_analysis()){
-        ires = rout->main_analysis(img_scope, mo, patcher);
-         std::cout<<"OZGURDYNINSTDBG::"<<__func__<<": "<<__LINE__<<std::endl;
-      if (ires < 0){
-         fprintf (stderr, "Error while analyzing routine %s\n", rout->Name().c_str());
-         if (mo->do_linemap)
-            FinalizeSourceFileInfo();
-         return (-1);
+    std::cerr << "[INFO] LoadModule::dynInstAnalyzeRoutines(): '" << rout->Name() << " " << (unsigned int *)reloc_offset
+              << "'\n";
+    addrtype rstart = rout->Start();
+    rout->discover_CFG(rstart);
+    int ires;
+    img_scope = new ImageScope(prog, img_name, img_id);
+    if (rout->is_valid_for_analysis()) {
+      ires = rout->main_analysis(img_scope, mo, patcher);
+      std::cout << "[LOG] inst " << __func__ << ": " << __LINE__ << std::endl;
+      if (ires < 0) {
+        fprintf(stderr, "Error while analyzing routine %s\n", rout->Name().c_str());
+        if (mo->do_linemap)
+          FinalizeSourceFileInfo();
+        return (-1);
       }
-   }
-
-   delete (rout);
-   }
-   return 0;
+    }
+    delete (rout);
+  }
+  return 0;
 }
 int LoadModule::dyninstAnalyzeRoutines(ProgScope *prog, const MiamiOptions *mo){
    std::cout<<__func__<<__LINE__<<std::endl;
