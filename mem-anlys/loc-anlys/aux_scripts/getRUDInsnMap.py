@@ -177,7 +177,7 @@ def readFile(inFile, outFile,appName):
                   varVersion = 'al: '
                 if (appName == 'grid-ub1'): 
                   logFile = '/home/yasodhan/Projects/Benchmarks/micro-benchmarks/small-grid-reg_reuse-rand-reg_set/memgaze-ub1/exe-grid-memgaze.binanlys'
-                  objFile = '/home/yasodhan/Projects/Benchmarks/micro-benchmarks/small-grid-reg_reuse-rand-reg_set/obj_exe-grid'
+                  objFile = '/home/yasodhan/Projects/Benchmarks/micro-benchmarks/small-grid-reg_reuse-rand-reg_set/memgaze-ub1/obj_exe-grid'
                   objFile_C = ''
                   varVersion = 'ub1: '
                 if (appName == 'xsbench'): 
